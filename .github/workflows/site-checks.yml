@@ -1,0 +1,63 @@
+name: BEAM Site Checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify pages, local links, and simulation structure
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from html.parser import HTMLParser
+          from urllib.parse import urlparse
+          import re
+
+          class Links(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.links = []
+              def handle_starttag(self, tag, attrs):
+                  attrs = dict(attrs)
+                  if tag in {"a", "link"} and attrs.get("href"):
+                      self.links.append(attrs["href"])
+                  if tag == "script" and attrs.get("src"):
+                      self.links.append(attrs["src"])
+
+          pages = ["index.html", "acteurs.html", "merci.html", "simulation-3d.html"]
+          for page in pages:
+              path = Path(page)
+              assert path.is_file(), f"Missing page {page}"
+              source = path.read_text(encoding="utf-8")
+              assert "<html" in source and "</html>" in source, page
+              assert "<title>" in source, page
+              parser = Links()
+              parser.feed(source)
+              for link in parser.links:
+                  loc = urlparse(link)
+                  if loc.scheme or link.startswith(("//", "#", "mailto:", "tel:")):
+                      continue
+                  pathname = loc.path
+                  if not pathname or pathname == "/":
+                      continue
+                  dest = Path(pathname.lstrip("/"))
+                  assert dest.is_file(), f"{page}: missing linked file {link}"
+          home = Path("index.html").read_text(encoding="utf-8")
+          game = Path("simulation-3d.html").read_text(encoding="utf-8")
+          assert 'href="simulation-3d.html"' in home
+          assert game.count('short:"') == 4, "Expected four tasks"
+          assert "THREE.WebGLRenderer" in game
+          assert 'data-move="up"' in game and 'id="interact"' in game
+          match = re.search(r'<script type="module">([\s\S]*?)</script>', game)
+          assert match, "Missing game module"
+          Path("/tmp/beam-game.mjs").write_text(match.group(1), encoding="utf-8")
+          print("BEAM site pages and local links OK")
+          PY
+      - name: Check game JavaScript syntax
+        run: node --check /tmp/beam-game.mjs
