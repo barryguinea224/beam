@@ -74,6 +74,10 @@ h1 em{font-family:Georgia,serif;color:#ecc081;font-weight:400}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
 
 /* V2 — inspired by classic airport wayfinding and departures boards; all graphics are original */
+.board-jump{color:#f2c78b;text-decoration:underline;text-underline-offset:3px;font-weight:800}
+.flight-board{overflow-x:auto;scroll-margin-top:16px}
+.flight-board table{min-width:425px}
+.flight-board:target{outline:2px solid #eec88a;outline-offset:2px}
 .flight-board{background:#121619;margin:14px 14px 16px;border:2px solid #394a53;border-radius:14px;overflow:hidden}
 .board-header{padding:11px 13px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;background:#171c1f;color:#e7b73e;font-weight:900;font-size:13px}
 .board-header span{font-size:9px;letter-spacing:.12em;color:#9ea9ad}
@@ -122,8 +126,8 @@ h1 em{font-family:Georgia,serif;color:#ecc081;font-weight:400}
    <button id="interact" class="interact" type="button">S'approcher du poste</button>
   </div>
  </div>
- <p class="instruction">⌨️ Flèches ou ZQSD / WASD · Sur téléphone : touches tactiles · <strong>E</strong> pour interagir · Tableau des départs et vols fictifs.</p>
-<div class="flight-board" aria-label="Tableau fictif des départs"><div class="board-header"><strong>✈ DÉPARTS · CKY</strong><span>DONNÉES DE SIMULATION</span></div><table><thead><tr><th>HEURE</th><th>DESTINATION</th><th>VOL</th><th>PORTE</th><th>STATUT</th></tr></thead><tbody id="flight-board-rows"><tr><td>10:30</td><td>PARIS</td><td>BM120</td><td>A04</td><td>À L'HEURE</td></tr><tr><td>11:15</td><td>DAKAR</td><td>BM206</td><td>B02</td><td>EMBARQUEMENT</td></tr><tr><td>12:10</td><td>ISTANBUL</td><td>BM331</td><td>C07</td><td>RETARDÉ</td></tr></tbody></table></div>
+ <p class="instruction">⌨️ Flèches ou ZQSD / WASD · Sur téléphone : touches tactiles · <strong>E</strong> pour interagir · <a class="board-jump" href="#flight-board">Consulter le tableau des départs ↓</a></p>
+<div class="flight-board" id="flight-board" aria-label="Tableau fictif des départs"><div class="board-header"><strong>✈ DÉPARTS · CKY</strong><span>DONNÉES DE SIMULATION</span></div><table><thead><tr><th>HEURE</th><th>DESTINATION</th><th>VOL</th><th>PORTE</th><th>STATUT</th></tr></thead><tbody id="flight-board-rows"><tr><td>10:30</td><td>PARIS</td><td>BM120</td><td>A04</td><td>À L'HEURE</td></tr><tr><td>11:15</td><td>DAKAR</td><td>BM206</td><td>B02</td><td>EMBARQUEMENT</td></tr><tr><td>12:10</td><td>ISTANBUL</td><td>BM331</td><td>C07</td><td>RETARDÉ</td></tr></tbody></table></div>
 </section>
 <aside class="side" aria-label="Progression de la formation">
  <span class="eyebrow">MISSIONS D'AGENT · V2</span><h2 id="mission-title">1. Accueil & bagages</h2>
@@ -239,12 +243,12 @@ function departures3D(){
  {text:"11:15   DAKAR              BM206   B02    BOARDING",x:35,y:222,color:"#a4ecd0",font:"bold 29px monospace"},
  {text:"12:10   ISTANBUL           BM331   C07    DELAYED",x:35,y:275,color:"#f1b87b",font:"bold 29px monospace"}
  ];
- makeBox(scene,11.9,4.55,.3,0x32444c,-6.9,7.25,-9.2);
- const board=new THREE.Mesh(new THREE.PlaneGeometry(11.5,4.2),panel(lines,1100,330,"#101516"));
- board.position.set(-6.9,7.25,-8.95);scene.add(board);
- overheadSign("↑   ENREGISTREMENT",-11.8,5.6,2,6);
- overheadSign("→   DÉPARTS / GATES",3.0,5.6,2,5.7,true);
- overheadSign("↖   BAGAGES",11.9,5.6,2,4.2);
+ makeBox(scene,11.9,3.75,.3,0x32444c,-6.9,6.92,-9.2);
+ const board=new THREE.Mesh(new THREE.PlaneGeometry(11.5,3.45),panel(lines,1100,330,"#101516"));
+ board.position.set(-6.9,6.92,-8.95);scene.add(board);
+ overheadSign("↑   ENREGISTREMENT",-15.0,7.45,-8.75,3.5);
+ overheadSign("→   DÉPARTS / GATES",4.5,7.45,-8.75,4.1,true);
+ overheadSign("↖   BAGAGES",13.5,7.45,-8.75,3.2);
 }
 function addSuitcase(parent,x,z,color){
  const g=new THREE.Group();g.position.set(x,0,z);parent.add(g);
