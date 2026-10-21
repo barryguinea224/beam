@@ -29,3 +29,11 @@ Le jeu contient quatre missions : accueil, réservation PNR, formalités, embarq
 - GDS LAB est un simulateur pédagogique indépendant, sans connexion à un GDS réel.
 
 L'hébergement et le domaine sont configurés séparément ; ce dépôt ne publie pas automatiquement le site tant qu'il n'est pas relié à Netlify.
+
+## Airport Academy 3D — V2 (branche de prévisualisation)
+- `simulation-3d-v2.html` : nouvelle version distincte, sans remplacement de la V1.
+- Décor original généré en Three.js : hall vitré, tableau des départs, panneaux directionnels, bagages et voyageurs animés.
+- Quatre mises en situation pédagogiques : contrôle des bagages, consultation du PNR fictif `CKY452`, formalités de voyage et lecture du tableau des départs.
+- Contrôles tactiles conservés ; aucune donnée réelle ou réservation externe utilisée.
+- Tests statiques de liens et syntaxe JS dans GitHub Actions. **À confirmer sur téléphone avant fusion** : déplacements, lisibilité des panneaux, interactions des quatre missions, charge graphique, navigateur Android.
+- Les visuels de référence de l'utilisateur ne sont pas inclus : décors et textures sont créés dans le code.
