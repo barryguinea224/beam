@@ -30,7 +30,7 @@ jobs:
                   if tag == "script" and attrs.get("src"):
                       self.links.append(attrs["src"])
 
-          pages = ["index.html", "acteurs.html", "merci.html", "simulation-3d.html"]
+          pages = ["index.html", "acteurs.html", "merci.html", "simulation-3d.html", "simulation-3d-v2.html"]
           for page in pages:
               path = Path(page)
               assert path.is_file(), f"Missing page {page}"
@@ -57,7 +57,17 @@ jobs:
           match = re.search(r'<script type="module">([\s\S]*?)</script>', game)
           assert match, "Missing game module"
           Path("/tmp/beam-game.mjs").write_text(match.group(1), encoding="utf-8")
+          v2 = Path("simulation-3d-v2.html").read_text(encoding="utf-8")
+          assert 'href="simulation-3d-v2.html"' in home, "Preview link missing"
+          assert v2.count('short:"') == 4, "Expected four V2 missions"
+          for expected in ("departures3D()", "addTerminalDetails()", "updateTravelers(", 'id="flight-board-rows"', 'id="pnr-input"', "RT CKY452", "THREE.WebGLRenderer"):
+              assert expected in v2, f"Missing V2 component: {expected}"
+          m2 = re.search(r'<script type="module">([\s\S]*?)</script>', v2)
+          assert m2, "Missing V2 game script"
+          Path("/tmp/beam-game-v2.mjs").write_text(m2.group(1), encoding="utf-8")
           print("BEAM site pages and local links OK")
           PY
       - name: Check game JavaScript syntax
-        run: node --check /tmp/beam-game.mjs
+        run: |
+          node --check /tmp/beam-game.mjs
+          node --check /tmp/beam-game-v2.mjs

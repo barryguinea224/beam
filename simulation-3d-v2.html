@@ -1,0 +1,436 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#071e2b">
+<meta name="description" content="BEAM Airport Academy 3D : mini-simulateur pédagogique gratuit des métiers du voyage, à jouer sur ordinateur ou téléphone.">
+<meta property="og:title" content="BEAM Airport Academy 3D — Simulateur de voyage">
+<title>Airport Academy 3D V2 | BEAM Travel · Technology · Training</title>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<style>
+:root{font-family:Inter,system-ui,-apple-system,Segoe UI,Arial,sans-serif;color:#ecf6f6;background:#071b29}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;min-width:320px}
+button,a{font:inherit}a{color:inherit}button{cursor:pointer}button:focus-visible,a:focus-visible{outline:3px solid #f4bf79;outline-offset:3px}
+.site-header{border-bottom:1px solid #ffffff23;background:#092332}.wrap{max-width:1170px;margin:0 auto;padding:0 22px}
+.header-inner{min-height:76px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{text-decoration:none;display:flex;align-items:center;gap:10px;font-weight:900;font-size:25px;letter-spacing:-.05em}
+.brand-mark{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;background:#132f3d;color:#edb776}
+.brand-mark svg{width:29px;height:29px}.tagline{font-size:10px;color:#c4d7db;letter-spacing:.12em;font-weight:700;line-height:1.4;margin:0}
+.back{border:1px solid #647d84;padding:10px 14px;border-radius:12px;text-decoration:none;font-weight:750;white-space:nowrap;font-size:13px}
+.back:hover{border-color:#f0bd79}
+.intro{padding:34px 0 25px;display:flex;justify-content:space-between;gap:24px;align-items:end}
+.eyebrow{color:#edb776;font-size:12px;letter-spacing:.18em;font-weight:900;text-transform:uppercase}
+h1{margin:10px 0 12px;font-size:clamp(30px,4.4vw,53px);line-height:1.03;letter-spacing:-.045em}
+h1 em{font-family:Georgia,serif;color:#ecc081;font-weight:400}
+.lead{color:#c7d9da;font-size:15px;line-height:1.65;max-width:660px;margin:0}
+.intro-status{border:1px solid #31556a;background:#103142;border-radius:15px;min-width:200px;padding:16px}
+.intro-status strong{display:block;color:#efc48b;font-size:27px;margin-top:4px}.intro-status small{color:#a7c5cf}
+.game-layout{display:grid;grid-template-columns:minmax(0,1fr) 285px;gap:16px;align-items:start;margin-bottom:28px}
+.game-shell{border:1px solid #3b5762;background:#0c2535;border-radius:20px;overflow:hidden;min-width:0}
+.game-banner{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 16px;background:#102d3e}
+.game-banner strong{font-size:13px}.game-banner span{font-size:12px;color:#a9ced3}
+.stage{height:min(63vh,570px);min-height:335px;position:relative;overflow:hidden;background:linear-gradient(160deg,#b8d8e7,#e1edf0);touch-action:none}
+#scene{position:absolute;inset:0}#scene canvas{display:block;width:100%;height:100%}
+.scene-loading{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);color:#103647;background:#f5faffee;padding:18px;border-radius:15px;text-align:center;font-weight:750;width:min(85%,310px)}
+.scene-top{position:absolute;top:12px;left:12px;right:12px;display:flex;align-items:center;justify-content:space-between;gap:8px;pointer-events:none}
+.chip{background:#052838e8;color:#f7f9f7;border:1px solid #ffffff37;padding:9px 11px;border-radius:10px;font-size:12px;box-shadow:0 5px 14px #0001}
+.chip strong{color:#f4bf7c}
+.scene-bottom{position:absolute;bottom:12px;left:12px;right:12px;display:flex;justify-content:space-between;align-items:end;gap:12px;pointer-events:none}
+.pad{display:grid;grid-template-columns:repeat(3,43px);grid-template-rows:repeat(2,43px);gap:5px;pointer-events:auto;touch-action:none}
+.pad button{background:#073647e9;color:white;border:1px solid #ffffff70;border-radius:12px;font-size:21px;font-weight:900;user-select:none;touch-action:none}
+.pad button:active,.pad button.pressed{background:#e7b577;color:#072634}
+.pad .up{grid-column:2;grid-row:1}.pad .left{grid-column:1;grid-row:2}.pad .down{grid-column:2;grid-row:2}.pad .right{grid-column:3;grid-row:2}
+.interact{pointer-events:auto;background:#eab775;border:0;color:#0a2937;border-radius:13px;min-height:54px;padding:10px 16px;font-weight:900;box-shadow:0 6px 20px #06162260;max-width:225px}
+.interact:disabled{opacity:.7}
+.instruction{font-size:12px;color:#d9e8e9;line-height:1.4;padding:11px 16px;margin:0}
+.side{border:1px solid #315266;background:#0e2b3b;padding:22px;border-radius:20px}
+.side h2{font-size:20px;margin:7px 0 10px;line-height:1.17}.side p{color:#c2d7dc;font-size:13px;line-height:1.62;margin:0 0 15px}
+.progress-label{display:flex;justify-content:space-between;color:#b9d7de;font-size:12px;margin:8px 0}
+.progress{width:100%;height:9px;background:#314754;border-radius:999px;overflow:hidden}.progress-fill{height:100%;width:0%;background:linear-gradient(90deg,#d9a869,#f7d496);transition:width .35s}
+.mission-list{list-style:none;padding:0;margin:23px 0 0;display:grid;gap:10px}
+.mission-list li{border:1px solid #3b5665;border-radius:11px;padding:11px 12px;color:#b0cdd4;font-size:13px;display:flex;align-items:center;gap:9px}
+.mission-list li span{border:1px solid currentColor;border-radius:7px;width:24px;height:24px;display:grid;place-items:center;flex:none;font-size:12px}
+.mission-list li.current{border-color:#ecc07f;color:#ffdeb0;background:#edb67510}
+.mission-list li.done{border-color:#7bb8ad;color:#a5e3d0}
+.reset{margin-top:20px;width:100%;background:none;border:1px solid #668490;color:#d8eff1;border-radius:12px;padding:11px;font-size:13px}
+.notice{font-size:12px;color:#a5c0cb;line-height:1.55;padding:2px 0 40px}
+.notice a{color:#e6bf88}
+.overlay{position:fixed;inset:0;z-index:20;display:flex;justify-content:center;align-items:center;padding:15px;background:#041724bb;backdrop-filter:blur(4px)}
+.overlay[hidden]{display:none}
+.dialog{width:min(100%,520px);max-height:min(90dvh,760px);overflow-y:auto;background:#f9faf6;color:#102a36;border-radius:22px;padding:clamp(21px,4vw,34px);box-shadow:0 22px 70px #0618268a}
+.dialog h2{margin:8px 0 12px;font-size:clamp(24px,4vw,34px);line-height:1.11;letter-spacing:-.035em}.dialog p{line-height:1.6;color:#425b66;font-size:14px}
+.dialog .eyebrow{color:#ae7340}.dialog ul{line-height:1.85;color:#486170;padding-left:20px;font-size:14px}
+.primary{border:0;background:#0a3345;color:white;border-radius:12px;font-weight:800;padding:15px 17px;width:100%;margin-top:10px}
+.primary:hover{background:#154e63}
+.choices{display:grid;gap:9px;margin:16px 0}
+.choices button{border:1px solid #bccbd0;background:#fff;padding:14px 13px;text-align:left;border-radius:11px;font-size:14px;color:#132b38;line-height:1.4}
+.choices button:hover,.choices button:focus{background:#e5f4f3;border-color:#348c83}
+.choices button.wrong{border-color:#c76b64;background:#ffe8e6}
+.feedback{font-size:14px;font-weight:700;min-height:22px;margin:9px 0;color:#9b443e}
+.feedback.good{color:#18755d}.info-note{font-size:12px;color:#5c7180;margin-top:13px}
+@media(max-width:850px){.game-layout{grid-template-columns:1fr}.side{padding:18px}.mission-list{grid-template-columns:repeat(2,minmax(0,1fr))}.intro-status{display:none}}
+@media(max-width:520px){.wrap{padding:0 13px}.header-inner{min-height:65px}.brand{font-size:23px}.tagline{font-size:8px;letter-spacing:.08em}.back{padding:8px;font-size:12px}.intro{padding:25px 0 18px}h1{font-size:34px}.lead{font-size:14px}.game-banner{padding:11px 12px}.stage{height:490px;min-height:490px}.scene-top{top:8px;left:8px;right:8px}.chip{font-size:11px;padding:8px}.pad{grid-template-columns:repeat(3,51px);grid-template-rows:repeat(2,49px)}.interact{min-height:54px;font-size:12px;padding:10px 12px;max-width:155px}.scene-bottom{bottom:9px;left:9px;right:9px}.mission-list li{font-size:12px;padding:10px 8px}.dialog{padding:21px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+
+/* V2 — inspired by classic airport wayfinding and departures boards; all graphics are original */
+.board-jump{color:#f2c78b;text-decoration:underline;text-underline-offset:3px;font-weight:800}
+.flight-board{overflow-x:auto;scroll-margin-top:16px}
+.flight-board table{min-width:425px}
+.flight-board:target{outline:2px solid #eec88a;outline-offset:2px}
+.flight-board{background:#121619;margin:14px 14px 16px;border:2px solid #394a53;border-radius:14px;overflow:hidden}
+.board-header{padding:11px 13px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;background:#171c1f;color:#e7b73e;font-weight:900;font-size:13px}
+.board-header span{font-size:9px;letter-spacing:.12em;color:#9ea9ad}
+.flight-board table{width:100%;border-collapse:collapse;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px}
+.flight-board th{text-align:left;color:#e8b943;padding:9px 9px 5px;font-size:10px}
+.flight-board td{padding:9px;border-top:1px solid #ffffff15;color:#e7ecef;font-weight:700}
+.flight-board td:nth-child(2){color:#e8b943}
+.flight-board tr:nth-child(even) td{background:#ffffff08}
+.flight-board .boarding{color:#94ebc1}.flight-board .delayed{color:#ffc48c}
+.case-file{background:#edf4f5;border:1px solid #bfd0d2;border-radius:12px;padding:13px 15px;color:#163d4a;font-size:13px;line-height:1.65;margin:12px 0}
+.case-file strong{font-size:12px;letter-spacing:.05em}
+.case-file .case-line{display:flex;gap:12px;justify-content:space-between;border-top:1px solid #c8d9db;padding-top:5px;margin-top:5px}
+.case-file .case-line span:first-child{color:#647783}
+.pnr-console{margin:16px 0;background:#0b2735;color:#e8f3e9;padding:14px;border-radius:13px;font-size:13px}
+.pnr-console[hidden]{display:none}
+.pnr-console label{display:block;margin-bottom:10px;line-height:1.5}
+.pnr-controls{display:flex;gap:8px}
+.pnr-console input{flex:1;min-width:0;max-width:100%;padding:11px;border-radius:8px;border:1px solid #b7d2db;font:inherit;text-transform:uppercase}
+.pnr-console button{border:0;border-radius:8px;background:#e5b778;color:#102a36;padding:9px 16px;font-weight:900}
+.pnr-console pre{overflow-x:auto;white-space:pre-wrap;font-size:12px;line-height:1.55;color:#b6e8d5}
+@media(max-width:520px){.flight-board{margin:10px 8px 12px}.flight-board table{font-size:10px}.flight-board td,.flight-board th{padding:8px 4px}.board-header{font-size:12px}.board-header span{font-size:8px}}
+
+</style>
+</head>
+<body>
+<header class="site-header"><div class="wrap header-inner">
+  <a class="brand" href="index.html" aria-label="BEAM, retour à l'accueil">
+   <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none"><path d="M12 31C21 12 25 34 38 14" stroke="#edb776" stroke-width="3" stroke-linecap="round"/><circle cx="12" cy="31" r="4" fill="#edb776"/><circle cx="38" cy="14" r="4" fill="#edb776"/></svg></span>BEAM.
+  </a>
+  <span class="tagline">TRAVEL · TECHNOLOGY · TRAINING</span>
+  <a class="back" href="index.html">← Accueil</a>
+</div></header>
+<main class="wrap">
+<section class="intro">
+ <div><div class="eyebrow">BEAM EXPERIENCE · APERÇU V2</div><h1>Airport Academy <em>3D — V2.</em></h1><p class="lead">Explore un terminal plus vivant : panneaux directionnels, écran des départs, voyageurs et bagages. Accompagne une passagère fictive à travers quatre missions métier. Jeu éducatif, sans réservation réelle.</p></div>
+ <div class="intro-status"><small>MISSION D'INITIATION</small><strong>4 étapes</strong><small>100 points possibles</small></div>
+</section>
+<div class="game-layout">
+<section class="game-shell" aria-label="Simulateur 3D">
+ <div class="game-banner"><strong>✦ TERMINAL BEAM / CKY</strong><span id="game-status">Chargement du jeu…</span></div>
+ <div class="stage" id="stage">
+  <div id="scene"><div class="scene-loading" id="scene-loading">Préparation de l'aéroport en 3D…</div></div>
+  <div class="scene-top"><div class="chip">MISSION <strong id="step-counter">1 / 4</strong></div><div class="chip">SCORE <strong id="score">0 / 100</strong></div></div>
+  <div class="scene-bottom">
+   <div class="pad" aria-label="Déplacer le personnage"><button type="button" class="up" data-move="up" aria-label="Avancer">↑</button><button type="button" class="left" data-move="left" aria-label="Aller à gauche">←</button><button type="button" class="down" data-move="down" aria-label="Reculer">↓</button><button type="button" class="right" data-move="right" aria-label="Aller à droite">→</button></div>
+   <button id="interact" class="interact" type="button">S'approcher du poste</button>
+  </div>
+ </div>
+ <p class="instruction">⌨️ Flèches ou ZQSD / WASD · Sur téléphone : touches tactiles · <strong>E</strong> pour interagir · <a class="board-jump" href="#flight-board">Consulter le tableau des départs ↓</a></p>
+<div class="flight-board" id="flight-board" aria-label="Tableau fictif des départs"><div class="board-header"><strong>✈ DÉPARTS · CKY</strong><span>DONNÉES DE SIMULATION</span></div><table><thead><tr><th>HEURE</th><th>DESTINATION</th><th>VOL</th><th>PORTE</th><th>STATUT</th></tr></thead><tbody id="flight-board-rows"><tr><td>10:30</td><td>PARIS</td><td>BM120</td><td>A04</td><td>À L'HEURE</td></tr><tr><td>11:15</td><td>DAKAR</td><td>BM206</td><td>B02</td><td>EMBARQUEMENT</td></tr><tr><td>12:10</td><td>ISTANBUL</td><td>BM331</td><td>C07</td><td>RETARDÉ</td></tr></tbody></table></div>
+</section>
+<aside class="side" aria-label="Progression de la formation">
+ <span class="eyebrow">MISSIONS D'AGENT · V2</span><h2 id="mission-title">1. Accueil & bagages</h2>
+ <p id="mission-description">Rejoignez le poste Accueil pour vérifier identité et bagages de la passagère.</p>
+ <div class="progress-label"><span>Progression</span><strong id="progress-text">0 %</strong></div><div class="progress"><div class="progress-fill" id="progress-fill"></div></div>
+ <ol class="mission-list" id="mission-list"><li class="current"><span>1</span>Accueil</li><li><span>2</span>Réservation</li><li><span>3</span>Formalités</li><li><span>4</span>Embarquement</li></ol>
+ <button class="reset" type="button" id="reset">↻ Recommencer la mission</button>
+</aside>
+</div>
+<p class="notice">Simulation fictive développée par BEAM. Les règles sont volontairement simplifiées : ce jeu ne vérifie aucun document, n'émet aucun billet et ne remplace pas les exigences officielles d'une compagnie aérienne, d'une ambassade ou d'un service d'immigration. Les noms et vols du jeu sont inventés. <a href="index.html#formation">Découvrir les formations BEAM →</a></p>
+</main>
+<div class="overlay" id="welcome">
+ <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="welcome-title">
+  <span class="eyebrow">BIENVENUE À L'ACADÉMIE BEAM</span>
+  <h2 id="welcome-title">Votre première mission d'agent de voyages.</h2>
+  <p>Parcourez un aéroport 3D avec signalétique, tableau des départs et passagers animés. Consultez un dossier PNR fictif avant de répondre aux questions de formation.</p>
+  <ul><li>Déplacez le personnage vers le comptoir entouré de lumière.</li><li>Appuyez sur <strong>Interagir</strong> lorsque vous êtes près du poste.</li><li>Répondez à quatre situations professionnelles pour obtenir 100 points.</li></ul>
+  <button class="primary" id="start" type="button">Commencer la simulation 3D →</button>
+ </div>
+</div>
+<div class="overlay" id="question" hidden>
+ <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="question-title">
+  <span class="eyebrow" id="question-kicker">MISSION 1</span><h2 id="question-title">Question</h2><p id="question-story"></p>
+  <div id="case-file" class="case-file" aria-label="Informations du dossier simulé"></div>
+  <div class="pnr-console" id="pnr-console" hidden>
+   <label for="pnr-input">Terminal pédagogique · saisir le localisateur <strong>CKY452</strong></label>
+   <div class="pnr-controls"><input id="pnr-input" type="text" autocomplete="off" spellcheck="false" maxlength="6" placeholder="Ex. CKY452"><button id="pnr-search" type="button">RT ↵</button></div>
+   <pre id="pnr-result" aria-live="polite">EN ATTENTE DE CONSULTATION DU DOSSIER</pre>
+  </div>
+  <div class="choices" id="choices"></div><div class="feedback" id="feedback" role="status" aria-live="polite"></div>
+  <button class="primary" id="continue" type="button" hidden>Continuer vers le prochain poste →</button>
+ </div>
+</div>
+<div class="overlay" id="victory" hidden>
+ <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="victory-title">
+  <span class="eyebrow">MISSION TERMINÉE</span><h2 id="victory-title">Bravo, mission accomplie !</h2>
+  <p>Vous avez terminé les quatre ateliers de la simulation V2. <strong>Score : <span id="final-score">100 / 100</span>.</strong></p>
+  <p>Dans la réalité, chaque compagnie, destination et dossier impose des vérifications supplémentaires. Continuez à vous former pour passer de l'exercice aux bonnes pratiques professionnelles.</p>
+  <button class="primary" id="replay" type="button">Rejouer la mission ↻</button>
+ </div>
+</div>
+<script type="module">
+import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js";
+
+const missions = [
+ {title:"Accueil & bagages",short:"Accueil",description:"Vérifiez l'identité et les bagages de la voyageuse au guichet Accueil.",question:"Enregistrement responsable",story:"Une voyageuse se présente avec un dossier fictif. Son billet indique un bagage en soute de 23 kg maximum ; son bagage pèse 25 kg. Que faites-vous ?",case:["VOYAGEUSE","AÏSSATOU DIALLO","BAGAGE EN SOUTE","25 kg / franchise simulée : 23 kg","DESTINATION","PARIS (CDG)"],options:["Enregistrer le bagage de 25 kg sans rien signaler.","Vérifier la règle applicable et proposer une solution autorisée (réajustement ou supplément selon la compagnie).","Promettre que les excédents ne sont jamais facturés."],correct:1,why:"Exact : on informe le passager et on applique les règles de la compagnie, sans inventer d'exception."},
+ {title:"Consultation PNR",short:"PNR",description:"Consultez le dossier CKY452 dans le mini-terminal pédagogique avant de sélectionner l'action.",question:"Contrôle de réservation",story:"Utilisez le champ RT pour consulter le PNR simulé. Le dossier contient le nom et le trajet mais le statut du segment est sur demande. Quelle est la suite ?",case:["LOCALISATEUR","CKY452","COMMANDE","RT CKY452","TRAJET","CKY → CDG (fictif)"],options:["Vérifier la confirmation effective du segment avant tout engagement ou émission.","Dire au client que le billet est émis parce qu'un PNR existe.","Envoyer une confirmation de voyage sans vérifier le statut."],correct:0,why:"Exact : un PNR n'est pas une preuve de billet émis. Le statut doit être vérifié avant la suite."},
+ {title:"Contrôle documentaire",short:"Passeport",description:"Rendez-vous au contrôle documentaire ; recherchez la source officielle des conditions d'entrée.",question:"Document manquant",story:"Un document nécessaire au voyage semble manquer. Le client demande si une simple réservation garantit son entrée en France. Comment lui répondre ?",case:["DOCUMENT","PASSEPORT FICTIF","ITINÉRAIRE","CKY → CDG","VÉRIFICATION","CONDITIONS ACTUALISÉES À CONFIRMER"],options:["Garantir l'entrée parce que la réservation est créée.","Conseiller de voyager sans vérification supplémentaire.","Consulter les exigences officielles, signaler les pièces à vérifier et expliquer que l'entrée n'est jamais garantie par BEAM."],correct:2,why:"Exact : seuls les services compétents statuent sur visas et admission ; un agent accompagne sans garantie."},
+ {title:"Panneau des départs",short:"Départs",description:"Rejoignez la porte et lisez le tableau des vols simulés affiché dans l'aéroport.",question:"Information passager",story:"Le tableau fictif indique BM331 vers Istanbul comme RETARDÉ, porte C07. Quelle information communiquer ?",case:["VOL","BM331","DESTINATION","ISTANBUL","STATUT","RETARDÉ · C07 (fictif)"],options:["Dire que l'avion est déjà parti.","Informer du retard indiqué, inviter à suivre les annonces officielles et vérifier les mises à jour.","Inventer une heure de décollage précise."],correct:1,why:"Exact : seule une information confirmée par les sources opérationnelles doit être annoncée aux passagers."}
+];
+const $ = id => document.getElementById(id);
+const sceneHost=$("scene"), loading=$("scene-loading"), status=$("game-status"), action=$("interact");
+const stage=$("stage"), welcome=$("welcome"), modal=$("question"), victory=$("victory");
+const stagePositions=[-9,-3,3,9].map(x=>({x,z:-1.45}));
+let renderer,scene,camera,character,animClock,raycaster,point,animId;
+let stationGroups=[],rings=[],current=0,score=0,mistakes=0,started=false,busy=false;
+const keyState=new Set();const touchState=new Set();
+const allKeys={"ArrowUp":"up","ArrowDown":"down","ArrowLeft":"left","ArrowRight":"right","w":"up","a":"left","s":"down","d":"right","z":"up","q":"left"};
+function setStatus(msg){status.textContent=msg;}
+function makeBox(parent,w,h,d,color,x,y,z){
+ const mesh=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshStandardMaterial({color,roughness:.78}));
+ mesh.position.set(x,y,z);parent.add(mesh);return mesh;
+}
+function makeLabel(text,fill){
+ const c=document.createElement("canvas");c.width=512;c.height=128;const cx=c.getContext("2d");
+ cx.fillStyle=fill;cx.fillRect(0,0,512,128);cx.fillStyle="#ffffff";cx.font="bold 38px Arial";cx.textAlign="center";cx.textBaseline="middle";cx.fillText(text,256,65);
+ const tex=new THREE.CanvasTexture(c);tex.colorSpace=THREE.SRGBColorSpace;
+ const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:false}));sprite.scale.set(3.65,.92,1);return sprite;
+}
+function makeStation(i){
+ const colors=[0x207390,0x268c8b,0xbb843f,0x347e66],names=["ACCUEIL","RÉSERVATION","FORMALITÉS","EMBARQUEMENT"];
+ const grp=new THREE.Group();const p=stagePositions[i];grp.position.set(p.x,0,p.z-2);scene.add(grp);
+ makeBox(grp,4.4,1.4,1.7,colors[i],0,.7,0);
+ makeBox(grp,4.4,.12,1.95,0xffffff,0,1.42,.12);
+ makeBox(grp,3.0,2.5,.18,0xe9f4f5,0,2.72,-1.07);
+ makeBox(grp,3.05,.2,.23,colors[i],0,3.97,-1.07);
+ makeBox(grp,.15,3.4,.2,0x20495a,-1.8,2.25,-1.09);
+ makeBox(grp,.15,3.4,.2,0x20495a,1.8,2.25,-1.09);
+ makeBox(grp,1.1,.75,.1,0x173746,0,2.56,-.94);
+ makeBox(grp,1.22,.13,.13,0x9ab4c3,0,2.16,-.82);
+ const lab=makeLabel(names[i],["#1f5e75","#277f7c","#9a642a","#287456"][i]);lab.position.set(0,4.8,-.9);grp.add(lab);
+ grp.traverse(obj=>obj.userData.station=i);stationGroups.push(grp);
+ const r=new THREE.Mesh(new THREE.TorusGeometry(1.02,.085,8,36),new THREE.MeshBasicMaterial({color:0xeebc7f,transparent:true,opacity:.85}));
+ r.rotation.x=-Math.PI/2;r.position.set(p.x,.12,p.z);scene.add(r);rings.push(r);
+}
+function makePerson(x,z,coat){
+ const grp=new THREE.Group();grp.position.set(x,0,z);
+ const cloth=new THREE.MeshStandardMaterial({color:coat,roughness:.86});const skin=new THREE.MeshStandardMaterial({color:0x9a6046});
+ const head=new THREE.Mesh(new THREE.SphereGeometry(.32,12,10),skin);head.position.y=1.8;grp.add(head);
+ const torso=new THREE.Mesh(new THREE.CylinderGeometry(.34,.4,.85,10),cloth);torso.position.y=1.06;grp.add(torso);
+ for(let k of [-1,1]){makeBox(grp,.21,.6,.24,0x23394e,k*.17,.34,0)}
+ return grp;
+}
+
+/* Airport signage & departure board are original procedural graphics. */
+const travelers=[];
+function panel(lines,w,h,bg){
+ const c=document.createElement("canvas");c.width=w;c.height=h;const d=c.getContext("2d");
+ d.fillStyle=bg;d.fillRect(0,0,w,h);d.textBaseline="middle";
+ for(const p of lines){d.font=p.font||"bold 30px monospace";d.fillStyle=p.color||"#fff";d.fillText(p.text,p.x||20,p.y)}
+ const tex=new THREE.CanvasTexture(c);tex.colorSpace=THREE.SRGBColorSpace;
+ return new THREE.MeshBasicMaterial({map:tex,side:THREE.DoubleSide});
+}
+function overheadSign(text,x,y,z,w,gold=false){
+ const material=panel([{text,y:76,font:"bold 38px Arial",color:gold?"#172f40":"#ffffff"}],800,140,gold?"#f3bb29":"#31458e");
+ const mesh=new THREE.Mesh(new THREE.PlaneGeometry(w,w*140/800),material);mesh.position.set(x,y,z);scene.add(mesh);
+}
+function departures3D(){
+ const lines=[
+ {text:"✈  DEPARTURES / DÉPARTS",x:35,y:45,color:"#f4bf46",font:"bold 43px Arial"},
+ {text:"HEURE   DESTINATION        VOL     PORTE   STATUT",x:35,y:115,color:"#e8bd47",font:"bold 24px monospace"},
+ {text:"10:30   PARIS CDG          BM120   A04    ON TIME",x:35,y:170,color:"#f0f0f0",font:"bold 29px monospace"},
+ {text:"11:15   DAKAR              BM206   B02    BOARDING",x:35,y:222,color:"#a4ecd0",font:"bold 29px monospace"},
+ {text:"12:10   ISTANBUL           BM331   C07    DELAYED",x:35,y:275,color:"#f1b87b",font:"bold 29px monospace"}
+ ];
+ makeBox(scene,11.9,3.75,.3,0x32444c,-6.9,6.92,-9.2);
+ const board=new THREE.Mesh(new THREE.PlaneGeometry(11.5,3.45),panel(lines,1100,330,"#101516"));
+ board.position.set(-6.9,6.92,-8.95);scene.add(board);
+ overheadSign("↑   ENREGISTREMENT",-15.0,7.45,-8.75,3.5);
+ overheadSign("→   DÉPARTS / GATES",4.5,7.45,-8.75,4.1,true);
+ overheadSign("↖   BAGAGES",13.5,7.45,-8.75,3.2);
+}
+function addSuitcase(parent,x,z,color){
+ const g=new THREE.Group();g.position.set(x,0,z);parent.add(g);
+ makeBox(g,.56,.82,.41,color,0,.47,0);makeBox(g,.27,.1,.1,0x26373e,0,.96,0);
+ for(const k of [-1,1]){
+  const wheel=new THREE.Mesh(new THREE.CylinderGeometry(.09,.09,.06,8),new THREE.MeshStandardMaterial({color:0x24313a}));
+  wheel.rotation.z=Math.PI/2;wheel.position.set(k*.21,.07,0);g.add(wheel)
+ }
+}
+function addTerminalDetails(){
+ // Tall window hall & beams
+ makeBox(scene,39,.24,10,0xb9cbd1,0,10.2,-4);
+ for(let x=-17;x<=17;x+=5){
+  makeBox(scene,.22,9,.2,0x406375,x,4.5,-8.9);
+  makeBox(scene,.14,.13,10,0x708c9c,x,9.83,-4)
+ }
+ for(const z of [-8,-4,0])makeBox(scene,37,.1,.15,0x7797a5,0,9.81,z);
+ departures3D();
+ for(const [x,z,c] of [[-15,3.7,0x38495a],[-5,6.7,0xa5674b],[6,6.7,0x6475a4],[13,2.2,0xe0a154]])addSuitcase(scene,x,z,c);
+ // Luggage weighing station, decoration
+ makeBox(scene,3.8,.36,1.1,0x273c48,-14.1,.46,-6.9);
+ makeBox(scene,1.2,.12,.9,0xe1e9e9,-13.9,.73,-6.9);
+ for(const [x,z,c,phase] of [[-8.2,5.4,0x6652a5,0],[-1,5.9,0xc16f47,2],[8,6,0x4b718d,4],[13,5.3,0x3d8b74,1]]){
+  const npc=makePerson(x,z,c);npc.scale.set(.85,.85,.85);scene.add(npc);
+  addSuitcase(npc,.55,.46,c);travelers.push({npc,x,z,phase,speed:.48+phase*.04})
+ }
+}
+function updateTravelers(time){
+ for(const t of travelers){
+  t.npc.position.x=t.x+Math.sin(time*t.speed+t.phase)*1.2;
+  t.npc.position.z=t.z+Math.cos(time*t.speed*.52+t.phase)*.45;
+  t.npc.rotation.y=Math.cos(time*t.speed+t.phase)*.2;
+  t.npc.position.y=Math.abs(Math.sin(time*2.9+t.phase))*.035
+ }
+}
+
+function init3d(){
+ scene=new THREE.Scene();scene.background=new THREE.Color(0xb5d3e1);
+ scene.fog=new THREE.Fog(0xb5d3e1,27,55);
+ const rect=stage.getBoundingClientRect();
+ camera=new THREE.PerspectiveCamera(53,Math.max(1,rect.width/rect.height),.1,120);
+ camera.position.set(-12,12,14);camera.lookAt(-12,0,0);
+ renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:"low-power",alpha:false});
+ renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.7));renderer.setSize(rect.width,rect.height);
+ renderer.outputColorSpace=THREE.SRGBColorSpace;
+ sceneHost.prepend(renderer.domElement);
+ scene.add(new THREE.HemisphereLight(0xf4ffff,0x6c859c,2.15));
+ const sun=new THREE.DirectionalLight(0xfff1d9,2.15);sun.position.set(-8,18,10);scene.add(sun);
+ const floor=new THREE.Mesh(new THREE.PlaneGeometry(44,32),new THREE.MeshStandardMaterial({color:0xdde4e4,roughness:1}));floor.rotation.x=-Math.PI/2;scene.add(floor);
+ const grid=new THREE.GridHelper(34,34,0xc0ccce,0xc5d1d2);grid.position.y=.012;scene.add(grid);
+ makeBox(scene,39,9,.3,0x91b7c5,0,4.5,-9.2);
+ for(let x=-17;x<=17;x+=4){makeBox(scene,2.8,2.8,.1,0xcce5ed,x,3,-9.01);makeBox(scene,.16,3,.2,0x365365,x+1.47,3,-8.94)}
+ makeBox(scene,36,.12,2,0x93afba,0,.06,4.8);
+ for(let i=0;i<4;i++)makeStation(i);
+ for(let i=0;i<5;i++){const x=-13+i*6;makeBox(scene,2.1,.1,.75,0x557786,x,.53,5.7);makeBox(scene,.13,.5,.12,0x667985,x-.8,.29,5.7);makeBox(scene,.13,.5,.12,0x667985,x+.8,.29,5.7)}
+ addTerminalDetails();
+ character=makePerson(-12,2.1,0x10455c);scene.add(character);
+ const halo=new THREE.Mesh(new THREE.RingGeometry(.45,.7,24),new THREE.MeshBasicMaterial({color:0x234b58,side:THREE.DoubleSide,transparent:true,opacity:.52}));halo.rotation.x=-Math.PI/2;halo.position.y=.025;character.add(halo);
+ raycaster=new THREE.Raycaster();point=new THREE.Vector2();
+ animClock=new THREE.Clock();
+ renderer.domElement.addEventListener("pointerup",ev=>{
+  if(!started||busy||modal.hidden===false)return;
+  const r=renderer.domElement.getBoundingClientRect();point.set(((ev.clientX-r.left)/r.width)*2-1,-((ev.clientY-r.top)/r.height)*2+1);
+  raycaster.setFromCamera(point,camera);
+  const hits=raycaster.intersectObjects(stationGroups,true);
+  if(hits.length){const hit=hits[0].object.userData.station;if(hit===current){setStatus("Approchez-vous du poste lumineux puis appuyez sur Interagir.");interact()}else setStatus("Terminez d'abord l'étape "+(current+1)+".")}
+ });
+ const observe=new ResizeObserver(()=>resize3d());observe.observe(stage);resize3d();
+ if(loading)loading.remove();
+ setStatus("Prêt à jouer");
+ animate();
+}
+function resize3d(){if(!renderer||!camera)return;const w=stage.clientWidth,h=stage.clientHeight;camera.aspect=Math.max(.25,w/h);camera.updateProjectionMatrix();renderer.setSize(w,h,false);}
+function distanceToCurrent(){if(current>=missions.length)return Infinity;const p=stagePositions[current];return Math.hypot(character.position.x-p.x,character.position.z-p.z);}
+function interact(){
+ if(!started||busy||current>=missions.length)return;
+ if(distanceToCurrent()>2.65){setStatus("Avancez vers l'anneau lumineux du poste "+(current+1)+".");return}
+ busy=true;renderQuestion();
+}
+
+const simulatedFlights=[
+ ["10:30","PARIS","BM120","A04","À L'HEURE"],
+ ["11:15","DAKAR","BM206","B02","EMBARQUEMENT"],
+ ["12:10","ISTANBUL","BM331","C07","RETARDÉ"]
+];
+let pnrVerified=false;
+function syncFlightBoard(){
+ const body=$("flight-board-rows");if(!body)return;body.replaceChildren();
+ for(const fields of simulatedFlights){const tr=document.createElement("tr");
+  for(let i=0;i<fields.length;i++){const td=document.createElement("td");td.textContent=fields[i];
+   if(i===4)td.className=fields[i]==="RETARDÉ"?"delayed":fields[i]==="EMBARQUEMENT"?"boarding":"";
+   tr.appendChild(td)}
+  body.appendChild(tr)}
+}
+function setCaseFile(data){
+ const host=$("case-file");host.replaceChildren();
+ const title=document.createElement("strong");title.textContent="FICHE DE MISSION · DONNÉES FICTIVES";host.append(title);
+ for(let i=0;i<data.length;i+=2){const line=document.createElement("div");line.className="case-line";
+ const key=document.createElement("span");key.textContent=data[i];const value=document.createElement("strong");value.textContent=data[i+1];
+ line.append(key,value);host.append(line)}
+}
+const pnrOut=$("pnr-result");
+function searchPnr(){
+ const code=$("pnr-input").value.trim().toUpperCase();
+ if(code!=="CKY452"){pnrVerified=false;pnrOut.textContent="DOSSIER NON TROUVÉ (SIMULATION). UTILISEZ CKY452.";return}
+ pnrVerified=true;
+ pnrOut.textContent="RT CKY452\nPNR: CKY452  ·  EXERCICE BEAM\nNM1 DIALLO/AISSATOU MS\n01 BM120 Y 18NOV CKYCDG / HN1\nCONTACT: DOSSIER FICTIF\nSTATUT HN : SUR DEMANDE / NON CONFIRMÉ\nATTENTION : AUCUN BILLET ÉMIS.";
+ $("feedback").textContent="Dossier affiché : analysez maintenant son statut."; $("feedback").className="feedback good";
+}
+$("pnr-search").addEventListener("click",searchPnr);
+$("pnr-input").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();searchPnr()}});
+syncFlightBoard();
+
+function renderQuestion(){
+ const m=missions[current];$("question-kicker").textContent="ÉTAPE "+(current+1)+" / 4";$("question-title").textContent=m.question;$("question-story").textContent=m.story;setCaseFile(m.case);pnrVerified=false;$("pnr-console").hidden=current!==1;$("pnr-input").value="";$("pnr-result").textContent="EN ATTENTE DE CONSULTATION DU DOSSIER";
+ $("feedback").textContent="";$("feedback").className="feedback";$("continue").hidden=true;
+ const choices=$("choices");choices.replaceChildren();m.options.forEach((label,i)=>{
+  const b=document.createElement("button");b.type="button";b.textContent=String.fromCharCode(65+i)+". "+label;
+  b.addEventListener("click",()=>{
+    if(current===1&&!pnrVerified){$("feedback").textContent="Consultez d’abord le dossier avec RT CKY452.";return}
+    if(i!==m.correct){mistakes++;b.classList.add("wrong");b.disabled=true;score=Math.max(0,score-5);refreshHud();$("feedback").textContent="Ce choix présente un risque. Essayez une autre réponse.";return}
+    $("feedback").textContent="Bonne réponse ! "+m.why;$("feedback").className="feedback good";
+    [...choices.children].forEach(c=>c.disabled=true);
+    $("continue").hidden=false;$("continue").focus();score+=25;refreshHud();
+  });
+  choices.appendChild(b);
+ });modal.hidden=false;choices.firstElementChild?.focus();
+}
+function progressList(){
+ const list=$("mission-list");list.replaceChildren();
+ missions.forEach((m,i)=>{const el=document.createElement("li");el.className=i<current?"done":i===current?"current":"";
+ const n=document.createElement("span");n.textContent=i<current?"✓":String(i+1);el.append(n,document.createTextNode(m.short));list.append(el)});
+}
+function refreshHud(){
+ $("score").textContent=score+" / 100";$("step-counter").textContent=Math.min(current+1,4)+" / 4";
+ $("progress-text").textContent=Math.round(current/4*100)+" %";$("progress-fill").style.width=current/4*100+"%";
+ const m=missions[Math.min(current,3)];$("mission-title").textContent=(Math.min(current+1,4))+". "+m.title;
+ $("mission-description").textContent=m.description;progressList();
+}
+$("continue").addEventListener("click",()=>{
+ modal.hidden=true;busy=false;current++;refreshHud();
+ if(current>=4){$("progress-text").textContent="100 %";$("progress-fill").style.width="100%";$("final-score").textContent=score+" / 100";victory.hidden=false;busy=true;setStatus("Mission terminée !")}else setStatus("Rejoignez le poste "+(current+1)+" : "+missions[current].short+".");
+});
+function restart(){current=0;score=0;mistakes=0;busy=false;keyState.clear();touchState.clear();
+ welcome.hidden=true;modal.hidden=true;victory.hidden=true;character.position.set(-12,0,2.1);refreshHud();setStatus("Rejoignez le poste Accueil.");}
+$("start").addEventListener("click",()=>{started=true;restart()});
+$("reset").addEventListener("click",()=>{if(!character)return;started=true;restart()});
+$("replay").addEventListener("click",()=>restart());
+action.addEventListener("click",interact);
+document.addEventListener("keydown",ev=>{
+ const target=ev.target;if(target&&["INPUT","TEXTAREA","SELECT"].includes(target.tagName))return;
+ const k=ev.key.length===1?ev.key.toLowerCase():ev.key;
+ if(allKeys[k]&&started){keyState.add(allKeys[k]);ev.preventDefault()}
+ if((k==="e"||k==="Enter")&&started&&!busy){ev.preventDefault();interact()}
+});
+document.addEventListener("keyup",ev=>{const k=ev.key.length===1?ev.key.toLowerCase():ev.key;if(allKeys[k])keyState.delete(allKeys[k])});
+window.addEventListener("blur",()=>{keyState.clear();touchState.clear()});
+document.querySelectorAll("[data-move]").forEach(btn=>{
+ const dir=btn.dataset.move;
+ btn.addEventListener("pointerdown",ev=>{ev.preventDefault();btn.setPointerCapture(ev.pointerId);touchState.add(dir);btn.classList.add("pressed")});
+ function lift(){touchState.delete(dir);btn.classList.remove("pressed")}
+ btn.addEventListener("pointerup",lift);btn.addEventListener("pointercancel",lift);btn.addEventListener("lostpointercapture",lift);
+});
+function animate(){
+ animId=requestAnimationFrame(animate);const dt=Math.min(.05,animClock.getDelta());
+ if(started&&!busy){
+  let dx=0,dz=0;const moving=new Set([...keyState,...touchState]);
+  if(moving.has("left"))dx-=1;if(moving.has("right"))dx+=1;
+  if(moving.has("up"))dz-=1;if(moving.has("down"))dz+=1;
+  const n=Math.hypot(dx,dz);if(n){dx/=n;dz/=n;const speed=5.2;character.position.x=THREE.MathUtils.clamp(character.position.x+dx*speed*dt,-16,16);character.position.z=THREE.MathUtils.clamp(character.position.z+dz*speed*dt,-6,7);character.rotation.y=Math.atan2(dx,dz)}
+  const near=distanceToCurrent()<2.65;action.textContent=near?"INTERAGIR ✦":"Aller au poste "+(current+1);
+ }
+ camera.position.x=THREE.MathUtils.lerp(camera.position.x,character.position.x,.055);
+ camera.lookAt(character.position.x,.3,-.2);
+ updateTravelers(animClock.elapsedTime);
+ rings.forEach((ring,i)=>{ring.material.color.setHex(i<current?0x58aa94:i===current?0xedb56f:0x879da2);
+ ring.material.opacity=i===current?.65+.25*Math.sin(performance.now()*.003):.35;
+ ring.scale.setScalar(i===current?1+.055*Math.sin(performance.now()*.003):1)});
+ renderer.render(scene,camera);
+}
+window.addEventListener("pagehide",()=>{if(animId)cancelAnimationFrame(animId)});
+try{init3d()}catch(err){console.error(err);setStatus("Jeu 3D indisponible");if(loading)loading.textContent="La scène 3D ne peut pas s'ouvrir sur cet appareil. Essayez Chrome ou un navigateur compatible WebGL."}
+</script>
+</body>
+</html>
