@@ -217,6 +217,70 @@ function makePerson(x,z,coat){
  for(let k of [-1,1]){makeBox(grp,.21,.6,.24,0x23394e,k*.17,.34,0)}
  return grp;
 }
+
+/* Airport signage & departure board are original procedural graphics. */
+const travelers=[];
+function panel(lines,w,h,bg){
+ const c=document.createElement("canvas");c.width=w;c.height=h;const d=c.getContext("2d");
+ d.fillStyle=bg;d.fillRect(0,0,w,h);d.textBaseline="middle";
+ for(const p of lines){d.font=p.font||"bold 30px monospace";d.fillStyle=p.color||"#fff";d.fillText(p.text,p.x||20,p.y)}
+ const tex=new THREE.CanvasTexture(c);tex.colorSpace=THREE.SRGBColorSpace;
+ return new THREE.MeshBasicMaterial({map:tex,side:THREE.DoubleSide});
+}
+function overheadSign(text,x,y,z,w,gold=false){
+ const material=panel([{text,y:76,font:"bold 38px Arial",color:gold?"#172f40":"#ffffff"}],800,140,gold?"#f3bb29":"#31458e");
+ const mesh=new THREE.Mesh(new THREE.PlaneGeometry(w,w*140/800),material);mesh.position.set(x,y,z);scene.add(mesh);
+}
+function departures3D(){
+ const lines=[
+ {text:"✈  DEPARTURES / DÉPARTS",x:35,y:45,color:"#f4bf46",font:"bold 43px Arial"},
+ {text:"HEURE   DESTINATION        VOL     PORTE   STATUT",x:35,y:115,color:"#e8bd47",font:"bold 24px monospace"},
+ {text:"10:30   PARIS CDG          BM120   A04    ON TIME",x:35,y:170,color:"#f0f0f0",font:"bold 29px monospace"},
+ {text:"11:15   DAKAR              BM206   B02    BOARDING",x:35,y:222,color:"#a4ecd0",font:"bold 29px monospace"},
+ {text:"12:10   ISTANBUL           BM331   C07    DELAYED",x:35,y:275,color:"#f1b87b",font:"bold 29px monospace"}
+ ];
+ makeBox(scene,11.9,4.55,.3,0x32444c,-6.9,7.25,-9.2);
+ const board=new THREE.Mesh(new THREE.PlaneGeometry(11.5,4.2),panel(lines,1100,330,"#101516"));
+ board.position.set(-6.9,7.25,-8.95);scene.add(board);
+ overheadSign("↑   ENREGISTREMENT",-11.8,5.6,2,6);
+ overheadSign("→   DÉPARTS / GATES",3.0,5.6,2,5.7,true);
+ overheadSign("↖   BAGAGES",11.9,5.6,2,4.2);
+}
+function addSuitcase(parent,x,z,color){
+ const g=new THREE.Group();g.position.set(x,0,z);parent.add(g);
+ makeBox(g,.56,.82,.41,color,0,.47,0);makeBox(g,.27,.1,.1,0x26373e,0,.96,0);
+ for(const k of [-1,1]){
+  const wheel=new THREE.Mesh(new THREE.CylinderGeometry(.09,.09,.06,8),new THREE.MeshStandardMaterial({color:0x24313a}));
+  wheel.rotation.z=Math.PI/2;wheel.position.set(k*.21,.07,0);g.add(wheel)
+ }
+}
+function addTerminalDetails(){
+ // Tall window hall & beams
+ makeBox(scene,39,.24,10,0xb9cbd1,0,10.2,-4);
+ for(let x=-17;x<=17;x+=5){
+  makeBox(scene,.22,9,.2,0x406375,x,4.5,-8.9);
+  makeBox(scene,.14,.13,10,0x708c9c,x,9.83,-4)
+ }
+ for(const z of [-8,-4,0])makeBox(scene,37,.1,.15,0x7797a5,0,9.81,z);
+ departures3D();
+ for(const [x,z,c] of [[-15,3.7,0x38495a],[-5,6.7,0xa5674b],[6,6.7,0x6475a4],[13,2.2,0xe0a154]])addSuitcase(scene,x,z,c);
+ // Luggage weighing station, decoration
+ makeBox(scene,3.8,.36,1.1,0x273c48,-14.1,.46,-6.9);
+ makeBox(scene,1.2,.12,.9,0xe1e9e9,-13.9,.73,-6.9);
+ for(const [x,z,c,phase] of [[-8.2,5.4,0x6652a5,0],[-1,5.9,0xc16f47,2],[8,6,0x4b718d,4],[13,5.3,0x3d8b74,1]]){
+  const npc=makePerson(x,z,c);npc.scale.set(.85,.85,.85);scene.add(npc);
+  addSuitcase(npc,.55,.46,c);travelers.push({npc,x,z,phase,speed:.48+phase*.04})
+ }
+}
+function updateTravelers(time){
+ for(const t of travelers){
+  t.npc.position.x=t.x+Math.sin(time*t.speed+t.phase)*1.2;
+  t.npc.position.z=t.z+Math.cos(time*t.speed*.52+t.phase)*.45;
+  t.npc.rotation.y=Math.cos(time*t.speed+t.phase)*.2;
+  t.npc.position.y=Math.abs(Math.sin(time*2.9+t.phase))*.035
+ }
+}
+
 function init3d(){
  scene=new THREE.Scene();scene.background=new THREE.Color(0xb5d3e1);
  scene.fog=new THREE.Fog(0xb5d3e1,27,55);
@@ -231,13 +295,12 @@ function init3d(){
  const sun=new THREE.DirectionalLight(0xfff1d9,2.15);sun.position.set(-8,18,10);scene.add(sun);
  const floor=new THREE.Mesh(new THREE.PlaneGeometry(44,32),new THREE.MeshStandardMaterial({color:0xdde4e4,roughness:1}));floor.rotation.x=-Math.PI/2;scene.add(floor);
  const grid=new THREE.GridHelper(34,34,0xc0ccce,0xc5d1d2);grid.position.y=.012;scene.add(grid);
- makeBox(scene,39,6,.3,0x91b7c5,0,3,-9.2);
+ makeBox(scene,39,9,.3,0x91b7c5,0,4.5,-9.2);
  for(let x=-17;x<=17;x+=4){makeBox(scene,2.8,2.8,.1,0xcce5ed,x,3,-9.01);makeBox(scene,.16,3,.2,0x365365,x+1.47,3,-8.94)}
  makeBox(scene,36,.12,2,0x93afba,0,.06,4.8);
  for(let i=0;i<4;i++)makeStation(i);
  for(let i=0;i<5;i++){const x=-13+i*6;makeBox(scene,2.1,.1,.75,0x557786,x,.53,5.7);makeBox(scene,.13,.5,.12,0x667985,x-.8,.29,5.7);makeBox(scene,.13,.5,.12,0x667985,x+.8,.29,5.7)}
- for(const [x,z,c] of [[-13,-6,0x6558aa],[0,6,0xd3824c],[12,6,0x286a96]]){
- const npc=makePerson(x,z,c);npc.scale.set(.85,.85,.85);scene.add(npc)}
+ addTerminalDetails();
  character=makePerson(-12,2.1,0x10455c);scene.add(character);
  const halo=new THREE.Mesh(new THREE.RingGeometry(.45,.7,24),new THREE.MeshBasicMaterial({color:0x234b58,side:THREE.DoubleSide,transparent:true,opacity:.52}));halo.rotation.x=-Math.PI/2;halo.position.y=.025;character.add(halo);
  raycaster=new THREE.Raycaster();point=new THREE.Vector2();
@@ -356,6 +419,7 @@ function animate(){
  }
  camera.position.x=THREE.MathUtils.lerp(camera.position.x,character.position.x,.055);
  camera.lookAt(character.position.x,.3,-.2);
+ updateTravelers(animClock.elapsedTime);
  rings.forEach((ring,i)=>{ring.material.color.setHex(i<current?0x58aa94:i===current?0xedb56f:0x879da2);
  ring.material.opacity=i===current?.65+.25*Math.sin(performance.now()*.003):.35;
  ring.scale.setScalar(i===current?1+.055*Math.sin(performance.now()*.003):1)});
