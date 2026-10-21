@@ -1,6 +1,6 @@
 # BEAM — Travel · Technology · Training
 
-Site vitrine de BEAM, basé à Conakry, Guinée.
+Site vitrine de BEAM : Travel · Technology · Training, basé à Conakry, Guinée.
 
 **Domaine réservé :** beamguinee.com. Le domaine n'est pas encore connecté à ce dépôt.
 
@@ -8,7 +8,11 @@ Site vitrine de BEAM, basé à Conakry, Guinée.
 - `index.html` : accueil, accompagnement voyage et visa, formations, présentation GDS LAB et formulaire.
 - `acteurs.html` : annuaire interactif des acteurs du secteur (IATA, Amadeus et autres ressources).
 - `merci.html` : confirmation de réception du formulaire sur Netlify.
+- `simulation-3d.html` : BEAM Airport Academy 3D, jeu pédagogique fictif WebGL pour ordinateur et téléphone (Three.js via CDN).
 - `assets/` : styles, scripts et favicon.
+
+## Simulateur 3D
+Le jeu contient quatre missions : accueil, réservation PNR, formalités, embarquement. Les décisions sont fictives et ne correspondent pas à des contrôles réels de visa ou de réservation. Les assets 3D sont générés dans le navigateur, sans téléchargement d'images. Le navigateur doit supporter WebGL et pouvoir charger la bibliothèque Three.js depuis jsDelivr.
 
 ## Déploiement sur Netlify
 1. Connecter ce dépôt GitHub depuis Netlify et choisir la branche `main`.
