@@ -55,3 +55,40 @@
 .game-floor-guide{position:absolute;bottom:14px;left:15px;right:15px;color:#154456;font-weight:900;letter-spacing:.11em;font-size:11px;text-align:center}
 @media(max-width:900px){.game-feature-grid{grid-template-columns:1fr;gap:28px}.game-feature-art{max-width:560px;width:100%;margin:auto}}
 @media(max-width:520px){.game-feature-text h2{font-size:37px}.game-feature-text p{font-size:15px}.game-feature-perks span{font-size:11px;padding:8px}.game-feature-art{min-height:300px}.game-floor{height:236px}.game-gate{top:37px;height:83px;padding:12px 1px;font-size:21px;border-width:5px;border-bottom-width:11px}.game-gate small{font-size:8px}}
+
+
+/* Mobile layout: keep grid children within the viewport rather than
+   allowing intrinsic content widths to expand the page. */
+.approach-grid > *,
+.training-grid > *,
+.actors-teaser-layout > *,
+.game-feature-grid > *,
+.contact-grid > *,
+.faq-grid > * { min-width: 0; }
+
+@media (max-width: 700px) {
+  .approach-grid,
+  .training-grid,
+  .faq-grid,
+  .contact-grid,
+  .actors-teaser-layout,
+  .game-feature-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .actors-teaser-layout { gap: 28px; }
+  .actors-teaser-side { padding: 22px 20px; }
+  .actors-teaser-side > div { min-width: 0; }
+  .actors-teaser-side strong,
+  .actors-teaser-side div span { overflow-wrap: anywhere; }
+  .step { grid-template-columns: 42px minmax(0, 1fr); gap: 14px; }
+  .step > div { min-width: 0; }
+  .terminal-scene,
+  .terminal-window,
+  .terminal-lines { min-width: 0; }
+  .terminal-lines { overflow-wrap: anywhere; }
+}
+@media (max-width: 360px) {
+  .container { padding-left: 16px; padding-right: 16px; }
+  .terminal-scene { padding-left: 12px; padding-right: 12px; }
+  .terminal-top, .terminal-bottom { letter-spacing: 0; }
+}
