@@ -125,9 +125,14 @@ insert into storage.buckets(id,name,public,file_size_limit,allowed_mime_types)
 values('media','media',false,10485760,array['image/jpeg','image/png','image/webp'])
 on conflict(id) do nothing;
 create function public.account_accepts_writes(uid uuid) returns boolean
-language sql stable security definer set search_path=public as $
-  select exists(select 1 from public.profiles p where p.id=uid and p.deleting=false);
-$;
+language sql stable security definer set search_path='' as $$
+  select exists(
+    select 1 from public.profiles p
+    where p.id=uid and p.deleting=false
+  );
+$$;
+revoke execute on function public.account_accepts_writes(uuid) from public,anon;
+grant execute on function public.account_accepts_writes(uuid) to authenticated;
 
 create policy "storage lire" on storage.objects for select to authenticated
  using(bucket_id='media' and (storage.foldername(name))[1]=auth.uid()::text
