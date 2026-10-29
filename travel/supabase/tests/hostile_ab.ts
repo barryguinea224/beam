@@ -27,10 +27,8 @@ const sa=await login(A,env.TEST_A_EMAIL,env.TEST_A_PASSWORD);
 const sb=await login(B,env.TEST_B_EMAIL,env.TEST_B_PASSWORD);
 console.log("Authenticated A/B with real JWTs",sa.user.id,sb.user.id);
 
-const {data:ta,error:ea}=await A.from("trips").insert({
-  user_id:sa.user.id,country_code:"GN",cities:"Conakry",
-  entry_date:"2026-01-01",exit_date:"2026-01-02",purpose:"Autre"
-}).select().single();
+const original={user_id:sa.user.id,country_code:"GN",cities:"Conakry",entry_date:"2026-01-01",exit_date:"2026-01-02",purpose:"Autre",note:"A-original-note"};
+const {data:ta,error:ea}=await A.from("trips").insert(original).select().single();
 if(ea) throw ea;
 
 const {data:seenByB,error:readErr}=await B.from("trips").select("*").eq("id",ta.id);
@@ -43,10 +41,25 @@ if(updateErr) console.log("PASS B update rejected");
 else if(changedByB.length) throw new Error("SECURITY REGRESSION: B modified A trip");
 else console.log("PASS B update affected zero rows");
 
+const {data:afterUpdate,error:afterUpdateErr}=await A.from("trips").select("id,cities,entry_date,exit_date,note").eq("id",ta.id).single();
+if(afterUpdateErr) throw afterUpdateErr;
+if(afterUpdate.cities!==original.cities || afterUpdate.entry_date!==original.entry_date || afterUpdate.exit_date!==original.exit_date || afterUpdate.note!==original.note)
+  throw new Error("SECURITY REGRESSION: A trip changed after B update attempt");
+console.log("PASS A trip intact after B update attempt");
+
 const {data:deletedByB,error:deleteErr}=await B.from("trips").delete().eq("id",ta.id).select();
 if(deleteErr) console.log("PASS B delete rejected");
 else if(deletedByB.length) throw new Error("SECURITY REGRESSION: B deleted A trip");
 else console.log("PASS B delete affected zero rows");
+
+const {data:afterDelete,error:afterDeleteErr}=await A.from("trips").select("id,cities,entry_date,exit_date,note").eq("id",ta.id).single();
+if(afterDeleteErr) throw afterDeleteErr;
+if(afterDelete.cities!==original.cities || afterDelete.entry_date!==original.entry_date || afterDelete.exit_date!==original.exit_date || afterDelete.note!==original.note)
+  throw new Error("SECURITY REGRESSION: A trip missing or changed after B delete attempt");
+console.log("PASS A trip intact after B delete attempt");
+
+const {error:foreignInsert}=await B.from("trips").insert({...original,user_id:sa.user.id});
+expectDenied("B inserts trip with user_id=A",foreignInsert);
 
 const {error:reserved}=await A.from("profiles").update({deleting:false}).eq("id",sa.user.id);
 expectDenied("A updates profiles.deleting",reserved);
