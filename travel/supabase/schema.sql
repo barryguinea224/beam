@@ -7,6 +7,8 @@ create table public.profiles (
  display_name text check(char_length(display_name)<=80),
  nationality text check(char_length(nationality)<=60),
  home_city text not null default 'Conakry' check(char_length(home_city)<=80),
+ deleting boolean not null default false,
+ deletion_requested_at timestamptz,
  public_code text not null unique default encode(gen_random_bytes(9),'hex'),
  created_at timestamptz not null default now(),
  updated_at timestamptz not null default now()
@@ -116,13 +118,25 @@ select user_id,country_code,cities,entry_date,exit_date,duration_days,purpose fr
 insert into storage.buckets(id,name,public,file_size_limit,allowed_mime_types)
 values('media','media',false,10485760,array['image/jpeg','image/png','image/webp'])
 on conflict(id) do nothing;
-create policy "storage lire" on storage.objects for select to authenticated
- using(bucket_id='media' and (storage.foldername(name))[1]=auth.uid()::text);
-create policy "storage ajouter" on storage.objects for insert to authenticated
- with check(bucket_id='media' and (storage.foldername(name))[1]=auth.uid()::text);
-create policy "storage supprimer" on storage.objects for delete to authenticated
- using(bucket_id='media' and (storage.foldername(name))[1]=auth.uid()::text);
+create function public.account_accepts_writes(uid uuid) returns boolean
+language sql stable security definer set search_path=public as $
+  select exists(select 1 from public.profiles p where p.id=uid and p.deleting=false);
+$;
 
--- Important: supprimer auth.users cascade les lignes SQL, pas les objets physiques
--- de Storage. Le workflow de suppression de compte devra d'abord supprimer les
--- objets via l'API Storage, puis supprimer l'utilisateur.
+create policy "storage lire" on storage.objects for select to authenticated
+ using(bucket_id='media' and (storage.foldername(name))[1]=auth.uid()::text
+   and public.account_accepts_writes(auth.uid()));
+create policy "storage ajouter" on storage.objects for insert to authenticated
+ with check(bucket_id='media' and (storage.foldername(name))[1]=auth.uid()::text
+   and public.account_accepts_writes(auth.uid()));
+
+-- V1: aucun upsert/remplacement d'objet. UPDATE est volontairement absent.
+create policy "storage supprimer" on storage.objects for delete to authenticated
+ using(bucket_id='media' and (storage.foldername(name))[1]=auth.uid()::text
+   and public.account_accepts_writes(auth.uid()));
+
+-- Suppression serveur uniquement:
+-- 1) profiles.deleting=true; 2) supprimer les objets via l'API Storage;
+-- 3) vérifier le préfixe vide; 4) supprimer auth.users.
+-- L'ancien JWT ne peut plus écrire car account_accepts_writes() exige un profil actif.
+-- Le flux doit être idempotent. service_role ne doit jamais être exposée au navigateur.
