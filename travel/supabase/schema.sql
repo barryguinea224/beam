@@ -107,6 +107,12 @@ alter table public.media enable row level security;
 
 create policy "profil lecture" on public.profiles for select to authenticated using(id=auth.uid());
 create policy "profil modification" on public.profiles for update to authenticated using(id=auth.uid()) with check(id=auth.uid());
+
+-- Le navigateur ne peut modifier que les champs de profil explicitement exposés.
+-- deleting, deletion_requested_at, public_code et id restent réservés au serveur.
+revoke update on public.profiles from authenticated;
+grant update(display_name,nationality,home_city) on public.profiles to authenticated;
+revoke insert,delete on public.profiles from authenticated;
 create policy "voyages propriétaire" on public.trips for all to authenticated using(user_id=auth.uid()) with check(user_id=auth.uid());
 create policy "activités propriétaire" on public.activities for all to authenticated using(user_id=auth.uid()) with check(user_id=auth.uid());
 create policy "médias propriétaire" on public.media for all to authenticated using(user_id=auth.uid()) with check(user_id=auth.uid());
