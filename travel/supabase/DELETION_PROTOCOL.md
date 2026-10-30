@@ -93,6 +93,7 @@ approved environment. Accounts are created per run
 | pagination: 110 objects across two list pages | 4 |
 | upload refused into a trip being deleted | 4 |
 | active lease refuses worker start; expired lease is reclaimed after admin-only time travel | 4b |
+| every worker dispatch has a durable completed receipt with claim/start/success/failure counts | 4, 4b, 5d |
 | missing or incorrect retry secret returns 401 | setup, before section 1 |
 | destructive retry failure followed by a blocked immediate retry (10m backoff) | 5d |
 | failure becomes eligible after aging `deletion_last_attempt_at` by 11m | 5d |
@@ -119,7 +120,9 @@ A deletion that remains locked for more than one hour is eligible for automatic 
 
 - `claim_stale_deletions()` uses `FOR UPDATE SKIP LOCKED`, a lease and a unique claim token; overlapping passes cannot own the same row.
 - Claiming does **not** count as an attempt. `start_deletion_retry()` increments the attempt counter only when destructive work actually starts.
-- The worker acknowledges the HTTP dispatch immediately with 202 and runs the bounded batch under `EdgeRuntime.waitUntil`.
+- The worker first persists a private `deletion_retry_runs` receipt, acknowledges the dispatch with HTTP 202 and `run_id`, and executes under `EdgeRuntime.waitUntil`. Each background pass marks its own receipt `completed` or `failed` with `finished_at` and bounded claimed/started/destructive-result counts. A crash may leave a receipt `running`: absence of `finished_at` is **not** success.
+- The manually approved staging bench reads only its receipt via a service-role-only RPC and waits for `finished_at` before negative assertions. It fails if the receipt is missing, failed or does not finish within the deadline; the old 2.5-second sleep has been removed.
+- The receipt has no document data, email addresses or credentials. The private table is not exposed to browser roles; write/read RPC execution is restricted to `service_role`.
 - The worker claims at most 5 subjects and stops starting new work after a 90-second start budget. Unstarted claims are released.
 - Failed destructive attempts use exponential backoff: 10m, 20m, 40m, 80m, 160m, 320m, then a 6h cap.
 - A destructive failure clears its lease and persists a normalized error code. A success-log failure is logged operationally but is never reclassified as destructive failure.
@@ -150,9 +153,9 @@ Monitoring uses a separate `TRAVEL_MONITOR_SECRET`. Its staging copy is stored a
 3. Deploy both `travel-delete` (shared-engine refactor) and `travel-deletion-retry`.
 4. Configure the Edge Function secret and Vault entries.
 5. Configure the protected GitHub environment secret `STAGING_TRAVEL_RETRY_SECRET` (staging copy only), verify there are **no other in-progress deletions** on staging, apply the explicit `staging-victim-approved` label to the reviewed PR and approve the protected `staging-destructive` run for its exact commit. The workflow intentionally does not run automatically on each PR push.
-6. Run the victim bench. It must prove: **401** for wrong/missing secrets; **202 + full destructive completion** for an interrupted stale trip; no start during a current lease followed by success after the lease timestamp is aged; and zero early retry attempts during backoff followed by a retry after its last-attempt timestamp is aged. The bench only modifies dates on its own disposable fixtures using a server-side admin credential.
+6. Run the victim bench. It must prove: **401** for wrong/missing secrets; **202 + run id + durable completion** for an interrupted stale trip; a finished worker pass with zero claims/starts during a live lease; and a finished pass with zero claims/starts while backoff is active. After aging each fixture date, it must observe a new completed receipt with one true attempt and the expected destructive outcome. The bench only modifies dates on its own disposable fixtures using a server-side admin credential.
 7. Artificially aging timestamps tests the **database eligibility and claim transitions**, not a genuine 10-minute wall-clock passage; run a separate real-elapsed soak if that guarantee is needed. Inspect the private retry log and final Auth/DB/Storage state on staging, including a >24h stuck signal.
 8. Independently verify the 90-second start-budget release behavior and error logging; these are not yet asserted by the four automated worker scenarios.
 9. Only after all staging gates pass and the reviewer authorizes activation, install the five-minute cron schedule and merge through the normal review flow. Keep the user-facing deletion UI disabled until the scheduled retry path itself is proven.
 
-The fact that `pg_net` accepted a request is never treated as deletion success. Only the worker's persisted result and the final database/Storage/Auth state are evidence.
+The fact that `pg_net` accepted a request (or the worker returned HTTP 202) is never treated as deletion success. A completed per-run receipt is evidence that the **pass** finished, not that each deletion succeeded: inspect its counters and the final database/Storage/Auth state. An unfinished receipt must fail staging acceptance and should be investigated in worker logs.
