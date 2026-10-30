@@ -5,8 +5,22 @@ type Action =
   | { action: "delete_trip"; trip_id: string }
   | { action: "delete_account"; confirmation: "SUPPRIMER" };
 
-const json = (body: unknown, status = 200) =>
-  new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
+const ALLOWED_ORIGINS = new Set([
+  "https://beamguinee.com",
+  "https://www.beamguinee.com",
+  "https://deploy-preview-3--inquisitive-boba-e06b58.netlify.app",
+]);
+function cors(req: Request) {
+  const origin = req.headers.get("origin") || "";
+  return ALLOWED_ORIGINS.has(origin) ? {
+    "access-control-allow-origin": origin,
+    "access-control-allow-methods": "POST, OPTIONS",
+    "access-control-allow-headers": "authorization, content-type, apikey, x-client-info",
+    "vary": "Origin",
+  } : {};
+}
+const json = (req: Request, body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), { status, headers: { ...cors(req), "content-type": "application/json" } });
 
 function adminClient() {
   const url = Deno.env.get("SUPABASE_URL")!;
@@ -73,7 +87,12 @@ async function objectExists(admin: ReturnType<typeof adminClient>, storagePath: 
 }
 
 Deno.serve(async (req: Request) => {
-  if (req.method !== "POST") return json({ error: "METHOD_NOT_ALLOWED" }, 405);
+  if (req.method === "OPTIONS") {
+    const origin = req.headers.get("origin") || "";
+    if (!ALLOWED_ORIGINS.has(origin)) return new Response(null, { status: 403 });
+    return new Response(null, { status: 204, headers: cors(req) });
+  }
+  if (req.method !== "POST") return json(req, { error: "METHOD_NOT_ALLOWED" }, 405);
   try {
     const { user } = await caller(req);
     const body = await req.json() as Action;
@@ -83,7 +102,7 @@ Deno.serve(async (req: Request) => {
       const { data: media, error } = await admin.from("media")
         .select("id,user_id,storage_path").eq("id", body.media_id).eq("user_id", user.id).maybeSingle();
       if (error) throw error;
-      if (!media) return json({ ok: true, already_absent: true });
+      if (!media) return json(req, { ok: true, already_absent: true });
 
       const { error: removeError } = await admin.storage.from("media").remove([media.storage_path]);
       if (removeError) throw new Error(`STORAGE_REMOVE_FAILED:${removeError.message}`);
@@ -91,31 +110,41 @@ Deno.serve(async (req: Request) => {
 
       const { error: dbError } = await admin.from("media").delete().eq("id", media.id).eq("user_id", user.id);
       if (dbError) throw dbError;
-      return json({ ok: true });
+      return json(req, { ok: true });
     }
 
     if (body.action === "delete_trip") {
       const { data: trip, error } = await admin.from("trips")
         .select("id,user_id").eq("id", body.trip_id).eq("user_id", user.id).maybeSingle();
       if (error) throw error;
-      if (!trip) return json({ ok: true, already_absent: true });
+      if (!trip) return json(req, { ok: true, already_absent: true });
+
+      // Trip barrier first: blocks any new upload to this trip before cleanup begins.
+      const { data: locked, error: lockError } = await admin.from("trips")
+        .update({ deleting: true }).eq("id", trip.id).eq("user_id", user.id)
+        .select("id,deleting").maybeSingle();
+      if (lockError) throw lockError;
+      if (!locked) return json(req, { error: "TRIP_LOCK_FAILED" }, 409);
 
       const prefix = `${user.id}/${trip.id}`;
       await removeAndVerify(admin, prefix);
       const { error: dbError } = await admin.from("trips").delete().eq("id", trip.id).eq("user_id", user.id);
       if (dbError) throw dbError;
-      return json({ ok: true });
+      return json(req, { ok: true });
     }
 
     if (body.action === "delete_account") {
-      if (body.confirmation !== "SUPPRIMER") return json({ error: "CONFIRMATION_REQUIRED" }, 400);
+      if (body.confirmation !== "SUPPRIMER") return json(req, { error: "CONFIRMATION_REQUIRED" }, 400);
 
       // Barrier first. From this point the old JWT cannot write/read/delete Storage through RLS.
       const { data: marked, error: markError } = await admin.from("profiles")
-        .update({ deleting: true, deletion_requested_at: new Date().toISOString() })
+        .update({ deleting: true })
         .eq("id", user.id).select("id,deleting").maybeSingle();
       if (markError) throw markError;
-      if (!marked) return json({ error: "PROFILE_NOT_FOUND" }, 409);
+      if (!marked) return json(req, { error: "PROFILE_NOT_FOUND" }, 409);
+      // Preserve the timestamp of the first request; retries must not reset the retry clock.
+      const { error: stampError } = await admin.rpc("stamp_account_deletion_once", { uid: user.id });
+      if (stampError) throw stampError;
 
       const prefix = user.id;
       await removeAndVerify(admin, prefix);
@@ -123,13 +152,13 @@ Deno.serve(async (req: Request) => {
       // Storage is verified empty before Auth deletion. DB children then cascade from auth.users.
       const { error: authError } = await admin.auth.admin.deleteUser(user.id);
       if (authError) throw new Error(`AUTH_DELETE_FAILED:${authError.message}`);
-      return json({ ok: true, account_deleted: true });
+      return json(req, { ok: true, account_deleted: true });
     }
 
-    return json({ error: "UNKNOWN_ACTION" }, 400);
+    return json(req, { error: "UNKNOWN_ACTION" }, 400);
   } catch (e) {
     const message = e instanceof Error ? e.message : "UNKNOWN_ERROR";
     const status = message === "UNAUTHENTICATED" ? 401 : 500;
-    return json({ error: message }, status);
+    return json(req, { error: message }, status);
   }
 });
