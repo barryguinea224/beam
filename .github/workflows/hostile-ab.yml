@@ -32,6 +32,37 @@ jobs:
           --health-retries 10
     steps:
       - uses: actions/checkout@v4
+      - name: Guard SQL dollar quoting
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import re, sys
+
+          bad = []
+          for path in Path(".").rglob("*.sql"):
+              if ".git" in path.parts:
+                  continue
+              text = path.read_text(encoding="utf-8")
+              reasons = []
+              # A lone dollar used where PostgreSQL dollar quoting should be $$.
+              if re.search(r"\bas\s+\$\s", text, flags=re.I):
+                  reasons.append("lone '$' after AS")
+              if re.search(r"\s\$\s*;", text):
+                  reasons.append("lone '$' before semicolon")
+              if text.count("$$") % 2:
+                  reasons.append("odd number of $$ delimiters")
+              if reasons:
+                  bad.append((str(path), reasons))
+
+          if bad:
+              for path, reasons in bad:
+                  print(f"::error file={path}::{'; '.join(reasons)}")
+              sys.exit(1)
+          print("SQL dollar-quoting guard: PASS")
+          PY
+
       - name: Bootstrap Supabase-compatible parser fixtures
         env: { PGPASSWORD: postgres }
         run: |
