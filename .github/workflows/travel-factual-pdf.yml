@@ -6,6 +6,7 @@ on:
     paths:
       - "travel/index.html"
       - "travel/factual-pdf.js"
+      - "travel/countries.js"
       - "travel/supabase/schema.sql"
       - "tests/travel-factual-pdf.cjs"
       - "tests/travel-factual-pdf-layout.cjs"
