@@ -143,7 +143,7 @@ async function assertIsolatedDeletions(allowedUserIds: string[]) {
     }
   }
 }
-async function callRetry(secret?: string): Promise<number> {
+async function callRetry(secret?: string): Promise<{ status: number; body: Row }> {
   const headers: Record<string, string> = { "content-type": "application/json" };
   if (secret) headers["x-travel-retry-secret"] = secret;
   const r = await fetch(`${URL_}/functions/v1/travel-deletion-retry`, {
@@ -151,20 +151,38 @@ async function callRetry(secret?: string): Promise<number> {
     headers,
     body: "{}",
   });
-  await r.body?.cancel();
-  return r.status;
+  let body: Row = {};
+  try { body = await r.json() as Row; } catch { /* non-JSON 401 is expected */ }
+  return { status: r.status, body };
 }
-async function dispatchRetry(allowedUserIds: string[]) {
-  await assertIsolatedDeletions(allowedUserIds);
-  check(await callRetry(RETRY_SECRET) === 202, "authorized retry dispatch acknowledged with 202");
-}
-async function waitFor(label: string, predicate: () => Promise<boolean>, timeoutMs = 120_000) {
-  const deadline = Date.now() + timeoutMs;
+async function waitForCompletedRun(runId: string): Promise<Row> {
+  const deadline = Date.now() + 120_000;
   for (;;) {
-    if (await predicate()) return pass(label);
-    if (Date.now() >= deadline) fail(label, "background retry did not reach the expected state");
+    const { data, error } = await admin.rpc("get_deletion_retry_run", { p_run_id: runId });
+    if (error) throw new Error(`RETRY_RECEIPT_READ_FAILED: ${error.message}`);
+    const row = (data as Row[] | null)?.[0];
+    if (row?.status === "failed") fail("worker run failed", String(row.error_code ?? "UNKNOWN"));
+    if (row?.status === "completed") {
+      check(!!row.finished_at, "worker run has a committed completion timestamp");
+      return row;
+    }
+    if (row && row.status !== "running") fail("unexpected retry run state");
+    if (Date.now() >= deadline) fail("worker run completion receipt timed out");
     await new Promise((resolve) => setTimeout(resolve, 1250));
   }
+}
+async function dispatchRetry(allowedUserIds: string[]): Promise<Row> {
+  await assertIsolatedDeletions(allowedUserIds);
+  const reply = await callRetry(RETRY_SECRET);
+  check(reply.status === 202 && typeof reply.body.run_id === "string",
+    "authorized retry dispatch acknowledged with a run id", `status ${reply.status}`);
+  return await waitForCompletedRun(reply.body.run_id as string);
+}
+function checkRunCounts(row: Row, claimed: number, started: number, succeeded: number, failed: number, label: string) {
+  check(row.claimed === claimed && row.started === started &&
+    row.destructive_succeeded === succeeded && row.destructive_failed === failed, label,
+    JSON.stringify({ claimed: row.claimed, started: row.started,
+      succeeded: row.destructive_succeeded, failed: row.destructive_failed }));
 }
 async function createActor(role: "victim" | "bystander"): Promise<Actor> {
   const email = disposableEmail(role);
@@ -264,8 +282,9 @@ try {
   pass("fixtures created through the normal client path (RLS, Storage policies)");
 
   // The worker is privileged but MUST refuse calls without its dedicated staging secret.
-  check(await callRetry() === 401, "retry endpoint rejects a request without a secret");
-  check(await callRetry("invalid-" + crypto.randomUUID()) === 401, "retry endpoint rejects an incorrect secret");
+  check((await callRetry()).status === 401, "retry endpoint rejects a request without a secret");
+  check((await callRetry("invalid-" + crypto.randomUUID())).status === 401,
+    "retry endpoint rejects an incorrect secret");
 
   // 1. Cross-owner IDs: the victim targets the bystander's photo and trip.
   {
@@ -327,9 +346,9 @@ try {
     const { error: lockedUpload } = await victim.client.storage.from(BUCKET)
       .upload(`${prefix}/${crypto.randomUUID()}.webp`, webp(), { contentType: "image/webp", upsert: false });
     check(!!lockedUpload, "upload into a trip being deleted is refused");
-    await dispatchRetry(created);
-    await waitFor("worker resumes and deletes the interrupted stale trip", async () =>
-      (await rowCount("trips", "id", t3)) === 0);
+    const run = await dispatchRetry(created);
+    checkRunCounts(run, 1, 1, 1, 0, "stale interrupted trip is processed by the worker");
+    check(await rowCount("trips", "id", t3) === 0, "worker resumes and deletes interrupted stale trip");
     check((await listAll(prefix)).length === 0, "worker resumed delete_trip: all 110 objects removed");
   }
 
@@ -352,8 +371,9 @@ try {
     check((claims ?? []).length === 1 && claims[0].subject_kind === "trip" &&
       claims[0].subject_id === leasedTrip, "lease fixture reserved exclusively by the admin");
     const firstToken = claims![0].claim_token as string;
-    await dispatchRetry(created);
-    await new Promise((resolve) => setTimeout(resolve, 2500));
+    const blockedRun = await dispatchRetry(created);
+    checkRunCounts(blockedRun, 0, 0, 0, 0,
+      "completed worker run skipped the actively leased trip");
     const { data: before, error: beforeError } = await admin.from("trips")
       .select("deletion_attempts,deletion_claim_token").eq("id", leasedTrip).single();
     if (beforeError) throw beforeError;
@@ -364,9 +384,11 @@ try {
       deletion_claimed_until: new Date(Date.now() - 60_000).toISOString(),
     }).eq("id", leasedTrip).eq("user_id", bystander.id);
     if (expiryError) throw new Error(`LEASE_EXPIRY_FIXTURE_FAILED: ${expiryError.message}`);
-    await dispatchRetry(created);
-    await waitFor("worker reclaims the expired lease and finishes deletion", async () =>
-      (await rowCount("trips", "id", leasedTrip)) === 0);
+    const resumedRun = await dispatchRetry(created);
+    checkRunCounts(resumedRun, 1, 1, 1, 0,
+      "worker runs the formerly leased trip once");
+    check(await rowCount("trips", "id", leasedTrip) === 0,
+      "worker reclaims the expired lease and finishes deletion");
     check(!await objectPresent(leasedPhoto.path), "reclaimed lease: object removed");
   }
 
@@ -451,17 +473,19 @@ try {
   // We advance only a test fixture's timestamps; the worker must still make decisions
   // using the database clock and its production claim/start procedures.
   {
-    await dispatchRetry(created);
-    await waitFor("worker starts first account retry and records destructive failure", async () => {
-      const { data, error } = await admin.from("profiles")
-        .select("deletion_attempts,deletion_last_error,deletion_claim_token").eq("id", victim.id).single();
-      if (error) throw error;
-      return data?.deletion_attempts === 1 && data?.deletion_last_error === "OWNED_OBJECTS_REMAIN" &&
-        data?.deletion_claim_token === null;
-    });
+    const failedRun = await dispatchRetry(created);
+    checkRunCounts(failedRun, 1, 1, 0, 1,
+      "account retry ran and recorded one destructive failure");
+    const { data: firstFailure, error: firstError } = await admin.from("profiles")
+      .select("deletion_attempts,deletion_last_error,deletion_claim_token").eq("id", victim.id).single();
+    if (firstError) throw firstError;
+    check(firstFailure?.deletion_attempts === 1 && firstFailure?.deletion_last_error === "OWNED_OBJECTS_REMAIN" &&
+      firstFailure?.deletion_claim_token === null,
+      "worker starts first account retry and persists destructive failure");
     check(await userExists(victim.id), "failed worker retry leaves the disposable account present");
-    await dispatchRetry(created);
-    await new Promise((resolve) => setTimeout(resolve, 2500));
+    const coolingRun = await dispatchRetry(created);
+    checkRunCounts(coolingRun, 0, 0, 0, 0,
+      "completed worker run respected backoff without starting a claim");
     const { data: cooling, error: coolingError } = await admin.from("profiles")
       .select("deletion_attempts,deletion_last_error").eq("id", victim.id).single();
     if (coolingError) throw coolingError;
@@ -479,14 +503,15 @@ try {
       deletion_last_attempt_at: new Date(Date.now() - 11 * 60_000).toISOString(),
     }).eq("id", victim.id);
     if (ageError) throw new Error(`BACKOFF_AGING_FAILED: ${ageError.message}`);
-    await dispatchRetry(created);
-    await waitFor("worker retries after simulated backoff elapsed", async () => {
-      const { data, error } = await admin.from("profiles")
-        .select("deletion_attempts,deletion_last_error,deletion_claim_token").eq("id", victim.id).single();
-      if (error) throw error;
-      return data?.deletion_attempts === 2 && data?.deletion_last_error === "OWNED_OBJECTS_REMAIN" &&
-        data?.deletion_claim_token === null;
-    });
+    const agedRun = await dispatchRetry(created);
+    checkRunCounts(agedRun, 1, 1, 0, 1,
+      "worker retries account once after simulated backoff");
+    const { data: secondFailure, error: secondError } = await admin.from("profiles")
+      .select("deletion_attempts,deletion_last_error,deletion_claim_token").eq("id", victim.id).single();
+    if (secondError) throw secondError;
+    check(secondFailure?.deletion_attempts === 2 && secondFailure?.deletion_last_error === "OWNED_OBJECTS_REMAIN" &&
+      secondFailure?.deletion_claim_token === null,
+      "worker retries after simulated backoff elapsed");
 
     // The original authenticated manual resume remains valid despite failed worker attempts.
     const r = await callDelete(oldToken, { action: "delete_account", confirmation: "SUPPRIMER" });
