@@ -70,9 +70,23 @@ create table if not exists private.deletion_retry_runs (
 );
 revoke all on private.deletion_retry_runs from public,anon,authenticated;
 
+create index if not exists deletion_retry_runs_started_at on private.deletion_retry_runs(started_at);
+-- Stale asynchronous executions are visible to monitoring even after the Edge Runtime stops.
+create or replace function public.count_stale_deletion_retry_runs() returns bigint
+language sql stable security definer set search_path='' as
+'select count(*) from private.deletion_retry_runs
+ where status = ''running'' and started_at < now() - interval ''15 minutes''';
+revoke execute on function public.count_stale_deletion_retry_runs() from public,anon,authenticated;
+grant execute on function public.count_stale_deletion_retry_runs() to service_role;
+
+
 create or replace function public.begin_deletion_retry_run(p_run_id uuid) returns void
 language plpgsql security definer set search_path='' as $$
 begin
+  -- Keep completed/failed receipts for 30 days; unresolved running receipts remain
+  -- visible until an operator investigates them.
+  delete from private.deletion_retry_runs
+  where status in ('completed','failed') and started_at < now() - interval '30 days';
   insert into private.deletion_retry_runs(run_id) values (p_run_id);
 end $$;
 revoke execute on function public.begin_deletion_retry_run(uuid) from public,anon,authenticated;
