@@ -133,7 +133,7 @@ console.log("BASE RLS + RELATIONAL INTEGRITY TESTS PASSED");
 // Storage hostile bench. Use random technical names only.
 const bucketA=A.storage.from("media"), bucketB=B.storage.from("media");
 const storageId=crypto.randomUUID();
-const storagePath=\`\${sa.user.id}/\${ta.id}/\${storageId}.webp\`;
+const storagePath=`${sa.user.id}/${ta.id}/${storageId}.webp`;
 const tinyWebp=Uint8Array.from(atob("UklGRiIAAABXRUJQVlA4IBYAAAAwAQCdASoBAAEAAUAmJaQAA3AA/v89WAAAAA=="),c=>c.charCodeAt(0));
 const blob=(bytes,type)=>new Blob([bytes],{type});
 let storageUploaded=false;
@@ -168,9 +168,9 @@ try {
   else console.log("PASS B list of A folder is empty");
 
   for (const hostilePath of [
-    \`\${sb.user.id}/../\${sa.user.id}/\${crypto.randomUUID()}.webp\`,
-    \`\${sa.user.id}/\${crypto.randomUUID()}.webp\`,
-    \`/\${sa.user.id}/\${crypto.randomUUID()}.webp\`
+    `${sb.user.id}/../${sa.user.id}/${crypto.randomUUID()}.webp`,
+    `${sa.user.id}/${crypto.randomUUID()}.webp`,
+    `/${sa.user.id}/${crypto.randomUUID()}.webp`
   ]) {
     const {error}=await bucketB.upload(hostilePath,blob(tinyWebp,"image/webp"),{contentType:"image/webp",upsert:false});
     expectDenied("B hostile/cross-owner path "+hostilePath.replaceAll(sa.user.id,"<A>").replaceAll(sb.user.id,"<B>"),error);
@@ -180,13 +180,13 @@ try {
   expectDenied("A cannot overwrite existing object with upsert:true",upsertOwn);
 
   const elevenMiB=new Uint8Array(11*1024*1024);
-  const {error:largeErr}=await bucketA.upload(\`\${sa.user.id}/\${ta.id}/\${crypto.randomUUID()}.webp\`,blob(elevenMiB,"image/webp"),{contentType:"image/webp",upsert:false});
+  const {error:largeErr}=await bucketA.upload(`${sa.user.id}/${ta.id}/${crypto.randomUUID()}.webp`,blob(elevenMiB,"image/webp"),{contentType:"image/webp",upsert:false});
   expectDenied("11 MiB object rejected by bucket limit",largeErr);
 
   for (const [ext,mime] of [["svg","image/svg+xml"],["html","text/html"]]) {
     const bytes=new TextEncoder().encode(ext==="svg"?"<svg xmlns='http://www.w3.org/2000/svg'></svg>":"<html></html>");
-    const {error}=await bucketA.upload(\`\${sa.user.id}/\${ta.id}/\${crypto.randomUUID()}.\${ext}\`,blob(bytes,mime),{contentType:mime,upsert:false});
-    expectDenied(\`\${mime} rejected by bucket MIME allowlist\`,error);
+    const {error}=await bucketA.upload(`${sa.user.id}/${ta.id}/${crypto.randomUUID()}.${ext}`,blob(bytes,mime),{contentType:mime,upsert:false});
+    expectDenied(`${mime} rejected by bucket MIME allowlist`,error);
   }
 
   console.log("STORAGE HOSTILE TESTS PASSED");
