@@ -23,6 +23,9 @@ Espace personnel de mémoire de voyage : voyages, activités, notes, photos priv
 ## Travel History PDF V1 — contrat factuel et confidentiel
 - Source unique : `public.travel_history_pdf` (vue `security_invoker` filtrant les voyages **intérieurs** et **en cours de suppression**).
 - Projection fermée : `country_code,cities,entry_date,exit_date,duration_days,purpose`. Jamais `select('*')` ; requête également filtrée par `user_id` sous RLS.
+- En-tête obligatoire : **« Voyageur : [nom déclaré] »**, issu exclusivement de `profiles.display_name` (80 caractères maximum) et **« Document généré le JJ/MM/AAAA »** (date locale du navigateur). Aucun numéro de passeport, carte ou autre document d'identité.
+- Si `display_name` est vide, l'export est **bloqué** et renvoie vers le champ « Nom du voyageur (pour le PDF) » dans **Mon compte**, avec confirmation d'enregistrement Supabase. Pas de nom déduit de l'e-mail ni de valeur anonyme de secours.
+- Les noms de pays proviennent uniquement de `travel/countries.js`, partagé avec la carte, les menus de saisie et le PDF (Suède comprise).
 - **Toujours exclus** : photos, couvertures, souvenirs, notes, activités, URLs de fichiers, voyages intérieurs, voyages en cours de suppression. Aucune option « inclure mes souvenirs » en V1.
 - Mention imprimée **sur chaque page** : « Historique déclaré par l'utilisateur, non délivré par une autorité officielle ».
 - Un nouvel onglet local, composé uniquement de texte autorisé, propose `Imprimer / Enregistrer au format PDF` via l'impression native de Chrome. Aucun document n'est envoyé à un service de création PDF.
