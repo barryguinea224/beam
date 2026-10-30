@@ -138,7 +138,8 @@ async function assertIsolatedDeletions(allowedUserIds: string[]) {
     if (count !== (data ?? []).length) {
       throw new Error("REFUSING retry dispatch: cannot enumerate all staging deletions");
     }
-    if ((data ?? []).some((r) => !allowedUserIds.includes(String(table === "trips" ? r.user_id : r.id)))) {
+    const rows = (data ?? []) as unknown as Row[];
+    if (rows.some((r) => !allowedUserIds.includes(String(table === "trips" ? r.user_id : r.id)))) {
       throw new Error("REFUSING retry dispatch: another staging user has a deletion in progress");
     }
   }

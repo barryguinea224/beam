@@ -17,7 +17,7 @@ const ALLOWED_ORIGINS = new Set([
   "https://deploy-preview-3--inquisitive-boba-e06b58.netlify.app",
 ]);
 
-function cors(req: Request) {
+function cors(req: Request): Record<string, string> {
   const origin = req.headers.get("origin") || "";
   return ALLOWED_ORIGINS.has(origin) ? {
     "access-control-allow-origin": origin,
