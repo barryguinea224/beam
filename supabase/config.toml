@@ -1,0 +1,5 @@
+[functions.travel-delete]
+verify_jwt = true
+
+[functions.travel-deletion-retry]
+verify_jwt = false
