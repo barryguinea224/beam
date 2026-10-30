@@ -28,6 +28,7 @@ create table public.trips (
   is_favorite boolean not null default false,
   is_domestic boolean not null default false,
   deleting boolean not null default false,
+  deletion_requested_at timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   constraint exit_after_entry check(exit_date>=entry_date),
@@ -124,7 +125,8 @@ revoke update on public.trips from authenticated;
 grant update(country_code,cities,entry_date,exit_date,purpose,note,is_favorite,is_domestic) on public.trips to authenticated;
 
 create view public.travel_history_pdf with(security_invoker=true) as
-select user_id,country_code,cities,entry_date,exit_date,duration_days,purpose from public.trips where not is_domestic;
+select user_id,country_code,cities,entry_date,exit_date,duration_days,purpose
+from public.trips where not is_domestic and not deleting;
 
 insert into storage.buckets(id,name,public,file_size_limit,allowed_mime_types)
 values('media','media',false,10485760,array['image/jpeg','image/png','image/webp']) on conflict(id) do nothing;
@@ -133,11 +135,10 @@ create policy "storage lire" on storage.objects for select to authenticated usin
 create policy "storage ajouter" on storage.objects for insert to authenticated with check(
  bucket_id='media'
  and (storage.foldername(name))[1]=auth.uid()::text
- and (storage.foldername(name))[2] ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}
- and public.trip_accepts_writes(auth.uid(), ((storage.foldername(name))[2])::uuid));
-create policy "storage supprimer" on storage.objects for delete to authenticated using(
- bucket_id='media' and (storage.foldername(name))[1]=auth.uid()::text and public.account_accepts_writes(auth.uid()));
-
- and public.trip_accepts_writes(auth.uid(), ((storage.foldername(name))[2])::uuid));
+ and public.trip_accepts_writes(
+   auth.uid(),
+   case when (storage.foldername(name))[2] ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+        then ((storage.foldername(name))[2])::uuid else null end
+ ));
 create policy "storage supprimer" on storage.objects for delete to authenticated using(
  bucket_id='media' and (storage.foldername(name))[1]=auth.uid()::text and public.account_accepts_writes(auth.uid()));
