@@ -16,8 +16,15 @@
 <p id="finishDeletionMessage" class="notice hidden" role="status" aria-live="polite"></p>
 </section>
 <section id="accountStatusUnavailable" class="panel hidden" role="alert"><h2>État du compte indisponible</h2><p>Impossible de vérifier si votre compte est en cours de suppression. Les modifications restent désactivées. Réessayez, ou déconnectez-vous puis reconnectez-vous.</p><button id="retryAccountStatus" type="button" class="btn ghost">Réessayer</button></section>
-<p id="appMsg" class="notice hidden"></p><section id="residencePanel" class="panel" style="margin-bottom:16px"><div class="top"><div><h2 style="margin-bottom:4px">Résidence actuelle</h2><p class="mapInfo" style="margin:0">Utilisée uniquement pour proposer si un nouveau voyage est intérieur. Elle ne reclassifie jamais vos anciens voyages.</p></div><div class="field" style="min-width:210px;margin:0"><select id="residence"><option value="">Choisir</option><option value="CI">Côte d’Ivoire</option><option value="FR">France</option><option value="GN">Guinée</option><option value="GM">Gambie</option><option value="GH">Ghana</option><option value="GW">Guinée-Bissau</option><option value="ML">Mali</option><option value="MA">Maroc</option><option value="MR">Mauritanie</option><option value="SN">Sénégal</option><option value="SL">Sierra Leone</option><option value="TR">Turquie</option><option value="AE">Émirats arabes unis</option></select></div></div></section><div id="travelPanels" class="grid"><section class="panel"><h2>Ma carte</h2><div class="map" id="map" aria-live="polite">Chargement de la carte…</div><p id="mapInfo" class="mapInfo"></p><div id="countryList" class="countryList" aria-label="Pays visités"></div></section><section class="panel"><h2>Mes voyages</h2><div id="trips"></div></section></div><section id="myAccount" class="panel" aria-labelledby="myAccountTitle" style="margin-top:18px"><h2 id="myAccountTitle">Mon compte</h2><p id="deleteAccountInfo" class="mapInfo">Vous pouvez supprimer définitivement votre compte et ses données de voyage, y compris les photos privées. Cette action est irréversible.</p><div class="actions"><button id="deleteAccountOpen" type="button" class="btn ghost" aria-describedby="deleteAccountInfo">Supprimer mon compte</button></div><form id="deleteAccountForm" class="hidden" aria-labelledby="deleteAccountConfirmTitle"><h3 id="deleteAccountConfirmTitle">Confirmer la suppression</h3><p>Votre compte, vos voyages, activités, souvenirs et photos seront définitivement supprimés. Ils ne pourront pas être restaurés.</p><div class="field"><label for="deleteAccountConfirm">Saisissez <strong>SUPPRIMER</strong> pour confirmer</label><input id="deleteAccountConfirm" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="9" pattern="SUPPRIMER" required></div><div class="actions"><button id="deleteAccountSubmit" type="submit" class="btn" style="background:#a8271d" disabled>Supprimer définitivement</button><button id="deleteAccountCancel" type="button" class="btn ghost">Annuler</button></div></form><p id="deleteAccountMessage" class="notice hidden" role="status" aria-live="polite"></p></section></div></main>
-<div id="modal" class="modal"><form id="tripForm" class="sheet"><div class="top"><h2 id="tripTitle">Ajouter un voyage</h2><button type="button" id="close" class="btn ghost">Fermer</button></div><div class="two"><div class="field"><label>Pays</label><select name="country_code" required><option value="">Choisir un pays</option><option value="CI">Côte d’Ivoire</option><option value="FR">France</option><option value="GN">Guinée</option><option value="GM">Gambie</option><option value="GH">Ghana</option><option value="GW">Guinée-Bissau</option><option value="ML">Mali</option><option value="MA">Maroc</option><option value="MR">Mauritanie</option><option value="SN">Sénégal</option><option value="SL">Sierra Leone</option><option value="TR">Turquie</option><option value="AE">Émirats arabes unis</option></select></div><div class="field"><label>Ville(s)</label><input name="cities" required placeholder="Ex. Labé, Kankan"></div></div><div class="two"><div class="field"><label>Entrée</label><input name="entry_date" type="date" required></div><div class="field"><label>Sortie</label><input name="exit_date" type="date" required></div></div><div class="field"><label>Voyage intérieur ?</label><select name="is_domestic" id="isDomestic"><option value="false">Non</option><option value="true">Oui</option></select><small id="domesticHint">Vous pouvez corriger cette proposition.</small></div><div class="field"><label>Motif</label><select name="purpose"><option value="tourisme">Tourisme</option><option value="affaires">Affaires</option><option value="etudes">Études</option><option value="famille">Famille</option><option value="sante">Santé</option><option value="transit">Transit</option><option value="autre">Autre</option></select></div><div id="photoField" class="field"><label for="photos">Photos privées</label><p id="photoInfo" class="photoHelp">10 photos maximum par voyage · 8 Mo maximum par photo. JPEG, PNG ou WebP uniquement. Les images sont converties en WebP sans données GPS avant l'envoi.</p><input id="photos" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" multiple aria-describedby="photoInfo photoUsage"><p id="photoUsage" class="photoHelp" role="status" aria-live="polite">0 / 10 photos enregistrées</p><div id="photoGallery" class="photoGrid" aria-label="Photos enregistrées et en attente"></div><p id="photoMessage" class="notice hidden" role="status" aria-live="polite"></p></div><div class="field"><label>Souvenir / note privée</label><textarea name="note"></textarea></div><p id="tripMsg" class="notice hidden"></p><button id="saveTrip" class="btn">Enregistrer</button></form></div>
+<p id="appMsg" class="notice hidden"></p><section id="residencePanel" class="panel" style="margin-bottom:16px"><div class="top"><div><h2 style="margin-bottom:4px">Résidence actuelle</h2><p class="mapInfo" style="margin:0">Utilisée uniquement pour proposer si un nouveau voyage est intérieur. Elle ne reclassifie jamais vos anciens voyages.</p></div><div class="field" style="min-width:210px;margin:0"><select id="residence" aria-label="Pays de résidence"><option value="">Choisir</option></select></div></div></section><div id="travelPanels" class="grid"><section class="panel"><h2>Ma carte</h2><div class="map" id="map" aria-live="polite">Chargement de la carte…</div><p id="mapInfo" class="mapInfo"></p><div id="countryList" class="countryList" aria-label="Pays visités"></div></section><section class="panel"><h2>Mes voyages</h2><div id="trips"></div></section></div><section id="myAccount" class="panel" aria-labelledby="myAccountTitle" style="margin-top:18px"><h2 id="myAccountTitle">Mon compte</h2>
+<form id="travelerNameForm" aria-label="Nom déclaré pour le PDF" style="max-width:520px;margin-bottom:22px">
+ <div class="field"><label for="travelerName">Nom du voyageur (pour le PDF)</label>
+ <input id="travelerName" name="display_name" type="text" maxlength="80" autocomplete="name" required placeholder="Prénom et nom">
+ <small>Ce nom déclaré figurera sur votre historique PDF, sans numéro de pièce d’identité.</small></div>
+ <button type="submit" id="saveTravelerName" class="btn ghost">Enregistrer le nom</button>
+ <p id="travelerNameMessage" role="status" aria-live="polite" class="notice hidden"></p>
+</form><p id="deleteAccountInfo" class="mapInfo">Vous pouvez supprimer définitivement votre compte et ses données de voyage, y compris les photos privées. Cette action est irréversible.</p><div class="actions"><button id="deleteAccountOpen" type="button" class="btn ghost" aria-describedby="deleteAccountInfo">Supprimer mon compte</button></div><form id="deleteAccountForm" class="hidden" aria-labelledby="deleteAccountConfirmTitle"><h3 id="deleteAccountConfirmTitle">Confirmer la suppression</h3><p>Votre compte, vos voyages, activités, souvenirs et photos seront définitivement supprimés. Ils ne pourront pas être restaurés.</p><div class="field"><label for="deleteAccountConfirm">Saisissez <strong>SUPPRIMER</strong> pour confirmer</label><input id="deleteAccountConfirm" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="9" pattern="SUPPRIMER" required></div><div class="actions"><button id="deleteAccountSubmit" type="submit" class="btn" style="background:#a8271d" disabled>Supprimer définitivement</button><button id="deleteAccountCancel" type="button" class="btn ghost">Annuler</button></div></form><p id="deleteAccountMessage" class="notice hidden" role="status" aria-live="polite"></p></section></div></main>
+<div id="modal" class="modal"><form id="tripForm" class="sheet"><div class="top"><h2 id="tripTitle">Ajouter un voyage</h2><button type="button" id="close" class="btn ghost">Fermer</button></div><div class="two"><div class="field"><label>Pays</label><select name="country_code" required><option value="">Choisir un pays</option></select></div><div class="field"><label>Ville(s)</label><input name="cities" required placeholder="Ex. Labé, Kankan"></div></div><div class="two"><div class="field"><label>Entrée</label><input name="entry_date" type="date" required></div><div class="field"><label>Sortie</label><input name="exit_date" type="date" required></div></div><div class="field"><label>Voyage intérieur ?</label><select name="is_domestic" id="isDomestic"><option value="false">Non</option><option value="true">Oui</option></select><small id="domesticHint">Vous pouvez corriger cette proposition.</small></div><div class="field"><label>Motif</label><select name="purpose"><option value="tourisme">Tourisme</option><option value="affaires">Affaires</option><option value="etudes">Études</option><option value="famille">Famille</option><option value="sante">Santé</option><option value="transit">Transit</option><option value="autre">Autre</option></select></div><div id="photoField" class="field"><label for="photos">Photos privées</label><p id="photoInfo" class="photoHelp">10 photos maximum par voyage · 8 Mo maximum par photo. JPEG, PNG ou WebP uniquement. Les images sont converties en WebP sans données GPS avant l'envoi.</p><input id="photos" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" multiple aria-describedby="photoInfo photoUsage"><p id="photoUsage" class="photoHelp" role="status" aria-live="polite">0 / 10 photos enregistrées</p><div id="photoGallery" class="photoGrid" aria-label="Photos enregistrées et en attente"></div><p id="photoMessage" class="notice hidden" role="status" aria-live="polite"></p></div><div class="field"><label>Souvenir / note privée</label><textarea name="note"></textarea></div><p id="tripMsg" class="notice hidden"></p><button id="saveTrip" class="btn">Enregistrer</button></form></div>
 <div id="tripDetailModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="detailTitle" aria-describedby="detailIntro">
   <div id="detailSheet" class="sheet detailSheet" tabindex="-1">
     <div class="detailTop"><div><div class="ey">Ma fiche voyage</div><h2 id="detailTitle">Voyage</h2><p id="detailIntro" class="detailIntro">Informations et souvenirs privés.</p></div><button id="detailClose" type="button" class="btn ghost">Fermer</button></div>
@@ -37,11 +44,18 @@
     </section>
   </div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./config.js"></script><script src="./photo-utils.js"></script><script src="./photo-upload.js"></script><script src="./trip-detail.js"></script><script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./config.js"></script><script src="./photo-utils.js"></script><script src="./photo-upload.js"></script><script src="./trip-detail.js"></script><script src="./countries.js"></script><script src="./factual-pdf.js"></script><script>
 const C=window.BEAM_TRAVEL_CONFIG||{},ok=C.supabaseUrl&&!C.supabaseUrl.includes("YOUR_")&&C.supabaseAnonKey&&!C.supabaseAnonKey.includes("YOUR_"),S=ok?supabase.createClient(C.supabaseUrl,C.supabaseAnonKey):null,$=s=>document.querySelector(s);let user,trips=[],accountState="loading";
 function view(id){$("#auth").classList.add("hidden");$("#app").classList.add("hidden");$(id).classList.remove("hidden")}
-let profile={country_of_residence:null};
-const COUNTRY_NAMES={CI:"Côte d’Ivoire",FR:"France",GN:"Guinée",GM:"Gambie",GH:"Ghana",GW:"Guinée-Bissau",ML:"Mali",MA:"Maroc",MR:"Mauritanie",SN:"Sénégal",SL:"Sierra Leone",TR:"Turquie",AE:"Émirats arabes unis",SE:"Suède"};
+let profile={country_of_residence:null,display_name:null};
+const COUNTRY_NAMES=window.BEAM_COUNTRIES.NAMES;
+for(const selector of ['#residence','#tripForm select[name="country_code"]']){
+ const field=$(selector);
+ for(const [code,label] of Object.entries(COUNTRY_NAMES)){
+   const option=document.createElement("option");
+   option.value=code;option.textContent=label;field.appendChild(option);
+ }
+}
 function countryName(code){return COUNTRY_NAMES[code]||code}
 function tripDates(a,b){let A=new Date(a+"T12:00:00"),B=new Date(b+"T12:00:00"),sameMonth=A.getMonth()===B.getMonth()&&A.getFullYear()===B.getFullYear(),sameYear=A.getFullYear()===B.getFullYear();if(sameMonth)return A.getDate()+" → "+B.toLocaleDateString("fr-FR",{day:"numeric",month:"long",year:"numeric"});if(sameYear)return A.toLocaleDateString("fr-FR",{day:"numeric",month:"short"})+" → "+B.toLocaleDateString("fr-FR",{day:"numeric",month:"short",year:"numeric"});return A.toLocaleDateString("fr-FR",{day:"numeric",month:"short",year:"numeric"})+" → "+B.toLocaleDateString("fr-FR",{day:"numeric",month:"short",year:"numeric"})}
 function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
@@ -68,7 +82,7 @@ async function load(){
  if(!user)return;
  setAccountState("loading");
  const {data:current,error:stateError}=await S.from("profiles")
-   .select("country_of_residence,deleting").eq("id",user.id).single();
+   .select("country_of_residence,display_name,deleting").eq("id",user.id).single();
  if(stateError||!current){setAccountState("unavailable");return}
  profile=current;
  if(current.deleting===true){
@@ -77,6 +91,7 @@ async function load(){
    return;
  }
  $("#residence").value=profile.country_of_residence||"";
+ $("#travelerName").value=profile.display_name||"";
  setAccountState("active");
  const {data,error}=await S.from("trips").select("*").eq("deleting",false).order("entry_date",{ascending:false});
  if(error){$("#appMsg").textContent="Impossible de rafraîchir vos voyages. Réessayez.";$("#appMsg").classList.remove("hidden");throw error}
@@ -479,5 +494,76 @@ async function runAccountDeletion(pending){
    // Refresh status rather than presenting a writable travel journal.
    if(!confirmed&&user){try{await load()}catch{setAccountState("unavailable")}}
  }
-};$("#pdf").onclick=()=>window.print();if(S)S.auth.onAuthStateChange((_e,s)=>{if(s?.user&&!user){clearPending();user=s.user;setAccountState("loading");view("#app");setTimeout(load,0)}});init();
+};
+let savingTravelerName=false;
+function travelerNameNotice(message){
+ const notice=$("#travelerNameMessage");notice.textContent=message;notice.classList.remove("hidden");
+}
+function requestTravelerName(){
+ travelerNameNotice("Renseignez puis enregistrez votre nom avant de générer le PDF.");
+ $("#myAccount").scrollIntoView({behavior:"smooth",block:"start"});
+ $("#travelerName").focus();
+}
+$("#travelerNameForm").onsubmit=async event=>{
+ event.preventDefault();
+ if(accountState!=="active"||!user||savingTravelerName)return;
+ const value=$("#travelerName").value.trim().replace(/\s+/g," ");
+ if(!value||value.length>80){
+   travelerNameNotice("Saisissez un nom de 80 caractères maximum.");return;
+ }
+ const uid=user.id,btn=$("#saveTravelerName");
+ savingTravelerName=true;btn.disabled=true;btn.textContent="Enregistrement…";
+ $("#travelerNameMessage").classList.add("hidden");
+ try{
+   const {data,error}=await S.from("profiles").update({display_name:value})
+     .eq("id",uid).select("display_name").single();
+   if(error||!data||accountState!=="active"||user?.id!==uid)
+     throw new Error("Nom non confirmé. Réessayez.");
+   profile.display_name=data.display_name;
+   $("#travelerName").value=data.display_name;
+   travelerNameNotice("Nom enregistré. Il pourra figurer sur votre PDF.");
+ }catch(err){travelerNameNotice(err.message||"Impossible d’enregistrer le nom.")}
+ finally{savingTravelerName=false;btn.disabled=false;btn.textContent="Enregistrer le nom"}
+};
+$("#pdf").onclick=async()=>{
+ if(accountState!=="active"||!S||!user||savingTravelerName)return;
+ if(!profile.display_name?.trim()){requestTravelerName();return}
+ const uid=user.id,button=$("#pdf");
+ // Open synchronously from the click, before the async RLS query, to avoid mobile popup blockers.
+ const tab=window.open("","_blank");
+ if(!tab){
+   $("#appMsg").textContent="Autorisez l’ouverture de l’aperçu PDF dans Chrome, puis réessayez.";
+   $("#appMsg").classList.remove("hidden");return;
+ }
+ try{tab.opener=null}catch{}
+ const status=$("#appMsg");
+ button.disabled=true;button.textContent="Préparation du PDF…";
+ try{
+   // Only literal markup is written. No user data is ever interpolated here.
+   tab.document.open();
+   tab.document.write('<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>BEAM Travel History</title></head><body><p>Préparation de votre historique factuel…</p></body></html>');
+   tab.document.close();
+   const {data:currentProfile,error:nameError}=await S.from("profiles")
+     .select("display_name,deleting").eq("id",uid).single();
+   if(nameError||!currentProfile||currentProfile.deleting)
+     throw new Error("Profil indisponible");
+   // Do not silently fall back to the authentication email or an inferred identity.
+   if(!currentProfile.display_name?.trim()){
+     if(!tab.closed)tab.close();
+     requestTravelerName();return;
+   }
+   const name=window.BEAM_TRAVEL_PDF.displayName(currentProfile.display_name);
+   const generatedAt=new Date();
+   const {data,error}=await window.BEAM_TRAVEL_PDF.fetchRows(S,uid);
+   if(error||!data)throw new Error("Lecture indisponible");
+   if(accountState!=="active"||!user||user.id!==uid)throw new Error("Session expirée");
+   if(!tab.closed)window.BEAM_TRAVEL_PDF.render(tab.document,data,{displayName:name,generatedAt});
+ }catch{
+   if(!tab.closed)tab.document.body.textContent="Impossible de préparer l’historique. Revenez au carnet et réessayez.";
+   status.textContent="Impossible de préparer le PDF factuel. Vérifiez votre connexion et réessayez.";
+   status.classList.remove("hidden");
+ }finally{
+   button.disabled=false;button.textContent="Travel History PDF";
+ }
+};if(S)S.auth.onAuthStateChange((_e,s)=>{if(s?.user&&!user){clearPending();user=s.user;setAccountState("loading");view("#app");setTimeout(load,0)}});init();
 </script></body></html>

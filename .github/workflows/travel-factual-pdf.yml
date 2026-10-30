@@ -1,0 +1,50 @@
+name: BEAM Travel — PDF factuel V1
+
+on:
+  pull_request:
+    branches: [feature/beam-travel-history-v1]
+    paths:
+      - "travel/index.html"
+      - "travel/factual-pdf.js"
+      - "travel/countries.js"
+      - "travel/supabase/schema.sql"
+      - "tests/travel-factual-pdf.cjs"
+      - "tests/travel-factual-pdf-layout.cjs"
+      - ".github/workflows/travel-factual-pdf.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  pdf-contract:
+    name: Liste fermée et anti-fuite
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Verify source view, privacy, user isolation and disclaimer
+        run: node tests/travel-factual-pdf.cjs
+
+  pdf-a4:
+    name: Rendu PDF A4 multi-page
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install Chromium
+        run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+          command -v pdftotext || (sudo apt-get update -qq && sudo apt-get install -y -qq poppler-utils)
+      - name: Verify printed PDF pages, statement and absence of images
+        run: node tests/travel-factual-pdf-layout.cjs
