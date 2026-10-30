@@ -37,12 +37,20 @@ jobs:
           TEST_B_PASSWORD: ${{ secrets.TEST_B_PASSWORD }}
         run: |
           set -euo pipefail
+          missing=0
           for name in STAGING_URL STAGING_ANON_KEY TEST_A_EMAIL TEST_A_PASSWORD TEST_B_EMAIL TEST_B_PASSWORD; do
-            if [ -z "${!name:-}" ]; then
-              echo "::error::Missing required staging secret: $name"
-              exit 1
+            value="${!name:-}"
+            if [ -z "$value" ]; then
+              echo "$name: MISSING (length 0)"
+              missing=1
+            else
+              echo "$name: SET (length ${#value})"
             fi
           done
+          if [ "$missing" -ne 0 ]; then
+            echo "::error::One or more required staging secrets are missing or empty."
+            exit 1
+          fi
           echo "Required staging secrets are configured."
 
       - name: Setup Deno
