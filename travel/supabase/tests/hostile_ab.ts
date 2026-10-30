@@ -31,7 +31,7 @@ const sb=await login("B",B,env.TEST_B_EMAIL,env.TEST_B_PASSWORD);
 console.log("Authenticated A/B with real JWTs",sa.user.id,sb.user.id);
 
 const original={user_id:sa.user.id,country_code:"GN",cities:["Conakry"],entry_date:"2026-01-01",exit_date:"2026-01-02",purpose:"autre",note:"A-original-note"};
-let ta;
+let ta,tb;
 try {
 const {data:created,error:ea}=await A.from("trips").insert(original).select().single();
 ta=created;
@@ -85,9 +85,52 @@ expectDenied("B inserts trip with user_id=A",foreignInsert);
 const {error:reserved}=await A.from("profiles").update({deleting:false}).eq("id",sa.user.id);
 expectDenied("A updates profiles.deleting",reserved);
 
-console.log("BASE RLS TESTS PASSED");
+// Relational integrity: a B-owned child must never attach to A's trip.
+const bTrip={user_id:sb.user.id,country_code:"SN",cities:["Dakar"],entry_date:"2025-01-01",exit_date:"2025-01-02",purpose:"autre",note:"B-owner-fixture"};
+const {data:createdB,error:eb}=await B.from("trips").insert(bTrip).select().single();
+if(eb) throw eb;
+tb=createdB;
+
+const {error:foreignMediaInsert}=await B.from("media").insert({
+  trip_id:ta.id,user_id:sb.user.id,storage_path:`${sb.user.id}/hostile/foreign-insert.webp`,kind:"photo"
+});
+expectDenied("B inserts own media attached to A trip",foreignMediaInsert);
+
+const {error:foreignActivityInsert}=await B.from("activities").insert({
+  trip_id:ta.id,user_id:sb.user.id,kind:"souvenir",title:"Hostile insert"
+});
+expectDenied("B inserts own activity attached to A trip",foreignActivityInsert);
+
+const {data:bMedia,error:bMediaErr}=await B.from("media").insert({
+  trip_id:tb.id,user_id:sb.user.id,storage_path:`${sb.user.id}/hostile/own.webp`,kind:"photo"
+}).select().single();
+if(bMediaErr) throw bMediaErr;
+const {data:movedMedia,error:movedMediaErr}=await B.from("media").update({trip_id:ta.id}).eq("id",bMedia.id).select();
+expectDenied("B moves own media to A trip",movedMediaErr);
+const {data:bMediaAfter,error:bMediaAfterErr}=await B.from("media").select("id,trip_id").eq("id",bMedia.id).single();
+if(bMediaAfterErr) throw bMediaAfterErr;
+if(bMediaAfter.trip_id!==tb.id) throw new Error("SECURITY REGRESSION: B media trip_id changed after denied move");
+console.log("PASS B media remains attached to B trip");
+
+const {data:bActivity,error:bActivityErr}=await B.from("activities").insert({
+  trip_id:tb.id,user_id:sb.user.id,kind:"souvenir",title:"B own activity"
+}).select().single();
+if(bActivityErr) throw bActivityErr;
+const {data:movedActivity,error:movedActivityErr}=await B.from("activities").update({trip_id:ta.id}).eq("id",bActivity.id).select();
+expectDenied("B moves own activity to A trip",movedActivityErr);
+const {data:bActivityAfter,error:bActivityAfterErr}=await B.from("activities").select("id,trip_id").eq("id",bActivity.id).single();
+if(bActivityAfterErr) throw bActivityAfterErr;
+if(bActivityAfter.trip_id!==tb.id) throw new Error("SECURITY REGRESSION: B activity trip_id changed after denied move");
+console.log("PASS B activity remains attached to B trip");
+
+console.log("BASE RLS + RELATIONAL INTEGRITY TESTS PASSED");
 console.log("Next phase: Storage upload/cross-user/upsert + retained-JWT deletion replay.");
 } finally {
+  if (tb?.id) {
+    const {error:cleanupBError}=await B.from("trips").delete().eq("id",tb.id);
+    if (cleanupBError) console.error("CLEANUP B FAILED:",cleanupBError.message);
+    else console.log("CLEANUP PASS: B test trip and children removed");
+  }
   if (ta?.id) {
     const {error:cleanupError}=await A.from("trips").delete().eq("id",ta.id);
     if (cleanupError) console.error("CLEANUP FAILED:",cleanupError.message);
