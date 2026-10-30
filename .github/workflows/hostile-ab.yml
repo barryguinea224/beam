@@ -3,14 +3,15 @@ name: Hostile A/B — Staging
 on:
   workflow_dispatch:
   pull_request:
-    branches: [main]
+    branches: [main, feature/beam-travel-history-v1]
     paths:
       - "travel/**"
+      - "supabase/functions/travel-delete/**"
+      - "supabase/functions/travel-deletion-retry/**"
+      - "supabase/functions/travel-deletion-monitor/**"
+      - "supabase/functions/_shared/travel-deletion.ts"
+      - "supabase/config.toml"
       - ".github/workflows/hostile-ab.yml"
-
-concurrency:
-  group: hostile-ab-staging
-  cancel-in-progress: false
 
 permissions:
   contents: read
@@ -78,9 +79,15 @@ jobs:
       - name: Execute canonical schema from scratch
         env: { PGPASSWORD: postgres }
         run: psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f travel/supabase/schema.sql
+      - name: Exercise deletion retry lease state machine
+        env: { PGPASSWORD: postgres }
+        run: psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f travel/supabase/tests/deletion_retry_worker.sql
 
   hostile-ab:
     name: Real JWT / RLS hostile bench
+    concurrency:
+      group: hostile-ab-staging
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 10
     environment: staging
@@ -94,9 +101,14 @@ jobs:
         with:
           deno-version: v2.x
 
-      - name: Preflight hostile bench
+      - name: Preflight hostile bench and deletion functions
         run: |
           deno check travel/supabase/tests/hostile_ab.ts
+          # Type-check the destructive bench here, before its separate approval gate.
+          deno check travel/supabase/tests/victim_bench.ts
+          deno check supabase/functions/travel-delete/index.ts
+          deno check supabase/functions/travel-deletion-retry/index.ts
+          deno check supabase/functions/travel-deletion-monitor/index.ts
 
       - name: Validate required secrets
         shell: bash

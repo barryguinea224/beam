@@ -10,9 +10,15 @@ create table public.profiles (
   country_of_residence char(2) check(country_of_residence ~ '^[A-Z]{2}$'),
   deleting boolean not null default false,
   deletion_requested_at timestamptz,
+  deletion_claimed_until timestamptz,
+  deletion_claim_token uuid,
+  deletion_attempts integer not null default 0,
+  deletion_last_attempt_at timestamptz,
+  deletion_last_error text,
   public_code text not null unique default encode(gen_random_bytes(9),'hex'),
   created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
+  updated_at timestamptz not null default now(),
+  constraint profiles_deletion_timestamp_required check(not deleting or deletion_requested_at is not null)
 );
 
 create table public.trips (
@@ -29,9 +35,15 @@ create table public.trips (
   is_domestic boolean not null default false,
   deleting boolean not null default false,
   deletion_requested_at timestamptz,
+  deletion_claimed_until timestamptz,
+  deletion_claim_token uuid,
+  deletion_attempts integer not null default 0,
+  deletion_last_attempt_at timestamptz,
+  deletion_last_error text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   constraint exit_after_entry check(exit_date>=entry_date),
+  constraint trips_deletion_timestamp_required check(not deleting or deletion_requested_at is not null),
   constraint no_overlap exclude using gist (
     user_id with =,
     (case when entry_date=exit_date then daterange(entry_date,entry_date,'[]')
@@ -161,3 +173,287 @@ language sql stable security definer set search_path='' as $$
 $$;
 revoke execute on function public.count_owned_storage_objects(uuid) from public, anon, authenticated;
 grant execute on function public.count_owned_storage_objects(uuid) to service_role;
+
+
+-- Automatic deletion retry worker support.
+create schema if not exists private;
+
+create table if not exists private.deletion_retry_log (
+  id bigint generated always as identity primary key,
+  subject_kind text not null check (subject_kind in ('account','trip')),
+  subject_id uuid not null,
+  user_id uuid not null,
+  attempted_at timestamptz not null default now(),
+  success boolean not null,
+  error_code text,
+  constraint retry_log_error_shape check ((success and error_code is null) or (not success and error_code is not null))
+);
+create index if not exists deletion_retry_log_attempted_at on private.deletion_retry_log(attempted_at desc);
+revoke all on private.deletion_retry_log from public,anon,authenticated;
+
+-- Durable per-invocation receipt. No deletion subjects or secrets are persisted here.
+-- A run without finished_at is an observable incomplete/terminated background task.
+create table if not exists private.deletion_retry_runs (
+  run_id uuid primary key,
+  started_at timestamptz not null default now(),
+  finished_at timestamptz,
+  status text not null default 'running'
+    check (status in ('running','completed','failed')),
+  claimed integer not null default 0 check (claimed between 0 and 5),
+  started integer not null default 0 check (started >= 0),
+  destructive_succeeded integer not null default 0 check (destructive_succeeded >= 0),
+  destructive_failed integer not null default 0 check (destructive_failed >= 0),
+  error_code text,
+  constraint deletion_retry_run_lifecycle check (
+    (status = 'running' and finished_at is null and error_code is null)
+    or (status = 'completed' and finished_at is not null and error_code is null)
+    or (status = 'failed' and finished_at is not null and error_code is not null)
+  ),
+  constraint deletion_retry_run_counts check (
+    started <= claimed and destructive_succeeded + destructive_failed <= started
+  )
+);
+revoke all on private.deletion_retry_runs from public,anon,authenticated;
+
+create index if not exists deletion_retry_runs_started_at on private.deletion_retry_runs(started_at);
+-- Stale asynchronous executions are visible to monitoring even after the Edge Runtime stops.
+create or replace function public.count_stale_deletion_retry_runs() returns bigint
+language sql stable security definer set search_path='' as
+'select count(*) from private.deletion_retry_runs
+ where status = ''running'' and started_at < now() - interval ''15 minutes''';
+revoke execute on function public.count_stale_deletion_retry_runs() from public,anon,authenticated;
+grant execute on function public.count_stale_deletion_retry_runs() to service_role;
+
+-- Service-role-only monitor counter: FAILED receipts finished in the last 24 hours.
+-- Operational errors are not exposed to anon/authenticated users.
+create index if not exists deletion_retry_runs_failed_finished_at
+  on private.deletion_retry_runs(finished_at desc) where status='failed';
+create or replace function public.count_failed_deletion_retry_runs_24h() returns bigint
+language sql stable security definer set search_path='' as
+'select count(*) from private.deletion_retry_runs
+ where status = ''failed'' and finished_at >= now() - interval ''24 hours''';
+revoke execute on function public.count_failed_deletion_retry_runs_24h() from public,anon,authenticated;
+grant execute on function public.count_failed_deletion_retry_runs_24h() to service_role;
+
+
+create or replace function public.begin_deletion_retry_run(p_run_id uuid) returns void
+language plpgsql security definer set search_path='' as $$
+begin
+  -- Keep completed/failed receipts for 30 days; unresolved running receipts remain
+  -- visible until an operator investigates them.
+  delete from private.deletion_retry_runs
+  where status in ('completed','failed') and started_at < now() - interval '30 days';
+  insert into private.deletion_retry_runs(run_id) values (p_run_id);
+end $$;
+revoke execute on function public.begin_deletion_retry_run(uuid) from public,anon,authenticated;
+grant execute on function public.begin_deletion_retry_run(uuid) to service_role;
+
+create or replace function public.finish_deletion_retry_run(
+  p_run_id uuid, p_claimed integer, p_started integer, p_succeeded integer,
+  p_failed integer, p_error_code text default null
+) returns boolean
+language plpgsql security definer set search_path='' as $$
+declare changed integer;
+begin
+  update private.deletion_retry_runs set
+    finished_at=now(),
+    status=case when p_error_code is null then 'completed' else 'failed' end,
+    claimed=p_claimed, started=p_started,
+    destructive_succeeded=p_succeeded, destructive_failed=p_failed,
+    error_code=case when p_error_code is null then null
+      else left(coalesce(nullif(p_error_code,''),'UNKNOWN_ERROR'),80) end
+  where run_id=p_run_id and status='running';
+  get diagnostics changed=row_count;
+  return changed=1;
+end $$;
+revoke execute on function public.finish_deletion_retry_run(uuid,integer,integer,integer,integer,text)
+  from public,anon,authenticated;
+grant execute on function public.finish_deletion_retry_run(uuid,integer,integer,integer,integer,text)
+  to service_role;
+
+create or replace function public.get_deletion_retry_run(p_run_id uuid)
+returns table(run_id uuid, status text, started_at timestamptz, finished_at timestamptz,
+  claimed integer, started integer, destructive_succeeded integer,
+  destructive_failed integer, error_code text)
+language sql stable security definer set search_path='' as $$
+  select r.run_id,r.status,r.started_at,r.finished_at,r.claimed,r.started,
+    r.destructive_succeeded,r.destructive_failed,r.error_code
+  from private.deletion_retry_runs r where r.run_id=p_run_id
+$$;
+revoke execute on function public.get_deletion_retry_run(uuid) from public,anon,authenticated;
+grant execute on function public.get_deletion_retry_run(uuid) to service_role;
+
+
+-- Retry delay after a real failed attempt: 10m,20m,40m,80m,160m,320m, then 6h cap.
+create or replace function private.retry_delay(attempts integer) returns interval
+language sql immutable set search_path='' as $$
+  select make_interval(secs => least(21600, 600 * (2 ^ greatest(attempts - 1,0))::integer))
+$$;
+revoke execute on function private.retry_delay(integer) from public,anon,authenticated;
+
+create or replace function public.claim_stale_deletions(batch_size integer default 5, lease_minutes integer default 10)
+returns table(subject_kind text,subject_id uuid,user_id uuid,claim_token uuid)
+language plpgsql security definer set search_path='' as $$
+declare account_slots integer;
+begin
+  if batch_size < 1 or batch_size > 5 then raise exception 'INVALID_BATCH_SIZE'; end if;
+  if lease_minutes < 1 or lease_minutes > 30 then raise exception 'INVALID_LEASE_MINUTES'; end if;
+
+  return query
+  with candidates as (
+    select p.id
+    from public.profiles p
+    where p.deleting and p.deletion_requested_at is not null and p.deletion_attempts < 12
+      and p.deletion_requested_at <= now()-interval '1 hour'
+      and (p.deletion_last_attempt_at is null or p.deletion_last_attempt_at + private.retry_delay(p.deletion_attempts) <= now())
+      and (p.deletion_claimed_until is null or p.deletion_claimed_until < now())
+    order by p.deletion_requested_at,p.id for update skip locked limit batch_size
+  ), claimed as (
+    update public.profiles p set
+      deletion_claimed_until=now()+make_interval(mins=>lease_minutes),
+      deletion_claim_token=gen_random_uuid()
+    from candidates c where p.id=c.id
+    returning p.id,p.deletion_claim_token
+  )
+  select 'account'::text,c.id,c.id,c.deletion_claim_token from claimed c;
+  get diagnostics account_slots=row_count;
+
+  return query
+  with candidates as (
+    select t.id,t.user_id
+    from public.trips t join public.profiles p on p.id=t.user_id
+    where t.deleting and t.deletion_requested_at is not null and t.deletion_attempts < 12 and not p.deleting
+      and t.deletion_requested_at <= now()-interval '1 hour'
+      and (t.deletion_last_attempt_at is null or t.deletion_last_attempt_at + private.retry_delay(t.deletion_attempts) <= now())
+      and (t.deletion_claimed_until is null or t.deletion_claimed_until < now())
+    order by t.deletion_requested_at,t.id for update of t skip locked
+    limit greatest(batch_size-account_slots,0)
+  ), claimed as (
+    update public.trips t set
+      deletion_claimed_until=now()+make_interval(mins=>lease_minutes),
+      deletion_claim_token=gen_random_uuid()
+    from candidates c where t.id=c.id
+    returning t.id,t.user_id,t.deletion_claim_token
+  )
+  select 'trip'::text,c.id,c.user_id,c.deletion_claim_token from claimed c;
+end $$;
+revoke execute on function public.claim_stale_deletions(integer,integer) from public,anon,authenticated;
+grant execute on function public.claim_stale_deletions(integer,integer) to service_role;
+
+-- A reserved item becomes an attempt only when processing actually starts.
+create or replace function public.start_deletion_retry(
+  p_subject_kind text,p_subject_id uuid,p_user_id uuid,p_claim_token uuid
+) returns boolean language plpgsql security definer set search_path='' as $$
+declare changed integer;
+begin
+  if p_subject_kind='account' then
+    update public.profiles set deletion_attempts=deletion_attempts+1,deletion_last_attempt_at=now(),deletion_last_error=null
+    where id=p_subject_id and id=p_user_id and deleting and deletion_claim_token=p_claim_token
+      and deletion_claimed_until>=now();
+  elsif p_subject_kind='trip' then
+    update public.trips set deletion_attempts=deletion_attempts+1,deletion_last_attempt_at=now(),deletion_last_error=null
+    where id=p_subject_id and user_id=p_user_id and deleting and deletion_claim_token=p_claim_token
+      and deletion_claimed_until>=now();
+  else raise exception 'INVALID_SUBJECT_KIND';
+  end if;
+  get diagnostics changed=row_count;
+  return changed=1;
+end $$;
+revoke execute on function public.start_deletion_retry(text,uuid,uuid,uuid) from public,anon,authenticated;
+grant execute on function public.start_deletion_retry(text,uuid,uuid,uuid) to service_role;
+
+-- Release work that was leased but never started. Token matching prevents an old worker
+-- from releasing a lease subsequently acquired by another invocation.
+create or replace function public.release_unstarted_deletion_claim(
+  p_subject_kind text,p_subject_id uuid,p_user_id uuid,p_claim_token uuid
+) returns boolean language plpgsql security definer set search_path='' as $$
+declare changed integer;
+begin
+  if p_subject_kind='account' then
+    update public.profiles set
+      deletion_claimed_until=null,deletion_claim_token=null
+    where id=p_subject_id and id=p_user_id and deleting and deletion_claim_token=p_claim_token;
+  elsif p_subject_kind='trip' then
+    update public.trips set
+      deletion_claimed_until=null,deletion_claim_token=null
+    where id=p_subject_id and user_id=p_user_id and deleting and deletion_claim_token=p_claim_token;
+  else raise exception 'INVALID_SUBJECT_KIND';
+  end if;
+  get diagnostics changed=row_count;
+  return changed=1;
+end $$;
+revoke execute on function public.release_unstarted_deletion_claim(text,uuid,uuid,uuid) from public,anon,authenticated;
+grant execute on function public.release_unstarted_deletion_claim(text,uuid,uuid,uuid) to service_role;
+
+-- This records the outcome of the destructive operation. Logging failure is not allowed
+-- to reinterpret a successful deletion as a destructive failure.
+create or replace function public.record_deletion_retry_failure(
+  p_subject_kind text,p_subject_id uuid,p_user_id uuid,p_claim_token uuid,p_error_code text
+) returns boolean language plpgsql security definer set search_path='' as $$
+declare safe_error text; changed integer;
+begin
+  safe_error:=left(coalesce(nullif(p_error_code,''),'UNKNOWN_ERROR'),240);
+  if p_subject_kind='account' then
+    update public.profiles set deletion_claimed_until=null,deletion_claim_token=null,deletion_last_error=safe_error
+    where id=p_subject_id and id=p_user_id and deleting and deletion_claim_token=p_claim_token;
+  elsif p_subject_kind='trip' then
+    update public.trips set deletion_claimed_until=null,deletion_claim_token=null,deletion_last_error=safe_error
+    where id=p_subject_id and user_id=p_user_id and deleting and deletion_claim_token=p_claim_token;
+  else raise exception 'INVALID_SUBJECT_KIND';
+  end if;
+  get diagnostics changed=row_count;
+  if changed=1 then
+    insert into private.deletion_retry_log(subject_kind,subject_id,user_id,success,error_code)
+    values(p_subject_kind,p_subject_id,p_user_id,false,safe_error);
+  end if;
+  return changed=1;
+end $$;
+revoke execute on function public.record_deletion_retry_failure(text,uuid,uuid,uuid,text) from public,anon,authenticated;
+grant execute on function public.record_deletion_retry_failure(text,uuid,uuid,uuid,text) to service_role;
+
+create or replace function public.record_deletion_retry_success(
+  p_subject_kind text,p_subject_id uuid,p_user_id uuid
+) returns void language plpgsql security definer set search_path='' as $$
+begin
+  if p_subject_kind not in ('account','trip') then raise exception 'INVALID_SUBJECT_KIND'; end if;
+  insert into private.deletion_retry_log(subject_kind,subject_id,user_id,success,error_code)
+  values(p_subject_kind,p_subject_id,p_user_id,true,null);
+end $$;
+revoke execute on function public.record_deletion_retry_success(text,uuid,uuid) from public,anon,authenticated;
+grant execute on function public.record_deletion_retry_success(text,uuid,uuid) to service_role;
+
+create or replace view private.stuck_deletions as
+select 'account'::text subject_kind,p.id subject_id,p.id user_id,p.deletion_requested_at,
+ p.deletion_attempts,p.deletion_last_attempt_at,p.deletion_last_error
+from public.profiles p where p.deleting and
+ (p.deletion_requested_at is null or p.deletion_attempts>=12 or p.deletion_requested_at<=now()-interval '24 hours')
+union all
+select 'trip'::text,t.id,t.user_id,t.deletion_requested_at,t.deletion_attempts,t.deletion_last_attempt_at,t.deletion_last_error
+from public.trips t where t.deleting and
+ (t.deletion_requested_at is null or t.deletion_attempts>=12 or t.deletion_requested_at<=now()-interval '24 hours');
+revoke all on private.stuck_deletions from public,anon,authenticated;
+
+create or replace function public.count_stuck_deletions() returns bigint
+language sql stable security definer set search_path='' as $$
+ select count(*) from private.stuck_deletions
+$$;
+revoke execute on function public.count_stuck_deletions() from public,anon,authenticated;
+grant execute on function public.count_stuck_deletions() to service_role;
+
+create or replace function private.dispatch_travel_deletion_retry() returns bigint
+language plpgsql security definer set search_path='' as $$
+declare project_url text; worker_secret text; request_id bigint;
+begin
+ select decrypted_secret into project_url from vault.decrypted_secrets where name='travel_retry_project_url';
+ select decrypted_secret into worker_secret from vault.decrypted_secrets where name='travel_retry_secret';
+ if project_url is null or worker_secret is null then raise exception 'RETRY_WORKER_VAULT_NOT_CONFIGURED'; end if;
+ select net.http_post(
+  url:=rtrim(project_url,'/')||'/functions/v1/travel-deletion-retry',
+  headers:=jsonb_build_object('Content-Type','application/json','x-travel-retry-secret',worker_secret),
+  body:='{"source":"pg_cron"}'::jsonb,timeout_milliseconds:=5000
+ ) into request_id;
+ return request_id;
+end $$;
+revoke execute on function private.dispatch_travel_deletion_retry() from public,anon,authenticated;
+
+-- Scheduling is an environment operation performed only after review and Vault setup.

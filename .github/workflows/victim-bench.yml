@@ -3,27 +3,27 @@ name: Victim bench — Staging (destructive, disposable accounts)
 # Destructive by design: creates throwaway accounts on STAGING, deletes them through
 # travel-delete, then replays their pre-deletion JWT. Never runs against production.
 #
-# Two independent locks before the staging admin key is ever released:
-#   1. The repository variable VICTIM_BENCH_ENABLED must be 'true', otherwise the job is skipped.
-#   2. The job uses the dedicated environment `staging-destructive`, which must be configured
+# Three locks before the staging admin key is ever released:
+#   1. A maintainer explicitly adds the `staging-victim-approved` label (or dispatches
+#      the workflow manually when it is available on the default branch).
+#   2. The repository variable VICTIM_BENCH_ENABLED must be 'true'.
+#   3. The job uses the dedicated environment `staging-destructive`, which must be configured
 #      with "Required reviewers". GitHub then holds every run until a maintainer approves it in
 #      the Actions tab, after looking at the exact commit that will run. Pull request runs
 #      execute the PR head code, so this approval is what guarantees that only reviewed code
 #      receives STAGING_SERVICE_ROLE_KEY.
-#   STAGING_SERVICE_ROLE_KEY must live ONLY in `staging-destructive` (remove it from `staging`),
+#   STAGING_SERVICE_ROLE_KEY and STAGING_TRAVEL_RETRY_SECRET must live ONLY in
+#   `staging-destructive` (remove admin key from `staging`),
 #   so the hostile A/B bench and any other job never have access to it.
 
 on:
   workflow_dispatch:
   pull_request:
-    # main: runs on PR #3 (feature -> main) once this bench is merged into the feature branch.
-    # feature branch: lets this bench run from its own PR before merge. Either way the
-    # staging-destructive approval gate holds the run until the exact SHA is approved.
+    # This is deliberately NOT run on each synchronize. Both CI workflows share a
+    # staging lock, and simultaneous auto-runs cancel a pending run in GitHub Actions.
+    # Reapply the label after reviewing a new SHA to request a fresh destructive run.
+    types: [labeled]
     branches: [main, feature/beam-travel-history-v1]
-    paths:
-      - "travel/supabase/**"
-      - "supabase/functions/travel-delete/**"
-      - ".github/workflows/victim-bench.yml"
 
 # Shared with the hostile A/B bench: never two staging benches at the same time.
 concurrency:
@@ -36,7 +36,9 @@ permissions:
 jobs:
   victim-bench:
     name: Disposable victim — full deletion protocol
-    if: vars.VICTIM_BENCH_ENABLED == 'true'
+    if: >-
+      vars.VICTIM_BENCH_ENABLED == 'true' &&
+      (github.event_name == 'workflow_dispatch' || github.event.label.name == 'staging-victim-approved')
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment: staging-destructive
@@ -61,5 +63,6 @@ jobs:
           SUPABASE_URL: ${{ secrets.STAGING_URL }}
           SUPABASE_PUBLISHABLE_KEY: ${{ secrets.STAGING_ANON_KEY }}
           STAGING_SERVICE_ROLE_KEY: ${{ secrets.STAGING_SERVICE_ROLE_KEY }}
+          STAGING_TRAVEL_RETRY_SECRET: ${{ secrets.STAGING_TRAVEL_RETRY_SECRET }}
           TEST_A_EMAIL: ${{ secrets.TEST_A_EMAIL }}
         run: deno run --allow-env --allow-net travel/supabase/tests/victim_bench.ts
