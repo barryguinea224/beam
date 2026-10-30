@@ -120,7 +120,20 @@ async function init(){if(!navigator.onLine)return;layoutDebug();if(!ok||!S){view
 const AUTH_STATE_KEY="beam.travel.auth.pending";function pendingAuth(){try{return JSON.parse(sessionStorage.getItem(AUTH_STATE_KEY)||"null")}catch{return null}}function savePending(email){sessionStorage.setItem(AUTH_STATE_KEY,JSON.stringify({email:email,sentAt:Date.now()}))}function clearPending(){sessionStorage.removeItem(AUTH_STATE_KEY)}let resendTimer;function startResend(){clearInterval(resendTimer);let b=$("#resend"),left=60;b.disabled=true;b.textContent="Renvoyer un code · "+left+" s";resendTimer=setInterval(()=>{left--;if(left<=0){clearInterval(resendTimer);b.disabled=false;b.textContent="Renvoyer un code"}else b.textContent="Renvoyer un code · "+left+" s"},1000)}function showOtp(email){$("#email").value=email;$("#otpBox").classList.remove("hidden");$("#loginMsg").textContent=window.BEAM_TRAVEL_PWA?.installed()?"Code à 6 chiffres envoyé. Saisissez-le ici pour rester dans l’application.":"E-mail envoyé. Ouvrez le lien ou saisissez le code à 6 chiffres.";$("#loginMsg").classList.remove("hidden");startResend()}async function sendAccess(email){let {error}=await S.auth.signInWithOtp({email:email,options:{emailRedirectTo:location.origin+location.pathname}});if(error)throw error;savePending(email);showOtp(email)}$("#login").onsubmit=async e=>{e.preventDefault();if(!S)return;try{await sendAccess($("#email").value.trim())}catch(error){$("#loginMsg").textContent=error.message;$("#loginMsg").classList.remove("hidden")}};$("#otpForm").onsubmit=async e=>{e.preventDefault();let p=pendingAuth(),email=p?.email||$("#email").value.trim(),token=$("#otp").value.trim();let {error}=await S.auth.verifyOtp({email:email,token:token,type:"email"});if(error){$("#loginMsg").textContent="Code incorrect ou expiré. Demandez-en un nouveau.";$("#loginMsg").classList.remove("hidden");return}clearPending()};$("#resend").onclick=async()=>{let p=pendingAuth(),email=p?.email||$("#email").value.trim();try{await sendAccess(email)}catch(error){$("#loginMsg").textContent="Impossible de renvoyer maintenant. Réessayez dans un instant.";$("#loginMsg").classList.remove("hidden")}};async function clearPwaSession(){
  clearPending();user=null;trips=[];profile={country_of_residence:null,display_name:null};
  try{resetPhotoUI(null)}catch{}
- for(const id of ["#trips","#detailPhotos","#photoGallery","#detailNote","#map"]){$(id)?.replaceChildren()}
+ // Remove private content from hidden DOM as well as the visible journal.
+ for(const id of ["#trips","#detailPhotos","#photoGallery","#detailFacts","#detailActivities",
+   "#detailNote","#detailIntro","#detailTitle","#map","#mapInfo","#countryList"]){
+   $(id)?.replaceChildren();
+ }
+ for(const form of document.querySelectorAll("#app form,#modal form,#tripDetailModal form")){
+   try{form.reset()}catch{}
+ }
+ for(const field of ["#travelerName","#email","#otp","#activityTitle","#activityPlace"]){
+   if($(field))$(field).value="";
+ }
+ for(const image of document.querySelectorAll('img[data-is-private="true"]')){
+   image.removeAttribute("src");
+ }
  for(const id of ["#modal","#tripDetailModal"]){$(id)?.classList.remove("open")}
  try{window.BEAM_TRAVEL_PWA?.forgetLocalAuth(C.supabaseUrl)}catch{}
  try{await window.BEAM_TRAVEL_PWA?.clearShellCaches()}catch{}
