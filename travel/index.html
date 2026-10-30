@@ -214,7 +214,11 @@ $("#detailActivityForm").onsubmit=async e=>{
  $("#detailActivityMessage").classList.add("hidden");
  try{
    const {error}=await S.from("activities").insert({...validated.value,trip_id:id,user_id:user.id});
-   if(error)throw new Error("Impossible d’ajouter l’activité. Réessayez.");
+   if(error)throw new Error(
+     error.code==="23514" && error.message?.includes("ACTIVITY_LIMIT_REACHED")
+       ?"Limite de 50 activités atteinte pour ce voyage. Retirez-en une avant d’en ajouter."
+       :"Impossible d’ajouter l’activité. Réessayez."
+   );
    if(detailTripId===id&&accountState==="active"){
      form.reset();
      await refreshTripDetail(id);

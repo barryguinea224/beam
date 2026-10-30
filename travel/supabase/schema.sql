@@ -87,6 +87,43 @@ begin
  return new;
 end $$;
 create trigger activities_same_owner before insert or update on public.activities for each row execute function public.check_same_owner();
+
+-- Serialize the maximum of 50 private activities per trip at the database layer.
+-- Same-trip edits (e.g. title/place/date) do not consume a slot.
+create index if not exists activities_trip_quota_idx on public.activities(trip_id);
+create or replace function public.enforce_activity_quota()
+returns trigger
+language plpgsql volatile security definer set search_path='' as $$
+declare
+  locked_trip uuid;
+  existing_count integer;
+begin
+  if tg_op='UPDATE' and new.trip_id=old.trip_id and new.user_id=old.user_id then
+    return new;
+  end if;
+
+  select t.id into locked_trip
+  from public.trips t
+  where t.id=new.trip_id and t.user_id=new.user_id and not t.deleting
+  for update;
+
+  if locked_trip is null then
+    raise exception using errcode='23514',message='ACTIVITY_TRIP_UNAVAILABLE';
+  end if;
+
+  select count(*) into existing_count
+  from public.activities a where a.trip_id=new.trip_id;
+
+  if existing_count >= 50 then
+    raise exception using errcode='23514',message='ACTIVITY_LIMIT_REACHED';
+  end if;
+  return new;
+end $$;
+revoke execute on function public.enforce_activity_quota()
+  from public,anon,authenticated;
+create trigger activities_quota_before_write
+  before insert or update of trip_id,user_id on public.activities
+  for each row execute function public.enforce_activity_quota();
 create trigger media_same_owner before insert or update on public.media for each row execute function public.check_same_owner();
 
 -- Serialize quota decisions on the owned trip row, not the media count.
