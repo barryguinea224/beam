@@ -7,7 +7,7 @@ const COUNTRIES = require('../travel/countries.js');
 const {uploadOne} = require('../travel/photo-upload.js');
 
 const html = fs.readFileSync('travel/index.html', 'utf8');
-const source = html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
+const source = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]).find(s => s.includes('const PHOTO=window.BEAM_PHOTO;'));
 assert.ok(source, 'Expected inline app script');
 new vm.Script(source, {filename: 'travel/index.html'});
 const start = source.indexOf('const PHOTO=window.BEAM_PHOTO;');

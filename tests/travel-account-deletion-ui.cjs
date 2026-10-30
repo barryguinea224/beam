@@ -4,7 +4,7 @@ const fs = require("node:fs");
 const vm = require("node:vm");
 const html = fs.readFileSync("travel/index.html", "utf8");
 
-const match = html.match(/<script>([\s\S]*?)<\/script>/);
+const match = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].find(m => m[1].includes("function setAccountState(state){"));
 assert.ok(match, "inline Travel History script is present");
 new vm.Script(match[1], { filename: "travel/index.html:inline.js" });
 
