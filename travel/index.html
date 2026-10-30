@@ -322,7 +322,10 @@ function updatePhotoUsage(){
 function renderPhotoGallery(){
  const saved=existingMedia.map(row=>'<div class="photoTile">'+
    (row.url?'<img loading="lazy" alt="Souvenir privé de ce voyage" src="'+esc(row.url)+'">':'<p>Prévisualisation indisponible</p>')+
-   '<div class="actions"><button type="button" class="btn ghost downloadPhoto" data-id="'+esc(row.id)+'">Télécharger</button>'+
+   '<div class="actions"><button type="button" class="btn ghost setCoverPhoto" data-id="'+esc(row.id)+'" aria-pressed="'+
+    String(trips.find(t=>t.id===editingTripId)?.cover_media_id===row.id)+'">'+
+    (trips.find(t=>t.id===editingTripId)?.cover_media_id===row.id?'Retirer la couverture':'Choisir comme couverture')+
+    '</button><button type="button" class="btn ghost downloadPhoto" data-id="'+esc(row.id)+'">Télécharger</button>'+
    '<button type="button" class="btn ghost removePhoto" data-id="'+esc(row.id)+'">Supprimer</button></div></div>');
  const waiting=pendingPhotos.map(entry=>'<div class="photoTile"><img alt="Photo en attente d’envoi" src="'+esc(entry.url)+'">'+
    '<p class="photoPendingLabel">En attente · '+esc(entry.file.name)+'</p><div class="actions">'+
@@ -398,6 +401,24 @@ $("#photoGallery").onclick=async e=>{
  if(!editingTripId)return;
  const row=existingMedia.find(x=>x.id===b.dataset.id);
  if(!row)return;
+ if(b.classList.contains("setCoverPhoto")){
+   // Server composite FK rejects wrong-owner or wrong-trip media even if bypassed.
+   const tripId=editingTripId,trip=trips.find(t=>t.id===tripId);
+   if(!trip)return;
+   const selected=trip.cover_media_id===row.id?null:row.id;
+   mediaBusy=true;updatePhotoUsage();b.disabled=true;
+   try{
+     const {data,error}=await S.from("trips").update({cover_media_id:selected})
+       .eq("id",tripId).eq("user_id",user.id).select("cover_media_id").single();
+     if(error||!data||editingTripId!==tripId||accountState!=="active")
+       throw new Error("Impossible de changer la couverture. Réessayez.");
+     trip.cover_media_id=data.cover_media_id;
+     render();renderPhotoGallery();
+     showPhotoMessage(selected?"Photo choisie pour la couverture.":"Couverture retirée.");
+   }catch(error){showPhotoMessage(error.message||"Couverture indisponible.")}
+   finally{mediaBusy=false;updatePhotoUsage()}
+   return;
+ }
  const removing=b.classList.contains("removePhoto");
  if(removing&&!window.confirm("Supprimer définitivement cette photo du voyage ?"))return;
  mediaBusy=true;updatePhotoUsage();
@@ -406,6 +427,9 @@ $("#photoGallery").onclick=async e=>{
    if(removing){
      const {data,error}=await S.functions.invoke("travel-delete",{body:{action:"delete_photo",media_id:row.id}});
      if(error||data?.ok!==true)throw new Error("Suppression non confirmée. Réessayez.");
+     // ON DELETE SET NULL clears the cover; immediately update the card.
+     const trip=trips.find(t=>t.id===editingTripId);
+     if(trip?.cover_media_id===row.id){trip.cover_media_id=null;render()}
    }else{
      const {data,error}=await S.storage.from("media").download(row.storage_path);
      if(error||!data)throw new Error("Téléchargement indisponible. Réessayez.");
