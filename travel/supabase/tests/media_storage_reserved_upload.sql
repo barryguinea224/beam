@@ -44,6 +44,50 @@ begin
     '30000000-0000-4000-8000-000000000021','30000000-0000-4000-8000-000000000021');
 end $$;
 
+-- The browser must not recycle a reserved media row into a new Storage path.
+-- Run as the same authenticated owner, not as a database administrator.
+do $
+declare
+  col text;
+  refused boolean;
+  changed_count bigint;
+  photo_id uuid := '50000000-0000-4000-8000-000000000021';
+begin
+  foreach col in array array[
+    'storage_path', 'trip_id', 'user_id', 'bytes',
+    'id', 'kind', 'width', 'height', 'created_at'
+  ] loop
+    refused := false;
+    begin
+      -- Even SET col = col must be denied: PostgreSQL checks SET privileges.
+      execute format('update public.media set %1$I=%1$I where id=$1', col)
+        using photo_id;
+    exception when insufficient_privilege then
+      refused := true;
+    end;
+    if not refused then
+      raise exception 'MEDIA_IMMUTABLE_COLUMN_UPDATE_ACCEPTED: %', col;
+    end if;
+  end loop;
+
+  -- Harmless annotations must remain editable by the owner.
+  update public.media
+    set caption='Souvenir', taken_on=date '2026-10-30',
+        is_favorite=true, position=7
+    where id=photo_id;
+  get diagnostics changed_count = row_count;
+  if changed_count <> 1 then
+    raise exception 'MEDIA_SAFE_COLUMN_UPDATE_FAILED';
+  end if;
+  if not exists (
+    select 1 from public.media
+    where id=photo_id and caption='Souvenir'
+      and taken_on=date '2026-10-30' and is_favorite=true and position=7
+  ) then
+    raise exception 'MEDIA_SAFE_COLUMN_UPDATE_INCORRECT';
+  end if;
+end $;
+
 select set_config('request.jwt.claim.sub','30000000-0000-4000-8000-000000000022',true);
 do $$
 declare rejected boolean := false;
