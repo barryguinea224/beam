@@ -35,10 +35,11 @@ function element(id) {
 }
 function harness() {
   const ids=['#photos','#photoGallery','#photoUsage','#photoMessage','#saveTrip',
-    '#modal','#tripForm','#tripMsg','#tripTitle','#appMsg'];
+    '#modal','#tripForm','#tripMsg','#tripTitle','#appMsg','#close'];
   const els=Object.fromEntries(ids.map(id=>[id,element(id)]));
   const records=[],uploads=[],revoked=[];
-  let created=0,uploadCount=0,failAt=0,serial=0;
+  let created=0,uploadCount=0,failAt=0,serial=0,confirmAnswer=true;
+  const confirmMessages=[];
   const storage={
     upload:async (path,blob,options)=>{
       uploads.push({path,blob,options});
@@ -74,7 +75,7 @@ function harness() {
     blob:new Blob(['reencoded pixels'],{type:'image/webp'}),width:800,height:1200
   })};
   const context=vm.createContext({
-    window:{BEAM_PHOTO:{...PHOTO,...convertedPhoto},confirm:()=>true},
+    window:{BEAM_PHOTO:{...PHOTO,...convertedPhoto},confirm:message=>{confirmMessages.push(message);return confirmAnswer}},
     URL:{
       createObjectURL:()=>('blob:preview-'+(++created)),
       revokeObjectURL:url=>revoked.push(url)
@@ -105,12 +106,14 @@ function harness() {
   function queued() {
     return vm.runInContext('pendingPhotos.map(entry=>entry.file.name)',context);
   }
+  function close() {return els['#close'].onclick()}
+  function setConfirm(answer){confirmAnswer=answer}
   function remove(id) {
     return els['#photoGallery'].onclick({
       target:{closest:()=>({dataset:{pendingId:id}})}
     });
   }
-  return {els,records,uploads,revoked,context,select,save,queued,remove,
+  return {els,records,uploads,revoked,context,select,save,queued,remove,close,setConfirm,confirmMessages,
     failAt:n=>{failAt=n},uploadCount:()=>uploadCount};
 }
 async function main() {
@@ -139,6 +142,33 @@ async function main() {
   await second.save();
   assert.equal(second.uploads.length,1);
   assert.equal(second.records.length,1);
+
+  // Closing must warn when there are unsaved photos, retain the queue on cancel,
+  // and release the previews only after the traveler confirms.
+  const closing=harness();
+  await closing.select([fake('keep-a.jpg')]);
+  await closing.select([fake('keep-b.jpg')]);
+  closing.setConfirm(false);
+  closing.close();
+  assert.equal(closing.confirmMessages.length,1);
+  assert.match(closing.confirmMessages[0],/2 photos pas encore enregistrées\. Fermer sans les enregistrer \?/);
+  assert.equal(closing.els['#modal'].classList.contains('open'),true);
+  assert.deepEqual(Array.from(closing.queued()),['keep-a.jpg','keep-b.jpg']);
+  assert.equal(closing.revoked.length,0,'Cancel must not release previews');
+  closing.setConfirm(true);
+  closing.close();
+  assert.equal(closing.els['#modal'].classList.contains('open'),false);
+  assert.deepEqual(Array.from(closing.queued()),[]);
+  assert.equal(closing.revoked.length,2,'Confirm discards and releases previews');
+  const emptyClose=harness();
+  emptyClose.close();
+  assert.equal(emptyClose.confirmMessages.length,0,'Closing with no pending photos must not prompt');
+  assert.equal(emptyClose.els['#modal'].classList.contains('open'),false);
+  const singleClose=harness();
+  await singleClose.select([fake('one.jpg')]);
+  singleClose.setConfirm(false);
+  singleClose.close();
+  assert.match(singleClose.confirmMessages[0],/^1 photo pas encore enregistrée\./);
 
   // The cap includes existing + pending + new, preserving previous choices on rejection.
   const cap=harness();
