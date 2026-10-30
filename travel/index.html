@@ -37,7 +37,7 @@
     </section>
   </div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./config.js"></script><script src="./photo-utils.js"></script><script src="./photo-upload.js"></script><script src="./trip-detail.js"></script><script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./config.js"></script><script src="./photo-utils.js"></script><script src="./photo-upload.js"></script><script src="./trip-detail.js"></script><script src="./factual-pdf.js"></script><script>
 const C=window.BEAM_TRAVEL_CONFIG||{},ok=C.supabaseUrl&&!C.supabaseUrl.includes("YOUR_")&&C.supabaseAnonKey&&!C.supabaseAnonKey.includes("YOUR_"),S=ok?supabase.createClient(C.supabaseUrl,C.supabaseAnonKey):null,$=s=>document.querySelector(s);let user,trips=[],accountState="loading";
 function view(id){$("#auth").classList.add("hidden");$("#app").classList.add("hidden");$(id).classList.remove("hidden")}
 let profile={country_of_residence:null};
@@ -479,5 +479,33 @@ async function runAccountDeletion(pending){
    // Refresh status rather than presenting a writable travel journal.
    if(!confirmed&&user){try{await load()}catch{setAccountState("unavailable")}}
  }
-};$("#pdf").onclick=()=>window.print();if(S)S.auth.onAuthStateChange((_e,s)=>{if(s?.user&&!user){clearPending();user=s.user;setAccountState("loading");view("#app");setTimeout(load,0)}});init();
+};$("#pdf").onclick=async()=>{
+ if(accountState!=="active"||!S||!user)return;
+ const uid=user.id,button=$("#pdf");
+ // Open synchronously from the click, before the async RLS query, to avoid mobile popup blockers.
+ const tab=window.open("","_blank");
+ if(!tab){
+   $("#appMsg").textContent="Autorisez l’ouverture de l’aperçu PDF dans Chrome, puis réessayez.";
+   $("#appMsg").classList.remove("hidden");return;
+ }
+ try{tab.opener=null}catch{}
+ const status=$("#appMsg");
+ button.disabled=true;button.textContent="Préparation du PDF…";
+ try{
+   // Only literal markup is written. No user data is ever interpolated here.
+   tab.document.open();
+   tab.document.write('<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>BEAM Travel History</title></head><body><p>Préparation de votre historique factuel…</p></body></html>');
+   tab.document.close();
+   const {data,error}=await window.BEAM_TRAVEL_PDF.fetchRows(S,uid);
+   if(error||!data)throw new Error("Lecture indisponible");
+   if(accountState!=="active"||!user||user.id!==uid)throw new Error("Session expirée");
+   if(!tab.closed)window.BEAM_TRAVEL_PDF.render(tab.document,data);
+ }catch{
+   if(!tab.closed)tab.document.body.textContent="Impossible de préparer l’historique. Revenez au carnet et réessayez.";
+   status.textContent="Impossible de préparer le PDF factuel. Vérifiez votre connexion et réessayez.";
+   status.classList.remove("hidden");
+ }finally{
+   button.disabled=false;button.textContent="Travel History PDF";
+ }
+};if(S)S.auth.onAuthStateChange((_e,s)=>{if(s?.user&&!user){clearPending();user=s.user;setAccountState("loading");view("#app");setTimeout(load,0)}});init();
 </script></body></html>
