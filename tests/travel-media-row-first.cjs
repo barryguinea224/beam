@@ -64,7 +64,11 @@ async function main(){
  assert.deepEqual(network.calls.map(x=>x[0]),["convert","reserve","upload","cleanup"]);
 
  const cleanupFailed=fake({uploadError:{message:"staging interrupted"},cleanupError:{message:"cleanup failed"}});
- await assert.rejects(uploadOne({...cleanupFailed,...sample}),/nettoyage non confirmé/);
+ await assert.rejects(uploadOne({...cleanupFailed,...sample}),error=>{
+  assert.match(error.message,/nettoyage non confirmé/);
+  assert.equal(error.code,"PHOTO_CLEANUP_UNCONFIRMED");
+  return true;
+ });
  assert.deepEqual(cleanupFailed.calls.map(x=>x[0]),["convert","reserve","upload","cleanup"]);
  console.log("BEAM photo upload: reserve first, quota refuse, cleanup success/failure PASS");
 }
