@@ -71,7 +71,7 @@ create table public.media (
 );
 
 create function public.check_same_owner() returns trigger
-language plpgsql security definer set search_path=public as $$
+language plpgsql security invoker set search_path=public as $
 begin
  if not exists(select 1 from public.trips t where t.id=new.trip_id and t.user_id=new.user_id)
  then raise exception 'Ce voyage n''appartient pas à cet utilisateur'; end if;
@@ -102,6 +102,7 @@ begin
  return new;
 end $$;
 create trigger on_auth_user_created after insert on auth.users for each row execute function public.handle_new_user();
+revoke execute on function public.handle_new_user() from public,anon,authenticated;
 
 alter table public.profiles enable row level security;
 alter table public.trips enable row level security;
