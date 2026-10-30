@@ -5,6 +5,11 @@ const vm = require("node:vm");
 const app = fs.readFileSync("travel/index.html", "utf8");
 const worker = fs.readFileSync("travel/sw.js", "utf8");
 const helper = fs.readFileSync("travel/pwa.js", "utf8");
+const offlineBootstrap = fs.readFileSync("travel/offline-bootstrap.js","utf8");
+new vm.Script(offlineBootstrap, {filename:"travel/offline-bootstrap.js"});
+assert.ok(app.indexOf('<script src="/travel/offline-bootstrap.js"></script>') <
+  app.indexOf('https://cdn.jsdelivr.net/npm/@supabase/'), "offline guard must run before CDN");
+
 new vm.Script(worker, {filename:"travel/sw.js"});
 new vm.Script(helper, {filename:"travel/pwa.js"});
 const inline = [...app.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)].map(m=>m[1]);
