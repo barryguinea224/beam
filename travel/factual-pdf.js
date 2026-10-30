@@ -14,6 +14,7 @@
     tourisme:"Tourisme",affaires:"Affaires",etudes:"Études",
     famille:"Famille",sante:"Santé",transit:"Transit",autre:"Autre"
   });
+  function purposeName(value){return PURPOSES[value]||"Autre"}
   function fetchRows(client,userId){
     if(!client?.from||!userId)throw new Error("Session indisponible.");
     return client.from(VIEW).select(FIELDS.join(",")).eq("user_id",userId)
@@ -50,7 +51,7 @@
         country:COUNTRY_NAMES[code]||code||"—",code:code||"—",
         cities:cities||"—",entry:shortDate(row.entry_date),exit:shortDate(row.exit_date),
         duration:Number.isInteger(days)&&days>0?days+" jour"+(days===1?"":"s"):"—",
-        purpose:PURPOSES[key]||"Autre"
+        purpose:purposeName(key)
       });
     });
   }
@@ -136,7 +137,7 @@
     add(doc.body,"footer",DECLARATION,"page-notice");
     return rows.length;
   }
-  const api=Object.freeze({VIEW,FIELDS,DECLARATION,fetchRows,factualRows,render,displayName,generatedDate});
+  const api=Object.freeze({VIEW,FIELDS,DECLARATION,fetchRows,factualRows,render,displayName,generatedDate,purposeName});
   if(root)root.BEAM_TRAVEL_PDF=api;
   if(typeof module!=="undefined"&&module.exports)module.exports=api;
 })(typeof window!=="undefined"?window:undefined);
