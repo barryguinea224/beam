@@ -2,6 +2,7 @@
 // Secrets stay in local environment variables. Never commit credentials.
 // Required: SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, TEST_A_EMAIL,
 // TEST_A_PASSWORD, TEST_B_EMAIL, TEST_B_PASSWORD
+// CI identities only: never reuse accounts used for manual/product testing.
 
 import { createClient } from "npm:@supabase/supabase-js@2.75.0";
 import { ACTIVITY_KINDS } from "../../constants.js";
@@ -12,6 +13,7 @@ if (!TEST_ACTIVITY_KIND) throw new Error("No allowed activity kind configured");
 const env = Deno.env.toObject();
 const required = ["SUPABASE_URL","SUPABASE_PUBLISHABLE_KEY","TEST_A_EMAIL","TEST_A_PASSWORD","TEST_B_EMAIL","TEST_B_PASSWORD"];
 for (const k of required) if (!env[k]) throw new Error(`Missing ${k}`);
+for (const k of ["TEST_A_EMAIL","TEST_B_EMAIL"]) if (!/\+ci-[ab]@/i.test(env[k])) throw new Error(`${k} must be a dedicated CI identity (+ci-a / +ci-b)`);
 
 const client = () => createClient(env.SUPABASE_URL, env.SUPABASE_PUBLISHABLE_KEY, {
   auth: { persistSession:false, autoRefreshToken:false }
