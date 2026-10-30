@@ -128,6 +128,79 @@ if(bActivityAfter.trip_id!==tb.id) throw new Error("SECURITY REGRESSION: B activ
 console.log("PASS B activity remains attached to B trip");
 
 console.log("BASE RLS + RELATIONAL INTEGRITY TESTS PASSED");
+console.log("BASE RLS + RELATIONAL INTEGRITY TESTS PASSED");
+
+// Storage hostile bench. Use random technical names only.
+const bucketA=A.storage.from("media"), bucketB=B.storage.from("media");
+const storageId=crypto.randomUUID();
+const storagePath=\`\${sa.user.id}/\${ta.id}/\${storageId}.webp\`;
+const tinyWebp=Uint8Array.from(atob("UklGRiIAAABXRUJQVlA4IBYAAAAwAQCdASoBAAEAAUAmJaQAA3AA/v89WAAAAA=="),c=>c.charCodeAt(0));
+const blob=(bytes,type)=>new Blob([bytes],{type});
+let storageUploaded=false;
+try {
+  const {error:uploadErr}=await bucketA.upload(storagePath,blob(tinyWebp,"image/webp"),{contentType:"image/webp",upsert:false});
+  if(uploadErr) throw new Error("LEGITIMATE STORAGE UPLOAD FAILED: "+uploadErr.message);
+  storageUploaded=true;
+  if(!storagePath.startsWith(\`\${sa.user.id}/\${ta.id}/\`) || !/\\/[0-9a-f-]{36}\\.webp$/i.test(storagePath))
+    throw new Error("SECURITY REGRESSION: storage path is not <user>/<trip>/<uuid>.webp");
+  console.log("PASS A legitimate WebP upload; random technical path");
+
+  const {data:aDownload,error:aDownloadErr}=await bucketA.download(storagePath);
+  if(aDownloadErr||!aDownload) throw new Error("A cannot download own object");
+  console.log("PASS A can download own private object");
+
+  const {data:bDownload,error:bDownloadErr}=await bucketB.download(storagePath);
+  if(!bDownloadErr && bDownload) throw new Error("SECURITY REGRESSION: B downloaded A object");
+  console.log("PASS B cannot directly download A object");
+
+  const {data:bSigned,error:bSignedErr}=await bucketB.createSignedUrl(storagePath,60);
+  if(!bSignedErr && bSigned?.signedUrl) throw new Error("SECURITY REGRESSION: B created signed URL for A object");
+  console.log("PASS B cannot create signed URL for A object");
+
+  const {data:publicData}=bucketB.getPublicUrl(storagePath);
+  const publicResp=await fetch(publicData.publicUrl,{redirect:"manual"});
+  if(publicResp.ok) throw new Error("SECURITY REGRESSION: private object served through public URL");
+  console.log("PASS public URL does not serve private A object");
+
+  const {data:bList,error:bListErr}=await bucketB.list(sa.user.id,{limit:100});
+  if(bListErr) console.log("PASS B list of A folder rejected");
+  else if((bList??[]).length) throw new Error("SECURITY REGRESSION: B can list names in A folder");
+  else console.log("PASS B list of A folder is empty");
+
+  for (const hostilePath of [
+    \`\${sb.user.id}/../\${sa.user.id}/\${crypto.randomUUID()}.webp\`,
+    \`\${sa.user.id}/\${crypto.randomUUID()}.webp\`,
+    \`/\${sa.user.id}/\${crypto.randomUUID()}.webp\`
+  ]) {
+    const {error}=await bucketB.upload(hostilePath,blob(tinyWebp,"image/webp"),{contentType:"image/webp",upsert:false});
+    expectDenied("B hostile/cross-owner path "+hostilePath.replaceAll(sa.user.id,"<A>").replaceAll(sb.user.id,"<B>"),error);
+  }
+
+  const {error:upsertOwn}=await bucketA.upload(storagePath,blob(tinyWebp,"image/webp"),{contentType:"image/webp",upsert:true});
+  expectDenied("A cannot overwrite existing object with upsert:true",upsertOwn);
+
+  const elevenMiB=new Uint8Array(11*1024*1024);
+  const {error:largeErr}=await bucketA.upload(\`\${sa.user.id}/\${ta.id}/\${crypto.randomUUID()}.webp\`,blob(elevenMiB,"image/webp"),{contentType:"image/webp",upsert:false});
+  expectDenied("11 MiB object rejected by bucket limit",largeErr);
+
+  for (const [ext,mime] of [["svg","image/svg+xml"],["html","text/html"]]) {
+    const bytes=new TextEncoder().encode(ext==="svg"?"<svg xmlns='http://www.w3.org/2000/svg'></svg>":"<html></html>");
+    const {error}=await bucketA.upload(\`\${sa.user.id}/\${ta.id}/\${crypto.randomUUID()}.\${ext}\`,blob(bytes,mime),{contentType:mime,upsert:false});
+    expectDenied(\`\${mime} rejected by bucket MIME allowlist\`,error);
+  }
+
+  console.log("STORAGE HOSTILE TESTS PASSED");
+} finally {
+  if(storageUploaded){
+    const {error:removeErr}=await bucketA.remove([storagePath]);
+    if(removeErr) console.error("STORAGE CLEANUP FAILED:",removeErr.message);
+    else {
+      const {data:afterRemove,error:afterRemoveErr}=await bucketA.download(storagePath);
+      if(!afterRemoveErr && afterRemove) throw new Error("SECURITY REGRESSION: Storage object still downloadable after removal");
+      console.log("CLEANUP PASS: A Storage test object removed and no longer downloadable");
+    }
+  }
+}
 console.log("Next phase: Storage upload/cross-user/upsert + retained-JWT deletion replay.");
 } finally {
   if (tb?.id) {
