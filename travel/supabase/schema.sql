@@ -142,3 +142,14 @@ create policy "storage ajouter" on storage.objects for insert to authenticated w
  ));
 create policy "storage supprimer" on storage.objects for delete to authenticated using(
  bucket_id='media' and (storage.foldername(name))[1]=auth.uid()::text and public.account_accepts_writes(auth.uid()));
+
+-- Server-only ownership guard used immediately before Auth user deletion.
+-- Keep this RPC in public so PostgREST can reach it, but only service_role may execute it.
+create function public.count_owned_storage_objects(uid uuid) returns bigint
+language sql stable security definer set search_path='' as $$
+  select count(*)
+  from storage.objects
+  where owner_id = uid::text or owner = uid
+$$;
+revoke execute on function public.count_owned_storage_objects(uuid) from public, anon, authenticated;
+grant execute on function public.count_owned_storage_objects(uuid) to service_role;
