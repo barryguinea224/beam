@@ -1,0 +1,30 @@
+name: BEAM PWA — diagnose Chrome install against deployed preview
+
+on:
+  pull_request:
+    branches: [feature/beam-travel-history-v1]
+    paths:
+      - "tests/travel-pwa-live-install.cjs"
+      - ".github/workflows/travel-pwa-live-install.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  live-chrome:
+    name: Check Netlify assets, SW state and Chromium installability
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install Chromium
+        run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Diagnose public PR #3 Netlify preview
+        run: node tests/travel-pwa-live-install.cjs
