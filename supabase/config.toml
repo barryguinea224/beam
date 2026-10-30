@@ -3,3 +3,6 @@ verify_jwt = true
 
 [functions.travel-deletion-retry]
 verify_jwt = false
+
+[functions.travel-deletion-monitor]
+verify_jwt = false
