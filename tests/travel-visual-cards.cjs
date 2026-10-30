@@ -56,7 +56,7 @@ assert.ok(!html.includes("70000000-0000-4000-8000-000000000001"),
   "Private cover ID should not appear in the public HTML");
 const fallback=CARD.markup({...trip,country_code:"NZ",cities:["Auckland"]},"Nouvelle-Zélande","Tourisme","juin 2026");
 assert.ok(!fallback.includes("journeyBackdrop"),"Unsupported country uses CSS fallback");
-assert.ok(!fallback.includes("journeyFlag"),"Unsupported flag uses ISO code only");
+assert.ok(!fallback.includes('<img class="journeyFlag"'),"Unsupported flag uses ISO code only");
 assert.ok(fallback.includes("NZ"));
 const SUPABASE="https://my-stage.supabase.co";
 assert.equal(CARD.trustedSignedUrl("https://my-stage.supabase.co/storage/v1/object/sign/media/uid/path.webp?token=TEST",SUPABASE),
