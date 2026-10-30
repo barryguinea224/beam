@@ -3,6 +3,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const vm=require('node:vm');
 const DETAIL=require('../travel/trip-detail.js');
+const PDF=require('../travel/factual-pdf.js');
 
 const html=fs.readFileSync('travel/index.html','utf8');
 const inline=html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
@@ -90,7 +91,7 @@ const S={
  storage:{from:()=>({createSignedUrl:async()=>({data:{signedUrl:'https://signed.invalid/private.webp'},error:null})})}
 };
 const context=vm.createContext({
- window:{BEAM_TRIP_DETAIL:DETAIL,confirm:()=>true},
+ window:{BEAM_TRIP_DETAIL:DETAIL,BEAM_TRAVEL_PDF:PDF,confirm:()=>true},
  document:{activeElement:null},
  S,user:{id:'owner'},accountState:'active',trips:[tripRecord],
  $:id=>{assert.ok(els[id], 'Missing DOM stub '+id);return els[id]},
