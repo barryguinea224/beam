@@ -33,7 +33,7 @@
     const safeDays=Number.isInteger(days)&&days>=0?days:"—";
     // Decorative media is always public, local and anonymous; private cover URLs
     // are inserted LATER by the authenticated session, never serialized in markup.
-    return '<article class="trip journeyTrip"><button type="button" class="tripOpen journeyCard" data-id="'+esc(id)+
+    return '<article class="trip journeyTrip"><button type="button" class="tripOpen" data-id="'+esc(id)+
      '" aria-label="Voir la fiche du voyage à '+cities+'">'+
      (image?'<img class="journeyBackdrop" src="'+image+'" alt="" loading="lazy" decoding="async" width="800" height="340">':'')+
      '<span class="journeyShade" aria-hidden="true"></span>'+
@@ -55,7 +55,7 @@
     try{
       const project=new URL(projectUrl),signed=new URL(raw);
       return signed.protocol==="https:" && signed.origin===project.origin &&
-        signed.pathname.includes("/storage/v1/object/sign/media/")?signed.href:"";
+        signed.pathname.startsWith("/storage/v1/object/sign/media/")?signed.href:"";
     }catch{return ""}
   }
   const api=Object.freeze({COUNTRY_ART,FLAG_CODES,codeOf,countryArt,flag,markup,trustedSignedUrl});
