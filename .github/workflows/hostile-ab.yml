@@ -13,10 +13,6 @@ on:
       - "supabase/config.toml"
       - ".github/workflows/hostile-ab.yml"
 
-concurrency:
-  group: hostile-ab-staging
-  cancel-in-progress: false
-
 permissions:
   contents: read
 
@@ -89,6 +85,9 @@ jobs:
 
   hostile-ab:
     name: Real JWT / RLS hostile bench
+    concurrency:
+      group: hostile-ab-staging
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 10
     environment: staging
