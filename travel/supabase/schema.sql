@@ -117,7 +117,11 @@ create policy "voyages propriétaire" on public.trips for all to authenticated u
 create policy "activités propriétaire" on public.activities for all to authenticated using(user_id=auth.uid()) with check(user_id=auth.uid());
 create policy "médias propriétaire" on public.media for all to authenticated using(user_id=auth.uid()) with check(user_id=auth.uid());
 revoke all on public.profiles,public.trips,public.activities,public.media from anon;
-revoke update(deleting) on public.trips from authenticated;
+-- Destructive trip/media deletion is server-only: raw browser DELETE would orphan Storage.
+revoke delete on public.trips, public.media from authenticated;
+-- deleting is server-only. Keep ordinary trip editing available.
+revoke update on public.trips from authenticated;
+grant update(country_code,cities,entry_date,exit_date,purpose,note,is_favorite,is_domestic) on public.trips to authenticated;
 
 create view public.travel_history_pdf with(security_invoker=true) as
 select user_id,country_code,cities,entry_date,exit_date,duration_days,purpose from public.trips where not is_domestic;
@@ -129,7 +133,11 @@ create policy "storage lire" on storage.objects for select to authenticated usin
 create policy "storage ajouter" on storage.objects for insert to authenticated with check(
  bucket_id='media'
  and (storage.foldername(name))[1]=auth.uid()::text
- and (storage.foldername(name))[2] ~ '^[0-9a-f-]{36}$'
+ and (storage.foldername(name))[2] ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}
+ and public.trip_accepts_writes(auth.uid(), ((storage.foldername(name))[2])::uuid));
+create policy "storage supprimer" on storage.objects for delete to authenticated using(
+ bucket_id='media' and (storage.foldername(name))[1]=auth.uid()::text and public.account_accepts_writes(auth.uid()));
+
  and public.trip_accepts_writes(auth.uid(), ((storage.foldername(name))[2])::uuid));
 create policy "storage supprimer" on storage.objects for delete to authenticated using(
  bucket_id='media' and (storage.foldername(name))[1]=auth.uid()::text and public.account_accepts_writes(auth.uid()));
