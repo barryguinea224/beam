@@ -3,9 +3,13 @@ name: Hostile A/B — Staging
 on:
   workflow_dispatch:
   pull_request:
-    branches: [main]
+    branches: [main, feature/beam-travel-history-v1]
     paths:
       - "travel/**"
+      - "supabase/functions/travel-delete/**"
+      - "supabase/functions/travel-deletion-retry/**"
+      - "supabase/functions/_shared/travel-deletion.ts"
+      - "supabase/config.toml"
       - ".github/workflows/hostile-ab.yml"
 
 concurrency:
@@ -78,6 +82,9 @@ jobs:
       - name: Execute canonical schema from scratch
         env: { PGPASSWORD: postgres }
         run: psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f travel/supabase/schema.sql
+      - name: Exercise deletion retry lease state machine
+        env: { PGPASSWORD: postgres }
+        run: psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f travel/supabase/tests/deletion_retry_worker.sql
 
   hostile-ab:
     name: Real JWT / RLS hostile bench
