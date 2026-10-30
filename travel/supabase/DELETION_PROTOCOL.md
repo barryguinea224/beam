@@ -131,12 +131,12 @@ A deletion that remains locked for more than one hour is eligible for automatic 
 - `private.stuck_deletions` signals rows older than 24h, at the 12-attempt ceiling, or (defensively) any legacy deleting row missing its request timestamp.
 - Database constraints require every `deleting=true` profile/trip to have `deletion_requested_at`; migration repairs legacy nulls before adding them.
 - Account deletions take priority. A trip is not independently claimed while its owning account is deleting.
-- A protected `travel-deletion-monitor` endpoint checks stuck deletions and `running` receipts older than 15 minutes. **It does not yet alert on already-failed receipts**, including `RELEASE_FAILED`; inspect receipts and operational logs, and close this monitoring gap before enabling unattended cron.
+- A protected `travel-deletion-monitor` endpoint checks stuck deletions, `running` receipts older than 15 minutes, and `failed` receipts with `finished_at` in the rolling last 24 hours (including `RELEASE_FAILED`). All three counts must be zero for HTTP 200; incidents return HTTP 503. This newer version is **coded but not deployed** and still requires staging verification before enabling cron.
 
 
 ### Runtime interruption and recovery
 
-A deletion started at 89 seconds may still be interrupted by the Supabase runtime: the 90-second budget is **not** a hard cutoff. The affected account or trip remains `deleting=true` and therefore write-locked; its 10-minute lease eventually expires, and a later invocation can resume idempotently. A runtime kill may prevent the final receipt write, leaving a `running` receipt; the monitor reports a running receipt older than 15 minutes. This is an architectural recovery path, **not a real runtime-kill test**. A failed release in a normally finishing worker instead produces a durable `failed` receipt with `RELEASE_FAILED`; current monitoring for stale *running* receipts does not automatically alert on this status.
+A deletion started at 89 seconds may still be interrupted by the Supabase runtime: the 90-second budget is **not** a hard cutoff. The affected account or trip remains `deleting=true` and therefore write-locked; its 10-minute lease eventually expires, and a later invocation can resume idempotently. A runtime kill may prevent the final receipt write, leaving a `running` receipt; the monitor reports a running receipt older than 15 minutes. This is an architectural recovery path, **not a real runtime-kill test**. A failed release in a normally finishing worker instead produces a durable `failed` receipt with `RELEASE_FAILED`; the updated, not-yet-deployed monitor alerts on such receipts completed in the last 24 hours.
 
 ### Secret boundary
 

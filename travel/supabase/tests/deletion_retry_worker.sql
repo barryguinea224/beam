@@ -183,4 +183,36 @@ begin
   end if;
 end $$;
 
+-- The monitor flags recent failed worker receipts but not failures older than 24h.
+do $$
+declare
+  baseline bigint := public.count_failed_deletion_retry_runs_24h();
+  rid uuid := '20000000-0000-4000-8000-000000000005';
+begin
+  if has_function_privilege('anon','public.count_failed_deletion_retry_runs_24h()','EXECUTE') or
+     has_function_privilege('authenticated','public.count_failed_deletion_retry_runs_24h()','EXECUTE') then
+    raise exception 'client can inspect failed worker receipts';
+  end if;
+  if not has_function_privilege('service_role','public.count_failed_deletion_retry_runs_24h()','EXECUTE') then
+    raise exception 'service role cannot monitor failed worker receipts';
+  end if;
+  perform public.begin_deletion_retry_run(rid);
+  perform public.finish_deletion_retry_run(rid,5,1,1,0,'RELEASE_FAILED');
+  if public.count_failed_deletion_retry_runs_24h() <> baseline+1 then
+    raise exception 'recent RELEASE_FAILED receipt not detected';
+  end if;
+  update private.deletion_retry_runs
+     set started_at=now()-interval '26 hours', finished_at=now()-interval '25 hours'
+   where run_id=rid;
+  if public.count_failed_deletion_retry_runs_24h() <> baseline then
+    raise exception 'failed receipt older than 24h still counted';
+  end if;
+  update private.deletion_retry_runs
+     set started_at=now()-interval '24 hours', finished_at=now()-interval '23 hours'
+   where run_id=rid;
+  if public.count_failed_deletion_retry_runs_24h() <> baseline+1 then
+    raise exception 'recent failed receipt inside 24h missed';
+  end if;
+end $$;
+
 rollback;

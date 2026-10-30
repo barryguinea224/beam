@@ -1,4 +1,5 @@
 import { adminClient } from "../_shared/travel-deletion.ts";
+import { deletionHealth } from "../_shared/travel-deletion-health.ts";
 
 async function sameSecret(a: string, b: string): Promise<boolean> {
   const enc = new TextEncoder();
@@ -19,15 +20,22 @@ Deno.serve(async (req: Request) => {
   if(!expected||!supplied||!await sameSecret(expected,supplied)) return new Response("UNAUTHORIZED",{status:401});
 
   const client = adminClient();
-  const [deletions, runs] = await Promise.all([
+  const [deletions, runs, failures] = await Promise.all([
     client.rpc("count_stuck_deletions"),
     client.rpc("count_stale_deletion_retry_runs"),
+    client.rpc("count_failed_deletion_retry_runs_24h"),
   ]);
-  if (deletions.error || runs.error) {
+  if (deletions.error || runs.error || failures.error) {
     return Response.json({ ok: false, error: "MONITOR_QUERY_FAILED" }, { status: 500 });
   }
-  const stuck = Number(deletions.data);
-  const staleRuns = Number(runs.data);
-  const healthy = stuck === 0 && staleRuns === 0;
-  return Response.json({ ok: healthy, stuck, stale_runs: staleRuns }, { status: healthy ? 200 : 503 });
+  const raw = [deletions.data, runs.data, failures.data];
+  const values = raw.map(Number);
+  if (raw.some((value) => value == null) ||
+      values.some((value) => !Number.isSafeInteger(value) || value < 0)) {
+    return Response.json({ ok: false, error: "MONITOR_QUERY_INVALID" }, { status: 500 });
+  }
+  const health = deletionHealth({
+    stuck: values[0], stale_runs: values[1], failed_runs_24h: values[2],
+  });
+  return Response.json(health, { status: health.ok ? 200 : 503 });
 });

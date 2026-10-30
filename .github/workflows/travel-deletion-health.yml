@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   stuck-deletions:
-    name: No stuck Travel History deletions
+    name: No stuck/failed Travel History deletions
     runs-on: ubuntu-latest
     timeout-minutes: 2
     environment: staging
@@ -30,3 +30,16 @@ jobs:
             echo "::error::Travel deletion health check failed (HTTP $code)"
             exit 1
           fi
+          # A stale monitor deployment could incorrectly respond 200 with no
+          # failed_runs_24h field. Reject it instead of reporting false health.
+          python3 - <<'PY'
+          import json
+          with open("/tmp/health.json", encoding="utf-8") as f:
+              health = json.load(f)
+          keys = ("stuck", "stale_runs", "failed_runs_24h")
+          assert health.get("ok") is True, "Monitor returned unhealthy"
+          assert all(type(health.get(k)) is int and health[k] == 0 for k in keys), (
+              "Missing or non-zero monitor counter"
+          )
+          print("Staging deletion monitor: 0 stuck, 0 stale, 0 failed (last 24h)")
+          PY

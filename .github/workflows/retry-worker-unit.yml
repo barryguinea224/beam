@@ -7,6 +7,9 @@ on:
     paths:
       - "supabase/functions/_shared/travel-retry-runner.ts"
       - "supabase/functions/travel-deletion-retry/**"
+      - "supabase/functions/travel-deletion-monitor/**"
+      - "supabase/functions/_shared/travel-deletion-health.ts"
+      - "travel/supabase/tests/travel-deletion-health_test.ts"
       - "travel/supabase/tests/travel-retry-runner_test.ts"
       - ".github/workflows/retry-worker-unit.yml"
   push:
@@ -14,6 +17,9 @@ on:
     paths:
       - "supabase/functions/_shared/travel-retry-runner.ts"
       - "supabase/functions/travel-deletion-retry/**"
+      - "supabase/functions/travel-deletion-monitor/**"
+      - "supabase/functions/_shared/travel-deletion-health.ts"
+      - "travel/supabase/tests/travel-deletion-health_test.ts"
       - "travel/supabase/tests/travel-retry-runner_test.ts"
       - ".github/workflows/retry-worker-unit.yml"
 
@@ -36,5 +42,6 @@ jobs:
         run: |
           deno check supabase/functions/_shared/travel-retry-runner.ts
           deno check supabase/functions/travel-deletion-retry/index.ts
+          deno check supabase/functions/travel-deletion-monitor/index.ts
       - name: Run deterministic tests (no network, no secrets)
-        run: deno test travel/supabase/tests/travel-retry-runner_test.ts
+        run: deno test travel/supabase/tests/travel-retry-runner_test.ts travel/supabase/tests/travel-deletion-health_test.ts
