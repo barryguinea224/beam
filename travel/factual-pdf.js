@@ -6,11 +6,10 @@
   const VIEW="travel_history_pdf";
   const FIELDS=Object.freeze(["country_code","cities","entry_date","exit_date","duration_days","purpose"]);
   const DECLARATION="Historique déclaré par l'utilisateur, non délivré par une autorité officielle";
-  const COUNTRY_NAMES=Object.freeze({
-    CI:"Côte d’Ivoire",FR:"France",GN:"Guinée",GM:"Gambie",GH:"Ghana",
-    GW:"Guinée-Bissau",ML:"Mali",MA:"Maroc",MR:"Mauritanie",
-    SN:"Sénégal",SL:"Sierra Leone",TR:"Turquie",AE:"Émirats arabes unis",SE:"Suède"
-  });
+  const COUNTRY_NAMES=(root?.BEAM_COUNTRIES||(
+    typeof require==="function"?require("./countries.js"):null
+  ))?.NAMES;
+  if(!COUNTRY_NAMES)throw new Error("Référentiel des pays indisponible.");
   const PURPOSES=Object.freeze({
     tourisme:"Tourisme",affaires:"Affaires",etudes:"Études",
     famille:"Famille",sante:"Santé",transit:"Transit",autre:"Autre"
@@ -19,6 +18,17 @@
     if(!client?.from||!userId)throw new Error("Session indisponible.");
     return client.from(VIEW).select(FIELDS.join(",")).eq("user_id",userId)
       .order("entry_date",{ascending:false});
+  }
+  function displayName(raw){
+    const name=typeof raw==="string"?raw.trim().replace(/\\s+/g," "):"";
+    if(!name||name.length>80)throw new Error("Le nom du voyageur est requis (80 caractères maximum).");
+    return name;
+  }
+  function generatedDate(value){
+    if(!(value instanceof Date)||Number.isNaN(value.getTime()))
+      throw new Error("Date de génération indisponible.");
+    return String(value.getDate()).padStart(2,"0")+"/"+
+      String(value.getMonth()+1).padStart(2,"0")+"/"+value.getFullYear();
   }
   function shortDate(raw){
     if(typeof raw!=="string"||!/^([0-9]{4})-([0-9]{2})-([0-9]{2})$/.test(raw))return "—";
@@ -54,6 +64,7 @@
     ".brand{font-weight:800;letter-spacing:.12em;color:#174d3a;font-size:10pt}",
     "h1{font-size:23pt;font-weight:700;line-height:1.15;margin:8mm 0 2mm}",
     ".subtitle{color:#66736e;margin:0}",
+    ".meta{font-size:10pt;margin:6px 0;color:#33443a;overflow-wrap:anywhere}",
     ".declaration{border:1px solid #174d3a;background:#f5f9f6;color:#25392e;padding:9px 12px;font-size:10pt;font-weight:700;margin:0 0 8mm}",
     ".count{color:#4f5e56;font-size:10pt;margin:0 0 3mm}",
     "table{border-collapse:collapse;width:100%;table-layout:fixed}",
@@ -80,7 +91,10 @@
     parent.appendChild(node);
     return node;
   }
-  function render(doc,rawRows){
+  function render(doc,rawRows,metadata){
+    // Metadata is only the user's declared profile name and a local generation date.
+    const name=displayName(metadata?.displayName);
+    const date=generatedDate(metadata?.generatedAt);
     const rows=factualRows(rawRows);
     doc.documentElement.lang="fr";
     const meta=doc.createElement("meta");meta.setAttribute("charset","utf-8");
@@ -98,6 +112,8 @@
     add(header,"div","BEAM · TRAVEL HISTORY","brand");
     add(header,"h1","Historique de voyages");
     add(header,"p","Voyages internationaux déclarés par le voyageur","subtitle");
+    add(header,"p","Voyageur : "+name,"meta");
+    add(header,"p","Document généré le "+date,"meta");
     add(main,"p",DECLARATION,"declaration");
     add(main,"p",rows.length+" voyage"+(rows.length===1?"":"s")+" déclaré"+(rows.length===1?"":"s"),"count");
     if(!rows.length){
@@ -120,7 +136,7 @@
     add(doc.body,"footer",DECLARATION,"page-notice");
     return rows.length;
   }
-  const api=Object.freeze({VIEW,FIELDS,DECLARATION,fetchRows,factualRows,render});
+  const api=Object.freeze({VIEW,FIELDS,DECLARATION,fetchRows,factualRows,render,displayName,generatedDate});
   if(root)root.BEAM_TRAVEL_PDF=api;
   if(typeof module!=="undefined"&&module.exports)module.exports=api;
 })(typeof window!=="undefined"?window:undefined);
