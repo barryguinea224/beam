@@ -130,9 +130,14 @@ async function callDelete(token: string, body: Row): Promise<{ status: number; b
 // This is a preflight safety check, not a substitute for a truly isolated staging project.
 async function assertIsolatedDeletions(allowedUserIds: string[]) {
   for (const table of ["profiles", "trips"] as const) {
-    const { data, error } = await admin.from(table).select(table === "trips" ? "id,user_id" : "id")
+    const { data, error, count } = await admin.from(table)
+      .select(table === "trips" ? "id,user_id" : "id", { count: "exact" })
       .eq("deleting", true);
     if (error) throw new Error(`RETRY_ISOLATION_CHECK_FAILED_${table}: ${error.message}`);
+    // Fail closed if PostgREST truncated the result set; never silently omit another user.
+    if (count !== (data ?? []).length) {
+      throw new Error("REFUSING retry dispatch: cannot enumerate all staging deletions");
+    }
     if ((data ?? []).some((r) => !allowedUserIds.includes(String(table === "trips" ? r.user_id : r.id)))) {
       throw new Error("REFUSING retry dispatch: another staging user has a deletion in progress");
     }
