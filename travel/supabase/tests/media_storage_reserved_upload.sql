@@ -46,7 +46,7 @@ end $$;
 
 -- The browser must not recycle a reserved media row into a new Storage path.
 -- Run as the same authenticated owner, not as a database administrator.
-do $
+do $$
 declare
   col text;
   refused boolean;
@@ -86,7 +86,7 @@ begin
   ) then
     raise exception 'MEDIA_SAFE_COLUMN_UPDATE_INCORRECT';
   end if;
-end $;
+end $$;
 
 select set_config('request.jwt.claim.sub','30000000-0000-4000-8000-000000000022',true);
 do $$
