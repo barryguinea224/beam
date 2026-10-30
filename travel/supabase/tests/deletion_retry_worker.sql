@@ -27,7 +27,7 @@ begin
 end $$;
 
 -- Starting, not merely reserving, clears the prior error.
-do $
+do $$
 declare tok uuid; ok boolean;
 begin
  select claim_token into tok from claimed where subject_kind='account';
@@ -36,9 +36,9 @@ begin
  if not ok then raise exception 'account did not start'; end if;
  if (select deletion_last_error from public.profiles where id='00000000-0000-4000-8000-000000000001') is not null
  then raise exception 'account error not cleared at start'; end if;
-end $;
+end $$;
 
-do $
+do $$
 declare tok uuid; ok boolean;
 begin
  select claim_token into tok from claimed where subject_kind='trip';
@@ -89,7 +89,7 @@ end $$;
 -- After a released claim, the subsequent real start clears the old failure.
 truncate claimed;
 insert into claimed select * from public.claim_stale_deletions(5,10);
-do $
+do $$
 declare tok uuid; ok boolean;
 begin
  select claim_token into tok from claimed where subject_kind='trip';
@@ -98,7 +98,7 @@ begin
  if not ok then raise exception 'trip second start failed'; end if;
  if (select deletion_last_error from public.trips where id='10000000-0000-4000-8000-000000000001') is not null
  then raise exception 'trip error not cleared at start'; end if;
-end $;
+end $$;
 
 update public.trips set deletion_attempts=12,deletion_claimed_until=null,deletion_claim_token=null
 where id='10000000-0000-4000-8000-000000000001';
@@ -119,6 +119,46 @@ begin
   raise exception 'missing deletion timestamp accepted';
  exception when check_violation then null;
  end;
+end $$;
+
+-- Private worker run receipts: created before HTTP 202, completed only after work settles.
+do $$
+declare rid uuid := '20000000-0000-4000-8000-000000000001'; receipt record; done boolean;
+begin
+  perform public.begin_deletion_retry_run(rid);
+  select * into receipt from public.get_deletion_retry_run(rid);
+  if receipt.status <> 'running' or receipt.finished_at is not null then
+    raise exception 'new retry receipt must be running';
+  end if;
+  if (select count(*) from private.deletion_retry_runs where run_id=rid) <> 1 then
+    raise exception 'missing private retry receipt';
+  end if;
+  select public.finish_deletion_retry_run(rid,1,1,0,1,null) into done;
+  if not done then raise exception 'retry receipt did not finish'; end if;
+  select * into receipt from public.get_deletion_retry_run(rid);
+  if receipt.status <> 'completed' or receipt.finished_at is null or
+    receipt.claimed <> 1 or receipt.started <> 1 or receipt.destructive_failed <> 1 then
+    raise exception 'retry receipt counts or terminal status invalid';
+  end if;
+  if public.finish_deletion_retry_run(rid,1,1,1,0,null) then
+    raise exception 'completed run was overwritten';
+  end if;
+end $$;
+
+-- Failed background execution must be explicit, never mistaken for completed no-work.
+do $$
+declare rid uuid := '20000000-0000-4000-8000-000000000002'; receipt record;
+begin
+  perform public.begin_deletion_retry_run(rid);
+  perform public.finish_deletion_retry_run(rid,0,0,0,0,'RETRY_CLAIM_FAILED');
+  select * into receipt from public.get_deletion_retry_run(rid);
+  if receipt.status <> 'failed' or receipt.error_code <> 'RETRY_CLAIM_FAILED' then
+    raise exception 'failed background run was not surfaced';
+  end if;
+  if has_function_privilege('anon','public.get_deletion_retry_run(uuid)','EXECUTE') or
+     has_function_privilege('authenticated','public.get_deletion_retry_run(uuid)','EXECUTE') then
+    raise exception 'client can read retry receipts';
+  end if;
 end $$;
 
 rollback;
