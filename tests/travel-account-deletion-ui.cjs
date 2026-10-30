@@ -32,8 +32,8 @@ for (const id of [
 ]) {
   assert.ok(html.includes('id="' + id + '"'), "missing account-status UI: " + id);
 }
-assert.ok(html.includes('.select("country_of_residence,deleting")'),
-  "profile deleting flag must be read at load");
+assert.ok(/\.select\("country_of_residence(?:,display_name)?,deleting"\)/.test(html),
+  "profile deleting flag must be read at load, even when extra safe profile fields are selected");
 assert.ok(html.includes('if(current.deleting===true)'), "pending accounts must be recognized");
 assert.ok(html.includes('$("#finishDeletion").onclick=()=>runAccountDeletion(true)'),
   "locked accounts need an independent resume action");
