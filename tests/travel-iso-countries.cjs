@@ -23,6 +23,15 @@ for(const code of ["GF","GP","MQ","RE","SA","SG","BH","MT","US","CI","AE","CN","
 assert.equal(C.NAMES.SA,"Arabie saoudite");
 assert.equal(C.NAMES.GF,"Guyane française");
 assert.equal(C.NAMES.RE,"La Réunion");
+assert.equal(C.NAMES.CD,"République démocratique du Congo");
+assert.equal(C.NAMES.CG,"République du Congo");
+assert.equal(C.NAMES.HK,"Hong Kong");
+assert.equal(C.NAMES.MO,"Macao");
+assert.ok(C.search("kinshasa").includes("CD"),"Legacy city alias should find DR Congo");
+assert.ok(C.search("brazzaville").includes("CG"),"Legacy city alias should find Republic of the Congo");
+assert.ok(C.search("RDC").includes("CD"),"Abbreviation finds DR Congo");
+assert.equal(C.search("hong kong").includes("HK"),true);
+assert.equal(C.search("macao").includes("MO"),true);
 assert.ok(C.search("ara").includes("SA"),'ara must find Arabie saoudite');
 assert.ok(C.search("etats").includes("US"),"etats must find États-Unis without accents");
 assert.ok(C.search("cote").includes("CI"),"cote must find Côte d’Ivoire");
