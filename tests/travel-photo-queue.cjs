@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 const PHOTO = require('../travel/photo-utils.js');
+const COUNTRIES = require('../travel/countries.js');
 const {uploadOne} = require('../travel/photo-upload.js');
 
 const html = fs.readFileSync('travel/index.html', 'utf8');
@@ -87,7 +88,7 @@ function harness() {
     blob:new Blob(['reencoded pixels'],{type:'image/webp'}),width:800,height:1200
   })};
   const context=vm.createContext({
-    window:{BEAM_PHOTO:{...PHOTO,...convertedPhoto},
+    window:{BEAM_COUNTRIES:COUNTRIES,BEAM_PHOTO:{...PHOTO,...convertedPhoto},
       BEAM_PHOTO_UPLOAD:{uploadOne:params=>uploadOne({...params,idProvider:()=>('photo-'+(++serial))})},
       confirm:message=>{confirmMessages.push(message);return confirmAnswer}},
     URL:{

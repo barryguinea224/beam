@@ -1,0 +1,58 @@
+"use strict";
+const assert=require("node:assert/strict");
+const fs=require("node:fs");
+const vm=require("node:vm");
+const C=require("../travel/countries.js");
+const PDF=require("../travel/factual-pdf.js");
+const html=fs.readFileSync("travel/index.html","utf8");
+const inline=html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
+assert.ok(inline);new vm.Script(inline);
+const codes=Object.keys(C.NAMES);
+assert.equal(codes.length,249,"ISO 3166-1 alpha-2 contains 249 codes and territories");
+assert.equal(new Set(codes).size,249);
+assert.ok(codes.every(code=>/^[A-Z]{2}$/.test(code)&&C.NAMES[code]?.trim()));
+assert.ok(codes.every(code=>C.valid(code)),"All official codes must be valid");
+assert.ok(!C.valid("ZZ")&&!C.valid("UK")&&!C.valid("zz")&&!C.valid("FR\u0000"));
+assert.deepEqual(C.POPULAR,["GN","SN","ML","CI","SL","FR","BE","MA","SA","TR","AE","CN","CA","US"]);
+assert.deepEqual(C.ORDER.slice(0,C.POPULAR.length),C.POPULAR);
+assert.equal(C.ORDER.length,249);
+assert.equal(new Set(C.ORDER).size,249);
+for(const code of ["GF","GP","MQ","RE","SA","SG","BH","MT","US","CI","AE","CN","BE"]){
+ assert.ok(C.valid(code),"Missing country "+code);
+}
+assert.equal(C.NAMES.SA,"Arabie saoudite");
+assert.equal(C.NAMES.GF,"Guyane française");
+assert.equal(C.NAMES.RE,"La Réunion");
+assert.equal(C.NAMES.CD,"République démocratique du Congo");
+assert.equal(C.NAMES.CG,"République du Congo");
+assert.equal(C.NAMES.HK,"Hong Kong");
+assert.equal(C.NAMES.MO,"Macao");
+assert.ok(C.search("kinshasa").includes("CD"),"Legacy city alias should find DR Congo");
+assert.ok(C.search("brazzaville").includes("CG"),"Legacy city alias should find Republic of the Congo");
+assert.ok(C.search("RDC").includes("CD"),"Abbreviation finds DR Congo");
+assert.equal(C.search("hong kong").includes("HK"),true);
+assert.equal(C.search("macao").includes("MO"),true);
+assert.ok(C.search("ara").includes("SA"),'ara must find Arabie saoudite');
+assert.ok(C.search("etats").includes("US"),"etats must find États-Unis without accents");
+assert.ok(C.search("cote").includes("CI"),"cote must find Côte d’Ivoire");
+assert.ok(C.search("reunion").includes("RE"),"reunion must find La Réunion");
+assert.ok(C.search("  G U I ").length===0,"Do not silently alter search queries");
+assert.ok(!C.search("ZZ").includes("ZZ"),"Searching a text fragment must never manufacture an unknown ISO code");
+assert.ok(C.search("zz").includes("CG"),"Brazzaville is a legitimate partial-text match");
+assert.ok(!C.search("abra cadabra").length);
+assert.equal(PDF.factualRows([{country_code:"SA",cities:["Djeddah"],entry_date:"2026-10-01",exit_date:"2026-10-02",duration_days:2,purpose:"tourisme"}])[0].country,C.NAMES.SA);
+for(const code of codes){
+ const row=PDF.factualRows([{country_code:code,cities:["Test"],entry_date:"2026-01-01",exit_date:"2026-01-02",duration_days:2,purpose:"tourisme"}])[0];
+ assert.equal(row.country,C.NAMES[code], "PDF and journal must share literal labels "+code);
+ assert.equal(row.code,code);
+}
+assert.throws(()=>PDF.factualRows([{country_code:"ZZ",cities:[],entry_date:"2026-01-01",exit_date:"2026-01-02",duration_days:2,purpose:"tourisme"}]),/Code pays non reconnu/);
+assert.ok(inline.includes("BEAM_COUNTRIES.valid(p.country_code)"),"Client must reject unknown codes before saving");
+assert.ok(inline.includes('countrySelectors.trip.reset(x.country_code)'),"Editing keeps the current ISO country");
+assert.ok(inline.includes('countrySelectors.trip.reset("")'),"New trip resets the search");
+assert.ok(inline.includes('COUNTRY_NAMES[code]||code'),"Map labels should retain the fallback for old data");
+assert.ok(inline.includes('countryCounts().get(code)'),"Map chips must work without an SVG path");
+assert.ok(inline.includes('$("#countryList").innerHTML=[...counts]'),"List of chips comes from data, not map SVG paths");
+assert.ok(html.includes('id="tripCountrySearch"')&&html.includes('id="residenceSearch"'));
+assert.ok(html.indexOf('src="./country-picker.js"')<html.indexOf('src="./factual-pdf.js"'));
+console.log("BEAM ISO-249 PASS: 249 stable names, accent-insensitive search, legacy map chips, PDF shared names, unknown client codes rejected");

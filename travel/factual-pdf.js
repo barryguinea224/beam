@@ -10,6 +10,7 @@
     typeof require==="function"?require("./countries.js"):null
   ))?.NAMES;
   if(!COUNTRY_NAMES)throw new Error("Référentiel des pays indisponible.");
+  const isValidCountry=code=>typeof code==="string"&&Object.prototype.hasOwnProperty.call(COUNTRY_NAMES,code);
   const PURPOSES=Object.freeze({
     tourisme:"Tourisme",affaires:"Affaires",etudes:"Études",
     famille:"Famille",sante:"Santé",transit:"Transit",autre:"Autre"
@@ -43,12 +44,13 @@
     // Strict allowlist: discard ALL other properties, including any private content.
     return rawRows.map(row=>{
       const code=typeof row.country_code==="string"?row.country_code.toUpperCase():"";
+      if(!isValidCountry(code))throw new Error("Code pays non reconnu dans le PDF.");
       const cities=Array.isArray(row.cities)
         ? row.cities.filter(x=>typeof x==="string"&&x.trim()).join(", ") : "";
       const days=Number(row.duration_days);
       const key=typeof row.purpose==="string"?row.purpose:"";
       return Object.freeze({
-        country:COUNTRY_NAMES[code]||code||"—",code:code||"—",
+        country:COUNTRY_NAMES[code],code,
         cities:cities||"—",entry:shortDate(row.entry_date),exit:shortDate(row.exit_date),
         duration:Number.isInteger(days)&&days>0?days+" jour"+(days===1?"":"s"):"—",
         purpose:purposeName(key)
