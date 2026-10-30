@@ -24,8 +24,8 @@ create policy "voyages lecture" on public.trips for select to authenticated
 create policy "voyages création" on public.trips for insert to authenticated
   with check (user_id = auth.uid() and public.account_accepts_writes(auth.uid()));
 create policy "voyages modification" on public.trips for update to authenticated
-  using (user_id = auth.uid() and public.account_accepts_writes(auth.uid()))
-  with check (user_id = auth.uid() and public.account_accepts_writes(auth.uid()));
+  using (user_id = auth.uid() and public.account_accepts_writes(auth.uid()) and not deleting)
+  with check (user_id = auth.uid() and public.account_accepts_writes(auth.uid()) and not deleting);
 -- No DELETE policy: trip deletion goes through travel-delete (service role) only.
 
 -- activities --------------------------------------------------------------------------------
@@ -38,10 +38,10 @@ drop policy if exists "activités suppression" on public.activities;
 create policy "activités lecture" on public.activities for select to authenticated
   using (user_id = auth.uid());
 create policy "activités création" on public.activities for insert to authenticated
-  with check (user_id = auth.uid() and public.account_accepts_writes(auth.uid()));
+  with check (user_id = auth.uid() and public.account_accepts_writes(auth.uid()) and public.trip_accepts_writes(auth.uid(), trip_id));
 create policy "activités modification" on public.activities for update to authenticated
-  using (user_id = auth.uid() and public.account_accepts_writes(auth.uid()))
-  with check (user_id = auth.uid() and public.account_accepts_writes(auth.uid()));
+  using (user_id = auth.uid() and public.account_accepts_writes(auth.uid()) and public.trip_accepts_writes(auth.uid(), trip_id))
+  with check (user_id = auth.uid() and public.account_accepts_writes(auth.uid()) and public.trip_accepts_writes(auth.uid(), trip_id));
 create policy "activités suppression" on public.activities for delete to authenticated
   using (user_id = auth.uid() and public.account_accepts_writes(auth.uid()));
 
@@ -54,10 +54,10 @@ drop policy if exists "médias modification" on public.media;
 create policy "médias lecture" on public.media for select to authenticated
   using (user_id = auth.uid());
 create policy "médias création" on public.media for insert to authenticated
-  with check (user_id = auth.uid() and public.account_accepts_writes(auth.uid()));
+  with check (user_id = auth.uid() and public.account_accepts_writes(auth.uid()) and public.trip_accepts_writes(auth.uid(), trip_id));
 create policy "médias modification" on public.media for update to authenticated
-  using (user_id = auth.uid() and public.account_accepts_writes(auth.uid()))
-  with check (user_id = auth.uid() and public.account_accepts_writes(auth.uid()));
+  using (user_id = auth.uid() and public.account_accepts_writes(auth.uid()) and public.trip_accepts_writes(auth.uid(), trip_id))
+  with check (user_id = auth.uid() and public.account_accepts_writes(auth.uid()) and public.trip_accepts_writes(auth.uid(), trip_id));
 -- No DELETE policy: photo deletion goes through travel-delete (service role) only.
 
 -- profiles: harmless fields only, but no writes at all once deletion has started -----------

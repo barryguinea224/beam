@@ -117,14 +117,14 @@ revoke insert,delete on public.profiles from authenticated;
 -- Reads: owner only. Writes: owner AND account not being deleted (db_write_barrier.sql).
 create policy "voyages lecture" on public.trips for select to authenticated using(user_id=auth.uid());
 create policy "voyages création" on public.trips for insert to authenticated with check(user_id=auth.uid() and public.account_accepts_writes(auth.uid()));
-create policy "voyages modification" on public.trips for update to authenticated using(user_id=auth.uid() and public.account_accepts_writes(auth.uid())) with check(user_id=auth.uid() and public.account_accepts_writes(auth.uid()));
+create policy "voyages modification" on public.trips for update to authenticated using(user_id=auth.uid() and public.account_accepts_writes(auth.uid()) and not deleting) with check(user_id=auth.uid() and public.account_accepts_writes(auth.uid()) and not deleting);
 create policy "activités lecture" on public.activities for select to authenticated using(user_id=auth.uid());
-create policy "activités création" on public.activities for insert to authenticated with check(user_id=auth.uid() and public.account_accepts_writes(auth.uid()));
-create policy "activités modification" on public.activities for update to authenticated using(user_id=auth.uid() and public.account_accepts_writes(auth.uid())) with check(user_id=auth.uid() and public.account_accepts_writes(auth.uid()));
+create policy "activités création" on public.activities for insert to authenticated with check(user_id=auth.uid() and public.account_accepts_writes(auth.uid()) and public.trip_accepts_writes(auth.uid(), trip_id));
+create policy "activités modification" on public.activities for update to authenticated using(user_id=auth.uid() and public.account_accepts_writes(auth.uid()) and public.trip_accepts_writes(auth.uid(), trip_id)) with check(user_id=auth.uid() and public.account_accepts_writes(auth.uid()) and public.trip_accepts_writes(auth.uid(), trip_id));
 create policy "activités suppression" on public.activities for delete to authenticated using(user_id=auth.uid() and public.account_accepts_writes(auth.uid()));
 create policy "médias lecture" on public.media for select to authenticated using(user_id=auth.uid());
-create policy "médias création" on public.media for insert to authenticated with check(user_id=auth.uid() and public.account_accepts_writes(auth.uid()));
-create policy "médias modification" on public.media for update to authenticated using(user_id=auth.uid() and public.account_accepts_writes(auth.uid())) with check(user_id=auth.uid() and public.account_accepts_writes(auth.uid()));
+create policy "médias création" on public.media for insert to authenticated with check(user_id=auth.uid() and public.account_accepts_writes(auth.uid()) and public.trip_accepts_writes(auth.uid(), trip_id));
+create policy "médias modification" on public.media for update to authenticated using(user_id=auth.uid() and public.account_accepts_writes(auth.uid()) and public.trip_accepts_writes(auth.uid(), trip_id)) with check(user_id=auth.uid() and public.account_accepts_writes(auth.uid()) and public.trip_accepts_writes(auth.uid(), trip_id));
 revoke all on public.profiles,public.trips,public.activities,public.media from anon;
 -- Destructive trip/media deletion is server-only: raw browser DELETE would orphan Storage.
 revoke delete on public.trips, public.media from authenticated;
