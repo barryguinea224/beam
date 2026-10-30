@@ -22,7 +22,10 @@ async function main(){
   try{
    await page.setContent('<!doctype html><html lang="fr"><head></head><body></body></html>');
    await page.addScriptTag({path:path.resolve("travel/factual-pdf.js")});
-   await page.evaluate(data=>window.BEAM_TRAVEL_PDF.render(document,data),rows);
+   await page.addScriptTag({path:path.resolve("travel/countries.js")});
+   await page.evaluate(({rows,displayName,generatedAt})=>
+     window.BEAM_TRAVEL_PDF.render(document,rows,{displayName,generatedAt:new Date(generatedAt)}),
+     {rows,displayName:"Fatou Diallo",generatedAt:"2026-10-30T12:00:00Z"});
    const audit=await page.evaluate(()=>({
      imageCount:document.querySelectorAll("img,svg,canvas,iframe,video").length,
      externalResources:[...document.querySelectorAll("[src],[href]")].length,
@@ -44,6 +47,8 @@ async function main(){
    for(const unsafe of [SECRET,"note","photo_url","activities","storage_path"]){
      assert.ok(!allText.includes(unsafe),"Private data or column name in PDF: "+unsafe);
    }
+   assert.match(allText,/Voyageur\s*:\s*Fatou Diallo/);
+   assert.match(allText,/Document généré le 30\/10\/2026/);
    assert.match(allText,/France/);
    assert.match(allText,/Tourisme/);
    assert.match(allText,/05\/01\/2026/);
