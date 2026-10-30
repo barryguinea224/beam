@@ -219,14 +219,62 @@ try {
     throw new Error("SECURITY REGRESSION: denied upsert changed A object bytes");
   console.log("PASS denied upsert left original A object unchanged");
 
-  const elevenMiB=new Uint8Array(11*1024*1024);
-  const {error:largeErr}=await bucketA.upload(`${sa.user.id}/${ta.id}/${crypto.randomUUID()}.webp`,blob(elevenMiB,"image/webp"),{contentType:"image/webp",upsert:false});
-  expectDenied("11 MiB unreserved upload rejected by Storage policy",largeErr);
+  // Negative bucket-configuration probes must have VALID media reservations.
+  // Otherwise the row-first RLS check would reject them first and hide size/MIME regressions.
+  const rejectReservedUpload=async (
+    label: string, bytes: Uint8Array, mime: string, rejection: "size" | "mime"
+  )=>{
+    const photoId=crypto.randomUUID();
+    const path=`${sa.user.id}/${ta.id}/${photoId}.webp`;
+    // Use a valid media.bytes value. An 11 MiB value would fail the DB check
+    // before we could exercise the actual Storage bucket size limit.
+    const {error:reserveErr}=await A.from("media").insert({
+      id:photoId,trip_id:ta.id,user_id:sa.user.id,storage_path:path,
+      kind:"photo",bytes:tinyWebp.length
+    });
+    if(reserveErr)throw new Error(label+" RESERVATION FAILED: "+reserveErr.message);
+    try{
+      const {error}=await bucketA.upload(path,blob(bytes,mime),{
+        contentType:mime,cacheControl:"60",upsert:false
+      });
+      expectDenied(label,error);
+      const explanation=[error?.code,error?.error,error?.message,error?.status,error?.statusCode]
+        .filter(value=>value!==undefined&&value!==null).join(" ");
+      if(/row.level.security|permission denied|policy violation|insufficient privilege/i.test(explanation)){
+        throw new Error("INVALID TEST: "+label+" was denied by RLS, not the bucket restriction");
+      }
+      const matches=rejection==="size"
+        ? /EntityTooLarge|PayloadTooLarge|file.?size|too.large|exceed|maximum.*size|413/i.test(explanation)
+        : /InvalidMimeType|mime.?type|content.?type|unsupported.*type|not.supported/i.test(explanation);
+      if(!matches){
+        throw new Error("INVALID TEST: "+label+" failed for an unrelated reason: "+explanation);
+      }
+      console.log("PASS "+label+" rejected by Storage "+rejection+" limit");
+    }finally{
+      // Server-side deletion also removes an object if the upload unexpectedly succeeded.
+      // Never leave quota-consuming reservations behind on staging.
+      const {data, error}=await A.functions.invoke("travel-delete",{
+        body:{action:"delete_photo",media_id:photoId}
+      });
+      if(error||data?.ok!==true)
+        throw new Error("TEST FIXTURE CLEANUP FAILED ("+label+"): "+(error?.message||JSON.stringify(data)));
+      const {data:remaining,error:checkError}=await A.from("media")
+        .select("id").eq("id",photoId);
+      if(checkError||remaining?.length)
+        throw new Error("TEST FIXTURE RESERVATION REMAINS ("+label+")");
+      console.log("CLEANUP PASS "+label+" reserved row removed");
+    }
+  };
 
-  for (const [ext,mime] of [["svg","image/svg+xml"],["html","text/html"]]) {
-    const bytes=new TextEncoder().encode(ext==="svg"?"<svg xmlns='http://www.w3.org/2000/svg'></svg>":"<html></html>");
-    const {error}=await bucketA.upload(`${sa.user.id}/${ta.id}/${crypto.randomUUID()}.${ext}`,blob(bytes,mime),{contentType:mime,upsert:false});
-    expectDenied(`${mime} unreserved upload rejected`,error);
+  const elevenMiB=new Uint8Array(11*1024*1024);
+  await rejectReservedUpload("11 MiB WebP bucket size",elevenMiB,"image/webp","size");
+
+  for (const [mime,bytes] of [
+    ["image/svg+xml",new TextEncoder().encode("<svg xmlns='http://www.w3.org/2000/svg'></svg>")],
+    ["text/html",new TextEncoder().encode("<html></html>")]
+  ] as const){
+    // Keep the Storage path .webp and reserve it; only MIME varies.
+    await rejectReservedUpload("Disallowed "+mime+" on reserved .webp path",bytes,mime,"mime");
   }
 
   const {data:signedA,error:signedAErr}=await bucketA.createSignedUrl(storagePath,300);
