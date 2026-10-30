@@ -251,6 +251,31 @@ try {
       console.log("SDK download after remove returned no Blob; error:",afterRemoveErr?.message ?? null);
     }
 
+    const exactSdkUrl=`${env.SUPABASE_URL}/storage/v1/object/authenticated/media/${storagePath}`;
+    const probeExact=async(label: string, token: string)=>{
+      const r=await fetch(exactSdkUrl,{
+        headers:{Authorization:`Bearer ${token}`,apikey:env.SUPABASE_PUBLISHABLE_KEY},
+        cache:"no-store"
+      });
+      const bytes=new Uint8Array(await r.arrayBuffer());
+      const exact=bytes.length===tinyWebp.length && bytes.every((v,i)=>v===tinyWebp[i]);
+      console.log(`OBSERVE exact Storage URL ${label} after remove:`,{
+        status:r.status,
+        cfCacheStatus:r.headers.get("cf-cache-status"),
+        age:r.headers.get("age"),
+        cacheControl:r.headers.get("cache-control"),
+        size:bytes.length,
+        exactOriginal:exact
+      });
+      return {status:r.status,exact};
+    };
+    const exactA=await probeExact("A",sa.access_token);
+    const exactB=await probeExact("B",sb.access_token);
+    if(exactB.status>=200 && exactB.status<300 && exactB.exact)
+      throw new Error("SECURITY REGRESSION: B received deleted A object on exact Storage URL");
+    console.log("PASS B cannot receive deleted A object on exact Storage URL");
+    console.log("OBSERVATION ONLY: A exact-URL post-delete result does not determine bench pass/fail",exactA);
+
     const directUrl=`${env.SUPABASE_URL}/storage/v1/object/authenticated/media/${storagePath}?nocache=${crypto.randomUUID()}`;
     const direct=await fetch(directUrl,{
       headers:{Authorization:`Bearer ${sa.access_token}`,apikey:env.SUPABASE_PUBLISHABLE_KEY},
