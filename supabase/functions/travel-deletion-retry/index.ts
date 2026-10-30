@@ -162,7 +162,12 @@ Deno.serve(async (req: Request) => {
     const runId = crypto.randomUUID();
     const { error } = await admin.rpc("begin_deletion_retry_run", { p_run_id: runId });
     if (error) throw new Error("RETRY_RUN_CREATE_FAILED");
-    EdgeRuntime.waitUntil(trackedRun(admin, runId));
+    EdgeRuntime.waitUntil(
+      trackedRun(admin, runId).catch((e: unknown) => {
+        console.error("unexpected tracked retry failure", errorCode(e));
+        // The durable receipt remains running; the staging bench must fail closed.
+      }),
+    );
     return Response.json({ accepted: true, run_id: runId }, { status: 202 });
   } catch (e) {
     console.error("retry dispatch failed", errorCode(e));
