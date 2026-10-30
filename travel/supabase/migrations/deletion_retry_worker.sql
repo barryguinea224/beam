@@ -71,10 +71,10 @@ create table if not exists private.deletion_retry_runs (
 revoke all on private.deletion_retry_runs from public,anon,authenticated;
 
 create or replace function public.begin_deletion_retry_run(p_run_id uuid) returns void
-language plpgsql security definer set search_path='' as $
+language plpgsql security definer set search_path='' as $$
 begin
   insert into private.deletion_retry_runs(run_id) values (p_run_id);
-end $;
+end $$;
 revoke execute on function public.begin_deletion_retry_run(uuid) from public,anon,authenticated;
 grant execute on function public.begin_deletion_retry_run(uuid) to service_role;
 
@@ -82,7 +82,7 @@ create or replace function public.finish_deletion_retry_run(
   p_run_id uuid, p_claimed integer, p_started integer, p_succeeded integer,
   p_failed integer, p_error_code text default null
 ) returns boolean
-language plpgsql security definer set search_path='' as $
+language plpgsql security definer set search_path='' as $$
 declare changed integer;
 begin
   update private.deletion_retry_runs set
@@ -95,7 +95,7 @@ begin
   where run_id=p_run_id and status='running';
   get diagnostics changed=row_count;
   return changed=1;
-end $;
+end $$;
 revoke execute on function public.finish_deletion_retry_run(uuid,integer,integer,integer,integer,text)
   from public,anon,authenticated;
 grant execute on function public.finish_deletion_retry_run(uuid,integer,integer,integer,integer,text)
@@ -105,11 +105,11 @@ create or replace function public.get_deletion_retry_run(p_run_id uuid)
 returns table(run_id uuid, status text, started_at timestamptz, finished_at timestamptz,
   claimed integer, started integer, destructive_succeeded integer,
   destructive_failed integer, error_code text)
-language sql stable security definer set search_path='' as $
+language sql stable security definer set search_path='' as $$
   select r.run_id,r.status,r.started_at,r.finished_at,r.claimed,r.started,
     r.destructive_succeeded,r.destructive_failed,r.error_code
   from private.deletion_retry_runs r where r.run_id=p_run_id
-$;
+$$;
 revoke execute on function public.get_deletion_retry_run(uuid) from public,anon,authenticated;
 grant execute on function public.get_deletion_retry_run(uuid) to service_role;
 
