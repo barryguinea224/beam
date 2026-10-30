@@ -192,14 +192,14 @@ async function uploadPhotos(tripId,entries){
 let savingTrip=false;
 $("#tripForm").onsubmit=async e=>{
  e.preventDefault();
- if(accountState!=="active"||savingTrip||mediaBusy)return;
+ if(accountState!=="active"||savingTrip||mediaBusy||photoSelecting)return;
  const form=e.currentTarget,btn=$("#saveTrip"),msg=$("#tripMsg"),wasEditing=!!editingTripId;
  savingTrip=true;btn.disabled=true;btn.textContent="Enregistrement…";msg.classList.add("hidden");
  try{
-   const selected=Array.from($("#photos").files);
+   const selected=pendingPhotos.slice();
    if(selected.length){
      if(!mediaReady)throw new Error("Attendez que les photos du voyage soient chargées.");
-     await PHOTO.validateSelection(selected,existingMedia.length);
+     await PHOTO.validateSelection(selected.map(entry=>entry.file),existingMedia.length);
    }
    const f=new FormData(form),p={
      country_code:String(f.get("country_code")).toUpperCase(),
@@ -221,16 +221,15 @@ $("#tripForm").onsubmit=async e=>{
    if(selected.length){
      try{await uploadPhotos(data.id,selected)}
      catch(err){
-       $("#photos").value="";
        $("#tripTitle").textContent="Modifier le voyage";
        $("#saveTrip").textContent="Enregistrer les modifications";
-       msg.textContent="Voyage enregistré, mais certaines photos n’ont pas été envoyées. "+(err.message||"Réessayez.")+" Ouvrez le voyage et sélectionnez uniquement les photos manquantes.";
+       msg.textContent="Voyage enregistré, mais "+pendingPhotos.length+" photo"+(pendingPhotos.length===1?" reste":"s restent")+" en attente. "+(err.message||"Réessayez.")+" Appuyez à nouveau sur Enregistrer pour reprendre l’envoi.";
        msg.classList.remove("hidden");
-       await refreshMedia(data.id);
+       try{await refreshMedia(data.id)}catch{showPhotoMessage("Impossible de rafraîchir les photos. Réessayez en rouvrant le voyage.")}
        return;
      }
    }
-   form.reset();$("#modal").classList.remove("open");
+   form.reset();resetPhotoUI(null);$("#modal").classList.remove("open");
    $("#appMsg").textContent=wasEditing?"Voyage modifié"+(selected.length?" avec ses photos.":"."):"Voyage ajouté"+(selected.length?" avec ses photos.":".");
    $("#appMsg").classList.remove("hidden");editingTripId=null;
    try{await load()}catch{}
