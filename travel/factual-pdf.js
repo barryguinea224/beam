@@ -20,7 +20,7 @@
       .order("entry_date",{ascending:false});
   }
   function displayName(raw){
-    const name=typeof raw==="string"?raw.trim().replace(/\\s+/g," "):"";
+    const name=typeof raw==="string"?raw.trim().replace(/\s+/g," "):"";
     if(!name||name.length>80)throw new Error("Le nom du voyageur est requis (80 caractères maximum).");
     return name;
   }
