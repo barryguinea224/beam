@@ -5,6 +5,15 @@ name: Deploy BEAM Travel functions — STAGING ONLY
 # REVIEW BEFORE FIRST EXECUTION. Does not run on push or synchronize.
 # Require explicit PR label AND approval of protected environment staging-functions-deploy.
 # Do not give this workflow production secrets or service-role credentials.
+# STAGING_SUPABASE_ACCESS_TOKEN IS A SUPABASE PERSONAL ACCESS TOKEN (PAT).
+# It can access ALL projects allowed by the token's Supabase account, NOT just
+# this staging project, even though the deploy commands fix --project-ref.
+# Create a NEW short-lived PAT immediately before the reviewed, approved run;
+# choose the shortest available expiration; store it ONLY as an environment
+# secret of staging-functions-deploy; revoke it in Supabase IMMEDIATELY after
+# deployment/verification (and on failure/cancellation). Never reuse it.
+# Delete the GitHub environment secret after revoking the token.
+# Do not start while another staging bench is running.
 # Does not apply migrations, configure secrets, run deletions, or enable cron.
 
 on:
@@ -92,7 +101,7 @@ jobs:
       - name: Install Supabase CLI
         uses: supabase/setup-cli@v1
         with:
-          version: latest
+          version: 2.122.0
       - name: Deploy only the three reviewed functions
         shell: bash
         run: |
@@ -103,19 +112,37 @@ jobs:
           supabase functions deploy travel-deletion-retry --project-ref "$project_ref"
           supabase functions deploy travel-deletion-monitor --project-ref "$project_ref"
           supabase functions list --project-ref "$project_ref"
-      - name: Confirm missing secrets cannot invoke worker and monitor
+      - name: Verify function-origin 401 and travel-delete gateway protection
         shell: bash
         run: |
           set -euo pipefail
           base="https://coigbvhxywbmqgacmhzf.supabase.co/functions/v1"
+          body_file="$(mktemp)"
+          trap 'rm -f "$body_file"' EXIT
+
+          # An HTTP 401 alone is insufficient: JWT gateway rejection can also
+          # return 401. Our verify_jwt=false handlers must return exact bytes.
           for path in travel-deletion-retry travel-deletion-monitor; do
             if [ "$path" = "travel-deletion-retry" ]; then method=POST; else method=GET; fi
-            status="$(curl --silent --show-error --max-time 25 --output /dev/null --write-out '%{http_code}' --request "$method" "$base/$path")"
-            if [ "$status" != "401" ]; then
-              echo "::error::$path must refuse unauthenticated requests (HTTP $status)"
+            status="$(curl --silent --show-error --max-time 25 \
+              --output "$body_file" --write-out '%{http_code}' \
+              --request "$method" "$base/$path")"
+            if [ "$status" != "401" ] || ! cmp -s "$body_file" <(printf 'UNAUTHORIZED'); then
+              echo "::error::$path did not return the function's exact UNAUTHORIZED response (HTTP $status)"
               exit 1
             fi
           done
-          echo "Protected endpoints refused requests without secrets."
+
+          # This request has no Authorization header and no deletion action.
+          # The JWT-protected travel-delete endpoint must reject it.
+          status="$(curl --silent --show-error --max-time 25 \
+            --output "$body_file" --write-out '%{http_code}' \
+            --header 'Content-Type: application/json' \
+            --request POST --data '{}' "$base/travel-delete")"
+          if [ "$status" != "401" ]; then
+            echo "::error::travel-delete accepted an unauthenticated request (HTTP $status)"
+            exit 1
+          fi
+          echo "Worker and monitor returned function-origin 401; travel-delete rejected anonymous POST."
 
 # Deliberately no workflow_dispatch or automatic push trigger. PR review first.
