@@ -21,8 +21,8 @@ async function main(){
   const page=await browser.newPage({viewport:{width:1000,height:800}});
   try{
    await page.setContent('<!doctype html><html lang="fr"><head></head><body></body></html>');
-   await page.addScriptTag({path:path.resolve("travel/factual-pdf.js")});
    await page.addScriptTag({path:path.resolve("travel/countries.js")});
+   await page.addScriptTag({path:path.resolve("travel/factual-pdf.js")});
    await page.evaluate(({rows,displayName,generatedAt})=>
      window.BEAM_TRAVEL_PDF.render(document,rows,{displayName,generatedAt:new Date(generatedAt)}),
      {rows,displayName:"Fatou Diallo",generatedAt:"2026-10-30T12:00:00Z"});
