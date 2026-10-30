@@ -17,7 +17,7 @@ const client = () => createClient(env.SUPABASE_URL, env.SUPABASE_PUBLISHABLE_KEY
   auth: { persistSession:false, autoRefreshToken:false }
 });
 const A=client(), B=client();
-const login=async(label,c,email,password)=>{
+const login=async(label: string,c: ReturnType<typeof client>,email: string,password: string)=>{
   console.log(`${label} email trim mismatch:`, email!==email.trim() ? "yes" : "no");
   console.log(`${label} password trim mismatch:`, password!==password.trim() ? "yes" : "no");
   const {data,error}=await c.auth.signInWithPassword({email,password});
@@ -25,7 +25,7 @@ const login=async(label,c,email,password)=>{
   console.log(`LOGIN_${label}_PASS`);
   return data.session;
 };
-const expectDenied=(label,error)=>{
+const expectDenied=(label: string,error: { status?: number; code?: string; name?: string; message?: string } | null)=>{
   if(!error) throw new Error(`SECURITY REGRESSION: ${label} unexpectedly succeeded`);
   console.log("PASS denied:", label, "| status:", error.status ?? "n/a", "| code:", error.code ?? error.name ?? "n/a", "| message:", error.message ?? String(error));
 };
@@ -53,9 +53,9 @@ else console.log("PASS B update affected zero rows");
 
 const {data:afterUpdate,error:afterUpdateErr}=await A.from("trips").select("id,cities,entry_date,exit_date,purpose,note,updated_at").eq("id",ta.id).single();
 if(afterUpdateErr) throw afterUpdateErr;
-const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+const same=(a: unknown,b: unknown)=>JSON.stringify(a)===JSON.stringify(b);
 const diffs=[];
-for (const field of ["cities","entry_date","exit_date","purpose","note"]) {
+for (const field of ["cities","entry_date","exit_date","purpose","note"] as const) {
   if (!same(afterUpdate[field],original[field])) diffs.push({field,before:original[field],after:afterUpdate[field]});
 }
 if (afterUpdate.updated_at!==ta.updated_at) diffs.push({field:"updated_at",before:ta.updated_at,after:afterUpdate.updated_at});
@@ -73,7 +73,7 @@ else console.log("PASS B delete affected zero rows");
 const {data:afterDelete,error:afterDeleteErr}=await A.from("trips").select("id,cities,entry_date,exit_date,purpose,note,updated_at").eq("id",ta.id).single();
 if(afterDeleteErr) throw afterDeleteErr;
 const deleteDiffs=[];
-for (const field of ["cities","entry_date","exit_date","purpose","note"]) {
+for (const field of ["cities","entry_date","exit_date","purpose","note"] as const) {
   if (!same(afterDelete[field],original[field])) deleteDiffs.push({field,before:original[field],after:afterDelete[field]});
 }
 if (afterDelete.updated_at!==ta.updated_at) deleteDiffs.push({field:"updated_at",before:ta.updated_at,after:afterDelete.updated_at});
@@ -135,7 +135,7 @@ const storageId=crypto.randomUUID();
 const storagePath=`${sa.user.id}/${ta.id}/${storageId}.webp`;
 const storagePathB=`${sb.user.id}/${tb.id}/${crypto.randomUUID()}.webp`;
 const tinyWebp=Uint8Array.from(atob("UklGRiIAAABXRUJQVlA4IBYAAAAwAQCdASoBAAEAAUAmJaQAA3AA/v89WAAAAA=="),c=>c.charCodeAt(0));
-const blob=(bytes,type)=>new Blob([bytes],{type});
+const blob=(bytes: Uint8Array,type: string)=>new Blob([bytes],{type});
 let storageUploaded=false, storageUploadedB=false, signedBeforeDelete;
 try {
   const {error:uploadErr}=await bucketA.upload(storagePath,blob(tinyWebp,"image/webp"),{contentType:"image/webp",upsert:false});
