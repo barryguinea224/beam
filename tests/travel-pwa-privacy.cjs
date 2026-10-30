@@ -129,18 +129,20 @@ async function run(){
  assert.equal(await live.text(),"NETWORK_ONLY",
    "online security fix must override older precached public JavaScript");
  assert.equal(f.calls(),before+1,"public resources must fetch the network first");
- assert.equal(f.lastFetchOptions()?.cache,"no-store",
-   "browser HTTP cache must not silently substitute an old script");
+ assert.equal(f.lastFetchOptions()?.cache,"no-cache",
+   "HTTP cache must revalidate before using any old script");
  const liveStyles=await f.fetch(f.origin+"/travel/visual-cards.css");
  assert.equal(await liveStyles.text(),"NETWORK_ONLY",
    "stylesheets must also use network-first");
- assert.equal(f.lastFetchOptions()?.cache,"no-store");
+ assert.equal(f.lastFetchOptions()?.cache,"no-cache");
  const nav=await f.fetch(f.origin+"/travel/",{mode:"navigate"});
  assert.equal(await nav.text(),"NETWORK_ONLY","online document must use network, not cache");
- assert.equal(f.lastFetchOptions()?.cache,"no-store",
-   "navigation must also bypass stale browser HTTP cache");
+ assert.equal(f.lastFetchOptions()?.cache,"no-cache",
+   "navigation must also revalidate stale browser HTTP cache");
  assert.equal(f.cacheOps.filter(x=>x[0]==="addAll").length,1,
    "fetching newer public code must not write a runtime cache");
+ assert.equal(f.cacheOps.filter(x=>x[0]==="put").length,0,
+   "runtime cache updates must remain forbidden");
 
  f.setOffline(true);
  const cached=await f.fetch(f.origin+"/travel/photo-utils.js");

@@ -72,9 +72,9 @@ self.addEventListener("fetch", event => {
     if (request.mode === "navigate") {
       try {
         // Network-first for navigation. Do NOT cache the network response.
-        // Bypass the browser HTTP cache as well: a security fix available
-        // online must win over any older public shell stored locally.
-        return await fetch(request, {cache:"no-store"});
+        // Revalidate with the server (ETag/304 when supported) so an online
+        // security update wins without always re-downloading unchanged files.
+        return await fetch(request, {cache:"no-cache"});
       } catch {
         // Serve a fresh PUBLIC offline-only page, never a previously rendered
         // app document. Works even after logout purges the shell caches.
@@ -92,11 +92,11 @@ small{color:#174d3a;font-weight:700;letter-spacing:.12em}</style></head>
         });
       }
     }
-    // All public assets are NETWORK-FIRST, even when an older shell is cached.
+    // All public assets are NETWORK-FIRST with HTTP revalidation, even when an older shell is cached.
     // Never add runtime responses to the cache: the only cached data is the
     // vetted public install-time shell, and private requests bypass this SW.
     try {
-      return await fetch(request, {cache:"no-store"});
+      return await fetch(request, {cache:"no-cache"});
     } catch {
       const cache = await caches.open(CACHE_NAME);
       const fallback = await cache.match(request, {ignoreSearch:false});
