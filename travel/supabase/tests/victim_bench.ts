@@ -3,14 +3,16 @@
 // Exercises the full deletion protocol (travel/supabase/DELETION_PROTOCOL.md) against
 // staging with throwaway accounts created for this run only:
 //   delete_photo (+ retry), delete_trip with >=2 photos (+ retry), cross-owner IDs,
-//   synthetic trip interruption + resume with >100 objects (pagination),
+//   synthetic trip interruption resumed by the protected retry worker with >100 objects,
+//   expired claimed lease + automatic recovery, 10-minute backoff and unauthorized retry denial,
 //   synthetic account interruption (locked + partially cleaned) and DB/Storage writes refused
 //   while deleting, owned object outside the user prefix -> account deletion refused,
 //   deleting=true and first request date kept, resume -> full deletion, then replay of the
 //   pre-deletion JWT.
 //
 // Required env (this script only; never exposed to the browser or another step):
-//   SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, STAGING_SERVICE_ROLE_KEY, TEST_A_EMAIL
+//   SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, STAGING_SERVICE_ROLE_KEY, TEST_A_EMAIL,
+//   STAGING_TRAVEL_RETRY_SECRET (staging-destructive environment only)
 // Optional: GITHUB_RUN_ID (names the run's accounts).
 //
 // Safety rules:
@@ -23,7 +25,8 @@
 import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2.75.0";
 
 const env = Deno.env.toObject();
-for (const k of ["SUPABASE_URL", "SUPABASE_PUBLISHABLE_KEY", "STAGING_SERVICE_ROLE_KEY", "TEST_A_EMAIL"]) {
+for (const k of ["SUPABASE_URL", "SUPABASE_PUBLISHABLE_KEY", "STAGING_SERVICE_ROLE_KEY", "TEST_A_EMAIL",
+  "STAGING_TRAVEL_RETRY_SECRET"]) {
   if (!env[k]) throw new Error(`Missing ${k}`);
 }
 const ciA = /^([^+@\s]+)\+ci-a@([^@\s]+)$/i.exec(env.TEST_A_EMAIL.trim());
@@ -40,6 +43,7 @@ const disposableEmail = (role: "victim" | "bystander") => `${LOCAL}+ci-${role}-$
 
 const URL_ = env.SUPABASE_URL.replace(/\/$/, "");
 const PUB = env.SUPABASE_PUBLISHABLE_KEY;
+const RETRY_SECRET = env.STAGING_TRAVEL_RETRY_SECRET;
 const opts = { auth: { persistSession: false, autoRefreshToken: false } };
 const admin = createClient(URL_, env.STAGING_SERVICE_ROLE_KEY, opts);
 const userClient = () => createClient(URL_, PUB, opts);
@@ -122,6 +126,41 @@ async function callDelete(token: string, body: Row): Promise<{ status: number; b
   } catch { /* empty */ }
   return { status: r.status, body: parsed };
 }
+// Retry must never discover any pre-existing in-progress account/trip in shared staging.
+// This is a preflight safety check, not a substitute for a truly isolated staging project.
+async function assertIsolatedDeletions(allowedUserIds: string[]) {
+  for (const table of ["profiles", "trips"] as const) {
+    const { data, error } = await admin.from(table).select(table === "trips" ? "id,user_id" : "id")
+      .eq("deleting", true);
+    if (error) throw new Error(`RETRY_ISOLATION_CHECK_FAILED_${table}: ${error.message}`);
+    if ((data ?? []).some((r) => !allowedUserIds.includes(String(table === "trips" ? r.user_id : r.id)))) {
+      throw new Error("REFUSING retry dispatch: another staging user has a deletion in progress");
+    }
+  }
+}
+async function callRetry(secret?: string): Promise<number> {
+  const headers: Record<string, string> = { "content-type": "application/json" };
+  if (secret) headers["x-travel-retry-secret"] = secret;
+  const r = await fetch(`${URL_}/functions/v1/travel-deletion-retry`, {
+    method: "POST",
+    headers,
+    body: "{}",
+  });
+  await r.body?.cancel();
+  return r.status;
+}
+async function dispatchRetry(allowedUserIds: string[]) {
+  await assertIsolatedDeletions(allowedUserIds);
+  check(await callRetry(RETRY_SECRET) === 202, "authorized retry dispatch acknowledged with 202");
+}
+async function waitFor(label: string, predicate: () => Promise<boolean>, timeoutMs = 120_000) {
+  const deadline = Date.now() + timeoutMs;
+  for (;;) {
+    if (await predicate()) return pass(label);
+    if (Date.now() >= deadline) fail(label, "background retry did not reach the expected state");
+    await new Promise((resolve) => setTimeout(resolve, 1250));
+  }
+}
 async function createActor(role: "victim" | "bystander"): Promise<Actor> {
   const email = disposableEmail(role);
   const password = crypto.randomUUID() + crypto.randomUUID();
@@ -199,6 +238,8 @@ const created: string[] = [];
 let benchError: unknown = null;
 try {
   await sweep();
+  // Abort before any worker call if staging has unrelated in-progress deletions.
+  await assertIsolatedDeletions([]);
   const victim = await createActor("victim");
   created.push(victim.id);
   const bystander = await createActor("bystander");
@@ -216,6 +257,10 @@ try {
   const tb = await newTrip(bystander, "2020-01-01", "2020-01-05");
   const pb = await addPhoto(bystander, tb);
   pass("fixtures created through the normal client path (RLS, Storage policies)");
+
+  // The worker is privileged but MUST refuse calls without its dedicated staging secret.
+  check(await callRetry() === 401, "retry endpoint rejects a request without a secret");
+  check(await callRetry("invalid-" + crypto.randomUUID()) === 401, "retry endpoint rejects an incorrect secret");
 
   // 1. Cross-owner IDs: the victim targets the bystander's photo and trip.
   {
@@ -265,7 +310,10 @@ try {
     }
     check((await listAll(prefix)).length === 130, "130 objects present before synthetic interruption");
     // State an interrupted delete_trip would leave behind: locked + partially cleaned.
-    const { error: lockErr } = await admin.from("trips").update({ deleting: true }).eq("id", t3);
+    const { error: lockErr } = await admin.from("trips").update({
+      deleting: true,
+      deletion_requested_at: new Date(Date.now() - 2 * 60 * 60_000).toISOString(),
+    }).eq("id", t3).eq("user_id", victim.id);
     if (lockErr) throw new Error(`SYNTHETIC_LOCK_FAILED ${lockErr.message}`);
     const { error: partErr } = await admin.storage.from(BUCKET).remove(paths.slice(0, 20));
     if (partErr) throw new Error(`SYNTHETIC_PARTIAL_REMOVE_FAILED ${partErr.message}`);
@@ -274,10 +322,47 @@ try {
     const { error: lockedUpload } = await victim.client.storage.from(BUCKET)
       .upload(`${prefix}/${crypto.randomUUID()}.webp`, webp(), { contentType: "image/webp", upsert: false });
     check(!!lockedUpload, "upload into a trip being deleted is refused");
-    const r = await callDelete(victim.token, { action: "delete_trip", trip_id: t3 });
-    check(r.status === 200 && r.body.ok === true, "resumed delete_trip succeeds", JSON.stringify(r));
-    check((await listAll(prefix)).length === 0, "resumed delete_trip: all 110 objects removed (pagination)");
-    check(await rowCount("trips", "id", t3) === 0, "resumed delete_trip: trip row absent");
+    await dispatchRetry(created);
+    await waitFor("worker resumes and deletes the interrupted stale trip", async () =>
+      (await rowCount("trips", "id", t3)) === 0);
+    check((await listAll(prefix)).length === 0, "worker resumed delete_trip: all 110 objects removed");
+  }
+
+  // 4b. The worker must not process a live lease. Once the disposable fixture's
+  // deadline is aged past the DB clock, it must reclaim with a new token and finish.
+  {
+    const leasedTrip = await newTrip(bystander, "2020-05-01", "2020-05-04");
+    const leasedPhoto = await addPhoto(bystander, leasedTrip);
+    const { error: markError } = await admin.from("trips").update({
+      deleting: true,
+      deletion_requested_at: new Date(Date.now() - 2 * 60 * 60_000).toISOString(),
+    }).eq("id", leasedTrip).eq("user_id", bystander.id);
+    if (markError) throw new Error(`LEASE_FIXTURE_FAILED: ${markError.message}`);
+    await assertIsolatedDeletions(created);
+    const { data: claims, error: claimError } = await admin.rpc("claim_stale_deletions", {
+      batch_size: 5,
+      lease_minutes: 10,
+    });
+    if (claimError) throw new Error(`LEASE_CLAIM_FAILED: ${claimError.message}`);
+    check((claims ?? []).length === 1 && claims[0].subject_kind === "trip" &&
+      claims[0].subject_id === leasedTrip, "lease fixture reserved exclusively by the admin");
+    const firstToken = claims![0].claim_token as string;
+    await dispatchRetry(created);
+    await new Promise((resolve) => setTimeout(resolve, 2500));
+    const { data: before, error: beforeError } = await admin.from("trips")
+      .select("deletion_attempts,deletion_claim_token").eq("id", leasedTrip).single();
+    if (beforeError) throw beforeError;
+    check(before?.deletion_attempts === 0 && before?.deletion_claim_token === firstToken,
+      "live lease blocks worker and consumes zero attempts");
+    // Admin-only time travel. The client can modify neither of these lease columns.
+    const { error: expiryError } = await admin.from("trips").update({
+      deletion_claimed_until: new Date(Date.now() - 60_000).toISOString(),
+    }).eq("id", leasedTrip).eq("user_id", bystander.id);
+    if (expiryError) throw new Error(`LEASE_EXPIRY_FIXTURE_FAILED: ${expiryError.message}`);
+    await dispatchRetry(created);
+    await waitFor("worker reclaims the expired lease and finishes deletion", async () =>
+      (await rowCount("trips", "id", leasedTrip)) === 0);
+    check(!await objectPresent(leasedPhoto.path), "reclaimed lease: object removed");
   }
 
   // 5. Owned object outside the user prefix -> account deletion must be refused
@@ -357,8 +442,48 @@ try {
     check(!!mInsErr && !(mIns ?? []).length, "deleting account: media INSERT refused", mInsErr?.message ?? "inserted");
   }
 
-  // 5d. Resume the interrupted deletion: still blocked by the owned object outside the prefix.
+  // 5d. Real worker failure/backoff with the deliberately retained owned orphan.
+  // We advance only a test fixture's timestamps; the worker must still make decisions
+  // using the database clock and its production claim/start procedures.
   {
+    await dispatchRetry(created);
+    await waitFor("worker starts first account retry and records destructive failure", async () => {
+      const { data, error } = await admin.from("profiles")
+        .select("deletion_attempts,deletion_last_error,deletion_claim_token").eq("id", victim.id).single();
+      if (error) throw error;
+      return data?.deletion_attempts === 1 && data?.deletion_last_error === "OWNED_OBJECTS_REMAIN" &&
+        data?.deletion_claim_token === null;
+    });
+    check(await userExists(victim.id), "failed worker retry leaves the disposable account present");
+    await dispatchRetry(created);
+    await new Promise((resolve) => setTimeout(resolve, 2500));
+    const { data: cooling, error: coolingError } = await admin.from("profiles")
+      .select("deletion_attempts,deletion_last_error").eq("id", victim.id).single();
+    if (coolingError) throw coolingError;
+    check(cooling?.deletion_attempts === 1 && cooling?.deletion_last_error === "OWNED_OBJECTS_REMAIN",
+      "worker respects 10-minute backoff without a second attempt");
+    // SQL-level eligibility probe also proves the claim predicate refuses an early attempt.
+    const { data: earlyClaims, error: earlyError } = await admin.rpc("claim_stale_deletions", {
+      batch_size: 5,
+      lease_minutes: 10,
+    });
+    if (earlyError) throw new Error(`EARLY_CLAIM_CHECK_FAILED: ${earlyError.message}`);
+    check(!(earlyClaims ?? []).some((c: Row) => c.subject_id === victim.id),
+      "backoff predicate prevents an immediate account claim");
+    const { error: ageError } = await admin.from("profiles").update({
+      deletion_last_attempt_at: new Date(Date.now() - 11 * 60_000).toISOString(),
+    }).eq("id", victim.id);
+    if (ageError) throw new Error(`BACKOFF_AGING_FAILED: ${ageError.message}`);
+    await dispatchRetry(created);
+    await waitFor("worker retries after simulated backoff elapsed", async () => {
+      const { data, error } = await admin.from("profiles")
+        .select("deletion_attempts,deletion_last_error,deletion_claim_token").eq("id", victim.id).single();
+      if (error) throw error;
+      return data?.deletion_attempts === 2 && data?.deletion_last_error === "OWNED_OBJECTS_REMAIN" &&
+        data?.deletion_claim_token === null;
+    });
+
+    // The original authenticated manual resume remains valid despite failed worker attempts.
     const r = await callDelete(oldToken, { action: "delete_account", confirmation: "SUPPRIMER" });
     check(r.status !== 403, "resume does not require fresh authentication", JSON.stringify(r));
     check(
