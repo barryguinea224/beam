@@ -172,10 +172,10 @@ $("#photoGallery").onclick=async e=>{
    else updatePhotoUsage();
  }
 };
-async function uploadPhotos(tripId,files){
- for(const file of files){
+async function uploadPhotos(tripId,entries){
+ for(const entry of entries){
    if(accountState!=="active")throw new Error("Votre compte n’autorise plus l’ajout de photos.");
-   const converted=await PHOTO.convert(file);
+   const converted=await PHOTO.convert(entry.file);
    const id=crypto.randomUUID(),path=`${user.id}/${tripId}/${id}.webp`;
    const {error:storageError}=await S.storage.from("media").upload(path,converted.blob,{contentType:"image/webp",cacheControl:"60",upsert:false});
    if(storageError)throw new Error("L’envoi d’une photo a échoué. Vérifiez la connexion.");
@@ -185,6 +185,8 @@ async function uploadPhotos(tripId,files){
      if(cleanupError)throw new Error("Une photo n’a pas pu être enregistrée ni nettoyée. Contactez BEAM.");
      throw new Error("Une photo n’a pas pu être enregistrée. Réessayez.");
    }
+   // The server has confirmed this photo. Keep only failed/later files pending.
+   removePendingPhoto(entry.id);
  }
 }
 let savingTrip=false;
