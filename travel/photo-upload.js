@@ -36,7 +36,9 @@
         cleaned=!error && data?.ok===true;
       } catch {}
       if (!cleaned) {
-        throw new Error("Envoi échoué et nettoyage non confirmé. Rouvrez le voyage pour supprimer la photo « Prévisualisation indisponible », ou contactez BEAM.");
+        const problem=new Error("Envoi échoué et nettoyage non confirmé. Rouvrez le voyage pour supprimer la photo « Prévisualisation indisponible », ou contactez BEAM.");
+        problem.code="PHOTO_CLEANUP_UNCONFIRMED";
+        throw problem;
       }
       throw new Error("L’envoi d’une photo a échoué. Vérifiez votre connexion.");
     }
