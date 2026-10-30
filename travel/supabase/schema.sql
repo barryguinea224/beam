@@ -218,8 +218,7 @@ begin
   ), claimed as (
     update public.profiles p set
       deletion_claimed_until=now()+make_interval(mins=>lease_minutes),
-      deletion_claim_token=gen_random_uuid(),
-      deletion_last_error=null
+      deletion_claim_token=gen_random_uuid()
     from candidates c where p.id=c.id
     returning p.id,p.deletion_claim_token
   )
@@ -239,8 +238,7 @@ begin
   ), claimed as (
     update public.trips t set
       deletion_claimed_until=now()+make_interval(mins=>lease_minutes),
-      deletion_claim_token=gen_random_uuid(),
-      deletion_last_error=null
+      deletion_claim_token=gen_random_uuid()
     from candidates c where t.id=c.id
     returning t.id,t.user_id,t.deletion_claim_token
   )
@@ -256,11 +254,11 @@ create or replace function public.start_deletion_retry(
 declare changed integer;
 begin
   if p_subject_kind='account' then
-    update public.profiles set deletion_attempts=deletion_attempts+1,deletion_last_attempt_at=now()
+    update public.profiles set deletion_attempts=deletion_attempts+1,deletion_last_attempt_at=now(),deletion_last_error=null
     where id=p_subject_id and id=p_user_id and deleting and deletion_claim_token=p_claim_token
       and deletion_claimed_until>=now();
   elsif p_subject_kind='trip' then
-    update public.trips set deletion_attempts=deletion_attempts+1,deletion_last_attempt_at=now()
+    update public.trips set deletion_attempts=deletion_attempts+1,deletion_last_attempt_at=now(),deletion_last_error=null
     where id=p_subject_id and user_id=p_user_id and deleting and deletion_claim_token=p_claim_token
       and deletion_claimed_until>=now();
   else raise exception 'INVALID_SUBJECT_KIND';
