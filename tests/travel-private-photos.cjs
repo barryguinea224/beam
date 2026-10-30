@@ -4,7 +4,7 @@ const fs = require("node:fs");
 const vm = require("node:vm");
 const PHOTO = require("../travel/photo-utils.js");
 const html = fs.readFileSync("travel/index.html", "utf8");
-const tag = html.match(/<script>([\s\S]*?)<\/script>/);
+const tag = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].find(m => m[1].includes("const PHOTO=window.BEAM_PHOTO;"));
 assert.ok(tag, "Travel History inline script missing");
 new vm.Script(tag[1], { filename: "travel/index.html" });
 assert.ok(html.includes('<script src="./photo-utils.js"></script>'), "Photo converter must load before inline app");
