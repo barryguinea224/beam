@@ -30,7 +30,7 @@ const sa=await login("A",A,env.TEST_A_EMAIL,env.TEST_A_PASSWORD);
 const sb=await login("B",B,env.TEST_B_EMAIL,env.TEST_B_PASSWORD);
 console.log("Authenticated A/B with real JWTs",sa.user.id,sb.user.id);
 
-const original={user_id:sa.user.id,country_code:"GN",cities:"Conakry",entry_date:"2026-01-01",exit_date:"2026-01-02",purpose:"Autre",note:"A-original-note"};
+const original={user_id:sa.user.id,country_code:"GN",cities:["Conakry"],entry_date:"2026-01-01",exit_date:"2026-01-02",purpose:"autre",note:"A-original-note"};
 let ta;
 try {
 const {data:created,error:ea}=await A.from("trips").insert(original).select().single();
