@@ -107,14 +107,18 @@ A deletion that remains locked for more than one hour is eligible for automatic 
 
 ### Concurrency and observability
 
-- `claim_stale_deletions()` uses `FOR UPDATE SKIP LOCKED` and `deletion_claimed_until`; overlapping cron passes cannot claim the same row.
-- Claiming increments `deletion_attempts` and records `deletion_last_attempt_at`.
-- A failed item clears its lease and stores a normalized error code in `deletion_last_error`.
-- Every worker outcome is appended to `private.deletion_retry_log`.
-- Automatic retries stop after 12 claimed attempts; the row then remains locked for operator review instead of retrying forever.
-- `private.stuck_deletions` exposes the operational signal for rows still deleting after 24 hours **or** rows that reached the 12-attempt ceiling.
+- `claim_stale_deletions()` uses `FOR UPDATE SKIP LOCKED`, a lease and a unique claim token; overlapping passes cannot own the same row.
+- Claiming does **not** count as an attempt. `start_deletion_retry()` increments the attempt counter only when destructive work actually starts.
+- The worker acknowledges the HTTP dispatch immediately with 202 and runs the bounded batch under `EdgeRuntime.waitUntil`.
+- The worker claims at most 5 subjects and stops starting new work after a 90-second start budget. Unstarted claims are released.
+- Failed destructive attempts use exponential backoff: 10m, 20m, 40m, 80m, 160m, 320m, then a 6h cap.
+- A destructive failure clears its lease and persists a normalized error code. A success-log failure is logged operationally but is never reclassified as destructive failure.
+- Every persisted worker outcome is appended to `private.deletion_retry_log`.
+- Automatic retries stop after 12 **started** attempts; the row remains locked for operator review.
+- `private.stuck_deletions` signals rows older than 24h, at the 12-attempt ceiling, or (defensively) any legacy deleting row missing its request timestamp.
+- Database constraints require every `deleting=true` profile/trip to have `deletion_requested_at`; migration repairs legacy nulls before adding them.
 - Account deletions take priority. A trip is not independently claimed while its owning account is deleting.
-- The worker processes a maximum of 20 subjects per invocation.
+- A protected `travel-deletion-monitor` endpoint exposes only the stuck count. The daily GitHub workflow fails when the count is non-zero.
 
 ### Secret boundary
 
@@ -125,7 +129,9 @@ For staging deployment, generate one high-entropy value and store the same value
 1. Edge Function secret `TRAVEL_RETRY_SECRET`.
 2. Supabase Vault secret named `travel_retry_secret`.
 
-Vault also receives `travel_retry_project_url`. Neither secret value belongs in Git, browser code, GitHub Actions, logs, or SQL migration text.
+Vault also receives `travel_retry_project_url`. Neither retry secret value belongs in Git, browser code, GitHub Actions, logs, or SQL migration text.
+
+Monitoring uses a separate `TRAVEL_MONITOR_SECRET`. Its staging copy is stored as an Edge Function secret and as the GitHub `staging` environment secret used only by the daily health workflow; it has no database credential or deletion authority.
 
 ### Staging activation order
 
@@ -134,7 +140,7 @@ Vault also receives `travel_retry_project_url`. Neither secret value belongs in 
 3. Deploy both `travel-delete` (shared-engine refactor) and `travel-deletion-retry`.
 4. Configure the Edge Function secret and Vault entries.
 5. Test an unauthorized worker call: it must return 401.
-6. Extend/run the destructive victim bench with a stale locked account and stale locked trip; prove the worker resumes them and persists attempt/result state.
+6. Extend/run the destructive victim bench with stale locked account/trip fixtures. In staging, verify **real elapsed-time** lease expiry and backoff (not only timestamp manipulation), budget release, worker resumption, and persisted attempt/result state.
 7. Query `private.stuck_deletions` and verify the >24 h signal.
 8. Only after those tests pass, install the five-minute cron schedule shown in the migration.
 9. Keep the user-facing deletion UI disabled until the scheduled retry path itself is proven.
