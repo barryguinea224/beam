@@ -37,7 +37,7 @@ const sb=await login("B",B,env.TEST_B_EMAIL,env.TEST_B_PASSWORD);
 console.log("Authenticated A/B with real JWTs",sa.user.id,sb.user.id);
 
 const original={user_id:sa.user.id,country_code:"GN",cities:["Conakry"],entry_date:"2026-01-01",exit_date:"2026-01-02",purpose:"autre",note:"A-original-note"};
-let ta,tb;
+let ta,tb,domesticTrip;
 try {
 const {data:created,error:ea}=await A.from("trips").insert(original).select().single();
 ta=created;
@@ -47,6 +47,31 @@ const {data:seenByB,error:readErr}=await B.from("trips").select("*").eq("id",ta.
 if(readErr) throw readErr;
 if(seenByB.length) throw new Error("SECURITY REGRESSION: B can read A trip");
 console.log("PASS B cannot read A trip");
+
+// PDF V1 must read an invoker-secured, server-filtered view, not the full journal.
+const PDF_FIELDS="country_code,cities,entry_date,exit_date,duration_days,purpose";
+const {data:ownPDF,error:pdfOwnErr}=await A.from("travel_history_pdf").select(PDF_FIELDS)
+  .eq("user_id",sa.user.id).eq("entry_date",original.entry_date);
+if(pdfOwnErr)throw new Error("PDF VIEW AUTHENTICATED SELECT FAILED: "+pdfOwnErr.message);
+if(!ownPDF?.some(row=>row.country_code===original.country_code))
+  throw new Error("PDF VIEW REGRESSION: own international trip absent");
+const {data:foreignPDF,error:pdfForeignErr}=await B.from("travel_history_pdf").select(PDF_FIELDS)
+  .eq("user_id",sa.user.id).eq("entry_date",original.entry_date);
+if(pdfForeignErr)throw new Error("PDF VIEW FOREIGN READ ERROR: "+pdfForeignErr.message);
+if(foreignPDF?.length)throw new Error("PRIVACY REGRESSION: B reads A's PDF travel history");
+console.log("PASS PDF view permits owner, denies other JWT");
+
+const {data:privateTrip,error:domesticInsertErr}=await A.from("trips").insert({
+  ...original,entry_date:"2026-02-10",exit_date:"2026-02-12",
+  note:"DOMESTIC_PRIVATE_NOTE_DO_NOT_EXPORT",is_domestic:true
+}).select().single();
+if(domesticInsertErr)throw new Error("PDF DOMESTIC FIXTURE FAILED: "+domesticInsertErr.message);
+domesticTrip=privateTrip;
+const {data:domesticPDF,error:domesticPDFError}=await A.from("travel_history_pdf").select(PDF_FIELDS)
+  .eq("user_id",sa.user.id).eq("entry_date","2026-02-10");
+if(domesticPDFError)throw new Error("PDF DOMESTIC VIEW CHECK FAILED: "+domesticPDFError.message);
+if(domesticPDF?.length)throw new Error("PRIVACY REGRESSION: domestic trip exposed in PDF view");
+console.log("PASS PDF view excludes domestic trip and private note");
 
 const {data:changedByB,error:updateErr}=await B.from("trips").update({cities:"ATTACK"}).eq("id",ta.id).select();
 if(updateErr) console.log("PASS B update rejected");
@@ -385,6 +410,13 @@ try {
 }
 console.log("Next phase: server deletion operations + retained-JWT deletion replay.");
 } finally {
+  if (domesticTrip?.id) {
+    const {data,error}=await A.functions.invoke("travel-delete",{
+      body:{action:"delete_trip",trip_id:domesticTrip.id}
+    });
+    if(error||!data?.ok)throw new Error("PDF DOMESTIC FIXTURE CLEANUP FAILED: "+(error?.message||JSON.stringify(data)));
+    console.log("CLEANUP PASS: domestic PDF fixture deleted");
+  }
   if (tb?.id) {
     const {data,error}=await B.functions.invoke("travel-delete",{body:{action:"delete_trip",trip_id:tb.id}});
     if(error || !data?.ok) throw new Error("CLEANUP B FAILED via travel-delete: "+(error?.message||JSON.stringify(data)));
