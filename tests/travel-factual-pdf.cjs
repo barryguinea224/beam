@@ -3,8 +3,16 @@ const assert=require("node:assert/strict");
 const fs=require("node:fs");
 const vm=require("node:vm");
 const PDF=require("../travel/factual-pdf.js");
+const COUNTRIES=require("../travel/countries.js");
 
 assert.equal(PDF.VIEW,"travel_history_pdf");
+assert.equal(COUNTRIES.NAMES.SE,"Suède");
+assert.equal(COUNTRIES.NAMES.FR,"France");
+const pdfModule=fs.readFileSync("travel/factual-pdf.js","utf8");
+assert.ok(!pdfModule.includes('const COUNTRY_NAMES=Object.freeze({'),
+ "There must be only one country-name dictionary");
+assert.ok(pdfModule.includes('require("./countries.js")'),
+ "PDF must read shared countries in Node");
 assert.deepEqual(PDF.FIELDS,[
  "country_code","cities","entry_date","exit_date","duration_days","purpose"
 ]);
@@ -25,6 +33,26 @@ const inline=app.match(/<script>([\s\S]*?)<\/script>/)?.[1];
 assert.ok(inline,"Missing inline app");
 new vm.Script(inline,{filename:"travel/index.html"});
 new vm.Script(fs.readFileSync("travel/factual-pdf.js","utf8"));
+assert.ok(app.includes('<script src="./countries.js"></script>'),
+ "Shared country names must load before the app and PDF");
+assert.ok(app.indexOf('src="./countries.js"')<app.indexOf('src="./factual-pdf.js"'),
+ "Shared country names must load before factual-pdf.js");
+assert.ok(app.includes("const COUNTRY_NAMES=window.BEAM_COUNTRIES.NAMES"),
+ "Journal should use the same dictionary as PDF");
+assert.ok(!app.includes('const COUNTRY_NAMES={'),
+ "No duplicate country dictionary in the app");
+assert.ok(app.includes('id="travelerNameForm"') && app.includes('maxlength="80"'),
+ "Accessible traveler-name form missing");
+assert.match(inline,/\.select\("country_of_residence,display_name,deleting"\)/,
+ "Journal must load display_name from the user's profile");
+assert.match(inline,/\.update\(\{display_name:value\}\)/,
+ "Profile name must be persisted");
+assert.match(inline,/\.select\("display_name,deleting"\)/,
+ "PDF generation must re-read the latest profile and deletion flag");
+assert.ok(inline.includes("if(!profile.display_name?.trim()){requestTravelerName();return}"),
+ "Empty profile name must block PDF and request a name");
+assert.ok(inline.includes("window.BEAM_TRAVEL_PDF.render(tab.document,data,{displayName:name,generatedAt})"),
+ "Profile name and generation date must be passed to PDF");
 assert.ok(app.includes('<script src="./factual-pdf.js"></script>'),
  "PDF module must be loaded locally");
 assert.ok(inline.includes('window.BEAM_TRAVEL_PDF.fetchRows(S,uid)'),
@@ -92,7 +120,18 @@ class Document{
 }
 function nodes(root){return [root,...root.children.flatMap(nodes)]}
 const document=new Document();
-assert.equal(PDF.render(document,fixtures),1);
+const generatedAt=new Date(2026,9,30,12,0,0);
+const travelerName="  Fatou  <img src=x onerror=alert(1)>   Diallo  ";
+const cleanName=PDF.displayName(travelerName);
+assert.equal(cleanName,"Fatou <img src=x onerror=alert(1)> Diallo");
+assert.equal(PDF.generatedDate(generatedAt),"30/10/2026");
+assert.throws(()=>PDF.displayName("   "),/nom du voyageur/);
+assert.throws(()=>PDF.displayName("x".repeat(81)),/80 caractères/);
+assert.throws(()=>PDF.generatedDate(new Date("invalid")) ,/Date de génération/);
+const denied=new Document();
+assert.throws(()=>PDF.render(denied,fixtures,{displayName:"",generatedAt}),/nom du voyageur/);
+assert.equal(denied.body.children.length,0,"No anonymous PDF may be rendered");
+assert.equal(PDF.render(document,fixtures,{displayName:travelerName,generatedAt}),1);
 const all=[...nodes(document.head),...nodes(document.body)];
 assert.equal(document.documentElement.lang,"fr");
 assert.equal(all.filter(x=>x.tagName==="IMG").length,0,"No private photos in PDF");
@@ -103,6 +142,9 @@ const printedText=document.body.textContent;
 for(const token of [secret,activitySecret,mediaSecret,"SECRET_", "owner-id"]){
  assert.ok(!printedText.includes(token),"PDF leaked "+token);
 }
+assert.match(printedText,/Voyageur : Fatou <img src=x onerror=alert\(1\)> Diallo/);
+assert.match(printedText,/Document généré le 30\/10\/2026/);
+assert.equal(all.filter(x=>x.tagName==="IMG").length,0,"Traveler name must stay text, never markup");
 assert.match(printedText,/Paris/);
 assert.match(printedText,/Tourisme/);
 assert.match(printedText,/20\/06\/2026/);
@@ -124,7 +166,7 @@ button.listeners.click();
 assert.equal(document.prints,1,"Save as PDF is initiated by explicit user action");
 
 const empty=new Document();
-assert.equal(PDF.render(empty,[]),0);
+assert.equal(PDF.render(empty,[],{displayName:"Fatou Diallo",generatedAt}),0);
 assert.match(empty.body.textContent,/Aucun voyage international/);
 assert.ok(nodes(empty.body).find(x=>x.tagName==="BUTTON").disabled,
  "Cannot print an empty travel history");
