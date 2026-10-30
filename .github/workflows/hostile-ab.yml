@@ -26,9 +26,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
       - name: Preflight hostile bench
         run: |
-          deno fmt --check travel/supabase/tests/hostile_ab.ts travel/constants.js
           deno check travel/supabase/tests/hostile_ab.ts
 
       - name: Validate required secrets
@@ -57,11 +61,6 @@ jobs:
             exit 1
           fi
           echo "Required staging secrets are configured."
-
-      - name: Setup Deno
-        uses: denoland/setup-deno@v2
-        with:
-          deno-version: v2.x
 
       - name: Run hostile A/B bench against staging
         env:
