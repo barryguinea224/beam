@@ -4,7 +4,7 @@ const fs=require("node:fs");
 const vm=require("node:vm");
 const path=require("node:path");
 const root=path.resolve("travel");
-const ctx=vm.createContext({window:{}});
+const ctx=vm.createContext({window:{},URL});
 vm.runInContext(fs.readFileSync(path.join(root,"countries.js"),"utf8"),ctx);
 vm.runInContext(fs.readFileSync(path.join(root,"visual-cards.js"),"utf8"),ctx);
 const CARD=ctx.window.BEAM_VISUAL_CARDS;
