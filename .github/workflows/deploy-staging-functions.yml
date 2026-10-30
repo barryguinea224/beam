@@ -5,14 +5,19 @@ name: Deploy BEAM Travel functions — STAGING ONLY
 # REVIEW BEFORE FIRST EXECUTION. Does not run on push or synchronize.
 # Require explicit PR label AND approval of protected environment staging-functions-deploy.
 # Do not give this workflow production secrets or service-role credentials.
-# STAGING_SUPABASE_ACCESS_TOKEN IS A SUPABASE PERSONAL ACCESS TOKEN (PAT).
-# It can access ALL projects allowed by the token's Supabase account, NOT just
-# this staging project, even though the deploy commands fix --project-ref.
-# Create a NEW short-lived PAT immediately before the reviewed, approved run;
-# choose the shortest available expiration; store it ONLY as an environment
-# secret of staging-functions-deploy; revoke it in Supabase IMMEDIATELY after
-# deployment/verification (and on failure/cancellation). Never reuse it.
-# Delete the GitHub environment secret after revoking the token.
+# STAGING_SUPABASE_ACCESS_TOKEN must be a PROJECT-SCOPED Supabase access token.
+# Scope it to BEAM Travel History Staging ONLY (project coigbvhxywbmqgacmhzf):
+#   - Edge Functions: Read-write
+#   - Project Settings: Read
+# No other projects or permissions; do NOT use a legacy full-account token.
+# Confirmed staging practice (30 Oct 2026): two deploy tokens with exactly
+# these permissions and a 24-hour expiration, both revoked after use.
+# For each deployment, create a NEW token with the same staging-only scope,
+# permissions and 24-hour expiration just before the reviewed, approved run.
+# Store it ONLY as an environment secret in staging-functions-deploy;
+# revoke it in Supabase IMMEDIATELY after deployment/verification, including
+# failure/cancellation. Never reuse it. Remove the GitHub environment secret
+# after revoking the token.
 # Do not start while another staging bench is running.
 # Does not apply migrations, configure secrets, run deletions, or enable cron.
 
