@@ -135,11 +135,26 @@ console.log("BASE RLS + RELATIONAL INTEGRITY TESTS PASSED");
 const bucketA=A.storage.from("media"), bucketB=B.storage.from("media");
 const storageId=crypto.randomUUID();
 const storagePath=`${sa.user.id}/${ta.id}/${storageId}.webp`;
-const storagePathB=`${sb.user.id}/${tb.id}/${crypto.randomUUID()}.webp`;
+const storageIdB=crypto.randomUUID();
+const storagePathB=`${sb.user.id}/${tb.id}/${storageIdB}.webp`;
 const tinyWebp=Uint8Array.from(atob("UklGRiIAAABXRUJQVlA4IBYAAAAwAQCdASoBAAEAAUAmJaQAA3AA/v89WAAAAA=="),c=>c.charCodeAt(0));
 const blob=(bytes: Uint8Array,type: string)=>new Blob([bytes.slice().buffer],{type});
 let storageUploaded=false, storageUploadedB=false, signedBeforeDelete;
 try {
+  // Row-first contract: the server must see a matching, owner-scoped media row.
+  const {error:reserveAErr}=await A.from("media").insert({
+    id:storageId,trip_id:ta.id,user_id:sa.user.id,
+    storage_path:storagePath,kind:"photo",bytes:tinyWebp.length
+  });
+  if(reserveAErr)throw new Error("LEGITIMATE A RESERVATION FAILED: "+reserveAErr.message);
+  const {error:reserveBErr}=await B.from("media").insert({
+    id:storageIdB,trip_id:tb.id,user_id:sb.user.id,
+    storage_path:storagePathB,kind:"photo",bytes:tinyWebp.length
+  });
+  if(reserveBErr)throw new Error("LEGITIMATE B RESERVATION FAILED: "+reserveBErr.message);
+  const unreservedPath=`${sa.user.id}/${ta.id}/${crypto.randomUUID()}.webp`;
+  const {error:unreservedErr}=await bucketA.upload(unreservedPath,blob(tinyWebp,"image/webp"),{contentType:"image/webp",upsert:false});
+  expectDenied("A cannot upload WebP without a media reservation",unreservedErr);
   const {error:uploadErr}=await bucketA.upload(storagePath,blob(tinyWebp,"image/webp"),{contentType:"image/webp",cacheControl:"60",upsert:false});
   if(uploadErr) throw new Error("LEGITIMATE STORAGE UPLOAD FAILED: "+uploadErr.message);
   storageUploaded=true;
@@ -206,12 +221,12 @@ try {
 
   const elevenMiB=new Uint8Array(11*1024*1024);
   const {error:largeErr}=await bucketA.upload(`${sa.user.id}/${ta.id}/${crypto.randomUUID()}.webp`,blob(elevenMiB,"image/webp"),{contentType:"image/webp",upsert:false});
-  expectDenied("11 MiB object rejected by bucket limit",largeErr);
+  expectDenied("11 MiB unreserved upload rejected by Storage policy",largeErr);
 
   for (const [ext,mime] of [["svg","image/svg+xml"],["html","text/html"]]) {
     const bytes=new TextEncoder().encode(ext==="svg"?"<svg xmlns='http://www.w3.org/2000/svg'></svg>":"<html></html>");
     const {error}=await bucketA.upload(`${sa.user.id}/${ta.id}/${crypto.randomUUID()}.${ext}`,blob(bytes,mime),{contentType:mime,upsert:false});
-    expectDenied(`${mime} rejected by bucket MIME allowlist`,error);
+    expectDenied(`${mime} unreserved upload rejected`,error);
   }
 
   const {data:signedA,error:signedAErr}=await bucketA.createSignedUrl(storagePath,300);
