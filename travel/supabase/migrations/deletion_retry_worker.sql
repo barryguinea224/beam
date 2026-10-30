@@ -61,6 +61,7 @@ begin
     select p.id
     from public.profiles p
     where p.deleting
+      and p.deletion_attempts < 12
       and p.deletion_requested_at <= now() - interval '1 hour'
       and (p.deletion_claimed_until is null or p.deletion_claimed_until < now())
     order by p.deletion_requested_at, p.id
@@ -86,6 +87,7 @@ begin
     from public.trips t
     join public.profiles p on p.id = t.user_id
     where t.deleting
+      and t.deletion_attempts < 12
       and not p.deleting
       and t.deletion_requested_at <= now() - interval '1 hour'
       and (t.deletion_claimed_until is null or t.deletion_claimed_until < now())
@@ -163,12 +165,14 @@ select 'account'::text as subject_kind, p.id as subject_id, p.id as user_id,
        p.deletion_requested_at, p.deletion_attempts, p.deletion_last_attempt_at,
        p.deletion_last_error
 from public.profiles p
-where p.deleting and p.deletion_requested_at <= now() - interval '24 hours'
+where p.deleting
+  and (p.deletion_attempts >= 12 or p.deletion_requested_at <= now() - interval '24 hours')
 union all
 select 'trip'::text, t.id, t.user_id, t.deletion_requested_at, t.deletion_attempts,
        t.deletion_last_attempt_at, t.deletion_last_error
 from public.trips t
-where t.deleting and t.deletion_requested_at <= now() - interval '24 hours';
+where t.deleting
+  and (t.deletion_attempts >= 12 or t.deletion_requested_at <= now() - interval '24 hours');
 
 revoke all on private.stuck_deletions from public, anon, authenticated;
 
