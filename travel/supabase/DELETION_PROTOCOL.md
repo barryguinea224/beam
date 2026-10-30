@@ -112,7 +112,7 @@ and fails the job if it cannot complete.
 
 ## Automatic retry worker
 
-Status: **CODED, NOT DEPLOYED, NOT TESTED ON STAGING**.
+Status: **DEPLOYED AND VERIFIED ON ISOLATED STAGING** (victim bench: 76 assertions); cron is still disabled. The code in this PR is newer than the deployed worker until a fresh approved staging deployment.
 
 A deletion that remains locked for more than one hour is eligible for automatic retry. The cron dispatcher never performs deletion itself. It only sends an asynchronous request to the protected `travel-deletion-retry` Edge Function. The worker claims at most **5** rows with 10-minute leases, then calls the same shared deletion engine used by `travel-delete`.
 
@@ -123,7 +123,7 @@ A deletion that remains locked for more than one hour is eligible for automatic 
 - The worker first persists a private `deletion_retry_runs` receipt, acknowledges the dispatch with HTTP 202 and `run_id`, and executes under `EdgeRuntime.waitUntil`. Each background pass marks its own receipt `completed` or `failed` with `finished_at` and bounded claimed/started/destructive-result counts. A crash may leave a receipt `running`: absence of `finished_at` is **not** success.
 - The manually approved staging bench reads only its receipt via a service-role-only RPC and waits for `finished_at` before negative assertions. It fails if the receipt is missing, failed or does not finish within the deadline; the old 2.5-second sleep has been removed.
 - The receipt has no document data, email addresses or credentials. The private table is not exposed to browser roles; write/read RPC execution is restricted to `service_role`.
-- The worker claims at most 5 subjects and stops starting new work after a 90-second start budget. Unstarted claims are released.
+- The worker claims at most 5 subjects and stops **starting** new work after a 90-second start budget; this is not a hard execution timeout. Unstarted claims are released. A failed or unconfirmed release causes a run receipt with status `failed` and code `RELEASE_FAILED`; all remaining releases are still attempted. A pure Deno unit test with a simulated clock and DB verifies five claims, one started deletion crossing the deadline, four released claims and exact receipt counts, including a release failure. This test does not need staging, credentials or destructive fixtures.
 - Failed destructive attempts use exponential backoff: 10m, 20m, 40m, 80m, 160m, 320m, then a 6h cap.
 - A destructive failure clears its lease and persists a normalized error code. A success-log failure is logged operationally but is never reclassified as destructive failure.
 - Every persisted worker outcome is appended to `private.deletion_retry_log`.
@@ -131,7 +131,12 @@ A deletion that remains locked for more than one hour is eligible for automatic 
 - `private.stuck_deletions` signals rows older than 24h, at the 12-attempt ceiling, or (defensively) any legacy deleting row missing its request timestamp.
 - Database constraints require every `deleting=true` profile/trip to have `deletion_requested_at`; migration repairs legacy nulls before adding them.
 - Account deletions take priority. A trip is not independently claimed while its owning account is deleting.
-- A protected `travel-deletion-monitor` endpoint exposes only the stuck count. The daily GitHub workflow fails when the count is non-zero.
+- A protected `travel-deletion-monitor` endpoint checks stuck deletions and `running` receipts older than 15 minutes. **It does not yet alert on already-failed receipts**, including `RELEASE_FAILED`; inspect receipts and operational logs, and close this monitoring gap before enabling unattended cron.
+
+
+### Runtime interruption and recovery
+
+A deletion started at 89 seconds may still be interrupted by the Supabase runtime: the 90-second budget is **not** a hard cutoff. The affected account or trip remains `deleting=true` and therefore write-locked; its 10-minute lease eventually expires, and a later invocation can resume idempotently. A runtime kill may prevent the final receipt write, leaving a `running` receipt; the monitor reports a running receipt older than 15 minutes. This is an architectural recovery path, **not a real runtime-kill test**. A failed release in a normally finishing worker instead produces a durable `failed` receipt with `RELEASE_FAILED`; current monitoring for stale *running* receipts does not automatically alert on this status.
 
 ### Secret boundary
 
@@ -155,7 +160,7 @@ Monitoring uses a separate `TRAVEL_MONITOR_SECRET`. Its staging copy is stored a
 5. Configure the protected GitHub environment secret `STAGING_TRAVEL_RETRY_SECRET` (staging copy only), verify there are **no other in-progress deletions** on staging, apply the explicit `staging-victim-approved` label to the reviewed PR and approve the protected `staging-destructive` run for its exact commit. The workflow intentionally does not run automatically on each PR push.
 6. Run the victim bench. It must prove: **401** for wrong/missing secrets; **202 + run id + durable completion** for an interrupted stale trip; a finished worker pass with zero claims/starts during a live lease; and a finished pass with zero claims/starts while backoff is active. After aging each fixture date, it must observe a new completed receipt with one true attempt and the expected destructive outcome. The bench only modifies dates on its own disposable fixtures using a server-side admin credential.
 7. Artificially aging timestamps tests the **database eligibility and claim transitions**, not a genuine 10-minute wall-clock passage; run a separate real-elapsed soak if that guarantee is needed. Inspect the private retry log and final Auth/DB/Storage state on staging, including a >24h stuck signal.
-8. Independently verify the 90-second start-budget release behavior and error logging; these are not yet asserted by the four automated worker scenarios.
+8. Run the pure Deno test in `travel/supabase/tests/travel-retry-runner_test.ts` on every relevant PR commit. This proves the 90-second **start** decision and error reporting independently of staging. It does not prove Supabase runtime behavior. Before enabling cron, deploy the updated adapter through the separate approved staging workflow and rerun appropriate staging validations.
 9. Only after all staging gates pass and the reviewer authorizes activation, install the five-minute cron schedule and merge through the normal review flow. Keep the user-facing deletion UI disabled until the scheduled retry path itself is proven.
 
 The fact that `pg_net` accepted a request (or the worker returned HTTP 202) is never treated as deletion success. A completed per-run receipt is evidence that the **pass** finished, not that each deletion succeeded: inspect its counters and the final database/Storage/Auth state. An unfinished receipt must fail staging acceptance and should be investigated in worker logs.

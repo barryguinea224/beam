@@ -1,0 +1,40 @@
+name: Travel retry worker — pure unit tests
+
+# No staging, no secrets, no Supabase credentials, no deployment.
+on:
+  pull_request:
+    branches: [main, feature/beam-travel-history-v1]
+    paths:
+      - "supabase/functions/_shared/travel-retry-runner.ts"
+      - "supabase/functions/travel-deletion-retry/**"
+      - "travel/supabase/tests/travel-retry-runner_test.ts"
+      - ".github/workflows/retry-worker-unit.yml"
+  push:
+    branches: [main]
+    paths:
+      - "supabase/functions/_shared/travel-retry-runner.ts"
+      - "supabase/functions/travel-deletion-retry/**"
+      - "travel/supabase/tests/travel-retry-runner_test.ts"
+      - ".github/workflows/retry-worker-unit.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  unit:
+    name: 90-second start budget and release failure (no staging)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Type check isolated runner and production adapter
+        run: |
+          deno check supabase/functions/_shared/travel-retry-runner.ts
+          deno check supabase/functions/travel-deletion-retry/index.ts
+      - name: Run deterministic tests (no network, no secrets)
+        run: deno test travel/supabase/tests/travel-retry-runner_test.ts
