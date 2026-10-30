@@ -4,7 +4,7 @@ import {
   type RunCounts,
   type Work,
   type WorkerDependencies,
-} from "../_shared/travel-retry-runner.ts";
+} from "../../../supabase/functions/_shared/travel-retry-runner.ts";
 
 function assert(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(message);
