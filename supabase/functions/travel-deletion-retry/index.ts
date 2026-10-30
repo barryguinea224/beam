@@ -128,6 +128,10 @@ Deno.serve(async (req: Request) => {
     return new Response("UNAUTHORIZED", { status: 401 });
   }
 
-  EdgeRuntime.waitUntil(backgroundRun());
+  EdgeRuntime.waitUntil(
+    backgroundRun().catch((e: unknown) => {
+      console.error("travel deletion retry background run failed", errorCode(e));
+    }),
+  );
   return Response.json({ accepted: true }, { status: 202 });
 });
