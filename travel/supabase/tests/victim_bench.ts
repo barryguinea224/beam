@@ -4,8 +4,10 @@
 // staging with throwaway accounts created for this run only:
 //   delete_photo (+ retry), delete_trip with >=2 photos (+ retry), cross-owner IDs,
 //   synthetic trip interruption + resume with >100 objects (pagination),
-//   owned object outside the user prefix -> account deletion refused, deleting=true kept,
-//   resume -> full account deletion, then replay of the pre-deletion JWT.
+//   synthetic account interruption (locked + partially cleaned) and DB/Storage writes refused
+//   while deleting, owned object outside the user prefix -> account deletion refused,
+//   deleting=true and first request date kept, resume -> full deletion, then replay of the
+//   pre-deletion JWT.
 //
 // Required env (this script only; never exposed to the browser or another step):
 //   SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, STAGING_SERVICE_ROLE_KEY, TEST_A_EMAIL
@@ -295,8 +297,70 @@ try {
   }
 
   const oldToken = victim.token; // captured BEFORE any account deletion
+
+  // 5b. Synthetic interruption of an account deletion: the state a crashed delete_account
+  //     would leave behind (locked, partially cleaned), built BEFORE the first real call.
+  //     Fresh authentication must not be required to resume an already-locked deletion.
+  const SYNTHETIC_FIRST_REQUEST = "2020-06-01T00:00:00.000Z";
+  {
+    const extra: string[] = [];
+    for (let i = 0; i < 3; i++) {
+      const p = `${victim.id}/${t4}/${crypto.randomUUID()}.webp`;
+      const { error } = await victim.client.storage.from(BUCKET).upload(p, webp(), {
+        contentType: "image/webp",
+        upsert: false,
+      });
+      if (error) throw new Error(`ACCOUNT_FIXTURE_UPLOAD_FAILED ${error.message}`);
+      extra.push(p);
+    }
+    const { error: lockErr } = await admin.from("profiles")
+      .update({ deleting: true, deletion_requested_at: SYNTHETIC_FIRST_REQUEST }).eq("id", victim.id);
+    if (lockErr) throw new Error(`SYNTHETIC_ACCOUNT_LOCK_FAILED ${lockErr.message}`);
+    const { error: partErr } = await admin.storage.from(BUCKET).remove([extra[0]]);
+    if (partErr) throw new Error(`SYNTHETIC_ACCOUNT_PARTIAL_REMOVE_FAILED ${partErr.message}`);
+    check((await listAll(victim.id)).length === 2, "synthetic account state: locked, 2 of 3 files left");
+  }
+
+  // 5c. While the account is deleting=true, the still-valid session must not write
+  //     anywhere: Storage (already guarded) AND the database (trips, activities, media).
+  {
+    const { error: up } = await victim.client.storage.from(BUCKET)
+      .upload(`${victim.id}/${t4}/${crypto.randomUUID()}.webp`, webp(), { contentType: "image/webp", upsert: false });
+    check(!!up, "deleting account: Storage upload refused");
+
+    const { data: tIns, error: tInsErr } = await victim.client.from("trips").insert({
+      country_code: "SN",
+      cities: ["Dakar"],
+      entry_date: "2019-03-01",
+      exit_date: "2019-03-02",
+      purpose: "autre",
+    }).select("id");
+    check(!!tInsErr && !(tIns ?? []).length, "deleting account: trip INSERT refused", tInsErr?.message ?? "inserted");
+
+    const { data: tUpd } = await victim.client.from("trips").update({ note: "written-while-deleting" })
+      .eq("id", t4).select("id");
+    const { data: t4Row } = await admin.from("trips").select("note").eq("id", t4).single();
+    check(!(tUpd ?? []).length && t4Row?.note !== "written-while-deleting", "deleting account: trip UPDATE refused");
+
+    const { data: aIns, error: aInsErr } = await victim.client.from("activities").insert({
+      trip_id: t4,
+      kind: "lieu",
+      title: "written-while-deleting",
+    }).select("id");
+    check(!!aInsErr && !(aIns ?? []).length, "deleting account: activity INSERT refused", aInsErr?.message ?? "inserted");
+
+    const { data: mIns, error: mInsErr } = await victim.client.from("media").insert({
+      trip_id: t4,
+      storage_path: `${victim.id}/${t4}/${crypto.randomUUID()}.webp`,
+      kind: "photo",
+    }).select("id");
+    check(!!mInsErr && !(mIns ?? []).length, "deleting account: media INSERT refused", mInsErr?.message ?? "inserted");
+  }
+
+  // 5d. Resume the interrupted deletion: still blocked by the owned object outside the prefix.
   {
     const r = await callDelete(oldToken, { action: "delete_account", confirmation: "SUPPRIMER" });
+    check(r.status !== 403, "resume does not require fresh authentication", JSON.stringify(r));
     check(
       r.status >= 400 && String(r.body.error ?? "").startsWith("OWNED_OBJECTS_REMAIN"),
       "account deletion refused while an owned object remains",
@@ -305,13 +369,14 @@ try {
     check(await userExists(victim.id), "Auth user still exists after refused deletion");
     const { data: prof } = await admin.from("profiles").select("deleting,deletion_requested_at").eq("id", victim.id)
       .single();
-    check(prof?.deleting === true && !!prof?.deletion_requested_at, "profile stays deleting=true with first request date");
-    check((await listAll(victim.id)).length === 0, "victim prefix already empty after first attempt");
-    // Locked account: the old session can no longer upload.
-    const { error: lockedUp } = await victim.client.storage.from(BUCKET)
-      .upload(`${victim.id}/${t4}/${crypto.randomUUID()}.webp`, webp(), { contentType: "image/webp", upsert: false });
-    check(!!lockedUp, "upload refused while account is deleting");
-    // Resolve the blocker, then resume.
+    check(prof?.deleting === true, "profile stays deleting=true");
+    check(
+      !!prof?.deletion_requested_at && Date.parse(String(prof.deletion_requested_at)) === Date.parse(SYNTHETIC_FIRST_REQUEST),
+      "first deletion request date preserved across retries",
+    );
+    check((await listAll(victim.id)).length === 0, "resumed cleanup emptied the remaining files of the prefix");
+
+    // Resolve the blocker, then resume again.
     const { error: rmErr } = await admin.storage.from(BUCKET).remove([orphanPath]);
     if (rmErr) throw new Error(`ORPHAN_REMOVE_FAILED ${rmErr.message}`);
     const resumed = await callDelete(oldToken, { action: "delete_account", confirmation: "SUPPRIMER" });

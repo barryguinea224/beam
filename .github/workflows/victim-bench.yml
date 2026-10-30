@@ -3,8 +3,15 @@ name: Victim bench — Staging (destructive, disposable accounts)
 # Destructive by design: creates throwaway accounts on STAGING, deletes them through
 # travel-delete, then replays their pre-deletion JWT. Never runs against production.
 #
-# Disabled until a maintainer sets the repository variable VICTIM_BENCH_ENABLED=true
-# (Settings > Secrets and variables > Actions > Variables) after reviewing the bench.
+# Two independent locks before the staging admin key is ever released:
+#   1. The repository variable VICTIM_BENCH_ENABLED must be 'true', otherwise the job is skipped.
+#   2. The job uses the dedicated environment `staging-destructive`, which must be configured
+#      with "Required reviewers". GitHub then holds every run until a maintainer approves it in
+#      the Actions tab, after looking at the exact commit that will run. Pull request runs
+#      execute the PR head code, so this approval is what guarantees that only reviewed code
+#      receives STAGING_SERVICE_ROLE_KEY.
+#   STAGING_SERVICE_ROLE_KEY must live ONLY in `staging-destructive` (remove it from `staging`),
+#   so the hostile A/B bench and any other job never have access to it.
 
 on:
   workflow_dispatch:
@@ -29,7 +36,7 @@ jobs:
     if: vars.VICTIM_BENCH_ENABLED == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    environment: staging
+    environment: staging-destructive
 
     steps:
       - name: Checkout

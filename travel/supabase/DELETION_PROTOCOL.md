@@ -71,8 +71,9 @@ No delete button and no photo upload reactivation until this protocol is reviewe
 
 ## Disposable victim bench (`tests/victim_bench.ts`)
 
-Workflow `.github/workflows/victim-bench.yml`, disabled until `VICTIM_BENCH_ENABLED=true`.
-One step only receives `STAGING_SERVICE_ROLE_KEY`. Accounts are created per run
+Workflow `.github/workflows/victim-bench.yml`, disabled until `VICTIM_BENCH_ENABLED=true`, and
+run only in the `staging-destructive` environment, whose required reviewers must approve each run.
+One step only receives `STAGING_SERVICE_ROLE_KEY`, stored only in that environment. Accounts are created per run
 (`<ci-base>+ci-victim-<run>` / `+ci-bystander-<run>`), never `+ci-a` / `+ci-b`.
 
 | Mandatory case | Bench section |
@@ -85,9 +86,11 @@ One step only receives `STAGING_SERVICE_ROLE_KEY`. Accounts are created per run
 | interruption (locked + partially cleaned trip) then resume | 4 |
 | pagination: 110 objects across two list pages | 4 |
 | upload refused into a trip being deleted | 4 |
-| owned object outside prefix: Auth deletion refused, `deleting=true` kept | 5 |
-| upload refused while account is deleting | 5 |
-| resume after blocker removed: account fully deleted | 5 |
+| interruption of an account deletion (locked + partially cleaned) then resume, without fresh auth | 5b, 5d |
+| DB writes refused while `deleting=true`: trip insert/update, activity insert, media insert | 5c |
+| owned object outside prefix: Auth deletion refused, `deleting=true` and first request date kept | 5d |
+| upload refused while account is deleting | 5c |
+| resume after blocker removed: account fully deleted | 5d |
 | post-deletion: Auth, profile, trips, media, prefix, owned objects all gone | 6 |
 | replay pre-deletion JWT: DB insert refused, Storage insert refused, no ghost | 7 |
 | endpoint answers 401 to the old JWT after completed deletion | 7 |
