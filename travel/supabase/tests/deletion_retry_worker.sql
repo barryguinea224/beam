@@ -161,4 +161,26 @@ begin
   end if;
 end $$;
 
+-- Monitoring must detect stuck background jobs; completed old receipts are pruned.
+do $$
+declare rid uuid := '20000000-0000-4000-8000-000000000003';
+        next_rid uuid := '20000000-0000-4000-8000-000000000004';
+begin
+  perform public.begin_deletion_retry_run(rid);
+  update private.deletion_retry_runs set started_at=now()-interval '16 minutes'
+  where run_id=rid;
+  if public.count_stale_deletion_retry_runs()<>1 then
+    raise exception 'stale running receipt not detected';
+  end if;
+  perform public.finish_deletion_retry_run(rid,0,0,0,0,null);
+  if public.count_stale_deletion_retry_runs()<>0 then
+    raise exception 'completed receipt still marked stale';
+  end if;
+  update private.deletion_retry_runs set started_at=now()-interval '31 days' where run_id=rid;
+  perform public.begin_deletion_retry_run(next_rid);
+  if exists(select 1 from private.deletion_retry_runs where run_id=rid) then
+    raise exception 'receipt older than 30 days was not pruned';
+  end if;
+end $$;
+
 rollback;
