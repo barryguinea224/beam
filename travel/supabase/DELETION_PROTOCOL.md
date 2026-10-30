@@ -73,7 +73,8 @@ No delete button and no photo upload reactivation until this protocol is reviewe
 
 Workflow `.github/workflows/victim-bench.yml`, disabled until `VICTIM_BENCH_ENABLED=true`, and
 run only in the `staging-destructive` environment, whose required reviewers must approve each run.
-One step only receives `STAGING_SERVICE_ROLE_KEY`, stored only in that environment. Accounts are created per run
+One step only receives `STAGING_SERVICE_ROLE_KEY` and `STAGING_TRAVEL_RETRY_SECRET`, stored only in that
+approved environment. Accounts are created per run
 (`<ci-base>+ci-victim-<run>` / `+ci-bystander-<run>`), never `+ci-a` / `+ci-b`.
 
 | Mandatory case | Bench section |
@@ -83,9 +84,13 @@ One step only receives `STAGING_SERVICE_ROLE_KEY`, stored only in that environme
 | delete trip with >=2 photos: prefix empty, rows cascaded | 3 |
 | retry delete_trip is idempotent | 3 |
 | cross-owner photo/trip IDs: no victim change | 1 |
-| interruption (locked + partially cleaned trip) then resume | 4 |
+| interruption (locked + partially cleaned trip), aged >1h, automatically resumed by retry worker | 4 |
 | pagination: 110 objects across two list pages | 4 |
 | upload refused into a trip being deleted | 4 |
+| active lease refuses worker start; expired lease is reclaimed after admin-only time travel | 4b |
+| missing or incorrect retry secret returns 401 | setup, before section 1 |
+| destructive retry failure followed by a blocked immediate retry (10m backoff) | 5d |
+| failure becomes eligible after aging `deletion_last_attempt_at` by 11m | 5d |
 | interruption of an account deletion (locked + partially cleaned) then resume, without fresh auth | 5b, 5d |
 | DB writes refused while `deleting=true`: trip insert/update, activity insert, media insert | 5c |
 | owned object outside prefix: Auth deletion refused, `deleting=true` and first request date kept | 5d |
@@ -103,7 +108,7 @@ and fails the job if it cannot complete.
 
 Status: **CODED, NOT DEPLOYED, NOT TESTED ON STAGING**.
 
-A deletion that remains locked for more than one hour is eligible for automatic retry. The cron dispatcher never performs deletion itself. It only sends an asynchronous request to the protected `travel-deletion-retry` Edge Function. The worker claims at most 20 rows for 10 minutes, then calls the same shared deletion engine used by `travel-delete`.
+A deletion that remains locked for more than one hour is eligible for automatic retry. The cron dispatcher never performs deletion itself. It only sends an asynchronous request to the protected `travel-deletion-retry` Edge Function. The worker claims at most **5** rows with 10-minute leases, then calls the same shared deletion engine used by `travel-delete`.
 
 ### Concurrency and observability
 
@@ -129,20 +134,20 @@ For staging deployment, generate one high-entropy value and store the same value
 1. Edge Function secret `TRAVEL_RETRY_SECRET`.
 2. Supabase Vault secret named `travel_retry_secret`.
 
-Vault also receives `travel_retry_project_url`. Neither retry secret value belongs in Git, browser code, GitHub Actions, logs, or SQL migration text.
+Vault also receives `travel_retry_project_url`. Neither retry secret value belongs in Git, browser code, ordinary GitHub Actions, logs, or SQL migration text. **Only for the manually approved destructive staging bench**, a copy of the *staging* retry secret must be provided as `STAGING_TRAVEL_RETRY_SECRET` in the protected `staging-destructive` GitHub environment; it is passed only to the final destructive step. Never use a production retry secret here.
 
 Monitoring uses a separate `TRAVEL_MONITOR_SECRET`. Its staging copy is stored as an Edge Function secret and as the GitHub `staging` environment secret used only by the daily health workflow; it has no database credential or deletion authority.
 
 ### Staging activation order
 
-1. Review and merge this PR.
-2. Apply `travel/supabase/migrations/deletion_retry_worker.sql` to staging.
+1. Review the PR and confirm the dedicated `staging-destructive` environment requires approval; keep the PR in draft and cron disabled.
+2. Apply `travel/supabase/migrations/deletion_retry_worker.sql` to an isolated staging project (not production).
 3. Deploy both `travel-delete` (shared-engine refactor) and `travel-deletion-retry`.
 4. Configure the Edge Function secret and Vault entries.
-5. Test an unauthorized worker call: it must return 401.
-6. Extend/run the destructive victim bench with stale locked account/trip fixtures. In staging, verify **real elapsed-time** lease expiry and backoff (not only timestamp manipulation), budget release, worker resumption, and persisted attempt/result state.
-7. Query `private.stuck_deletions` and verify the >24 h signal.
-8. Only after those tests pass, install the five-minute cron schedule shown in the migration.
-9. Keep the user-facing deletion UI disabled until the scheduled retry path itself is proven.
+5. Configure the protected GitHub environment secret `STAGING_TRAVEL_RETRY_SECRET` (staging copy only), verify there are **no other in-progress deletions** on staging, and explicitly approve the destructive bench for its exact commit.
+6. Run the victim bench. It must prove: **401** for wrong/missing secrets; **202 + full destructive completion** for an interrupted stale trip; no start during a current lease followed by success after the lease timestamp is aged; and zero early retry attempts during backoff followed by a retry after its last-attempt timestamp is aged. The bench only modifies dates on its own disposable fixtures using a server-side admin credential.
+7. Artificially aging timestamps tests the **database eligibility and claim transitions**, not a genuine 10-minute wall-clock passage; run a separate real-elapsed soak if that guarantee is needed. Inspect the private retry log and final Auth/DB/Storage state on staging, including a >24h stuck signal.
+8. Independently verify the 90-second start-budget release behavior and error logging; these are not yet asserted by the four automated worker scenarios.
+9. Only after all staging gates pass and the reviewer authorizes activation, install the five-minute cron schedule and merge through the normal review flow. Keep the user-facing deletion UI disabled until the scheduled retry path itself is proven.
 
 The fact that `pg_net` accepted a request is never treated as deletion success. Only the worker's persisted result and the final database/Storage/Auth state are evidence.
