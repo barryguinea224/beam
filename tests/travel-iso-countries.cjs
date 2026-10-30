@@ -37,7 +37,8 @@ assert.ok(C.search("etats").includes("US"),"etats must find États-Unis without 
 assert.ok(C.search("cote").includes("CI"),"cote must find Côte d’Ivoire");
 assert.ok(C.search("reunion").includes("RE"),"reunion must find La Réunion");
 assert.ok(C.search("  G U I ").length===0,"Do not silently alter search queries");
-assert.deepEqual(C.search("ZZ"),[],"An unknown ISO code must not appear in selection");
+assert.ok(!C.search("ZZ").includes("ZZ"),"Searching a text fragment must never manufacture an unknown ISO code");
+assert.ok(C.search("zz").includes("CG"),"Brazzaville is a legitimate partial-text match");
 assert.ok(!C.search("abra cadabra").length);
 assert.equal(PDF.factualRows([{country_code:"SA",cities:["Djeddah"],entry_date:"2026-10-01",exit_date:"2026-10-02",duration_days:2,purpose:"tourisme"}])[0].country,C.NAMES.SA);
 for(const code of codes){
