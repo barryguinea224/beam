@@ -32,6 +32,7 @@ assert.equal(new Set(C.ordered()).size,249);
 assert.equal(PDF.factualRows([{country_code:"SA",cities:["Djeddah"],entry_date:"2026-01-01",exit_date:"2026-01-03",duration_days:3,purpose:"tourisme"}])[0].country,C.NAMES.SA);
 assert.equal(PDF.factualRows([{country_code:"RE",cities:["Saint-Denis"],entry_date:"2026-01-01",exit_date:"2026-01-03",duration_days:3,purpose:"tourisme"}])[0].country,C.NAMES.RE);
 assert.ok(script.includes('if(!window.BEAM_COUNTRIES.has(p.country_code))'),"Unknown code must not be stored");
+assert.ok(script.includes('if(value&&!window.BEAM_COUNTRIES.has(value))'),"Unknown residence must be rejected");
 assert.ok(html.includes('id="tripCountrySearch"')&&html.includes('id="residenceSearch"'),"Search fields missing");
 assert.ok(html.indexOf('src="./countries.js"')<html.indexOf('src="./country-picker.js"'));
 assert.ok(html.indexOf('src="./country-picker.js"')<html.indexOf("<script>"));
