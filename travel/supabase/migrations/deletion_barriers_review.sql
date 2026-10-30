@@ -1,5 +1,6 @@
 -- Review-only migration. Do not apply before deletion protocol review.
 alter table public.trips add column if not exists deleting boolean not null default false;
+alter table public.trips add column if not exists deletion_requested_at timestamptz;
 
 alter table public.media drop constraint if exists path_belongs_to_owner;
 alter table public.media add constraint path_belongs_to_trip check(
