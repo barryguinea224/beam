@@ -1,6 +1,6 @@
 # Travel deletion protocol (review draft)
 
-Status: CODED, NOT DEPLOYED, NOT TESTED.
+Status: CODED, NOT DEPLOYED, NOT TESTED. Review revision 2.
 
 The browser must never delete `trips`, `media`, Storage objects, or Auth users directly.
 
@@ -47,3 +47,24 @@ The browser must never delete `trips`, `media`, Storage objects, or Auth users d
 ## Deliberately not exposed in UI
 
 No delete button and no photo upload reactivation until this protocol is reviewed, deployed to staging, and the hostile bench is green.
+
+
+## Review revision 2 — blockers addressed
+
+- Trip deletion sets `trips.deleting=true` before Storage cleanup.
+- Storage INSERT requires segment 2 to be a real, owned, non-deleting trip.
+- Media `storage_path` is constrained to the exact `<user>/<trip>/<uuid>.(webp|jpg|png)` shape.
+- Browser raw DELETE on `trips` and `media` is revoked.
+- CORS handles OPTIONS and allows only BEAM production + current staging preview origins.
+- `deletion_requested_at` preserves the first request timestamp.
+- Starting account deletion requires `last_sign_in_at` <= 10 minutes; retries after the barrier do not.
+- Post-success retry with an old JWT is expected to return 401; UI must treat that as terminal success only when it already observed/initiated account deletion.
+- Retry worker (>1h) remains REQUIRED BEFORE UI, and is intentionally not yet marked coded.
+
+### Added hostile assertions
+
+- Upload to invented trip UUID is denied.
+- Upload racing a trip deletion after `deleting=true` is denied.
+- B cannot insert a media row with a trapped/path-traversal-like `storage_path`; A's object remains.
+- Direct browser DELETE of trip/media is denied.
+- Deliberately retained owned Storage object blocks Auth deletion; profile remains deleting; retry completes after cleanup.
