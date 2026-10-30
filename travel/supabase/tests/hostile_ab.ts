@@ -135,7 +135,7 @@ const storageId=crypto.randomUUID();
 const storagePath=`${sa.user.id}/${ta.id}/${storageId}.webp`;
 const storagePathB=`${sb.user.id}/${tb.id}/${crypto.randomUUID()}.webp`;
 const tinyWebp=Uint8Array.from(atob("UklGRiIAAABXRUJQVlA4IBYAAAAwAQCdASoBAAEAAUAmJaQAA3AA/v89WAAAAA=="),c=>c.charCodeAt(0));
-const blob=(bytes: Uint8Array,type: string)=>new Blob([bytes],{type});
+const blob=(bytes: Uint8Array,type: string)=>new Blob([bytes.slice().buffer],{type});
 let storageUploaded=false, storageUploadedB=false, signedBeforeDelete;
 try {
   const {error:uploadErr}=await bucketA.upload(storagePath,blob(tinyWebp,"image/webp"),{contentType:"image/webp",upsert:false});
