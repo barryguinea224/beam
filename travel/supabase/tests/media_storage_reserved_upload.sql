@@ -8,6 +8,9 @@ grant usage on schema auth,storage,public to authenticated;
 grant execute on function auth.uid() to authenticated;
 grant select,insert on storage.objects to authenticated;
 grant select on public.media to authenticated;
+-- The real client can read its own trips; the disposable PostgreSQL
+-- harness must explicitly grant SELECT to exercise the invoker trigger.
+grant select on public.trips to authenticated;
 insert into auth.users(id) values
  ('30000000-0000-4000-8000-000000000021'),
  ('30000000-0000-4000-8000-000000000022');
