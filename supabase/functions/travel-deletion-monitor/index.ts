@@ -18,8 +18,16 @@ Deno.serve(async (req: Request) => {
   const supplied=req.headers.get("x-travel-monitor-secret")||"";
   if(!expected||!supplied||!await sameSecret(expected,supplied)) return new Response("UNAUTHORIZED",{status:401});
 
-  const {data,error}=await adminClient().rpc("count_stuck_deletions");
-  if(error) return Response.json({ok:false,error:"MONITOR_QUERY_FAILED"},{status:500});
-  const stuck=Number(data);
-  return Response.json({ok:stuck===0,stuck},{status:stuck===0?200:503});
+  const client = adminClient();
+  const [deletions, runs] = await Promise.all([
+    client.rpc("count_stuck_deletions"),
+    client.rpc("count_stale_deletion_retry_runs"),
+  ]);
+  if (deletions.error || runs.error) {
+    return Response.json({ ok: false, error: "MONITOR_QUERY_FAILED" }, { status: 500 });
+  }
+  const stuck = Number(deletions.data);
+  const staleRuns = Number(runs.data);
+  const healthy = stuck === 0 && staleRuns === 0;
+  return Response.json({ ok: healthy, stuck, stale_runs: staleRuns }, { status: healthy ? 200 : 503 });
 });
