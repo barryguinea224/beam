@@ -26,6 +26,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Preflight hostile bench
+        run: |
+          deno fmt --check travel/supabase/tests/hostile_ab.ts travel/constants.js
+          deno check travel/supabase/tests/hostile_ab.ts
+
       - name: Validate required secrets
         shell: bash
         env:
