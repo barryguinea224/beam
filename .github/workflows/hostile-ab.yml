@@ -82,6 +82,11 @@ jobs:
       - name: Exercise deletion retry lease state machine
         env: { PGPASSWORD: postgres }
         run: psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f travel/supabase/tests/deletion_retry_worker.sql
+      - name: Test WebP-only media paths and per-trip quota
+        env: { PGPASSWORD: postgres }
+        run: psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f travel/supabase/tests/media_server_guards.sql
+      - name: Prove two concurrent uploads cannot exceed ten
+        run: bash travel/supabase/tests/media_concurrency.sh
 
   hostile-ab:
     name: Real JWT / RLS hostile bench
