@@ -50,7 +50,13 @@ function fixture(){
    return {
      addAll:async urls=>{
        cacheOps.push(["addAll",...urls]);
-       for(const url of urls)map.set(url,new Response("PUBLIC_STATIC"));
+       for(const url of urls) {
+         const pathname=new URL(url).pathname;
+         const localPath=pathname.slice(1);
+         assert.ok(fs.existsSync(localPath),
+           "SW installation would fail: missing precache asset " + localPath);
+         map.set(url,new Response("PUBLIC_STATIC"));
+       }
      },
      match:async request=>map.get(typeof request==="string"?request:request.url)||null,
      put:async()=>{throw new Error("Forbidden runtime cache write")}

@@ -10,7 +10,7 @@ const PUBLIC_SHELL = [
   "./journal-stats.js", "./visual-cards.js", "./visual-cards.css",
   "./assets/world-map.svg", "./manifest.webmanifest",
   "./icons/icon-192.png", "./icons/icon-512.png", "./icons/icon-maskable-512.png",
-  ...["ae","be","bh","ca","cd","cg","ci","cn","de","dz","es","fr","gb","gf","gh","gn","gp","it","ma","ml","mq","mt","pt","qa","ru","sa","sg","sl","sn","tr","us"].map(code => "./assets/flags/" + code + ".svg")
+  ...["ae","be","bh","ca","cd","cg","ci","cn","de","dz","es","fr","gb","gf","gh","gn","gp","it","ma","ml","mq","mt","pt","re","sa","sg","sl","sn","tr","us"].map(code => "./assets/flags/" + code + ".svg")
 ];
 const SAFE_PATHS = new Set(PUBLIC_SHELL.map(path => new URL(path, self.registration.scope).pathname));
 
