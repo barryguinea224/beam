@@ -20,7 +20,7 @@ async function main(){
     await page.addScriptTag({content:visual});
     await page.evaluate(()=>{
       const t=(code,name,city,domestic=false)=>({
-       id:crypto.randomUUID(),country_code:code,cities:[city],duration_days:11,
+       id:"60000000-0000-4000-8000-00000000000"+(["FR","GN","SA","NZ"].indexOf(code)+1),country_code:code,cities:[city],duration_days:11,
        is_domestic:domestic,cover_media_id:null
       });
       const trips=[t("FR","France","Paris"),t("GN","Guinée","Labé",true),t("SA","Arabie saoudite","Djeddah"),t("NZ","Nouvelle-Zélande","Auckland")];
