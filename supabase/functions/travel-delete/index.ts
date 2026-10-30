@@ -115,13 +115,13 @@ Deno.serve(async (req: Request) => {
 
     if (body.action === "delete_trip") {
       const { data: trip, error } = await admin.from("trips")
-        .select("id,user_id").eq("id", body.trip_id).eq("user_id", user.id).maybeSingle();
+        .select("id,user_id,deleting,deletion_requested_at").eq("id", body.trip_id).eq("user_id", user.id).maybeSingle();
       if (error) throw error;
       if (!trip) return json(req, { ok: true, already_absent: true });
 
       // Trip barrier first: blocks any new upload to this trip before cleanup begins.
       const { data: locked, error: lockError } = await admin.from("trips")
-        .update({ deleting: true }).eq("id", trip.id).eq("user_id", user.id)
+        .update({ deleting: true, deletion_requested_at: trip.deletion_requested_at || new Date().toISOString() }).eq("id", trip.id).eq("user_id", user.id)
         .select("id,deleting").maybeSingle();
       if (lockError) throw lockError;
       if (!locked) return json(req, { error: "TRIP_LOCK_FAILED" }, 409);
