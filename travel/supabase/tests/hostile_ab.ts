@@ -138,14 +138,14 @@ const tinyWebp=Uint8Array.from(atob("UklGRiIAAABXRUJQVlA4IBYAAAAwAQCdASoBAAEAAUA
 const blob=(bytes: Uint8Array,type: string)=>new Blob([bytes.slice().buffer],{type});
 let storageUploaded=false, storageUploadedB=false, signedBeforeDelete;
 try {
-  const {error:uploadErr}=await bucketA.upload(storagePath,blob(tinyWebp,"image/webp"),{contentType:"image/webp",upsert:false});
+  const {error:uploadErr}=await bucketA.upload(storagePath,blob(tinyWebp,"image/webp"),{contentType:"image/webp",cacheControl:"60",upsert:false});
   if(uploadErr) throw new Error("LEGITIMATE STORAGE UPLOAD FAILED: "+uploadErr.message);
   storageUploaded=true;
   if(!storagePath.startsWith(`${sa.user.id}/${ta.id}/`) || !/\/[0-9a-f-]{36}\.webp$/i.test(storagePath))
     throw new Error("SECURITY REGRESSION: storage path is not <user>/<trip>/<uuid>.webp");
   console.log("PASS A legitimate WebP upload; random technical path");
 
-  const {error:uploadBErr}=await bucketB.upload(storagePathB,blob(tinyWebp,"image/webp"),{contentType:"image/webp",upsert:false});
+  const {error:uploadBErr}=await bucketB.upload(storagePathB,blob(tinyWebp,"image/webp"),{contentType:"image/webp",cacheControl:"60",upsert:false});
   if(uploadBErr) throw new Error("LEGITIMATE B STORAGE UPLOAD FAILED: "+uploadBErr.message);
   storageUploadedB=true;
   console.log("PASS B legitimate WebP upload in B folder");
@@ -153,6 +153,17 @@ try {
   const {data:aDownload,error:aDownloadErr}=await bucketA.download(storagePath);
   if(aDownloadErr||!aDownload) throw new Error("A cannot download own object");
   console.log("PASS A can download own private object");
+
+  const cacheProbe=await fetch(`${env.SUPABASE_URL}/storage/v1/object/authenticated/media/${storagePath}?cacheProbe=${crypto.randomUUID()}`,{
+    headers:{Authorization:`Bearer ${sa.access_token}`,apikey:env.SUPABASE_PUBLISHABLE_KEY},
+    cache:"no-store"
+  });
+  if(!cacheProbe.ok) throw new Error("CACHE CONTROL PROBE FAILED: HTTP "+cacheProbe.status);
+  const cacheHeader=cacheProbe.headers.get("cache-control") ?? "";
+  console.log("Private photo Cache-Control:",cacheHeader);
+  if(!/(?:^|[, ]|max-age=)60(?:$|[, ])/i.test(cacheHeader) && !/max-age=60(?:$|[, ])/i.test(cacheHeader))
+    throw new Error("PRIVACY REGRESSION: private photo Cache-Control is not 60 seconds");
+  console.log("PASS private photo Cache-Control is 60 seconds");
 
   const {data:bDownload,error:bDownloadErr}=await bucketB.download(storagePath);
   if(!bDownloadErr && bDownload) throw new Error("SECURITY REGRESSION: B downloaded A object");
