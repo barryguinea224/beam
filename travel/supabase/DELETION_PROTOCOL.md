@@ -73,6 +73,11 @@ No delete button and no photo upload reactivation until this protocol is reviewe
 
 Workflow `.github/workflows/victim-bench.yml`, disabled until `VICTIM_BENCH_ENABLED=true`, and
 run only in the `staging-destructive` environment, whose required reviewers must approve each run.
+To trigger from an unmerged PR, a maintainer adds the `staging-victim-approved` label to the PR
+(remove then re-add it for a new SHA); routine PR pushes do **not** run this destructive workflow.
+After the workflow exists on the default branch, `workflow_dispatch` is an alternative.
+Do not authorize the destructive run until the staging migration, functions and secrets are deployed,
+and the non-destructive checks are green.
 One step only receives `STAGING_SERVICE_ROLE_KEY` and `STAGING_TRAVEL_RETRY_SECRET`, stored only in that
 approved environment. Accounts are created per run
 (`<ci-base>+ci-victim-<run>` / `+ci-bystander-<run>`), never `+ci-a` / `+ci-b`.
@@ -144,7 +149,7 @@ Monitoring uses a separate `TRAVEL_MONITOR_SECRET`. Its staging copy is stored a
 2. Apply `travel/supabase/migrations/deletion_retry_worker.sql` to an isolated staging project (not production).
 3. Deploy both `travel-delete` (shared-engine refactor) and `travel-deletion-retry`.
 4. Configure the Edge Function secret and Vault entries.
-5. Configure the protected GitHub environment secret `STAGING_TRAVEL_RETRY_SECRET` (staging copy only), verify there are **no other in-progress deletions** on staging, and explicitly approve the destructive bench for its exact commit.
+5. Configure the protected GitHub environment secret `STAGING_TRAVEL_RETRY_SECRET` (staging copy only), verify there are **no other in-progress deletions** on staging, apply the explicit `staging-victim-approved` label to the reviewed PR and approve the protected `staging-destructive` run for its exact commit. The workflow intentionally does not run automatically on each PR push.
 6. Run the victim bench. It must prove: **401** for wrong/missing secrets; **202 + full destructive completion** for an interrupted stale trip; no start during a current lease followed by success after the lease timestamp is aged; and zero early retry attempts during backoff followed by a retry after its last-attempt timestamp is aged. The bench only modifies dates on its own disposable fixtures using a server-side admin credential.
 7. Artificially aging timestamps tests the **database eligibility and claim transitions**, not a genuine 10-minute wall-clock passage; run a separate real-elapsed soak if that guarantee is needed. Inspect the private retry log and final Auth/DB/Storage state on staging, including a >24h stuck signal.
 8. Independently verify the 90-second start-budget release behavior and error logging; these are not yet asserted by the four automated worker scenarios.
