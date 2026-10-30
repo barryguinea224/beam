@@ -1,0 +1,65 @@
+name: Victim bench — Staging (destructive, disposable accounts)
+
+# Destructive by design: creates throwaway accounts on STAGING, deletes them through
+# travel-delete, then replays their pre-deletion JWT. Never runs against production.
+#
+# Two independent locks before the staging admin key is ever released:
+#   1. The repository variable VICTIM_BENCH_ENABLED must be 'true', otherwise the job is skipped.
+#   2. The job uses the dedicated environment `staging-destructive`, which must be configured
+#      with "Required reviewers". GitHub then holds every run until a maintainer approves it in
+#      the Actions tab, after looking at the exact commit that will run. Pull request runs
+#      execute the PR head code, so this approval is what guarantees that only reviewed code
+#      receives STAGING_SERVICE_ROLE_KEY.
+#   STAGING_SERVICE_ROLE_KEY must live ONLY in `staging-destructive` (remove it from `staging`),
+#   so the hostile A/B bench and any other job never have access to it.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    # main: runs on PR #3 (feature -> main) once this bench is merged into the feature branch.
+    # feature branch: lets this bench run from its own PR before merge. Either way the
+    # staging-destructive approval gate holds the run until the exact SHA is approved.
+    branches: [main, feature/beam-travel-history-v1]
+    paths:
+      - "travel/supabase/**"
+      - "supabase/functions/travel-delete/**"
+      - ".github/workflows/victim-bench.yml"
+
+# Shared with the hostile A/B bench: never two staging benches at the same time.
+concurrency:
+  group: hostile-ab-staging
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  victim-bench:
+    name: Disposable victim — full deletion protocol
+    if: vars.VICTIM_BENCH_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: staging-destructive
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      # No secret is available to this step.
+      - name: Preflight type check
+        run: deno check travel/supabase/tests/victim_bench.ts
+
+      # The ONLY step that receives the staging service key. Nothing is passed to later
+      # steps and the script never prints keys, passwords, tokens or e-mail addresses.
+      - name: Run disposable victim bench against staging
+        env:
+          SUPABASE_URL: ${{ secrets.STAGING_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.STAGING_ANON_KEY }}
+          STAGING_SERVICE_ROLE_KEY: ${{ secrets.STAGING_SERVICE_ROLE_KEY }}
+          TEST_A_EMAIL: ${{ secrets.TEST_A_EMAIL }}
+        run: deno run --allow-env --allow-net travel/supabase/tests/victim_bench.ts

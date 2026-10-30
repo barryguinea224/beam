@@ -68,3 +68,32 @@ No delete button and no photo upload reactivation until this protocol is reviewe
 - B cannot insert a media row with a trapped/path-traversal-like `storage_path`; A's object remains.
 - Direct browser DELETE of trip/media is denied.
 - Deliberately retained owned Storage object blocks Auth deletion; profile remains deleting; retry completes after cleanup.
+
+## Disposable victim bench (`tests/victim_bench.ts`)
+
+Workflow `.github/workflows/victim-bench.yml`, disabled until `VICTIM_BENCH_ENABLED=true`, and
+run only in the `staging-destructive` environment, whose required reviewers must approve each run.
+One step only receives `STAGING_SERVICE_ROLE_KEY`, stored only in that environment. Accounts are created per run
+(`<ci-base>+ci-victim-<run>` / `+ci-bystander-<run>`), never `+ci-a` / `+ci-b`.
+
+| Mandatory case | Bench section |
+|---|---|
+| delete one photo: object absent, then row absent | 2 |
+| retry delete_photo is idempotent | 2 |
+| delete trip with >=2 photos: prefix empty, rows cascaded | 3 |
+| retry delete_trip is idempotent | 3 |
+| cross-owner photo/trip IDs: no victim change | 1 |
+| interruption (locked + partially cleaned trip) then resume | 4 |
+| pagination: 110 objects across two list pages | 4 |
+| upload refused into a trip being deleted | 4 |
+| interruption of an account deletion (locked + partially cleaned) then resume, without fresh auth | 5b, 5d |
+| DB writes refused while `deleting=true`: trip insert/update, activity insert, media insert | 5c |
+| owned object outside prefix: Auth deletion refused, `deleting=true` and first request date kept | 5d |
+| upload refused while account is deleting | 5c |
+| resume after blocker removed: account fully deleted | 5d |
+| post-deletion: Auth, profile, trips, media, prefix, owned objects all gone | 6 |
+| replay pre-deletion JWT: DB insert refused, Storage insert refused, no ghost | 7 |
+| endpoint answers 401 to the old JWT after completed deletion | 7 |
+
+Stale disposable accounts older than 1 h are swept at start; cleanup runs in `finally`
+and fails the job if it cannot complete.
