@@ -3,7 +3,7 @@
 // Required: SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, TEST_A_EMAIL,
 // TEST_A_PASSWORD, TEST_B_EMAIL, TEST_B_PASSWORD
 
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "npm:@supabase/supabase-js@2.75.0";
 import { ACTIVITY_KINDS } from "../../constants.js";
 
 const TEST_ACTIVITY_KIND = ACTIVITY_KINDS[0];
@@ -27,7 +27,7 @@ const login=async(label,c,email,password)=>{
 };
 const expectDenied=(label,error)=>{
   if(!error) throw new Error(`SECURITY REGRESSION: ${label} unexpectedly succeeded`);
-  console.log("PASS denied:",label);
+  console.log("PASS denied:", label, "| status:", error.status ?? "n/a", "| code:", error.code ?? error.name ?? "n/a", "| message:", error.message ?? String(error));
 };
 
 const sa=await login("A",A,env.TEST_A_EMAIL,env.TEST_A_PASSWORD);
@@ -128,15 +128,15 @@ if(bActivityAfter.trip_id!==tb.id) throw new Error("SECURITY REGRESSION: B activ
 console.log("PASS B activity remains attached to B trip");
 
 console.log("BASE RLS + RELATIONAL INTEGRITY TESTS PASSED");
-console.log("BASE RLS + RELATIONAL INTEGRITY TESTS PASSED");
 
 // Storage hostile bench. Use random technical names only.
 const bucketA=A.storage.from("media"), bucketB=B.storage.from("media");
 const storageId=crypto.randomUUID();
 const storagePath=`${sa.user.id}/${ta.id}/${storageId}.webp`;
+const storagePathB=`${sb.user.id}/${tb.id}/${crypto.randomUUID()}.webp`;
 const tinyWebp=Uint8Array.from(atob("UklGRiIAAABXRUJQVlA4IBYAAAAwAQCdASoBAAEAAUAmJaQAA3AA/v89WAAAAA=="),c=>c.charCodeAt(0));
 const blob=(bytes,type)=>new Blob([bytes],{type});
-let storageUploaded=false;
+let storageUploaded=false, storageUploadedB=false, signedBeforeDelete;
 try {
   const {error:uploadErr}=await bucketA.upload(storagePath,blob(tinyWebp,"image/webp"),{contentType:"image/webp",upsert:false});
   if(uploadErr) throw new Error("LEGITIMATE STORAGE UPLOAD FAILED: "+uploadErr.message);
@@ -144,6 +144,11 @@ try {
   if(!storagePath.startsWith(`${sa.user.id}/${ta.id}/`) || !/\/[0-9a-f-]{36}\.webp$/i.test(storagePath))
     throw new Error("SECURITY REGRESSION: storage path is not <user>/<trip>/<uuid>.webp");
   console.log("PASS A legitimate WebP upload; random technical path");
+
+  const {error:uploadBErr}=await bucketB.upload(storagePathB,blob(tinyWebp,"image/webp"),{contentType:"image/webp",upsert:false});
+  if(uploadBErr) throw new Error("LEGITIMATE B STORAGE UPLOAD FAILED: "+uploadBErr.message);
+  storageUploadedB=true;
+  console.log("PASS B legitimate WebP upload in B folder");
 
   const {data:aDownload,error:aDownloadErr}=await bucketA.download(storagePath);
   if(aDownloadErr||!aDownload) throw new Error("A cannot download own object");
@@ -176,8 +181,15 @@ try {
     expectDenied("B hostile/cross-owner path "+hostilePath.replaceAll(sa.user.id,"<A>").replaceAll(sb.user.id,"<B>"),error);
   }
 
-  const {error:upsertOwn}=await bucketA.upload(storagePath,blob(tinyWebp,"image/webp"),{contentType:"image/webp",upsert:true});
+  const changedBytes=new Uint8Array([...tinyWebp]); changedBytes[changedBytes.length-1]^=0xff;
+  const {error:upsertOwn}=await bucketA.upload(storagePath,blob(changedBytes,"image/webp"),{contentType:"image/webp",upsert:true});
   expectDenied("A cannot overwrite existing object with upsert:true",upsertOwn);
+  const {data:afterUpsert,error:afterUpsertErr}=await bucketA.download(storagePath);
+  if(afterUpsertErr||!afterUpsert) throw new Error("Cannot verify A object after denied upsert");
+  const afterUpsertBytes=new Uint8Array(await afterUpsert.arrayBuffer());
+  if(afterUpsertBytes.length!==tinyWebp.length || afterUpsertBytes.some((v,i)=>v!==tinyWebp[i]))
+    throw new Error("SECURITY REGRESSION: denied upsert changed A object bytes");
+  console.log("PASS denied upsert left original A object unchanged");
 
   const elevenMiB=new Uint8Array(11*1024*1024);
   const {error:largeErr}=await bucketA.upload(`${sa.user.id}/${ta.id}/${crypto.randomUUID()}.webp`,blob(elevenMiB,"image/webp"),{contentType:"image/webp",upsert:false});
@@ -189,19 +201,36 @@ try {
     expectDenied(`${mime} rejected by bucket MIME allowlist`,error);
   }
 
+  const {data:signedA,error:signedAErr}=await bucketA.createSignedUrl(storagePath,300);
+  if(signedAErr||!signedA?.signedUrl) throw new Error("A cannot create pre-deletion signed URL");
+  signedBeforeDelete=signedA.signedUrl;
+  console.log("PASS A created signed URL before deletion");
+
   console.log("STORAGE HOSTILE TESTS PASSED");
 } finally {
   if(storageUploaded){
     const {error:removeErr}=await bucketA.remove([storagePath]);
-    if(removeErr) console.error("STORAGE CLEANUP FAILED:",removeErr.message);
+    if(removeErr) throw new Error("STORAGE CLEANUP FAILED: "+removeErr.message);
     else {
       const {data:afterRemove,error:afterRemoveErr}=await bucketA.download(storagePath);
       if(!afterRemoveErr && afterRemove) throw new Error("SECURITY REGRESSION: Storage object still downloadable after removal");
       console.log("CLEANUP PASS: A Storage test object removed and no longer downloadable");
+      if(signedBeforeDelete){
+        const signedAfter=await fetch(signedBeforeDelete,{redirect:"manual"});
+        if(signedAfter.ok) throw new Error("SECURITY REGRESSION: pre-deletion signed URL still serves deleted object");
+        console.log("PASS pre-deletion signed URL no longer serves deleted object");
+      }
     }
   }
+  if(storageUploadedB){
+    const {error:removeBErr}=await bucketB.remove([storagePathB]);
+    if(removeBErr) throw new Error("STORAGE B CLEANUP FAILED: "+removeBErr.message);
+    const {data:bAfter,error:bAfterErr}=await bucketB.download(storagePathB);
+    if(!bAfterErr&&bAfter) throw new Error("SECURITY REGRESSION: B Storage cleanup object still exists");
+    console.log("CLEANUP PASS: B Storage control object removed");
+  }
 }
-console.log("Next phase: Storage upload/cross-user/upsert + retained-JWT deletion replay.");
+console.log("Next phase: server deletion operations + retained-JWT deletion replay.");
 } finally {
   if (tb?.id) {
     const {error:cleanupBError}=await B.from("trips").delete().eq("id",tb.id);
