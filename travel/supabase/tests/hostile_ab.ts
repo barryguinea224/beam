@@ -13,9 +13,12 @@ const client = () => createClient(env.SUPABASE_URL, env.SUPABASE_PUBLISHABLE_KEY
   auth: { persistSession:false, autoRefreshToken:false }
 });
 const A=client(), B=client();
-const login=async(c,email,password)=>{
+const login=async(label,c,email,password)=>{
+  console.log(`${label} email trim mismatch:`, email!==email.trim() ? "yes" : "no");
+  console.log(`${label} password trim mismatch:`, password!==password.trim() ? "yes" : "no");
   const {data,error}=await c.auth.signInWithPassword({email,password});
-  if(error) throw error;
+  if(error) throw new Error(`LOGIN_${label}_FAILED: ${error.message}`);
+  console.log(`LOGIN_${label}_PASS`);
   return data.session;
 };
 const expectDenied=(label,error)=>{
@@ -23,8 +26,8 @@ const expectDenied=(label,error)=>{
   console.log("PASS denied:",label);
 };
 
-const sa=await login(A,env.TEST_A_EMAIL,env.TEST_A_PASSWORD);
-const sb=await login(B,env.TEST_B_EMAIL,env.TEST_B_PASSWORD);
+const sa=await login("A",A,env.TEST_A_EMAIL,env.TEST_A_PASSWORD);
+const sb=await login("B",B,env.TEST_B_EMAIL,env.TEST_B_PASSWORD);
 console.log("Authenticated A/B with real JWTs",sa.user.id,sb.user.id);
 
 const original={user_id:sa.user.id,country_code:"GN",cities:"Conakry",entry_date:"2026-01-01",exit_date:"2026-01-02",purpose:"Autre",note:"A-original-note"};
