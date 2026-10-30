@@ -24,6 +24,7 @@ create table public.profiles (
 create table public.trips (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
+  cover_media_id uuid,
   country_code char(2) not null check(country_code ~ '^[A-Z]{2}$'),
   cities text[] not null default '{}' check(cardinality(cities)<=10),
   entry_date date not null,
@@ -79,6 +80,13 @@ create table public.media (
       '/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}[.]webp$')
   )
 );
+
+-- A cover must be a photo from exactly the same trip and owner.
+-- Delete of a photo resets ONLY cover_media_id; trip identity is unchanged.
+alter table public.media add constraint media_cover_identity unique (id,trip_id,user_id);
+alter table public.trips add constraint trips_cover_same_trip_owner
+  foreign key (cover_media_id,id,user_id) references public.media(id,trip_id,user_id)
+  on delete set null (cover_media_id);
 
 create function public.check_same_owner() returns trigger language plpgsql security invoker set search_path=public as $$
 begin
@@ -221,7 +229,7 @@ revoke all on public.profiles,public.trips,public.activities,public.media from a
 revoke delete on public.trips, public.media from authenticated;
 -- deleting is server-only. Keep ordinary trip editing available.
 revoke update on public.trips from authenticated;
-grant update(country_code,cities,entry_date,exit_date,purpose,note,is_favorite,is_domestic) on public.trips to authenticated;
+grant update(country_code,cities,entry_date,exit_date,purpose,note,is_favorite,is_domestic,cover_media_id) on public.trips to authenticated;
 -- Photo reservation identity, path and file properties are immutable for browser clients.
 revoke update on public.media from authenticated;
 grant update(caption,taken_on,is_favorite,position) on public.media to authenticated;
