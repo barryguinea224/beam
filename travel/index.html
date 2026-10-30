@@ -70,12 +70,35 @@ const PHOTO=window.BEAM_PHOTO;
 let existingMedia=[],pendingPhotos=[],pendingPhotoId=0,photoSelecting=false,mediaReady=false,mediaRequest=0,mediaBusy=false;
 function showPhotoMessage(text){const el=$("#photoMessage");el.textContent=text;el.classList.remove("hidden")}
 function updatePhotoUsage(){
- const used=existingMedia.length,remaining=PHOTO.MAX_PHOTOS-used;
- $("#photoUsage").textContent=used+" / "+PHOTO.MAX_PHOTOS+" photos enregistrées · "+remaining+" place"+(remaining===1?"":"s")+" disponible"+(remaining===1?"":"s");
- $("#photos").disabled=!mediaReady||mediaBusy||savingTrip||remaining===0||accountState!=="active";
+ const saved=existingMedia.length,waiting=pendingPhotos.length,remaining=PHOTO.MAX_PHOTOS-saved-waiting;
+ $("#photoUsage").textContent=saved+" enregistrée"+(saved===1?"":"s")+" + "+waiting+" en attente / "+PHOTO.MAX_PHOTOS+
+   " · "+remaining+" place"+(remaining===1?"":"s")+" disponible"+(remaining===1?"":"s");
+ $("#photos").disabled=!mediaReady||mediaBusy||photoSelecting||savingTrip||remaining<=0||accountState!=="active";
+ $("#saveTrip").disabled=mediaBusy||photoSelecting||savingTrip||accountState!=="active";
+}
+function renderPhotoGallery(){
+ const saved=existingMedia.map(row=>'<div class="photoTile">'+
+   (row.url?'<img loading="lazy" alt="Souvenir privé de ce voyage" src="'+esc(row.url)+'">':'<p>Prévisualisation indisponible</p>')+
+   '<div class="actions"><button type="button" class="btn ghost downloadPhoto" data-id="'+esc(row.id)+'">Télécharger</button>'+
+   '<button type="button" class="btn ghost removePhoto" data-id="'+esc(row.id)+'">Supprimer</button></div></div>');
+ const waiting=pendingPhotos.map(entry=>'<div class="photoTile"><img alt="Photo en attente d’envoi" src="'+esc(entry.url)+'">'+
+   '<p class="photoPendingLabel">En attente · '+esc(entry.file.name)+'</p><div class="actions">'+
+   '<button type="button" class="btn ghost removePendingPhoto" data-pending-id="'+esc(entry.id)+
+   '" aria-label="Retirer '+esc(entry.file.name)+'">Retirer</button></div></div>');
+ $("#photoGallery").innerHTML=saved.concat(waiting).join("");
+}
+function removePendingPhoto(id){
+ const i=pendingPhotos.findIndex(entry=>entry.id===id);
+ if(i<0)return false;
+ const [entry]=pendingPhotos.splice(i,1);
+ URL.revokeObjectURL(entry.url);
+ renderPhotoGallery();updatePhotoUsage();
+ return true;
 }
 function resetPhotoUI(tripId){
- mediaRequest++;existingMedia=[];mediaReady=!tripId;
+ mediaRequest++;
+ for(const entry of pendingPhotos)URL.revokeObjectURL(entry.url);
+ pendingPhotos=[];existingMedia=[];mediaReady=!tripId;
  $("#photos").value="";$("#photoGallery").replaceChildren();$("#photoMessage").classList.add("hidden");
  updatePhotoUsage();
  if(tripId){$("#photoUsage").textContent="Chargement des photos…";$("#photos").disabled=true}
@@ -87,27 +110,37 @@ async function refreshMedia(tripId){
    .eq("user_id",user.id).eq("trip_id",tripId).order("created_at",{ascending:true});
  if(seq!==mediaRequest||editingTripId!==tripId||accountState!=="active")return;
  if(error||!data){$("#photoUsage").textContent="Photos indisponibles — ajout désactivé.";showPhotoMessage("Impossible de charger les photos. Réessayez en rouvrant le voyage.");return}
- existingMedia=data;
  const signed=await Promise.all(data.map(async row=>{
    const {data:url,error:urlError}=await S.storage.from("media").createSignedUrl(row.storage_path,300);
    return {...row,url:urlError?"":(url?.signedUrl||"")};
  }));
  if(seq!==mediaRequest||editingTripId!==tripId||accountState!=="active")return;
- $("#photoGallery").innerHTML=signed.map(row=>`<div class="photoTile">${row.url?`<img loading="lazy" alt="Souvenir privé de ce voyage" src="${esc(row.url)}">`:"<p>Prévisualisation indisponible</p>"}<div class="actions"><button type="button" class="btn ghost downloadPhoto" data-id="${esc(row.id)}">Télécharger</button><button type="button" class="btn ghost removePhoto" data-id="${esc(row.id)}">Supprimer</button></div></div>`).join("");
+ existingMedia=signed;renderPhotoGallery();
  mediaReady=true;updatePhotoUsage();
 }
 $("#photos").onchange=async()=>{
+ const input=$("#photos"),files=Array.from(input.files);
+ input.value=""; // The picker may be reopened; the queued File objects are retained.
+ if(!files.length)return;
+ if(photoSelecting||savingTrip||mediaBusy)return;
+ photoSelecting=true;updatePhotoUsage();
  $("#photoMessage").classList.add("hidden");
- if(!$("#photos").files.length)return;
+ const seq=mediaRequest;
  try{
-   if(!mediaReady)throw new Error("Attendez que les photos du voyage soient chargées.");
-   const files=await PHOTO.validateSelection($("#photos").files,existingMedia.length);
-   $("#photoUsage").textContent=existingMedia.length+" / "+PHOTO.MAX_PHOTOS+" enregistrées · "+files.length+" sélectionnée"+(files.length===1?"":"s")+" pour l’envoi";
- }catch(e){
-   $("#photos").value="";
-   updatePhotoUsage();
-   showPhotoMessage(e.message||PHOTO.UNSUPPORTED);
- }
+   if(!mediaReady||accountState!=="active")throw new Error("Attendez que les photos du voyage soient chargées.");
+   await PHOTO.validateSelection(files,existingMedia.length+pendingPhotos.length);
+   if(seq!==mediaRequest||!$("#modal").classList.contains("open")||accountState!=="active")return;
+   const added=[];
+   try{
+     for(const file of files)added.push({id:String(++pendingPhotoId),file,url:URL.createObjectURL(file)});
+   }catch{
+     for(const entry of added)URL.revokeObjectURL(entry.url);
+     throw new Error("Impossible de prévisualiser ces photos. Réessayez.");
+   }
+   pendingPhotos.push(...added);
+   renderPhotoGallery();
+ }catch(e){showPhotoMessage(e.message||PHOTO.UNSUPPORTED)}
+ finally{photoSelecting=false;updatePhotoUsage()}
 };
 $("#photoGallery").onclick=async e=>{
  const b=e.target.closest("button[data-id]");
