@@ -8,6 +8,7 @@ on:
       - "travel/**"
       - "supabase/functions/travel-delete/**"
       - "supabase/functions/travel-deletion-retry/**"
+      - "supabase/functions/travel-deletion-monitor/**"
       - "supabase/functions/_shared/travel-deletion.ts"
       - "supabase/config.toml"
       - ".github/workflows/hostile-ab.yml"
@@ -106,6 +107,7 @@ jobs:
           deno check travel/supabase/tests/hostile_ab.ts
           deno check supabase/functions/travel-delete/index.ts
           deno check supabase/functions/travel-deletion-retry/index.ts
+          deno check supabase/functions/travel-deletion-monitor/index.ts
 
       - name: Validate required secrets
         shell: bash
