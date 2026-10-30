@@ -28,7 +28,10 @@ const sb=await login(B,env.TEST_B_EMAIL,env.TEST_B_PASSWORD);
 console.log("Authenticated A/B with real JWTs",sa.user.id,sb.user.id);
 
 const original={user_id:sa.user.id,country_code:"GN",cities:"Conakry",entry_date:"2026-01-01",exit_date:"2026-01-02",purpose:"Autre",note:"A-original-note"};
-const {data:ta,error:ea}=await A.from("trips").insert(original).select().single();
+let ta;
+try {
+const {data:created,error:ea}=await A.from("trips").insert(original).select().single();
+ta=created;
 if(ea) throw ea;
 
 const {data:seenByB,error:readErr}=await B.from("trips").select("*").eq("id",ta.id);
@@ -66,3 +69,12 @@ expectDenied("A updates profiles.deleting",reserved);
 
 console.log("BASE RLS TESTS PASSED");
 console.log("Next phase: Storage upload/cross-user/upsert + retained-JWT deletion replay.");
+} finally {
+  if (ta?.id) {
+    const {error:cleanupError}=await A.from("trips").delete().eq("id",ta.id);
+    if (cleanupError) console.error("CLEANUP FAILED:",cleanupError.message);
+    else console.log("CLEANUP PASS: A test trip removed");
+  }
+  await A.auth.signOut();
+  await B.auth.signOut();
+}
