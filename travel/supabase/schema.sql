@@ -93,7 +93,7 @@ create trigger activities_same_owner before insert or update on public.activitie
 create index if not exists activities_trip_quota_idx on public.activities(trip_id);
 create or replace function public.enforce_activity_quota()
 returns trigger
-language plpgsql volatile security definer set search_path='' as $
+language plpgsql volatile security definer set search_path='' as $$
 declare
   locked_trip uuid;
   existing_count integer;
@@ -118,7 +118,7 @@ begin
     raise exception using errcode='23514',message='ACTIVITY_LIMIT_REACHED';
   end if;
   return new;
-end $;
+end $$;
 revoke execute on function public.enforce_activity_quota()
   from public,anon,authenticated;
 create trigger activities_quota_before_write
