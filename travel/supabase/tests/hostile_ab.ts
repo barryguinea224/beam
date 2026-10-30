@@ -4,6 +4,10 @@
 // TEST_A_PASSWORD, TEST_B_EMAIL, TEST_B_PASSWORD
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { ACTIVITY_KINDS } from "../../constants.js";
+
+const TEST_ACTIVITY_KIND = ACTIVITY_KINDS[0];
+if (!TEST_ACTIVITY_KIND) throw new Error("No allowed activity kind configured");
 
 const env = Deno.env.toObject();
 const required = ["SUPABASE_URL","SUPABASE_PUBLISHABLE_KEY","TEST_A_EMAIL","TEST_A_PASSWORD","TEST_B_EMAIL","TEST_B_PASSWORD"];
@@ -97,7 +101,7 @@ const {error:foreignMediaInsert}=await B.from("media").insert({
 expectDenied("B inserts own media attached to A trip",foreignMediaInsert);
 
 const {error:foreignActivityInsert}=await B.from("activities").insert({
-  trip_id:ta.id,user_id:sb.user.id,kind:"souvenir",title:"Hostile insert"
+  trip_id:ta.id,user_id:sb.user.id,kind:TEST_ACTIVITY_KIND,title:"Hostile insert"
 });
 expectDenied("B inserts own activity attached to A trip",foreignActivityInsert);
 
@@ -113,7 +117,7 @@ if(bMediaAfter.trip_id!==tb.id) throw new Error("SECURITY REGRESSION: B media tr
 console.log("PASS B media remains attached to B trip");
 
 const {data:bActivity,error:bActivityErr}=await B.from("activities").insert({
-  trip_id:tb.id,user_id:sb.user.id,kind:"souvenir",title:"B own activity"
+  trip_id:tb.id,user_id:sb.user.id,kind:TEST_ACTIVITY_KIND,title:"B own activity"
 }).select().single();
 if(bActivityErr) throw bActivityErr;
 const {data:movedActivity,error:movedActivityErr}=await B.from("activities").update({trip_id:ta.id}).eq("id",bActivity.id).select();
