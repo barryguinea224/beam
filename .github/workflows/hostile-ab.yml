@@ -1,0 +1,52 @@
+name: Hostile A/B — Staging
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  hostile-ab:
+    name: Real JWT / RLS hostile bench
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: staging
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate required secrets
+        shell: bash
+        env:
+          STAGING_URL: ${{ secrets.STAGING_URL }}
+          STAGING_ANON_KEY: ${{ secrets.STAGING_ANON_KEY }}
+          TEST_A_EMAIL: ${{ secrets.TEST_A_EMAIL }}
+          TEST_A_PASSWORD: ${{ secrets.TEST_A_PASSWORD }}
+          TEST_B_EMAIL: ${{ secrets.TEST_B_EMAIL }}
+          TEST_B_PASSWORD: ${{ secrets.TEST_B_PASSWORD }}
+        run: |
+          set -euo pipefail
+          for name in STAGING_URL STAGING_ANON_KEY TEST_A_EMAIL TEST_A_PASSWORD TEST_B_EMAIL TEST_B_PASSWORD; do
+            if [ -z "${!name:-}" ]; then
+              echo "::error::Missing required staging secret: $name"
+              exit 1
+            fi
+          done
+          echo "Required staging secrets are configured."
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Run hostile A/B bench against staging
+        env:
+          SUPABASE_URL: ${{ secrets.STAGING_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.STAGING_ANON_KEY }}
+          TEST_A_EMAIL: ${{ secrets.TEST_A_EMAIL }}
+          TEST_A_PASSWORD: ${{ secrets.TEST_A_PASSWORD }}
+          TEST_B_EMAIL: ${{ secrets.TEST_B_EMAIL }}
+          TEST_B_PASSWORD: ${{ secrets.TEST_B_PASSWORD }}
+        run: deno run --allow-env --allow-net travel/supabase/tests/hostile_ab.ts
