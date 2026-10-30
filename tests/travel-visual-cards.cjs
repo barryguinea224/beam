@@ -50,7 +50,8 @@ assert.ok(html.includes('src="./assets/flags/fr.svg"'));
 assert.ok(html.includes('src="./assets/countries/fr.webp"'));
 assert.ok(html.includes("France"));
 assert.ok(html.includes("Tourisme"));
-assert.ok(!html.includes('src=x onerror'),"Untrusted cities must be escaped");
+assert.ok(!html.includes('<img src=x'),"Untrusted cities must not become markup");
+assert.ok(html.includes('&lt;img src=x onerror=alert(1)&gt;'),"Untrusted cities must be HTML-escaped");
 assert.ok(!html.includes("70000000-0000-4000-8000-000000000001"),
   "Private cover ID should not appear in the public HTML");
 const fallback=CARD.markup({...trip,country_code:"NZ",cities:["Auckland"]},"Nouvelle-Zélande","Tourisme","juin 2026");
