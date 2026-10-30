@@ -76,7 +76,7 @@ create table public.media (
   created_at timestamptz not null default now(),
   constraint path_belongs_to_trip check(
     storage_path ~ ('^' || user_id::text || '/' || trip_id::text ||
-      '/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\.(webp|jpg|png)$')
+      '/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}[.]webp$')
   )
 );
 
@@ -88,6 +88,48 @@ begin
 end $$;
 create trigger activities_same_owner before insert or update on public.activities for each row execute function public.check_same_owner();
 create trigger media_same_owner before insert or update on public.media for each row execute function public.check_same_owner();
+
+-- Serialize quota decisions on the owned trip row, not the media count.
+-- Concurrent INSERTs targeting the same trip then see the committed count in order.
+create index if not exists media_trip_quota_idx on public.media(trip_id);
+
+create or replace function public.enforce_media_photo_quota() returns trigger
+language plpgsql volatile security definer set search_path='' as $$
+declare
+  locked_trip uuid;
+  existing_count integer;
+begin
+  -- Editing captions/order does not consume a new slot. Moving media to a
+  -- different trip does, and must never bypass the destination quota.
+  if tg_op='UPDATE' and new.trip_id=old.trip_id and new.user_id=old.user_id then
+    return new;
+  end if;
+
+  select t.id into locked_trip
+  from public.trips t
+  where t.id=new.trip_id and t.user_id=new.user_id and not t.deleting
+  for update;
+
+  if locked_trip is null then
+    raise exception using errcode='23514',message='PHOTO_TRIP_UNAVAILABLE';
+  end if;
+
+  select count(*) into existing_count
+  from public.media m where m.trip_id=new.trip_id;
+  if existing_count >= 10 then
+    raise exception using errcode='23514',message='PHOTO_LIMIT_REACHED';
+  end if;
+
+  return new;
+end $$;
+
+revoke execute on function public.enforce_media_photo_quota()
+  from public,anon,authenticated;
+drop trigger if exists media_photo_quota_before_write on public.media;
+create trigger media_photo_quota_before_write
+  before insert or update of trip_id,user_id on public.media
+  for each row execute function public.enforce_media_photo_quota();
+
 
 create function public.check_trip_dates() returns trigger language plpgsql set search_path='' as $$
 begin if new.exit_date>(now() at time zone 'utc')::date then raise exception 'L''historique ne contient que des voyages terminés'; end if; return new; end $$;
@@ -149,7 +191,7 @@ select user_id,country_code,cities,entry_date,exit_date,duration_days,purpose
 from public.trips where not is_domestic and not deleting;
 
 insert into storage.buckets(id,name,public,file_size_limit,allowed_mime_types)
-values('media','media',false,10485760,array['image/jpeg','image/png','image/webp']) on conflict(id) do nothing;
+values('media','media',false,10485760,array['image/webp']) on conflict(id) do nothing;
 create policy "storage lire" on storage.objects for select to authenticated using(
  bucket_id='media' and (storage.foldername(name))[1]=auth.uid()::text and public.account_accepts_writes(auth.uid()));
 create policy "storage ajouter" on storage.objects for insert to authenticated with check(
