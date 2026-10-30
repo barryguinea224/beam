@@ -222,7 +222,9 @@ $("#tripForm").onsubmit=async e=>{
      catch(err){
        $("#tripTitle").textContent="Modifier le voyage";
        $("#saveTrip").textContent="Enregistrer les modifications";
-       msg.textContent="Voyage enregistré, mais "+pendingPhotos.length+" photo"+(pendingPhotos.length===1?" reste":"s restent")+" en attente. "+(err.message||"Réessayez.")+" Appuyez à nouveau sur Enregistrer pour reprendre l’envoi.";
+       const cleanupUnconfirmed=err.code==="PHOTO_CLEANUP_UNCONFIRMED";
+       msg.textContent="Voyage enregistré, mais "+pendingPhotos.length+" photo"+(pendingPhotos.length===1?" reste":"s restent")+" en attente. "+(err.message||"Réessayez.")+
+         (cleanupUnconfirmed?" Ne relancez pas l’envoi avant d’avoir supprimé la réservation non aboutie.":" Appuyez à nouveau sur Enregistrer pour reprendre l’envoi.");
        msg.classList.remove("hidden");
        try{await refreshMedia(data.id)}catch{showPhotoMessage("Impossible de rafraîchir les photos. Réessayez en rouvrant le voyage.")}
        return;
