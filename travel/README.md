@@ -9,7 +9,7 @@ Espace personnel de mémoire de voyage : voyages, activités, notes, photos priv
 - Activités et notes privées
 - Photos privées uniquement (pas de vidéo en V1)
 - Réencodage navigateur des photos avant upload pour retirer EXIF/GPS
-- PDF : destination, dates, durée, motif uniquement
+- PDF : pays, villes, entrée, sortie, durée, motif **uniquement** ; aucune note, photo ou activité
 - Aucun passeport, visa ou justificatif
 
 ## Installation
@@ -18,6 +18,15 @@ Espace personnel de mémoire de voyage : voyages, activités, notes, photos priv
 3. Activer l'authentification e-mail par lien magique.
 4. Copier `config.example.js` vers `config.js` et renseigner uniquement l'URL Supabase et la clé publique anon/publishable.
 5. Ne jamais ajouter `service_role` au navigateur ou au dépôt.
+
+
+## Travel History PDF V1 — contrat factuel et confidentiel
+- Source unique : `public.travel_history_pdf` (vue `security_invoker` filtrant les voyages **intérieurs** et **en cours de suppression**).
+- Projection fermée : `country_code,cities,entry_date,exit_date,duration_days,purpose`. Jamais `select('*')` ; requête également filtrée par `user_id` sous RLS.
+- **Toujours exclus** : photos, couvertures, souvenirs, notes, activités, URLs de fichiers, voyages intérieurs, voyages en cours de suppression. Aucune option « inclure mes souvenirs » en V1.
+- Mention imprimée **sur chaque page** : « Historique déclaré par l'utilisateur, non délivré par une autorité officielle ».
+- Un nouvel onglet local, composé uniquement de texte autorisé, propose `Imprimer / Enregistrer au format PDF` via l'impression native de Chrome. Aucun document n'est envoyé à un service de création PDF.
+- Tests : `tests/travel-factual-pdf.cjs` (liste fermée, injection, droits de vue), `tests/travel-factual-pdf-layout.cjs` (PDF Chromium A4 multipage, mention à chaque page et zéro image), puis contrôle sur téléphone avant fusion.
 
 ## Suppression
 Les lignes métier sont en `ON DELETE CASCADE`. Les objets du bucket Storage doivent aussi être supprimés via l'API Storage avant/simultanément à la suppression du compte. La V1 ne doit pas afficher « supprimer mon compte » tant que ce workflow serveur n'est pas implémenté et testé.
