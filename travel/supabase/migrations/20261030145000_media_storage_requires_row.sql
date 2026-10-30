@@ -1,5 +1,8 @@
 -- DRAFT ONLY: do not apply before review. No cron, no destructive DDL.
 -- Require an owned media reservation with the same Storage object path.
+-- Only harmless photo metadata is editable by authenticated clients.
+revoke update on public.media from authenticated;
+grant update(caption,taken_on,is_favorite,position) on public.media to authenticated;
 drop policy if exists "storage ajouter" on storage.objects;
 create policy "storage ajouter" on storage.objects for insert to authenticated with check(
  bucket_id='media'
@@ -10,6 +13,6 @@ create policy "storage ajouter" on storage.objects for insert to authenticated w
         then ((storage.foldername(name))[2])::uuid else null end
 ) and exists (
    select 1 from public.media m
-   where m.storage_path=name and m.user_id=auth.uid()
+   where m.storage_path=storage.objects.name and m.user_id=auth.uid()
 )
 );
