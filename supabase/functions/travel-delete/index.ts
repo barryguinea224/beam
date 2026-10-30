@@ -161,6 +161,13 @@ Deno.serve(async (req: Request) => {
       const prefix = user.id;
       await removeAndVerify(admin, prefix);
 
+      // Prefix cleanup is necessary but not sufficient: legacy/admin-created objects may
+      // still be owned by this user elsewhere in the bucket. The server-only RPC checks
+      // both current owner_id and deprecated owner metadata before Auth deletion.
+      const { data: ownedCount, error: ownedError } = await admin.rpc("count_owned_storage_objects", { uid: user.id });
+      if (ownedError) throw new Error(`OWNED_OBJECTS_CHECK_FAILED:${ownedError.message}`);
+      if (Number(ownedCount) !== 0) throw new Error(`OWNED_OBJECTS_REMAIN:${ownedCount}`);
+
       // Storage is verified empty before Auth deletion. DB children then cascade from auth.users.
       const { error: authError } = await admin.auth.admin.deleteUser(user.id);
       if (authError) throw new Error(`AUTH_DELETE_FAILED:${authError.message}`);
