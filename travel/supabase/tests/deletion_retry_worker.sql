@@ -78,4 +78,21 @@ begin
 end
 $$;
 
+update public.trips
+set deletion_attempts=12, deletion_claimed_until=null
+where id='10000000-0000-4000-8000-000000000001';
+
+truncate claimed;
+insert into claimed select * from public.claim_stale_deletions(20,10);
+do $$
+begin
+  if exists(select 1 from claimed where subject_id='10000000-0000-4000-8000-000000000001') then
+    raise exception 'attempt ceiling ignored';
+  end if;
+  if not exists(select 1 from private.stuck_deletions where subject_id='10000000-0000-4000-8000-000000000001') then
+    raise exception 'attempt ceiling not surfaced';
+  end if;
+end
+$$;
+
 rollback;
