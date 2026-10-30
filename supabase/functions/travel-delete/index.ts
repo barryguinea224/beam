@@ -29,8 +29,8 @@ async function caller(req: Request) {
   return { user: data.user, token };
 }
 
-async function listAll(admin: ReturnType<typeof adminClient>, prefix: string) {
-  const out: string[] = [];
+async function listAll(admin: ReturnType<typeof adminClient>, prefix: string): Promise<string[]> {
+  const files: string[] = [];
   let offset = 0;
   const limit = 100;
   for (;;) {
@@ -40,15 +40,15 @@ async function listAll(admin: ReturnType<typeof adminClient>, prefix: string) {
     if (error) throw new Error(`STORAGE_LIST_FAILED:${error.message}`);
     const rows = data || [];
     for (const row of rows) {
-      // V1 paths are flat below <user>/<trip>/ and use random UUID.webp names.
-      if (row.id) out.push(`${prefix}/${row.name}`);
+      const path = prefix ? `${prefix}/${row.name}` : row.name;
+      if (row.id) files.push(path);
+      else files.push(...await listAll(admin, path)); // folder: recurse, including orphan trip folders
     }
     if (rows.length < limit) break;
     offset += rows.length;
   }
-  return out;
+  return files;
 }
-
 async function removeAndVerify(admin: ReturnType<typeof adminClient>, prefix: string) {
   for (;;) {
     const paths = await listAll(admin, prefix);
