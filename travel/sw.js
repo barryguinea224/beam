@@ -72,7 +72,9 @@ self.addEventListener("fetch", event => {
     if (request.mode === "navigate") {
       try {
         // Network-first for navigation. Do NOT cache the network response.
-        return await fetch(request);
+        // Bypass the browser HTTP cache as well: a security fix available
+        // online must win over any older public shell stored locally.
+        return await fetch(request, {cache:"no-store"});
       } catch {
         // Serve a fresh PUBLIC offline-only page, never a previously rendered
         // app document. Works even after logout purges the shell caches.
@@ -90,8 +92,19 @@ small{color:#174d3a;font-weight:700;letter-spacing:.12em}</style></head>
         });
       }
     }
-    const cache = await caches.open(CACHE_NAME);
-    // Shell responses were precached at installation, never dynamically added.
-    return await cache.match(request, {ignoreSearch:false}) || fetch(request);
+    // All public assets are NETWORK-FIRST, even when an older shell is cached.
+    // Never add runtime responses to the cache: the only cached data is the
+    // vetted public install-time shell, and private requests bypass this SW.
+    try {
+      return await fetch(request, {cache:"no-store"});
+    } catch {
+      const cache = await caches.open(CACHE_NAME);
+      const fallback = await cache.match(request, {ignoreSearch:false});
+      if (fallback) return fallback;
+      return new Response("Ressource indisponible sans connexion.", {
+        status:503,
+        headers:{"content-type":"text/plain; charset=utf-8","cache-control":"no-store"}
+      });
+    }
   })());
 });

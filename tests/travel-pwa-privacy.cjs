@@ -42,6 +42,7 @@ function fixture(){
  const cachesData=new Map();
  const cacheOps=[];
  let networkFails=false, networkCount=0;
+ const networkOptions=[];
  const origin="https://example.netlify.app";
  const getCache=name=>{
    if(!cachesData.has(name))cachesData.set(name,new Map());
@@ -69,8 +70,9 @@ function fixture(){
  };
  const context=vm.createContext({
    self,caches,URL,Response,
-   fetch:async request=>{
+   fetch:async (request,options)=>{
      networkCount++;
+     networkOptions.push(options);
      if(networkFails)throw new Error("OFFLINE");
      return new Response("NETWORK_ONLY");
    }
@@ -80,6 +82,7 @@ function fixture(){
    handlers,cachesData,cacheOps,origin,
    setOffline(value){networkFails=value},
    calls:()=>networkCount,
+   lastFetchOptions:()=>networkOptions.at(-1),
    async install(){let task;handlers.install({waitUntil:p=>{task=p}});await task},
    async fetch(url,{method="GET",mode="cors"}={}){
      let responded=null;
@@ -119,19 +122,42 @@ async function run(){
    assert.equal(await f.fetch(url),null,"private/unknown request must not be intercepted: "+url);
  }
  assert.equal(await f.fetch(f.origin+"/travel/index.html",{method:"POST"}),null);
+ // An installed client still holds an older "PUBLIC_STATIC" resource.
+ // Online, the updated resource must always win, even without CACHE_NAME bump.
  const before=f.calls();
- const cached=await f.fetch(f.origin+"/travel/photo-utils.js");
- assert.equal(await cached.text(),"PUBLIC_STATIC");
- assert.equal(f.calls(),before,"whitelisted precached resource should load from public shell");
- assert.equal(f.cacheOps.filter(x=>x[0]==="addAll").length,1,"no runtime writes");
-
+ const live=await f.fetch(f.origin+"/travel/photo-utils.js");
+ assert.equal(await live.text(),"NETWORK_ONLY",
+   "online security fix must override older precached public JavaScript");
+ assert.equal(f.calls(),before+1,"public resources must fetch the network first");
+ assert.equal(f.lastFetchOptions()?.cache,"no-store",
+   "browser HTTP cache must not silently substitute an old script");
+ const liveStyles=await f.fetch(f.origin+"/travel/visual-cards.css");
+ assert.equal(await liveStyles.text(),"NETWORK_ONLY",
+   "stylesheets must also use network-first");
+ assert.equal(f.lastFetchOptions()?.cache,"no-store");
  const nav=await f.fetch(f.origin+"/travel/",{mode:"navigate"});
  assert.equal(await nav.text(),"NETWORK_ONLY","online document must use network, not cache");
+ assert.equal(f.lastFetchOptions()?.cache,"no-store",
+   "navigation must also bypass stale browser HTTP cache");
+ assert.equal(f.cacheOps.filter(x=>x[0]==="addAll").length,1,
+   "fetching newer public code must not write a runtime cache");
+
  f.setOffline(true);
+ const cached=await f.fetch(f.origin+"/travel/photo-utils.js");
+ assert.equal(await cached.text(),"PUBLIC_STATIC",
+   "preloaded public shell is available only as a network-failure fallback");
+ const noShell=await f.fetch(f.origin+"/travel/not-in-cache.js");
+ assert.equal(noShell,null,"unknown resources must still bypass the service worker");
  const offline=await f.fetch(f.origin+"/travel/",{mode:"navigate"});
  assert.equal(offline.status,503);
  assert.equal(offline.headers.get("cache-control"),"no-store");
  assert.match(await offline.text(),/Connexion nécessaire pour consulter votre carnet/);
+ assert.equal(f.cacheOps.filter(x=>x[0]==="addAll").length,1,
+   "no runtime writes even after offline fallback");
+ // The cached HTML must NEVER be displayed as the offline navigation.
+ const offlineIndex=await f.fetch(f.origin+"/travel/index.html",{mode:"navigate"});
+ assert.equal(offlineIndex.status,503);
+ assert.match(await offlineIndex.text(),/Connexion nécessaire pour consulter votre carnet/);
 
  f.cachesData.set("unrelated-site-cache",new Map());
  const ack=await f.purge();
