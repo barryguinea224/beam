@@ -67,12 +67,12 @@ jobs:
         env: { PGPASSWORD: postgres }
         run: |
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 <<'SQL'
-          create role anon; create role authenticated;
+          create role anon; create role authenticated; create role service_role;
           create schema auth; create schema storage;
           create table auth.users(id uuid primary key, raw_user_meta_data jsonb default '{}'::jsonb);
           create function auth.uid() returns uuid language sql stable as $$ select null::uuid $$;
           create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);
-          create table storage.objects(id uuid,name text,bucket_id text,owner_id text);
+          create table storage.objects(id uuid,name text,bucket_id text,owner uuid,owner_id text);
           create function storage.foldername(text) returns text[] language sql immutable as $$ select string_to_array($1,'/') $$;
           SQL
       - name: Execute canonical schema from scratch
