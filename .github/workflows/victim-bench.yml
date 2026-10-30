@@ -10,7 +10,8 @@ name: Victim bench — Staging (destructive, disposable accounts)
 #      the Actions tab, after looking at the exact commit that will run. Pull request runs
 #      execute the PR head code, so this approval is what guarantees that only reviewed code
 #      receives STAGING_SERVICE_ROLE_KEY.
-#   STAGING_SERVICE_ROLE_KEY must live ONLY in `staging-destructive` (remove it from `staging`),
+#   STAGING_SERVICE_ROLE_KEY and STAGING_TRAVEL_RETRY_SECRET must live ONLY in
+#   `staging-destructive` (remove admin key from `staging`),
 #   so the hostile A/B bench and any other job never have access to it.
 
 on:
@@ -23,6 +24,9 @@ on:
     paths:
       - "travel/supabase/**"
       - "supabase/functions/travel-delete/**"
+      - "supabase/functions/travel-deletion-retry/**"
+      - "supabase/functions/_shared/travel-deletion.ts"
+      - "supabase/config.toml"
       - ".github/workflows/victim-bench.yml"
 
 # Shared with the hostile A/B bench: never two staging benches at the same time.
@@ -61,5 +65,6 @@ jobs:
           SUPABASE_URL: ${{ secrets.STAGING_URL }}
           SUPABASE_PUBLISHABLE_KEY: ${{ secrets.STAGING_ANON_KEY }}
           STAGING_SERVICE_ROLE_KEY: ${{ secrets.STAGING_SERVICE_ROLE_KEY }}
+          STAGING_TRAVEL_RETRY_SECRET: ${{ secrets.STAGING_TRAVEL_RETRY_SECRET }}
           TEST_A_EMAIL: ${{ secrets.TEST_A_EMAIL }}
         run: deno run --allow-env --allow-net travel/supabase/tests/victim_bench.ts
