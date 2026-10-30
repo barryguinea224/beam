@@ -22,5 +22,9 @@ Espace personnel de mémoire de voyage : voyages, activités, notes, photos priv
 ## Suppression
 Les lignes métier sont en `ON DELETE CASCADE`. Les objets du bucket Storage doivent aussi être supprimés via l'API Storage avant/simultanément à la suppression du compte. La V1 ne doit pas afficher « supprimer mon compte » tant que ce workflow serveur n'est pas implémenté et testé.
 
-## Photos
-L'application réencode les images côté navigateur (canvas -> WebP/JPEG) avant upload. Le fichier original et ses métadonnées EXIF/GPS ne sont pas envoyés au bucket par le parcours normal.
+## Photos privées (PR dédiée, non fusionnée)
+- JPEG, PNG ou WebP fixes uniquement. HEIC/HEIF et vidéo refusés avec message compréhensible. 10 photos maximum par voyage ; 8 Mo maximum pour chaque fichier d'origine.
+- Réencodage côté navigateur via canvas en **WebP** (1800 px de grand côté maximum, qualité 0,82). **Seul le nouveau Blob WebP est téléversé** ; le fichier original et ses métadonnées EXIF/GPS ne sont pas envoyés par ce parcours.
+- Galerie depuis le bucket privé `media` (liens temporaires), téléchargement du WebP réencodé, suppression exclusivement via la fonction authentifiée `travel-delete` (pas de DELETE direct des lignes).
+- Si des photos échouent après la sauvegarde du voyage, le voyage reste enregistré : l'interface explique le succès partiel et permet de reprendre uniquement les photos manquantes.
+- **Test réel obligatoire après fusion sur la prévisualisation PR #3** : JPEG portrait pris sur téléphone (sens), fichier HEIC/HEIF et vidéo (refus), 11e photo et photo >8 Mo (refus), photo géolocalisée importée puis **retéléchargée** et inspectée pour confirmer l'absence d'EXIF/GPS. Les tests Node vérifient le contrat et la conversion simulée, pas le moteur caméra de chaque appareil.

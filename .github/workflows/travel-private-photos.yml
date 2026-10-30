@@ -1,0 +1,28 @@
+name: BEAM Travel private photos — PR review
+
+on:
+  pull_request:
+    branches: [feature/beam-travel-history-v1]
+    paths:
+      - "travel/index.html"
+      - "travel/photo-utils.js"
+      - "tests/travel-private-photos.cjs"
+      - ".github/workflows/travel-private-photos.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  photo-contract:
+    name: WebP, file limits, HEIC/video rejection and gallery guards
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Validate app JavaScript syntax and photo constraints
+        run: node tests/travel-private-photos.cjs
