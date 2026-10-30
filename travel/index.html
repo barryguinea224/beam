@@ -143,13 +143,15 @@ $("#photos").onchange=async()=>{
  finally{photoSelecting=false;updatePhotoUsage()}
 };
 $("#photoGallery").onclick=async e=>{
- const b=e.target.closest("button[data-id]");
- if(!b||mediaBusy||savingTrip||accountState!=="active"||!editingTripId)return;
+ const b=e.target.closest("button[data-id],button[data-pending-id]");
+ if(!b||mediaBusy||photoSelecting||savingTrip||accountState!=="active")return;
+ if(b.dataset.pendingId){removePendingPhoto(b.dataset.pendingId);return}
+ if(!editingTripId)return;
  const row=existingMedia.find(x=>x.id===b.dataset.id);
  if(!row)return;
  const removing=b.classList.contains("removePhoto");
  if(removing&&!window.confirm("Supprimer définitivement cette photo du voyage ?"))return;
- mediaBusy=true;$("#photos").disabled=true;
+ mediaBusy=true;updatePhotoUsage();
  $("#photoMessage").classList.add("hidden");
  try{
    if(removing){
