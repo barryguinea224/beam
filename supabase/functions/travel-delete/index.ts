@@ -136,15 +136,27 @@ Deno.serve(async (req: Request) => {
     if (body.action === "delete_account") {
       if (body.confirmation !== "SUPPRIMER") return json(req, { error: "CONFIRMATION_REQUIRED" }, 400);
 
-      // Barrier first. From this point the old JWT cannot write/read/delete Storage through RLS.
+      const { data: profile, error: profileError } = await admin.from("profiles")
+        .select("id,deleting,deletion_requested_at").eq("id", user.id).maybeSingle();
+      if (profileError) throw profileError;
+      if (!profile) return json(req, { error: "PROFILE_NOT_FOUND" }, 409);
+
+      // Fresh authentication is required only to START deletion. A retry of an already
+      // locked deletion must remain possible hours later without unlocking the account.
+      if (!profile.deleting) {
+        const signedInAt = user.last_sign_in_at ? Date.parse(user.last_sign_in_at) : NaN;
+        if (!Number.isFinite(signedInAt) || Date.now() - signedInAt > 10 * 60 * 1000) {
+          return json(req, { error: "RECENT_AUTH_REQUIRED" }, 403);
+        }
+      }
+
+      // Barrier first. Preserve the timestamp of the FIRST request for retry scheduling.
+      const firstRequestedAt = profile.deletion_requested_at || new Date().toISOString();
       const { data: marked, error: markError } = await admin.from("profiles")
-        .update({ deleting: true })
-        .eq("id", user.id).select("id,deleting").maybeSingle();
+        .update({ deleting: true, deletion_requested_at: firstRequestedAt })
+        .eq("id", user.id).select("id,deleting,deletion_requested_at").maybeSingle();
       if (markError) throw markError;
       if (!marked) return json(req, { error: "PROFILE_NOT_FOUND" }, 409);
-      // Preserve the timestamp of the first request; retries must not reset the retry clock.
-      const { error: stampError } = await admin.rpc("stamp_account_deletion_once", { uid: user.id });
-      if (stampError) throw stampError;
 
       const prefix = user.id;
       await removeAndVerify(admin, prefix);
