@@ -111,7 +111,8 @@ A deletion that remains locked for more than one hour is eligible for automatic 
 - Claiming increments `deletion_attempts` and records `deletion_last_attempt_at`.
 - A failed item clears its lease and stores a normalized error code in `deletion_last_error`.
 - Every worker outcome is appended to `private.deletion_retry_log`.
-- `private.stuck_deletions` exposes the operational signal for rows still deleting after 24 hours.
+- Automatic retries stop after 12 claimed attempts; the row then remains locked for operator review instead of retrying forever.
+- `private.stuck_deletions` exposes the operational signal for rows still deleting after 24 hours **or** rows that reached the 12-attempt ceiling.
 - Account deletions take priority. A trip is not independently claimed while its owning account is deleting.
 - The worker processes a maximum of 20 subjects per invocation.
 
