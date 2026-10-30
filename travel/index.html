@@ -507,7 +507,7 @@ function requestTravelerName(){
 $("#travelerNameForm").onsubmit=async event=>{
  event.preventDefault();
  if(accountState!=="active"||!user||savingTravelerName)return;
- const value=$("#travelerName").value.trim().replace(/\\s+/g," ");
+ const value=$("#travelerName").value.trim().replace(/\s+/g," ");
  if(!value||value.length>80){
    travelerNameNotice("Saisissez un nom de 80 caractères maximum.");return;
  }
