@@ -6,6 +6,8 @@ on:
     paths:
       - "travel/index.html"
       - "travel/photo-utils.js"
+      - "travel/photo-upload.js"
+      - "tests/travel-media-row-first.cjs"
       - "tests/travel-private-photos.cjs"
       - ".github/workflows/travel-private-photos.yml"
 
@@ -25,4 +27,6 @@ jobs:
         with:
           node-version: "22"
       - name: Validate app JavaScript syntax and photo constraints
-        run: node tests/travel-private-photos.cjs
+        run: |
+          node tests/travel-private-photos.cjs
+          node tests/travel-media-row-first.cjs
