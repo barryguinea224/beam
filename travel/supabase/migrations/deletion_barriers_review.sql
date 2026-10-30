@@ -35,4 +35,7 @@ create policy "storage ajouter" on storage.objects for insert to authenticated w
 revoke delete on public.trips, public.media from authenticated;
 revoke update on public.trips from authenticated;
 grant update(country_code,cities,entry_date,exit_date,purpose,note,is_favorite,is_domestic) on public.trips to authenticated;
-\ncreate or replace view public.travel_history_pdf with(security_invoker=true) as\nselect user_id,country_code,cities,entry_date,exit_date,duration_days,purpose\nfrom public.trips where not is_domestic and not deleting;\n
+
+create or replace view public.travel_history_pdf with(security_invoker=true) as
+select user_id,country_code,cities,entry_date,exit_date,duration_days,purpose
+from public.trips where not is_domestic and not deleting;
