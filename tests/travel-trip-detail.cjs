@@ -11,7 +11,7 @@ assert.ok(inline,'Travel app inline script exists');
 new vm.Script(inline,{filename:'travel/index.html'});
 new vm.Script(fs.readFileSync('travel/trip-detail.js','utf8'),{filename:'travel/trip-detail.js'});
 assert.ok(html.includes('<script src="./trip-detail.js"></script>'),'Trip details helper must load before app');
-assert.ok(fs.readFileSync('travel/visual-cards.js','utf8').includes('class="tripOpen journeyCard"'),
+assert.ok(fs.readFileSync('travel/visual-cards.js','utf8').includes('class="tripOpen"'),
  'Visual travel card helper must keep clickable tripOpen controls');
 assert.ok(html.includes('openTripDetail(b.dataset.id)'),'Tap must open a trip, not its editing form');
 assert.ok(inline.includes('S.from("media").select("id,storage_path").eq("user_id",user.id).eq("trip_id",id)'),
