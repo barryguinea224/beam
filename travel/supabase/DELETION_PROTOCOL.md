@@ -97,3 +97,45 @@ One step only receives `STAGING_SERVICE_ROLE_KEY`, stored only in that environme
 
 Stale disposable accounts older than 1 h are swept at start; cleanup runs in `finally`
 and fails the job if it cannot complete.
+
+
+## Automatic retry worker
+
+Status: **CODED, NOT DEPLOYED, NOT TESTED ON STAGING**.
+
+A deletion that remains locked for more than one hour is eligible for automatic retry. The cron dispatcher never performs deletion itself. It only sends an asynchronous request to the protected `travel-deletion-retry` Edge Function. The worker claims at most 20 rows for 10 minutes, then calls the same shared deletion engine used by `travel-delete`.
+
+### Concurrency and observability
+
+- `claim_stale_deletions()` uses `FOR UPDATE SKIP LOCKED` and `deletion_claimed_until`; overlapping cron passes cannot claim the same row.
+- Claiming increments `deletion_attempts` and records `deletion_last_attempt_at`.
+- A failed item clears its lease and stores a normalized error code in `deletion_last_error`.
+- Every worker outcome is appended to `private.deletion_retry_log`.
+- `private.stuck_deletions` exposes the operational signal for rows still deleting after 24 hours.
+- Account deletions take priority. A trip is not independently claimed while its owning account is deleting.
+- The worker processes a maximum of 20 subjects per invocation.
+
+### Secret boundary
+
+The retry endpoint has `verify_jwt = false` because `pg_net` is not a user session. It therefore requires the independent header secret `x-travel-retry-secret`.
+
+For staging deployment, generate one high-entropy value and store the same value in two server-only locations:
+
+1. Edge Function secret `TRAVEL_RETRY_SECRET`.
+2. Supabase Vault secret named `travel_retry_secret`.
+
+Vault also receives `travel_retry_project_url`. Neither secret value belongs in Git, browser code, GitHub Actions, logs, or SQL migration text.
+
+### Staging activation order
+
+1. Review and merge this PR.
+2. Apply `travel/supabase/migrations/deletion_retry_worker.sql` to staging.
+3. Deploy both `travel-delete` (shared-engine refactor) and `travel-deletion-retry`.
+4. Configure the Edge Function secret and Vault entries.
+5. Test an unauthorized worker call: it must return 401.
+6. Extend/run the destructive victim bench with a stale locked account and stale locked trip; prove the worker resumes them and persists attempt/result state.
+7. Query `private.stuck_deletions` and verify the >24 h signal.
+8. Only after those tests pass, install the five-minute cron schedule shown in the migration.
+9. Keep the user-facing deletion UI disabled until the scheduled retry path itself is proven.
+
+The fact that `pg_net` accepted a request is never treated as deletion success. Only the worker's persisted result and the final database/Storage/Auth state are evidence.
