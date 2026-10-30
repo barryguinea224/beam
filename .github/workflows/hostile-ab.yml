@@ -101,9 +101,11 @@ jobs:
         with:
           deno-version: v2.x
 
-      - name: Preflight hostile bench
+      - name: Preflight hostile bench and deletion functions
         run: |
           deno check travel/supabase/tests/hostile_ab.ts
+          deno check supabase/functions/travel-delete/index.ts
+          deno check supabase/functions/travel-deletion-retry/index.ts
 
       - name: Validate required secrets
         shell: bash
