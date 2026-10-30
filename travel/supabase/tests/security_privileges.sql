@@ -26,4 +26,5 @@ $$;
 select
   has_column_privilege('authenticated','public.profiles','display_name','UPDATE') as can_update_display_name,
   has_column_privilege('authenticated','public.profiles','nationality','UPDATE') as can_update_nationality,
-  has_column_privilege('authenticated','public.profiles','home_city','UPDATE') as can_update_home_city;
+  has_column_privilege('authenticated','public.profiles','home_city','UPDATE') as can_update_home_city,
+  has_column_privilege('authenticated','public.profiles','country_of_residence','UPDATE') as can_update_country_of_residence;
