@@ -241,7 +241,6 @@ try {
       const preview=new TextDecoder().decode(sdkBytes.slice(0,160));
       const exactOriginal=sdkBytes.length===tinyWebp.length && sdkBytes.every((v,i)=>v===tinyWebp[i]);
       console.log("SDK download after remove:", {
-        error: afterRemoveErr?.message ?? null,
         size: afterRemove.size,
         type: afterRemove.type,
         firstBytes: Array.from(sdkBytes.slice(0,16)),
