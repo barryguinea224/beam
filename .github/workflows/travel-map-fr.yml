@@ -1,0 +1,32 @@
+name: BEAM Travel map — FR metropolitan geometry
+
+on:
+  pull_request:
+    branches: [feature/beam-travel-history-v1]
+    paths:
+      - "travel/assets/world-map.svg"
+      - "tests/travel-map-fr.cjs"
+      - ".github/workflows/travel-map-fr.yml"
+  push:
+    branches: [feature/beam-travel-history-v1]
+    paths:
+      - "travel/assets/world-map.svg"
+      - "tests/travel-map-fr.cjs"
+      - ".github/workflows/travel-map-fr.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  map-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Check metropolitan France geometry
+        run: node tests/travel-map-fr.cjs
