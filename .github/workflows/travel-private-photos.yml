@@ -7,6 +7,7 @@ on:
       - "travel/index.html"
       - "travel/photo-utils.js"
       - "tests/travel-private-photos.cjs"
+      - "tests/travel-photo-queue.cjs"
       - ".github/workflows/travel-private-photos.yml"
 
 permissions:
@@ -25,4 +26,6 @@ jobs:
         with:
           node-version: "22"
       - name: Validate app JavaScript syntax and photo constraints
-        run: node tests/travel-private-photos.cjs
+        run: |
+          node tests/travel-private-photos.cjs
+          node tests/travel-photo-queue.cjs
