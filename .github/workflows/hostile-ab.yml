@@ -105,6 +105,7 @@ jobs:
       - name: Preflight hostile bench and deletion functions
         run: |
           deno check travel/supabase/tests/hostile_ab.ts
+          # Type-check the destructive bench here, before its separate approval gate.
           deno check travel/supabase/tests/victim_bench.ts
           deno check supabase/functions/travel-delete/index.ts
           deno check supabase/functions/travel-deletion-retry/index.ts
