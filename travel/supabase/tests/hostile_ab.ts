@@ -209,22 +209,40 @@ try {
   console.log("STORAGE HOSTILE TESTS PASSED");
 } finally {
   if(storageUploaded){
-    const {error:removeErr}=await bucketA.remove([storagePath]);
+    const {data:removedA,error:removeErr}=await bucketA.remove([storagePath]);
     if(removeErr) throw new Error("STORAGE CLEANUP FAILED: "+removeErr.message);
-    else {
-      const {data:afterRemove,error:afterRemoveErr}=await bucketA.download(storagePath);
-      if(!afterRemoveErr && afterRemove) throw new Error("SECURITY REGRESSION: Storage object still downloadable after removal");
-      console.log("CLEANUP PASS: A Storage test object removed and no longer downloadable");
-      if(signedBeforeDelete){
-        const signedAfter=await fetch(signedBeforeDelete,{redirect:"manual"});
-        if(signedAfter.ok) throw new Error("SECURITY REGRESSION: pre-deletion signed URL still serves deleted object");
-        console.log("PASS pre-deletion signed URL no longer serves deleted object");
-      }
+    console.log("A remove() returned objects:", removedA?.length ?? 0);
+    if((removedA?.length ?? 0)!==1) throw new Error("STORAGE CLEANUP FAILED: remove() did not confirm exactly one deleted object");
+
+    const fileName=storagePath.split("/").at(-1)!;
+    const folder=`${sa.user.id}/${ta.id}`;
+    const {data:listAfter,error:listAfterErr}=await bucketA.list(folder,{limit:100});
+    if(listAfterErr) throw new Error("STORAGE CLEANUP VERIFY LIST FAILED: "+listAfterErr.message);
+    if((listAfter??[]).some(x=>x.name===fileName))
+      throw new Error("SECURITY REGRESSION: deleted Storage object still appears in A folder listing");
+    console.log("CLEANUP PASS: removed object absent from A folder listing");
+
+    const {data:signedMissing,error:signedMissingErr}=await bucketA.createSignedUrl(storagePath,60);
+    if(!signedMissingErr && signedMissing?.signedUrl)
+      throw new Error("SECURITY REGRESSION: signed URL can still be created for deleted object");
+    console.log("CLEANUP PASS: cannot create new signed URL for deleted object");
+
+    if(signedBeforeDelete){
+      const signedAfter=await fetch(signedBeforeDelete,{redirect:"manual"});
+      console.log("Pre-deletion signed URL after remove status:",signedAfter.status);
+      if(signedAfter.ok) throw new Error("SECURITY REGRESSION: pre-deletion signed URL still serves deleted object");
+      console.log("PASS pre-deletion signed URL no longer serves deleted object");
     }
+
+    await new Promise(r=>setTimeout(r,1500));
+    const {data:afterRemove,error:afterRemoveErr}=await bucketA.download(storagePath);
+    if(!afterRemoveErr && afterRemove) throw new Error("SECURITY REGRESSION: Storage object still downloadable after confirmed removal");
+    console.log("CLEANUP PASS: deleted object no longer downloadable");
   }
   if(storageUploadedB){
-    const {error:removeBErr}=await bucketB.remove([storagePathB]);
+    const {data:removedB,error:removeBErr}=await bucketB.remove([storagePathB]);
     if(removeBErr) throw new Error("STORAGE B CLEANUP FAILED: "+removeBErr.message);
+    if((removedB?.length ?? 0)!==1) throw new Error("STORAGE B CLEANUP FAILED: remove() did not confirm exactly one deleted object");
     const {data:bAfter,error:bAfterErr}=await bucketB.download(storagePathB);
     if(!bAfterErr&&bAfter) throw new Error("SECURITY REGRESSION: B Storage cleanup object still exists");
     console.log("CLEANUP PASS: B Storage control object removed");
