@@ -141,7 +141,7 @@ try {
   const {error:uploadErr}=await bucketA.upload(storagePath,blob(tinyWebp,"image/webp"),{contentType:"image/webp",upsert:false});
   if(uploadErr) throw new Error("LEGITIMATE STORAGE UPLOAD FAILED: "+uploadErr.message);
   storageUploaded=true;
-  if(!storagePath.startsWith(\`\${sa.user.id}/\${ta.id}/\`) || !/\\/[0-9a-f-]{36}\\.webp$/i.test(storagePath))
+  if(!storagePath.startsWith(`${sa.user.id}/${ta.id}/`) || !/\/[0-9a-f-]{36}\.webp$/i.test(storagePath))
     throw new Error("SECURITY REGRESSION: storage path is not <user>/<trip>/<uuid>.webp");
   console.log("PASS A legitimate WebP upload; random technical path");
 
