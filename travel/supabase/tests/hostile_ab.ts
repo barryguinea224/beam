@@ -221,15 +221,16 @@ try {
 
   // Negative bucket-configuration probes must have VALID media reservations.
   // Otherwise the row-first RLS check would reject them first and hide size/MIME regressions.
+  const ownedTripId=String(ta.id);
   const rejectReservedUpload=async (
     label: string, bytes: Uint8Array, mime: string, rejection: "size" | "mime"
   )=>{
     const photoId=crypto.randomUUID();
-    const path=`${sa.user.id}/${ta.id}/${photoId}.webp`;
+    const path=`${sa.user.id}/${ownedTripId}/${photoId}.webp`;
     // Use a valid media.bytes value. An 11 MiB value would fail the DB check
     // before we could exercise the actual Storage bucket size limit.
     const {error:reserveErr}=await A.from("media").insert({
-      id:photoId,trip_id:ta.id,user_id:sa.user.id,storage_path:path,
+      id:photoId,trip_id:ownedTripId,user_id:sa.user.id,storage_path:path,
       kind:"photo",bytes:tinyWebp.length
     });
     if(reserveErr)throw new Error(label+" RESERVATION FAILED: "+reserveErr.message);
@@ -238,7 +239,8 @@ try {
         contentType:mime,cacheControl:"60",upsert:false
       });
       expectDenied(label,error);
-      const explanation=[error?.code,error?.error,error?.message,error?.status,error?.statusCode]
+      const fault=error as unknown as Record<string,unknown> | null;
+      const explanation=[fault?.code,fault?.error,fault?.message,fault?.status,fault?.statusCode]
         .filter(value=>value!==undefined&&value!==null).join(" ");
       if(/row.level.security|permission denied|policy violation|insufficient privilege/i.test(explanation)){
         throw new Error("INVALID TEST: "+label+" was denied by RLS, not the bucket restriction");
