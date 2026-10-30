@@ -1,0 +1,31 @@
+name: BEAM Travel PWA — privacy guards
+
+on:
+  pull_request:
+    branches: [feature/beam-travel-history-v1]
+    paths:
+      - "travel/index.html"
+      - "travel/sw.js"
+      - "travel/pwa.js"
+      - "travel/manifest.webmanifest"
+      - "travel/icons/**"
+      - "tests/travel-pwa-privacy.cjs"
+      - ".github/workflows/travel-pwa.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  pwa:
+    name: Public shell only / never cache private Supabase data
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Verify manifest, icon PNGs, cache exclusions and session purge
+        run: node tests/travel-pwa-privacy.cjs
