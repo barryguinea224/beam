@@ -28,8 +28,17 @@ drop policy if exists "storage ajouter" on storage.objects;
 create policy "storage ajouter" on storage.objects for insert to authenticated with check(
  bucket_id='media'
  and (storage.foldername(name))[1]=auth.uid()::text
- and (storage.foldername(name))[2] ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
- and public.trip_accepts_writes(auth.uid(), ((storage.foldername(name))[2])::uuid)
+ and public.trip_accepts_writes(auth.uid(), case when (storage.foldername(name))[2] ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}
+);
+
+revoke delete on public.trips, public.media from authenticated;
+revoke update on public.trips from authenticated;
+grant update(country_code,cities,entry_date,exit_date,purpose,note,is_favorite,is_domestic) on public.trips to authenticated;
+
+create or replace view public.travel_history_pdf with(security_invoker=true) as
+select user_id,country_code,cities,entry_date,exit_date,duration_days,purpose
+from public.trips where not is_domestic and not deleting;
+ then ((storage.foldername(name))[2])::uuid else null end)
 );
 
 revoke delete on public.trips, public.media from authenticated;
