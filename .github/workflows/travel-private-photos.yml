@@ -7,6 +7,8 @@ on:
       - "travel/index.html"
       - "travel/photo-utils.js"
       - "tests/travel-private-photos.cjs"
+      - "tests/travel-photo-queue.cjs"
+      - "tests/travel-photo-mobile-layout.cjs"
       - ".github/workflows/travel-private-photos.yml"
 
 permissions:
@@ -25,4 +27,24 @@ jobs:
         with:
           node-version: "22"
       - name: Validate app JavaScript syntax and photo constraints
-        run: node tests/travel-private-photos.cjs
+        run: |
+          node tests/travel-private-photos.cjs
+          node tests/travel-photo-queue.cjs
+
+  mobile-photo-layout:
+    name: Photo picker and gallery fit 320–390px
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install Chromium for layout regression
+        run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Check photo modal at 320, 360 and 390 px
+        run: node tests/travel-photo-mobile-layout.cjs
