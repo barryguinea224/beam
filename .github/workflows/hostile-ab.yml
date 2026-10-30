@@ -16,6 +16,38 @@ permissions:
   contents: read
 
 jobs:
+  schema-parse:
+    name: Canonical schema parses on clean Postgres
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Bootstrap Supabase-compatible parser fixtures
+        env: { PGPASSWORD: postgres }
+        run: |
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 <<'SQL'
+          create role anon; create role authenticated;
+          create schema auth; create schema storage;
+          create table auth.users(id uuid primary key, raw_user_meta_data jsonb default '{}'::jsonb);
+          create function auth.uid() returns uuid language sql stable as $ select null::uuid $;
+          create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);
+          create table storage.objects(id uuid,name text,bucket_id text,owner_id text);
+          create function storage.foldername(text) returns text[] language sql immutable as $ select string_to_array($1,'/') $;
+          SQL
+      - name: Execute canonical schema from scratch
+        env: { PGPASSWORD: postgres }
+        run: psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f travel/supabase/schema.sql
+
   hostile-ab:
     name: Real JWT / RLS hostile bench
     runs-on: ubuntu-latest
