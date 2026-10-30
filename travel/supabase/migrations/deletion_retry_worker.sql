@@ -74,8 +74,6 @@ begin
     update public.profiles p set
       deletion_claimed_until=now()+make_interval(mins=>lease_minutes),
       deletion_claim_token=gen_random_uuid(),
-      deletion_attempts=p.deletion_attempts+1,
-      deletion_last_attempt_at=now(),
       deletion_last_error=null
     from candidates c where p.id=c.id
     returning p.id,p.deletion_claim_token
@@ -97,8 +95,6 @@ begin
     update public.trips t set
       deletion_claimed_until=now()+make_interval(mins=>lease_minutes),
       deletion_claim_token=gen_random_uuid(),
-      deletion_attempts=t.deletion_attempts+1,
-      deletion_last_attempt_at=now(),
       deletion_last_error=null
     from candidates c where t.id=c.id
     returning t.id,t.user_id,t.deletion_claim_token
@@ -107,6 +103,28 @@ begin
 end $$;
 revoke execute on function public.claim_stale_deletions(integer,integer) from public,anon,authenticated;
 grant execute on function public.claim_stale_deletions(integer,integer) to service_role;
+
+-- A reserved item becomes an attempt only when processing actually starts.
+create or replace function public.start_deletion_retry(
+  p_subject_kind text,p_subject_id uuid,p_user_id uuid,p_claim_token uuid
+) returns boolean language plpgsql security definer set search_path='' as $$
+declare changed integer;
+begin
+  if p_subject_kind='account' then
+    update public.profiles set deletion_attempts=deletion_attempts+1,deletion_last_attempt_at=now()
+    where id=p_subject_id and id=p_user_id and deleting and deletion_claim_token=p_claim_token
+      and deletion_claimed_until>=now();
+  elsif p_subject_kind='trip' then
+    update public.trips set deletion_attempts=deletion_attempts+1,deletion_last_attempt_at=now()
+    where id=p_subject_id and user_id=p_user_id and deleting and deletion_claim_token=p_claim_token
+      and deletion_claimed_until>=now();
+  else raise exception 'INVALID_SUBJECT_KIND';
+  end if;
+  get diagnostics changed=row_count;
+  return changed=1;
+end $$;
+revoke execute on function public.start_deletion_retry(text,uuid,uuid,uuid) from public,anon,authenticated;
+grant execute on function public.start_deletion_retry(text,uuid,uuid,uuid) to service_role;
 
 -- Release work that was leased but never started. Token matching prevents an old worker
 -- from releasing a lease subsequently acquired by another invocation.
@@ -117,13 +135,11 @@ declare changed integer;
 begin
   if p_subject_kind='account' then
     update public.profiles set
-      deletion_claimed_until=null,deletion_claim_token=null,
-      deletion_attempts=greatest(deletion_attempts-1,0),deletion_last_attempt_at=null
+      deletion_claimed_until=null,deletion_claim_token=null
     where id=p_subject_id and id=p_user_id and deleting and deletion_claim_token=p_claim_token;
   elsif p_subject_kind='trip' then
     update public.trips set
-      deletion_claimed_until=null,deletion_claim_token=null,
-      deletion_attempts=greatest(deletion_attempts-1,0),deletion_last_attempt_at=null
+      deletion_claimed_until=null,deletion_claim_token=null
     where id=p_subject_id and user_id=p_user_id and deleting and deletion_claim_token=p_claim_token;
   else raise exception 'INVALID_SUBJECT_KIND';
   end if;
