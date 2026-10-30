@@ -47,22 +47,37 @@ if(updateErr) console.log("PASS B update rejected");
 else if(changedByB.length) throw new Error("SECURITY REGRESSION: B modified A trip");
 else console.log("PASS B update affected zero rows");
 
-const {data:afterUpdate,error:afterUpdateErr}=await A.from("trips").select("id,cities,entry_date,exit_date,note").eq("id",ta.id).single();
+const {data:afterUpdate,error:afterUpdateErr}=await A.from("trips").select("id,cities,entry_date,exit_date,purpose,note,updated_at").eq("id",ta.id).single();
 if(afterUpdateErr) throw afterUpdateErr;
-if(afterUpdate.cities!==original.cities || afterUpdate.entry_date!==original.entry_date || afterUpdate.exit_date!==original.exit_date || afterUpdate.note!==original.note)
-  throw new Error("SECURITY REGRESSION: A trip changed after B update attempt");
-console.log("PASS A trip intact after B update attempt");
+const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+const diffs=[];
+for (const field of ["cities","entry_date","exit_date","purpose","note"]) {
+  if (!same(afterUpdate[field],original[field])) diffs.push({field,before:original[field],after:afterUpdate[field]});
+}
+if (afterUpdate.updated_at!==ta.updated_at) diffs.push({field:"updated_at",before:ta.updated_at,after:afterUpdate.updated_at});
+if (diffs.length) {
+  console.error("A trip differences after B update attempt:",JSON.stringify(diffs));
+  throw new Error("SECURITY REGRESSION: A trip changed after B update attempt: "+diffs.map(x=>x.field).join(", "));
+}
+console.log("PASS A trip intact after B update attempt; updated_at unchanged");
 
 const {data:deletedByB,error:deleteErr}=await B.from("trips").delete().eq("id",ta.id).select();
 if(deleteErr) console.log("PASS B delete rejected");
 else if(deletedByB.length) throw new Error("SECURITY REGRESSION: B deleted A trip");
 else console.log("PASS B delete affected zero rows");
 
-const {data:afterDelete,error:afterDeleteErr}=await A.from("trips").select("id,cities,entry_date,exit_date,note").eq("id",ta.id).single();
+const {data:afterDelete,error:afterDeleteErr}=await A.from("trips").select("id,cities,entry_date,exit_date,purpose,note,updated_at").eq("id",ta.id).single();
 if(afterDeleteErr) throw afterDeleteErr;
-if(afterDelete.cities!==original.cities || afterDelete.entry_date!==original.entry_date || afterDelete.exit_date!==original.exit_date || afterDelete.note!==original.note)
-  throw new Error("SECURITY REGRESSION: A trip missing or changed after B delete attempt");
-console.log("PASS A trip intact after B delete attempt");
+const deleteDiffs=[];
+for (const field of ["cities","entry_date","exit_date","purpose","note"]) {
+  if (!same(afterDelete[field],original[field])) deleteDiffs.push({field,before:original[field],after:afterDelete[field]});
+}
+if (afterDelete.updated_at!==ta.updated_at) deleteDiffs.push({field:"updated_at",before:ta.updated_at,after:afterDelete.updated_at});
+if (deleteDiffs.length) {
+  console.error("A trip differences after B delete attempt:",JSON.stringify(deleteDiffs));
+  throw new Error("SECURITY REGRESSION: A trip changed after B delete attempt: "+deleteDiffs.map(x=>x.field).join(", "));
+}
+console.log("PASS A trip intact after B delete attempt; updated_at unchanged");
 
 const {error:foreignInsert}=await B.from("trips").insert({...original,user_id:sa.user.id});
 expectDenied("B inserts trip with user_id=A",foreignInsert);
