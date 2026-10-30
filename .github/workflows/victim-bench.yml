@@ -16,7 +16,10 @@ name: Victim bench — Staging (destructive, disposable accounts)
 on:
   workflow_dispatch:
   pull_request:
-    branches: [main]
+    # main: runs on PR #3 (feature -> main) once this bench is merged into the feature branch.
+    # feature branch: lets this bench run from its own PR before merge. Either way the
+    # staging-destructive approval gate holds the run until the exact SHA is approved.
+    branches: [main, feature/beam-travel-history-v1]
     paths:
       - "travel/supabase/**"
       - "supabase/functions/travel-delete/**"
