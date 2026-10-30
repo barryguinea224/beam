@@ -98,7 +98,7 @@ if(eb) throw eb;
 tb=createdB;
 
 const {error:foreignMediaInsert}=await B.from("media").insert({
-  trip_id:ta.id,user_id:sb.user.id,storage_path:`${sb.user.id}/hostile/foreign-insert.webp`,kind:"photo"
+  trip_id:ta.id,user_id:sb.user.id,storage_path:`${sb.user.id}/${ta.id}/${crypto.randomUUID()}.webp`,kind:"photo"
 });
 expectDenied("B inserts own media attached to A trip",foreignMediaInsert);
 
@@ -108,7 +108,7 @@ const {error:foreignActivityInsert}=await B.from("activities").insert({
 expectDenied("B inserts own activity attached to A trip",foreignActivityInsert);
 
 const {data:bMedia,error:bMediaErr}=await B.from("media").insert({
-  trip_id:tb.id,user_id:sb.user.id,storage_path:`${sb.user.id}/hostile/own.webp`,kind:"photo"
+  trip_id:tb.id,user_id:sb.user.id,storage_path:`${sb.user.id}/${tb.id}/${crypto.randomUUID()}.webp`,kind:"photo"
 }).select().single();
 if(bMediaErr) throw bMediaErr;
 const {data:movedMedia,error:movedMediaErr}=await B.from("media").update({trip_id:ta.id}).eq("id",bMedia.id).select();
@@ -321,14 +321,14 @@ try {
 console.log("Next phase: server deletion operations + retained-JWT deletion replay.");
 } finally {
   if (tb?.id) {
-    const {error:cleanupBError}=await B.from("trips").delete().eq("id",tb.id);
-    if (cleanupBError) console.error("CLEANUP B FAILED:",cleanupBError.message);
-    else console.log("CLEANUP PASS: B test trip and children removed");
+    const {data,error}=await B.functions.invoke("travel-delete",{body:{action:"delete_trip",trip_id:tb.id}});
+    if(error || !data?.ok) throw new Error("CLEANUP B FAILED via travel-delete: "+(error?.message||JSON.stringify(data)));
+    console.log("CLEANUP PASS: B test trip removed via server deletion");
   }
   if (ta?.id) {
-    const {error:cleanupError}=await A.from("trips").delete().eq("id",ta.id);
-    if (cleanupError) console.error("CLEANUP FAILED:",cleanupError.message);
-    else console.log("CLEANUP PASS: A test trip removed");
+    const {data,error}=await A.functions.invoke("travel-delete",{body:{action:"delete_trip",trip_id:ta.id}});
+    if(error || !data?.ok) throw new Error("CLEANUP A FAILED via travel-delete: "+(error?.message||JSON.stringify(data)));
+    console.log("CLEANUP PASS: A test trip removed via server deletion");
   }
   await A.auth.signOut();
   await B.auth.signOut();
