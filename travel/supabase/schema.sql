@@ -1,8 +1,6 @@
 -- BEAM Travel History V1 — canonical staging schema
 create extension if not exists btree_gist;
 create extension if not exists pgcrypto;
-create extension if not exists pg_cron;
-create extension if not exists pg_net with schema extensions;
 
 create table public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
