@@ -9,6 +9,7 @@ on:
       - "travel/index.html"
       - "travel/factual-pdf.js"
       - "tests/travel-iso-countries.cjs"
+      - "tests/travel-photo-queue.cjs"
       - "tests/travel-iso-countries-layout.cjs"
       - ".github/workflows/travel-iso-countries.yml"
 
