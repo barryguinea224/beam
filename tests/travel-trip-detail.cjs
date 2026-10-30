@@ -63,7 +63,7 @@ function box(){
   querySelectorAll(){return []}
  };
 }
-const ids=['#tripDetailModal','#detailTitle','#detailIntro','#detailFacts','#detailNote',
+const ids=['#modal','#tripDetailModal','#detailTitle','#detailIntro','#detailFacts','#detailNote',
  '#detailStatus','#detailActivityMessage','#detailActivityForm','#detailPhotos',
  '#detailActivities','#detailSheet','#detailClose','#detailEdit','#activityDate','#activitySave'];
 const els=Object.fromEntries(ids.map(id=>[id,box()]));
