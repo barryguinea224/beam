@@ -236,8 +236,41 @@ try {
 
     await new Promise(r=>setTimeout(r,1500));
     const {data:afterRemove,error:afterRemoveErr}=await bucketA.download(storagePath);
-    if(!afterRemoveErr && afterRemove) throw new Error("SECURITY REGRESSION: Storage object still downloadable after confirmed removal");
-    console.log("CLEANUP PASS: deleted object no longer downloadable");
+    if(afterRemove){
+      const sdkBytes=new Uint8Array(await afterRemove.arrayBuffer());
+      const preview=new TextDecoder().decode(sdkBytes.slice(0,160));
+      const exactOriginal=sdkBytes.length===tinyWebp.length && sdkBytes.every((v,i)=>v===tinyWebp[i]);
+      console.log("SDK download after remove:", {
+        error: afterRemoveErr?.message ?? null,
+        size: afterRemove.size,
+        type: afterRemove.type,
+        firstBytes: Array.from(sdkBytes.slice(0,16)),
+        textPreview: preview,
+        exactOriginal
+      });
+    } else {
+      console.log("SDK download after remove returned no Blob; error:",afterRemoveErr?.message ?? null);
+    }
+
+    const directUrl=`${env.SUPABASE_URL}/storage/v1/object/authenticated/media/${storagePath}?nocache=${crypto.randomUUID()}`;
+    const direct=await fetch(directUrl,{
+      headers:{Authorization:`Bearer ${sa.access_token}`,apikey:env.SUPABASE_PUBLISHABLE_KEY},
+      cache:"no-store"
+    });
+    const directBytes=new Uint8Array(await direct.arrayBuffer());
+    const directExact=directBytes.length===tinyWebp.length && directBytes.every((v,i)=>v===tinyWebp[i]);
+    console.log("DIRECT HTTP after remove:",{
+      status:direct.status,
+      contentType:direct.headers.get("content-type"),
+      cfCacheStatus:direct.headers.get("cf-cache-status"),
+      age:direct.headers.get("age"),
+      size:directBytes.length,
+      exactOriginal:directExact,
+      firstBytes:Array.from(directBytes.slice(0,16))
+    });
+    if(direct.ok && directExact) throw new Error("SECURITY REGRESSION: deleted original object still served by direct authenticated HTTP");
+    if(direct.ok) throw new Error("SECURITY REGRESSION: deleted object endpoint returned successful HTTP");
+    console.log("CLEANUP PASS: direct authenticated HTTP no longer serves deleted object");
   }
   if(storageUploadedB){
     const {data:removedB,error:removeBErr}=await bucketB.remove([storagePathB]);
