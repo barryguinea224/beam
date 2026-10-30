@@ -191,6 +191,74 @@ create table if not exists private.deletion_retry_log (
 create index if not exists deletion_retry_log_attempted_at on private.deletion_retry_log(attempted_at desc);
 revoke all on private.deletion_retry_log from public,anon,authenticated;
 
+-- Durable per-invocation receipt. No deletion subjects or secrets are persisted here.
+-- A run without finished_at is an observable incomplete/terminated background task.
+create table if not exists private.deletion_retry_runs (
+  run_id uuid primary key,
+  started_at timestamptz not null default now(),
+  finished_at timestamptz,
+  status text not null default 'running'
+    check (status in ('running','completed','failed')),
+  claimed integer not null default 0 check (claimed between 0 and 5),
+  started integer not null default 0 check (started >= 0),
+  destructive_succeeded integer not null default 0 check (destructive_succeeded >= 0),
+  destructive_failed integer not null default 0 check (destructive_failed >= 0),
+  error_code text,
+  constraint deletion_retry_run_lifecycle check (
+    (status = 'running' and finished_at is null and error_code is null)
+    or (status = 'completed' and finished_at is not null and error_code is null)
+    or (status = 'failed' and finished_at is not null and error_code is not null)
+  ),
+  constraint deletion_retry_run_counts check (
+    started <= claimed and destructive_succeeded + destructive_failed <= started
+  )
+);
+revoke all on private.deletion_retry_runs from public,anon,authenticated;
+
+create or replace function public.begin_deletion_retry_run(p_run_id uuid) returns void
+language plpgsql security definer set search_path='' as $
+begin
+  insert into private.deletion_retry_runs(run_id) values (p_run_id);
+end $;
+revoke execute on function public.begin_deletion_retry_run(uuid) from public,anon,authenticated;
+grant execute on function public.begin_deletion_retry_run(uuid) to service_role;
+
+create or replace function public.finish_deletion_retry_run(
+  p_run_id uuid, p_claimed integer, p_started integer, p_succeeded integer,
+  p_failed integer, p_error_code text default null
+) returns boolean
+language plpgsql security definer set search_path='' as $
+declare changed integer;
+begin
+  update private.deletion_retry_runs set
+    finished_at=now(),
+    status=case when p_error_code is null then 'completed' else 'failed' end,
+    claimed=p_claimed, started=p_started,
+    destructive_succeeded=p_succeeded, destructive_failed=p_failed,
+    error_code=case when p_error_code is null then null
+      else left(coalesce(nullif(p_error_code,''),'UNKNOWN_ERROR'),80) end
+  where run_id=p_run_id and status='running';
+  get diagnostics changed=row_count;
+  return changed=1;
+end $;
+revoke execute on function public.finish_deletion_retry_run(uuid,integer,integer,integer,integer,text)
+  from public,anon,authenticated;
+grant execute on function public.finish_deletion_retry_run(uuid,integer,integer,integer,integer,text)
+  to service_role;
+
+create or replace function public.get_deletion_retry_run(p_run_id uuid)
+returns table(run_id uuid, status text, started_at timestamptz, finished_at timestamptz,
+  claimed integer, started integer, destructive_succeeded integer,
+  destructive_failed integer, error_code text)
+language sql stable security definer set search_path='' as $
+  select r.run_id,r.status,r.started_at,r.finished_at,r.claimed,r.started,
+    r.destructive_succeeded,r.destructive_failed,r.error_code
+  from private.deletion_retry_runs r where r.run_id=p_run_id
+$;
+revoke execute on function public.get_deletion_retry_run(uuid) from public,anon,authenticated;
+grant execute on function public.get_deletion_retry_run(uuid) to service_role;
+
+
 -- Retry delay after a real failed attempt: 10m,20m,40m,80m,160m,320m, then 6h cap.
 create or replace function private.retry_delay(attempts integer) returns interval
 language sql immutable set search_path='' as $$
