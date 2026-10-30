@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 const PHOTO = require('../travel/photo-utils.js');
+const {uploadOne} = require('../travel/photo-upload.js');
 
 const html = fs.readFileSync('travel/index.html', 'utf8');
 const source = html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
@@ -14,6 +15,8 @@ assert.ok(start >= 0 && end > start, 'Photo logic not found');
 const photoCode = source.slice(start, end);
 assert.ok(photoCode.includes('const selected=pendingPhotos.slice()'),
   'Save must read queued files, not the final input selection');
+assert.ok(photoCode.includes('BEAM_PHOTO_UPLOAD.uploadOne'),
+  'The live queue must use the row-first upload helper');
 
 const jpeg = new Uint8Array([255,216,255,225,0,16,69,120,105,102,0,0]);
 function fake(name) {
@@ -37,12 +40,13 @@ function harness() {
   const ids=['#photos','#photoGallery','#photoUsage','#photoMessage','#saveTrip',
     '#modal','#tripForm','#tripMsg','#tripTitle','#appMsg','#close'];
   const els=Object.fromEntries(ids.map(id=>[id,element(id)]));
-  const records=[],uploads=[],revoked=[];
+  const records=[],uploads=[],revoked=[],calls=[];
   let created=0,uploadCount=0,failAt=0,serial=0,confirmAnswer=true;
   const confirmMessages=[];
   const storage={
     upload:async (path,blob,options)=>{
       uploads.push({path,blob,options});
+      calls.push(['upload',path]);
       uploadCount++;
       return {error:uploadCount===failAt?new Error('network'):null};
     },
@@ -56,13 +60,21 @@ function harness() {
   const result={select(){return {single:async()=>({data:tripData,error:null})}}};
   const db={
     storage:{from:()=>storage},
+    functions:{async invoke(name,{body}){
+      assert.equal(name,'travel-delete');
+      assert.equal(body.action,'delete_photo');
+      calls.push(['cleanup',body.media_id]);
+      const index=records.findIndex(row=>row.id===body.media_id);
+      if(index>=0)records.splice(index,1);
+      return {data:{ok:true},error:null};
+    }},
     from(table){
       if(table==='trips')return {
         insert:()=>result,
         update:()=>({eq:()=>result})
       };
       if(table==='media')return {
-        insert:async row=>{records.push(row);return {error:null}},
+        insert:async row=>{calls.push(['reserve',row.storage_path]);records.push(row);return {error:null}},
         select:()=>({
           eq(){return this},
           order:async()=>({data:records.map(row=>({id:row.id,storage_path:row.storage_path,created_at:'2026-10-30'})),error:null})
@@ -75,7 +87,9 @@ function harness() {
     blob:new Blob(['reencoded pixels'],{type:'image/webp'}),width:800,height:1200
   })};
   const context=vm.createContext({
-    window:{BEAM_PHOTO:{...PHOTO,...convertedPhoto},confirm:message=>{confirmMessages.push(message);return confirmAnswer}},
+    window:{BEAM_PHOTO:{...PHOTO,...convertedPhoto},
+      BEAM_PHOTO_UPLOAD:{uploadOne:params=>uploadOne({...params,idProvider:()=>('photo-'+(++serial))})},
+      confirm:message=>{confirmMessages.push(message);return confirmAnswer}},
     URL:{
       createObjectURL:()=>('blob:preview-'+(++created)),
       revokeObjectURL:url=>revoked.push(url)
@@ -113,7 +127,7 @@ function harness() {
       target:{closest:()=>({dataset:{pendingId:id}})}
     });
   }
-  return {els,records,uploads,revoked,context,select,save,queued,remove,close,setConfirm,confirmMessages,
+  return {els,records,uploads,revoked,calls,context,select,save,queued,remove,close,setConfirm,confirmMessages,
     failAt:n=>{failAt=n},uploadCount:()=>uploadCount};
 }
 async function main() {
@@ -128,6 +142,8 @@ async function main() {
   await first.save();
   assert.equal(first.uploads.length,2,'Two successive selections must upload two photos');
   assert.equal(first.records.length,2,'Both uploads must have database records');
+  assert.deepEqual(first.calls.map(entry=>entry[0]),['reserve','upload','reserve','upload'],
+    'Each photo must be reserved before Storage upload');
   assert.deepEqual(Array.from(first.queued()),[],'Successful files must leave queue');
   assert.equal(first.revoked.length,2,'Object URLs must be released');
   assert.equal(first.els['#modal'].classList.contains('open'),false);
@@ -185,12 +201,14 @@ async function main() {
   await partial.select([fake('done.jpg')]);
   await partial.select([fake('retry.jpg')]);
   await partial.save();
-  assert.equal(partial.records.length,1);
+  assert.equal(partial.records.length,1,'Failed reservation must be cleaned by travel-delete');
+  assert.deepEqual(partial.calls.map(x=>x[0]),['reserve','upload','reserve','upload','cleanup']);
   assert.deepEqual(Array.from(partial.queued()),['retry.jpg']);
   assert.match(partial.els['#tripMsg'].textContent,/1 photo reste en attente/);
   assert.equal(partial.els['#modal'].classList.contains('open'),true);
   await partial.save();
   assert.equal(partial.records.length,2);
+  assert.deepEqual(partial.calls.slice(-2).map(x=>x[0]),['reserve','upload']);
   assert.equal(partial.uploads.length,3,'One failed upload was retried, not the successful photo');
   assert.deepEqual(Array.from(partial.queued()),[]);
   console.log('BEAM photo queue PASS: successive pickers, thumbnails, remove, cap, partial failure and retry');

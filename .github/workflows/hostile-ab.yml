@@ -87,6 +87,12 @@ jobs:
         run: psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f travel/supabase/tests/media_server_guards.sql
       - name: Prove two concurrent uploads cannot exceed ten
         run: bash travel/supabase/tests/media_concurrency.sh
+      - name: Apply draft reservation migration to disposable PostgreSQL only
+        env: { PGPASSWORD: postgres }
+        run: psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f travel/supabase/migrations/20261030145000_media_storage_requires_row.sql
+      - name: Hostile Storage RLS — reject unreserved and cross-owner uploads
+        env: { PGPASSWORD: postgres }
+        run: psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f travel/supabase/tests/media_storage_reserved_upload.sql
 
   hostile-ab:
     name: Real JWT / RLS hostile bench

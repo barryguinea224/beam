@@ -185,6 +185,9 @@ revoke delete on public.trips, public.media from authenticated;
 -- deleting is server-only. Keep ordinary trip editing available.
 revoke update on public.trips from authenticated;
 grant update(country_code,cities,entry_date,exit_date,purpose,note,is_favorite,is_domestic) on public.trips to authenticated;
+-- Photo reservation identity, path and file properties are immutable for browser clients.
+revoke update on public.media from authenticated;
+grant update(caption,taken_on,is_favorite,position) on public.media to authenticated;
 
 create view public.travel_history_pdf with(security_invoker=true) as
 select user_id,country_code,cities,entry_date,exit_date,duration_days,purpose
@@ -201,7 +204,11 @@ create policy "storage ajouter" on storage.objects for insert to authenticated w
    auth.uid(),
    case when (storage.foldername(name))[2] ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
         then ((storage.foldername(name))[2])::uuid else null end
- ));
+) and exists (
+   select 1 from public.media m
+   where m.storage_path=storage.objects.name and m.user_id=auth.uid()
+)
+);
 create policy "storage supprimer" on storage.objects for delete to authenticated using(
  bucket_id='media' and (storage.foldername(name))[1]=auth.uid()::text and public.account_accepts_writes(auth.uid()));
 

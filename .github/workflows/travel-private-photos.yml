@@ -6,6 +6,8 @@ on:
     paths:
       - "travel/index.html"
       - "travel/photo-utils.js"
+      - "travel/photo-upload.js"
+      - "tests/travel-media-row-first.cjs"
       - "tests/travel-private-photos.cjs"
       - "tests/travel-photo-queue.cjs"
       - "tests/travel-photo-mobile-layout.cjs"
@@ -30,6 +32,7 @@ jobs:
         run: |
           node tests/travel-private-photos.cjs
           node tests/travel-photo-queue.cjs
+          node tests/travel-media-row-first.cjs
 
   mobile-photo-layout:
     name: Photo picker and gallery fit 320–390px

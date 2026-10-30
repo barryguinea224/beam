@@ -13,7 +13,14 @@ assert.ok(html.includes('id="photoUsage"'), "Limits/count must be displayed");
 assert.ok(html.includes('id="photos"'), "Photo input missing");
 assert.ok(html.indexOf('id="photoField"') < html.indexOf('name="note"'), "Photos must precede souvenirs");
 assert.ok(html.includes('PHOTO.validateSelection'), "Selection must be validated before trip save");
-assert.ok(html.includes('upload(path,converted.blob'), "Only re-encoded output may be uploaded");
+const uploadSource = fs.readFileSync("travel/photo-upload.js", "utf8");
+new vm.Script(uploadSource, {filename:"travel/photo-upload.js"});
+assert.ok(html.includes('<script src="./photo-upload.js"></script>'), "Row-first helper loaded");
+assert.ok(html.includes('BEAM_PHOTO_UPLOAD.uploadOne'), "App must use row-first helper");
+assert.ok(uploadSource.indexOf('.from("media").insert(') <
+  uploadSource.indexOf('.storage.from("media").upload('), "DB row must precede Storage upload");
+assert.ok(uploadSource.includes('contentType:"image/webp"'), "Only WebP can be uploaded");
+assert.ok(uploadSource.includes('action:"delete_photo"'), "Failed upload cleanup must use server deletion");
 assert.ok(html.includes('S.storage.from("media").download(row.storage_path)'), "Private WebP must be downloadable");
 assert.ok(html.includes('S.functions.invoke("travel-delete",{body:{action:"delete_photo"'), "Photo deletion must be server-side");
 assert.ok(html.includes('createSignedUrl(row.storage_path,300)'), "Private gallery must use short-lived URLs");
