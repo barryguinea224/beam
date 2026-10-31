@@ -15,8 +15,10 @@ PAS à désactiver les inscriptions dans Supabase Cloud.
 - **Allow anonymous sign-ins : OFF**.
 - **Allow manual linking : OFF**.
 - **Fournisseur Email : ON**.
-- Modèle d'e-mail du staging : `{{ .Token }}` **déjà installé le 29 octobre 2026**.
-  Ne pas le modifier pour ce chantier.
+- **Modèle du staging NON configuré pour le code OTP** (capture du propriétaire,
+  31 octobre 2026) : modèle par défaut « Your sign-in link », sans `{{ .Token }}`.
+  **À remplacer après la connexion SMTP Resend**, puis tester l'envoi et la saisie
+  d'un code réel à six chiffres.
 - Adresse inconnue testée depuis l'ancienne prévisualisation : refusée, aucun
   utilisateur créé. L'ancienne UI affichait néanmoins l'erreur brute en anglais
   « Signups not allowed for this instance », donc divulguait un indice de statut.
@@ -64,8 +66,26 @@ PAS à désactiver les inscriptions dans Supabase Cloud.
 - [ ] Vérifier les contrôles de confidentialité, RLS, Storage et suppression
       de compte existants avant l'ouverture.
 
-**Staging uniquement :** le modèle e-mail contient déjà `{{ .Token }}`
-depuis le 29/10/2026 ; **ne pas le reconfigurer**.
+**Staging :** le modèle e-mail est encore « Your sign-in link » et ne contient
+**pas** `{{ .Token }}`. Mettre à jour le modèle *après* la configuration SMTP
+Resend, avant le test réel de connexion par code.
+
+## SMTP transactionnel BEAM — configuration contrôlée
+
+- **Service retenu : Resend**, domaine d'envoi `auth.beamguinee.com`, région
+  `Ireland (eu-west-1)` si disponible. Les enregistrements exacts de
+  vérification SPF/DKIM/MX seront recopiés dans Netlify DNS après affichage
+  dans Resend ; ne pas inventer leurs valeurs.
+- **Pas d'intégration automatique Resend–Supabase ni de délégation OAuth
+  de l'accès au projet Supabase** : saisir manuellement les paramètres SMTP
+  dans Supabase Auth. Créer une clé Resend à permission **Sending access**,
+  restreinte au domaine `auth.beamguinee.com`, distincte entre staging et
+  production si nécessaire ; ne jamais la placer dans Git, une capture ou le navigateur.
+- Champs à configurer après vérification du domaine : adresse expéditrice,
+  nom d'expéditeur, hôte `smtp.resend.com`, port SMTP compatible TLS,
+  utilisateur `resend`, mot de passe = clé Resend d'envoi.
+- **Conserver le verrouillage des inscriptions** : le SMTP sert uniquement
+  à la délivrabilité et ne doit pas réactiver l'inscription publique.
 
 ## Contrat du navigateur
 
