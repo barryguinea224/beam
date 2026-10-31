@@ -58,6 +58,10 @@
 /* Stage 3: account lives outside the travel dashboard. */
 .accountOverlay{display:none;position:fixed;inset:0;z-index:65;background:#12251cb0;overflow-y:auto}
 .accountOverlay.accountOpen{display:block}
+/* Confirmation is above the account drawer and filter sheet, including on Android. */
+#discardConfirm{z-index:90;display:none;align-items:center;justify-content:center;padding:20px}
+#discardConfirm.accountOpen{display:flex}
+#discardConfirm > .panel{width:min(100%,440px);max-height:calc(100dvh - 40px);overflow-y:auto;border-radius:16px}
 #myAccount{margin:0 auto;max-width:720px;min-height:100dvh;border-radius:0}
 #dashboardFooter{padding:16px;max-width:720px;margin:auto;background:white}
 .accountOverlay:not(.accountEditing) #travelerNameForm,
@@ -380,6 +384,12 @@ window.addEventListener("popstate",()=>{
  overlayHistoryArmed=false;
 });
 document.addEventListener("keydown",e=>{
+ if($("#discardConfirm").classList.contains("accountOpen")&&e.key==="Tab"){
+  const first=$("#discardStay"),last=$("#discardLeave");
+  if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}
+  else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}
+  return;
+ }
  if(e.key==="Escape"&&$("#discardConfirm").classList.contains("accountOpen")){e.preventDefault();e.stopImmediatePropagation();dismissDiscard(false);return}
  if(e.key==="Escape"&&$("#accountOverlay").classList.contains("accountOpen")){e.preventDefault();e.stopImmediatePropagation();closeAccountPanel()}
 });
