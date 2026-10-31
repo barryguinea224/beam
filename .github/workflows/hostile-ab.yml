@@ -84,6 +84,12 @@ jobs:
         run: |
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f travel/supabase/migrations/20261031080000_sql_storage_hardening.sql
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f travel/supabase/migrations/20261031080000_sql_storage_hardening.sql
+      - name: Review-only contact migration on disposable Postgres (NEVER staging)
+        env: { PGPASSWORD: postgres }
+        run: |
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f travel/supabase/migrations/20261031120000_optional_profile_contacts.sql
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f travel/supabase/migrations/20261031120000_optional_profile_contacts.sql
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f travel/supabase/tests/profile_contacts_security.sql
       - name: Reject exposed definer RPCs and cross-user helper calls
         env: { PGPASSWORD: postgres }
         run: psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f travel/supabase/tests/sql_storage_hardening.sql
