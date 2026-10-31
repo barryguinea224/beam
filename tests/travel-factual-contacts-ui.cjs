@@ -194,7 +194,8 @@ async function main(){
   // Unchecked PDF must neither reread extra columns nor call getUser().
   const off=await waitPopup(page,()=>page.locator("#pdf").click());
   let text=await off.locator("body").textContent();
-  assert.match(text,/Voyages internationaux déclarés/);
+  assert.match(text,/Historique de voyages/);
+  assert.ok(!text.includes("Voyages internationaux déclarés"),"Removed subtitle must be absent");
   for(const value of ["verified@example.net","+224622095630","Ratoma, Conakry",
    "Coordonnées déclarées","SECRET_PERSONAL_MEMORY"])
    assert.ok(!text.includes(value),"unchecked PDF disclosed "+value);
