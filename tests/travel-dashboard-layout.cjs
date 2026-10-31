@@ -8,8 +8,8 @@ const filterCss=fs.readFileSync("travel/dashboard-filters.css","utf8");
 const filterPanel=html.match(/<section id="filterPanel"([\s\S]*?)<div id="travelPanels"/)?.[0]
  ?.replace(/<div id="travelPanels"$/,"");
 assert.ok(baseCss&&filterPanel&&filterPanel.includes('id="filterScope"'),"real dashboard filter markup missing");
-const footer=html.match(/<footer id="dashboardFooter"[\s\S]*?<\/footer>/)?.[0];
-assert.ok(footer,"real dashboard footer markup missing");
+const session=html.match(/<section id="accountSession"[\s\S]*?<\/section>/)?.[0];
+assert.ok(session&&session.includes('id="logout"'),"real account Session markup missing");
 
 async function main(){
  const browser=await chromium.launch({headless:true,args:["--no-sandbox","--disable-dev-shm-usage"]});
