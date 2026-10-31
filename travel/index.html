@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>BEAM Travel History</title><meta name="robots" content="noindex,nofollow,noarchive"><meta name="theme-color" content="#174d3a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><link rel="manifest" href="/travel/manifest.webmanifest"><link rel="apple-touch-icon" href="/travel/icons/icon-192.png">
+<title>BEAM Travel History</title><meta name="robots" content="noindex,nofollow,noarchive"><meta name="theme-color" content="#174d3a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="BTH"><link rel="manifest" href="/travel/manifest.webmanifest"><link rel="apple-touch-icon" href="/travel/icons/icon-192.png">
 <style>
 :root{--g:#174d3a;--bg:#f7f5ef;--ink:#17231f;--muted:#66736e;--line:#dfe4df}*{box-sizing:border-box}html,body{max-width:100%;overflow-x:hidden}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,sans-serif}.w{max-width:1000px;margin:auto;padding:20px}.top{display:flex;justify-content:space-between;align-items:center}.brand{font-weight:900;letter-spacing:.06em}.brand b{color:var(--g)}button,input,select,textarea{font:inherit;max-width:100%}.btn{border:0;border-radius:999px;padding:11px 16px;background:var(--g);color:white;font-weight:750;cursor:pointer}.ghost{background:white;color:var(--ink);border:1px solid var(--line)}.hero{padding:60px 0 28px;display:grid;min-width:0;grid-template-columns:1.2fr .8fr;gap:25px}.ey{font-size:12px;text-transform:uppercase;letter-spacing:.14em;color:var(--g);font-weight:800}h1,h2{font-family:Georgia,serif;font-weight:500}h1{font-size:clamp(44px,7vw,76px);line-height:.95;margin:12px 0}.sub{color:var(--muted);font-size:18px}.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));min-width:0;gap:8px;align-self:end}.stat,.panel,.auth{background:white;border:1px solid var(--line);border-radius:22px}.stat{padding:16px}.stat b{display:block;font-size:28px}.stat small{color:var(--muted)}.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}.panel{padding:20px;min-width:0}.map{min-height:220px;border-radius:18px;background:#eef2ef;display:block;overflow:hidden;color:var(--g);font-weight:800}.map svg{display:block;width:100%;height:auto;max-height:300px;margin:auto}.map path{fill:#d7ded9;stroke:#fff;stroke-width:.7;vector-effect:non-scaling-stroke;cursor:pointer}.map path.visited{fill:#007a4d;stroke:#073b2b;stroke-width:1.4}.map path:focus{outline:none;stroke:#17231f;stroke-width:2}.mapInfo{min-height:24px;margin:10px 0 0;color:var(--muted);font-size:14px}.countryList{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.countryChip{border:1px solid var(--line);background:white;border-radius:999px;padding:8px 11px;font:inherit;color:var(--ink);cursor:pointer}.countryChip b{color:var(--g)}.trip{padding:14px 0;border-top:1px solid var(--line)}.trip:first-child{border:0}.trip h3{margin:0 0 4px}.trip p{margin:0;color:var(--muted);font-size:14px}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}.auth{max-width:550px;margin:70px auto;padding:28px}.field{display:grid;gap:6px;margin:13px 0}.field input,.field select,.field textarea{padding:12px;border:1px solid var(--line);border-radius:13px}.field textarea{min-height:100px}.notice{background:#e8f0ec;color:var(--g);padding:12px;border-radius:12px}.hidden{display:none!important}.modal{position:fixed;inset:0;background:#13231dcc;display:none;place-items:center;padding:18px}.modal.open{display:grid}.sheet{background:var(--bg);width:min(650px,100%);max-height:92vh;overflow:auto;border-radius:24px;padding:22px}.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}.photoGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.photoTile{background:#fff;border:1px solid var(--line);border-radius:14px;padding:8px;min-width:0}.photoTile img{display:block;width:100%;height:145px;object-fit:contain;background:#eff2ee;border-radius:9px}.photoTile .actions{margin-top:8px}.photoTile .btn{padding:8px 10px;font-size:13px}.photoPendingLabel{margin:7px 0 0;font-size:12px;color:var(--muted);overflow-wrap:anywhere}.photoHelp{font-size:13px;color:var(--muted)}#photoField{grid-template-columns:minmax(0,1fr);width:100%;min-width:0;max-width:100%}#photoField>*{min-width:0;max-width:100%}#photos{display:block;width:100%;min-width:0;max-width:100%}#photoGallery{width:100%;min-width:0;max-width:100%}#photoGallery .photoTile{min-width:0;max-width:100%;overflow:hidden}#photoGallery .photoTile img{min-width:0;max-width:100%}#photoGallery .actions{min-width:0;max-width:100%}#photoGallery .btn{max-width:100%;white-space:normal;overflow-wrap:anywhere}@media(max-width:720px){.hero,.grid,.two{grid-template-columns:minmax(0,1fr)}#app .panel>.top{align-items:stretch;flex-direction:column;gap:12px}#residence{width:100%}.map{min-height:0}.map svg{max-height:none}.hero{padding-top:35px}.auth{margin:70px 16px}.w{padding-left:16px;padding-right:16px}.top,.hero,.stats,.grid,.panel,.sheet{width:100%;max-width:100%;min-width:0}}
 .tripOpen{display:block;width:100%;border:0;border-radius:14px;background:transparent;color:inherit;text-align:left;padding:12px;cursor:pointer;font:inherit}.tripOpen:hover,.tripOpen:focus-visible{background:#f0f5f1;outline:2px solid var(--g);outline-offset:1px}.tripTitle{display:block;font-family:Georgia,serif;font-size:21px;line-height:1.2;margin-bottom:5px}.tripMeta{display:block;font-size:14px;color:var(--muted);line-height:1.5}.tripViewLabel{display:inline-block;margin-top:9px;color:var(--g);font-weight:800;font-size:13px}.detailSheet{width:min(760px,100%);padding:24px;min-width:0}.detailTop{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.detailTop h2{font-size:clamp(26px,4vw,38px);margin:5px 0 4px;overflow-wrap:anywhere}.detailTop .btn{flex-shrink:0}.detailIntro{color:var(--muted);margin:0}.detailFacts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:20px 0}.detailFact{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;min-width:0}.detailFact dt{font-size:12px;color:var(--muted);margin:0 0 4px}.detailFact dd{margin:0;font-weight:750;overflow-wrap:anywhere}.detailSection{margin:26px 0}.detailSection h3{font-family:Georgia,serif;font-weight:500;font-size:24px;margin:0 0 12px}.detailGallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:12px}.detailPhoto{margin:0;padding:8px;border-radius:15px;background:#fff;border:1px solid var(--line);min-width:0}.detailPhoto img{display:block;width:100%;height:260px;object-fit:contain;background:#eff2ee;border-radius:9px}.detailPhotoMissing{padding:35px 12px;color:var(--muted);text-align:center}.detailNote{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.65}.detailEmpty{color:var(--muted);font-size:14px}.detailActivityList{list-style:none;margin:0;padding:0}.detailActivity{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 0;border-top:1px solid var(--line)}.detailActivityText{min-width:0;overflow-wrap:anywhere}.detailActivityText p{margin:5px 0 0;font-size:14px;color:var(--muted)}.detailActivity .btn{font-size:13px;padding:8px 11px;flex-shrink:0}.detailActivityForm{margin:14px 0 0;padding:14px;background:white;border:1px solid var(--line);border-radius:14px}.detailActivityForm h4{margin:0 0 8px;font-size:15px}.detailActivityForm .field{margin:8px 0}.detailActivityForm .two{gap:8px}.detailActivityForm .btn{margin-top:9px}.detailSheet .actions{margin-top:12px}@media(max-width:480px){.detailSheet{padding:16px}.detailTop h2{font-size:27px}.detailGallery{grid-template-columns:minmax(0,1fr)}.detailPhoto img{height:260px}.detailActivity{align-items:flex-start}.detailFact{padding:10px}}@media print{#tripDetailModal{display:none!important}}
@@ -125,11 +125,41 @@ html.beamOffline #auth,html.beamOffline #app,html.beamOffline #modal,html.beamOf
  #travelPanels{grid-area:trips}
  #headerActions .pdfActionGroup{max-width:220px}
 }
+
+/* Client-owned dashboard finishes: compact first screen and contextual actions. */
+#app>.w>header{justify-content:flex-end;min-height:44px}
+.authContact{border-top:1px solid var(--line);margin-top:20px;padding-top:14px}
+.authContact p{margin:8px 0 0}
+.authContact a{color:var(--g);font-weight:750}
+@media(max-width:899px){
+ #app .w{padding-top:8px}
+ #app>.w>header{min-height:36px}
+ #travelHero{padding:6px 0 5px;gap:7px}
+ #travelHero .ey{display:none}
+ #dashboardTitle{font-size:clamp(26px,7.5vw,28px);line-height:1.04;max-width:100%;margin:2px 0 3px;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden}
+ #travelHero .actions{margin-top:3px;gap:7px}
+ #travelHero .actions .btn{min-height:43px;padding:8px 10px;font-size:12.5px;line-height:1.22}
+ #travelHero .statsWrap{margin:2px 0}
+ #travelHero .stat{padding:7px 8px}
+ #travelHero .stat b{font-size:21px}
+ #travelHero .stat small{font-size:10px}
+ #domesticCount{margin:0;min-height:0;font-size:11px}
+ #travelMapPanel{margin-bottom:8px;padding:10px}
+ #travelMapPanel h2{font-size:20px;margin:0 0 5px}
+ #travelMapPanel .map{height:auto;min-height:200px;max-height:min(55vh,460px);width:100%;aspect-ratio:1000 / 445}
+ #travelMapPanel .map svg{width:100%;height:100%}
+ #filterAnchor{margin:3px 0 8px}
+ #printJournal{font-size:12px}
+ #pdfActionGroup .pdfContactChoice{font-size:11px}
+}
+@media(min-width:900px){
+ #travelMapPanel .map{height:auto;min-height:200px;max-height:min(42vh,420px);aspect-ratio:1000 / 445}
+}
 </style><link rel="stylesheet" href="./visual-cards.css"><link rel="stylesheet" href="./dashboard-filters.css">
 <script src="/travel/offline-bootstrap.js"></script></head><body>
 <section id="offline" role="status" aria-live="polite"><div class="ey">BEAM · Travel History</div><h1>Connexion nécessaire pour consulter votre carnet</h1><p>Vos voyages et photos sont privés et indisponibles hors ligne. Reconnectez-vous à Internet pour continuer.</p></section>
-<section id="auth" class="auth hidden"><div class="ey">BEAM · Travel History</div><h1>Gardez vos voyages.<br>Retrouvez votre histoire.</h1><p class="sub">Un espace personnel pour vos destinations, dates, activités, souvenirs et photos.</p><form id="login"><div class="field"><label for="email">E-mail</label><input id="email" type="email" autocomplete="email" required></div><button class="btn">Recevoir un code</button></form><div id="otpBox" class="hidden"><p class="sub">Si cette adresse est autorisée, vous recevrez un code à 6 chiffres par e-mail.</p><form id="otpForm"><div class="field"><label for="otp">Code à 6 chiffres</label><input id="otp" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" aria-describedby="otpHelp" required><small id="otpHelp">Pas de code après 2 minutes ? Vérifiez vos spams, ou <a href="https://wa.me/224622095630" target="_blank" rel="noopener noreferrer">écrivez-nous sur WhatsApp</a>.</small></div><button class="btn">Continuer avec le code</button></form><div class="actions"><button id="resend" type="button" class="btn ghost" disabled>Renvoyer un code · 60 s</button></div></div><p id="loginMsg" class="notice hidden" role="status" aria-live="polite"></p><p class="sub" id="accessHelp">Ce carnet est réservé aux clients BEAM. <a href="https://wa.me/224622095630" target="_blank" rel="noopener noreferrer">Contactez-nous sur WhatsApp</a>.</p></section>
-<main id="app" class="hidden"><div class="w"><header class="top"><div class="brand"><b>BEAM</b> TRAVEL HISTORY</div><div id="headerActions" class="headerActions"></div><button type="button" id="openAccount" class="btn ghost" aria-controls="accountOverlay" aria-expanded="false">Mon compte</button></header>
+<section id="auth" class="auth hidden"><div class="ey">BEAM · Travel History</div><h1>Gardez vos voyages.<br>Retrouvez votre histoire.</h1><p class="sub">Un espace personnel pour vos destinations, dates, activités, souvenirs et photos.</p><form id="login"><div class="field"><label for="email">E-mail</label><input id="email" type="email" autocomplete="email" required></div><button class="btn">Recevoir un code</button></form><div id="otpBox" class="hidden"><p class="sub">Si cette adresse est autorisée, vous recevrez un code à 6 chiffres par e-mail.</p><form id="otpForm"><div class="field"><label for="otp">Code à 6 chiffres</label><input id="otp" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" aria-describedby="otpHelp" required><small id="otpHelp">Pas de code après 2 minutes ? Vérifiez vos spams, ou <a href="https://wa.me/224622095630" target="_blank" rel="noopener noreferrer">écrivez-nous sur WhatsApp</a>.</small></div><button class="btn">Continuer avec le code</button></form><div class="actions"><button id="resend" type="button" class="btn ghost" disabled>Renvoyer un code · 60 s</button></div></div><p id="loginMsg" class="notice hidden" role="status" aria-live="polite"></p><p class="sub" id="accessHelp">Ce carnet est réservé aux clients BEAM. <a href="https://wa.me/224622095630" target="_blank" rel="noopener noreferrer">Contactez-nous sur WhatsApp</a>.</p><aside class="authContact" aria-label="Contact"><strong>Contact</strong><p>WhatsApp : <a href="https://wa.me/224622095630" target="_blank" rel="noopener noreferrer">+224 622 09 56 30</a></p></aside></section>
+<main id="app" class="hidden"><div class="w"><header class="top"><div id="headerActions" class="headerActions"></div><button type="button" id="openAccount" class="btn ghost" aria-controls="accountOverlay" aria-expanded="false">Mon compte</button></header>
 <section id="travelHero" class="hero"><div><div class="ey">Mon espace de voyage</div><h1 id="dashboardTitle">Mon carnet de voyage</h1><p class="sub">L'espace raconte le voyage. Le PDF restitue les faits.</p><div class="actions"><button id="add" class="btn">+ Ajouter un voyage</button><div id="pdfActionGroup" class="pdfActionGroup"><button id="pdf" class="btn ghost">PDF ambassade</button><label class="pdfContactChoice" for="includePdfContacts"><input id="includePdfContacts" type="checkbox" autocomplete="off" disabled> Inclure mes coordonnées dans ce PDF</label></div><button id="printJournal" class="btn ghost" type="button">Mon carnet de voyage</button></div></div><div class="statsWrap"><div class="stats"><div class="stat"><b id="nt">0</b><small id="ntl">voyages à l’étranger</small></div><div class="stat"><b id="nc">0</b><small id="ncl">pays à l’étranger</small></div><div class="stat"><b id="nd">0</b><small id="ndl">jours à l’étranger</small></div></div><p id="domesticCount" class="mapInfo" role="status" aria-live="polite"></p></div></section>
 <section id="accountStatusChecking" class="panel" role="status" aria-live="polite"><p>Vérification de votre compte…</p></section>
 <section id="deletionPending" class="panel hidden" role="status" aria-live="polite">
@@ -145,7 +175,7 @@ html.beamOffline #auth,html.beamOffline #app,html.beamOffline #modal,html.beamOf
  <div class="field"><label for="travelerName">Nom du voyageur (pour le PDF)</label>
  <input id="travelerName" name="display_name" type="text" maxlength="80" autocomplete="name" required placeholder="Prénom et nom">
  <small>Ce nom déclaré figurera sur votre historique PDF, sans numéro de pièce d’identité.</small></div>
- <button type="submit" id="saveTravelerName" class="btn ghost">Enregistrer le nom</button>
+ 
  <p id="travelerNameMessage" role="status" aria-live="polite" class="notice hidden"></p>
 </form><form id="contactDetailsForm" class="account-contacts-form" aria-label="Coordonnées facultatives" style="max-width:520px;margin-bottom:22px">
  <h3 class="account-contacts-title">Mes coordonnées <small>(facultatives)</small></h3>
@@ -159,7 +189,7 @@ html.beamOffline #auth,html.beamOffline #app,html.beamOffline #modal,html.beamOf
  <div class="field"><label for="contactPostalAddress">Adresse postale</label>
  <textarea id="contactPostalAddress" name="postal_address" autocomplete="street-address"
   maxlength="300" rows="3" placeholder="Adresse déclarée (300 caractères maximum)" disabled></textarea></div>
- <button id="saveContactDetails" type="submit" class="btn ghost" disabled>Enregistrer mes coordonnées</button>
+ <button id="saveContactDetails" type="submit" class="btn" disabled>Enregistrer</button>
  <p id="contactDetailsStatus" role="status" aria-live="polite" class="mapInfo">Vérification des coordonnées…</p>
  <small>Ces informations figurent sur le PDF factuel uniquement si vous cochez « Inclure mes coordonnées » avant de le générer.</small>
 </form><details id="accountSensitive" class="panel"><summary>Zone sensible</summary><p id="deleteAccountInfo" class="mapInfo">Vous pouvez supprimer définitivement votre compte et ses données de voyage, y compris les photos privées. Cette action est irréversible.</p><div class="actions"><button id="deleteAccountOpen" type="button" class="btn ghost" aria-describedby="deleteAccountInfo">Supprimer mon compte</button></div><form id="deleteAccountForm" class="hidden" aria-labelledby="deleteAccountConfirmTitle"><h3 id="deleteAccountConfirmTitle">Confirmer la suppression</h3><p>Votre compte, vos voyages, activités, souvenirs et photos seront définitivement supprimés. Ils ne pourront pas être restaurés.</p><div class="field"><label for="deleteAccountConfirm">Saisissez <strong>SUPPRIMER</strong> pour confirmer</label><input id="deleteAccountConfirm" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="9" pattern="SUPPRIMER" required></div><div class="actions"><button id="deleteAccountSubmit" type="submit" class="btn" style="background:#a8271d" disabled>Supprimer définitivement</button><button id="deleteAccountCancel" type="button" class="btn ghost">Annuler</button></div></form><p id="deleteAccountMessage" class="notice hidden" role="status" aria-live="polite"></p></details><section id="accountSession" class="panel" aria-labelledby="accountSessionTitle"><h3 id="accountSessionTitle">Session</h3><p class="mapInfo">Terminer cette session sur cet appareil.</p><button id="logout" type="button" class="btn ghost">Se déconnecter</button></section></section></div></div></main>
@@ -185,7 +215,7 @@ html.beamOffline #auth,html.beamOffline #app,html.beamOffline #modal,html.beamOf
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./config.js"></script><script src="./pwa.js"></script><script src="./photo-utils.js"></script><script src="./photo-upload.js"></script><script src="./trip-detail.js"></script><script src="./countries.js"></script><script src="./country-picker.js"></script><script src="./factual-pdf.js"></script><script src="./factual-pdf-file.js"></script><script src="./journal-stats.js"></script><script src="./dashboard-filters.js"></script><script src="./visual-cards.js"></script><script src="./printable-journal.js"></script><script>
 const C=window.BEAM_TRAVEL_CONFIG||{},ok=C.supabaseUrl&&!C.supabaseUrl.includes("YOUR_")&&C.supabaseAnonKey&&!C.supabaseAnonKey.includes("YOUR_"),S=ok&&typeof supabase!=="undefined"?supabase.createClient(C.supabaseUrl,C.supabaseAnonKey):null,$=s=>document.querySelector(s);let user,trips=[],accountState="loading";
-function view(id){$("#auth").classList.add("hidden");$("#app").classList.add("hidden");$(id).classList.remove("hidden")}
+function view(id){$("#auth").classList.add("hidden");$("#app").classList.add("hidden");$(id).classList.remove("hidden");document.title=id==="#app"?"Mon carnet de voyage":"BEAM Travel History"}
 let profile={country_of_residence:null,display_name:null};
 let contactFieldsReady=false,savingContacts=false;
 function clearContactFields(){
@@ -252,7 +282,18 @@ function countryCounts(){let m=new Map();const api=window.BEAM_DASHBOARD_FILTERS
    m.set(t.country_code,(m.get(t.country_code)||0)+1);
  return m}
 function selectMapCountry(code){if(!countryCounts().has(code))return;dashboardFilters=window.BEAM_DASHBOARD_FILTERS.toggleCountry(dashboardFilters,code);render()}
-function fitMapToVisited(){if(!mapReady)return;let svg=$("#map svg"),paths=[...countryCounts().keys()].map(c=>$("#map-"+CSS.escape(c))).filter(Boolean);if(!paths.length){svg.setAttribute("viewBox","0 0 1000 445");return}let boxes=paths.map(p=>p.getBBox()),x=Math.min(...boxes.map(b=>b.x)),y=Math.min(...boxes.map(b=>b.y)),r=Math.max(...boxes.map(b=>b.x+b.width)),bt=Math.max(...boxes.map(b=>b.y+b.height)),w=Math.max(r-x,24),h=Math.max(bt-y,18),pad=Math.max(w,h)*.9;svg.setAttribute("viewBox",[Math.max(0,x-pad),Math.max(0,y-pad),Math.min(1000,w+pad*2),Math.min(445,h+pad*2)].join(" "))}
+function fitMapToVisited(){
+ if(!mapReady)return;
+ const svg=$("#map svg"),paths=[...countryCounts().keys()].map(c=>$("#map-"+CSS.escape(c))).filter(Boolean);
+ if(!paths.length){svg.setAttribute("viewBox","0 0 1000 445");$("#map").style.aspectRatio="1000 / 445";return}
+ const boxes=paths.map(p=>p.getBBox());
+ const x=Math.min(...boxes.map(b=>b.x)),y=Math.min(...boxes.map(b=>b.y));
+ const right=Math.max(...boxes.map(b=>b.x+b.width)),bottom=Math.max(...boxes.map(b=>b.y+b.height));
+ const w=Math.max(right-x,24),h=Math.max(bottom-y,18),pad=Math.max(w,h)*.9;
+ const vx=Math.max(0,x-pad),vy=Math.max(0,y-pad),vw=Math.min(1000,w+pad*2),vh=Math.min(445,h+pad*2);
+ svg.setAttribute("viewBox",[vx,vy,vw,vh].join(" "));
+ $("#map").style.aspectRatio=vw+" / "+vh;
+}
 function applyMapState(){if(!mapReady)return;const counts=countryCounts();$("#map").querySelectorAll("path[data-country]").forEach(p=>{const n=counts.get(p.dataset.country)||0,active=dashboardFilters.country===p.dataset.country;p.classList.toggle("visited",n>0);p.classList.toggle("selectedCountry",active);p.setAttribute("tabindex",n>0?"0":"-1");p.setAttribute("role","button");p.setAttribute("aria-disabled",n>0?"false":"true");p.setAttribute("aria-pressed",active?"true":"false");p.setAttribute("aria-label",countryName(p.dataset.country)+(n?" · "+n+" "+(n===1?"voyage":"voyages"):" · aucun voyage"))});fitMapToVisited()}
 async function loadMap(){if(mapReady||mapLoading)return;mapLoading=true;try{let r=await fetch("./assets/world-map.svg",{cache:"force-cache"});if(!r.ok)throw new Error("map "+r.status);$("#map").innerHTML=await r.text();mapReady=true;applyMapState();$("#map").onclick=e=>{let p=e.target.closest?.("path[data-country]");if(p)selectMapCountry(p.dataset.country)};$("#map").onkeydown=e=>{let p=e.target.closest?.("path[data-country]");if(p&&(e.key==="Enter"||e.key===" ")){e.preventDefault();selectMapCountry(p.dataset.country)}}}catch(e){$("#map").textContent="Carte indisponible. La liste des pays reste accessible."}finally{mapLoading=false}}
 function scheduleMap(){(window.requestIdleCallback||((fn)=>setTimeout(fn,0)))(loadMap)}
@@ -294,6 +335,7 @@ function positionHeaderActions(){
 }
 
 positionHeaderActions();
+$("#travelMapPanel").after($("#filterAnchor"));
 window.addEventListener("resize",positionHeaderActions);
 let filterReturnFocus=null;
 function setFiltersOpen(open){
@@ -1052,34 +1094,39 @@ $("#contactPhone").onblur=()=>{
  try{$("#contactPhone").value=window.BEAM_TRAVEL_PDF.formatPhone($("#contactPhone").value)}
  catch{}
 };
+// The entire profile is saved in one atomic, owner-scoped update.
 $("#contactDetailsForm").onsubmit=async event=>{
  event.preventDefault();
  if(accountState!=="active"||!S||!user||!contactFieldsReady||savingContacts)return;
+ const name=$("#travelerName").value.trim().replace(/\s+/g," ");
+ if(!name||name.length>80){travelerNameNotice("Saisissez un nom de 80 caractères maximum.");$("#travelerName").focus();return}
  const address=$("#contactPostalAddress").value.trim();
  const notice=$("#contactDetailsStatus");
  let phone;
  try{phone=window.BEAM_TRAVEL_PDF.normalizePhone($("#contactPhone").value)}
- catch(error){
-  notice.textContent=error?.message||"Téléphone invalide. Exemple : +224 622 09 56 30.";
-  return;
- }
+ catch(error){notice.textContent=error?.message||"Téléphone invalide. Exemple : +224 622 09 56 30.";return}
  if(address.length>300){notice.textContent="Adresse trop longue (300 caractères maximum).";return}
- const uid=user.id,button=$("#saveContactDetails");
- const residence=$("#residence").value||null;
+ const uid=user.id,button=$("#saveContactDetails"),residence=$("#residence").value||null;
  savingContacts=true;button.disabled=true;notice.textContent="Enregistrement…";
  try{
   const {data,error}=await S.from("profiles")
-   .update({phone:phone||null,postal_address:address||null,country_of_residence:residence})
-   .eq("id",uid).select("phone,postal_address,country_of_residence").single();
+   .update({display_name:name,phone:phone||null,postal_address:address||null,country_of_residence:residence})
+   .eq("id",uid).select("display_name,phone,postal_address,country_of_residence").single();
   if(error||!data||accountState!=="active"||user?.id!==uid)
-   throw new Error("Coordonnées non enregistrées.");
+   throw new Error("Profil non enregistré.");
+  profile.display_name=data.display_name;
+  profile.country_of_residence=data.country_of_residence||null;
+  $("#travelerName").value=data.display_name;
+  $("#dashboardTitle").textContent=travelDashboardTitle(data.display_name);
   $("#contactPhone").value=window.BEAM_TRAVEL_PDF.formatPhone(data.phone||"");
   $("#contactPostalAddress").value=data.postal_address||"";
-  profile.country_of_residence=data.country_of_residence||null;
-  if(accountBaseline){accountBaseline.phone=$("#contactPhone").value;accountBaseline.postal=$("#contactPostalAddress").value;accountBaseline.residence=$("#residence").value;}
-  accountSummary();
-  notice.textContent="Coordonnées enregistrées. Leur inclusion dans le PDF reste facultative.";
- }catch{notice.textContent="Impossible d'enregistrer ces coordonnées. Vérifiez votre connexion."}
+  countrySelectors.residence.reset(data.country_of_residence||"");
+  captureAccountBaseline();accountSummary();
+  $("#accountOverlay").classList.remove("accountEditing");
+  $("#editAccount").focus();
+  $("#travelerNameMessage").classList.add("hidden");
+  notice.textContent="Informations enregistrées. Leur inclusion dans le PDF reste facultative.";
+ }catch{notice.textContent="Impossible d'enregistrer le profil. Vérifiez votre connexion."}
  finally{
   savingContacts=false;
   if(accountState==="active"&&contactFieldsReady)button.disabled=false;
@@ -1091,32 +1138,11 @@ function travelerNameNotice(message){
 }
 function requestTravelerName(){
  travelerNameNotice("Renseignez puis enregistrez votre nom avant de générer le PDF.");
- $("#myAccount").scrollIntoView({behavior:"smooth",block:"start"});
+ if(!$("#accountOverlay").classList.contains("accountOpen"))openAccountPanel();
+ if(!$("#accountOverlay").classList.contains("accountEditing"))$("#editAccount").click();
  $("#travelerName").focus();
 }
-$("#travelerNameForm").onsubmit=async event=>{
- event.preventDefault();
- if(accountState!=="active"||!user||savingTravelerName)return;
- const value=$("#travelerName").value.trim().replace(/\s+/g," ");
- if(!value||value.length>80){
-   travelerNameNotice("Saisissez un nom de 80 caractères maximum.");return;
- }
- const uid=user.id,btn=$("#saveTravelerName");
- savingTravelerName=true;btn.disabled=true;btn.textContent="Enregistrement…";
- $("#travelerNameMessage").classList.add("hidden");
- try{
-   const {data,error}=await S.from("profiles").update({display_name:value})
-     .eq("id",uid).select("display_name").single();
-   if(error||!data||accountState!=="active"||user?.id!==uid)
-     throw new Error("Nom non confirmé. Réessayez.");
-   profile.display_name=data.display_name;
-   $("#dashboardTitle").textContent=travelDashboardTitle(data.display_name);
-   $("#travelerName").value=data.display_name;
-   if(accountBaseline)accountBaseline.name=data.display_name;
-   travelerNameNotice("Nom enregistré. Il pourra figurer sur votre PDF.");
- }catch(err){travelerNameNotice(err.message||"Impossible d’enregistrer le nom.")}
- finally{savingTravelerName=false;btn.disabled=false;btn.textContent="Enregistrer le nom"}
-};
+$("#travelerNameForm").onsubmit=event=>{event.preventDefault();$("#contactDetailsForm").requestSubmit()};
 // Private printable journal: separate button/module from the factual Travel History PDF.
 // Snapshot filters on click and verify account ownership again before rendering.
 let journalPrintBusy=false;
@@ -1219,7 +1245,7 @@ $("#pdf").onclick=async()=>{
  try{
    // Only literal markup is written. No user data is ever interpolated here.
    tab.document.open();
-   tab.document.write('<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>BEAM Travel History</title></head><body><p>Préparation de votre historique factuel…</p></body></html>');
+   tab.document.write('<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>Historique de voyages</title></head><body><p>Préparation de votre historique factuel…</p></body></html>');
    tab.document.close();
    const {data:currentProfile,error:nameError}=await S.from("profiles")
      .select(includeContacts?"display_name,deleting,phone,postal_address":"display_name,deleting")
@@ -1257,7 +1283,7 @@ $("#pdf").onclick=async()=>{
    status.textContent="Impossible de préparer le PDF factuel. Vérifiez votre connexion et réessayez.";
    status.classList.remove("hidden");
  }finally{
-   button.disabled=false;button.textContent="Travel History PDF";
+   button.disabled=false;button.textContent="PDF ambassade";
  }
 };if(S)S.auth.onAuthStateChange((event,s)=>{
  if(event==="SIGNED_OUT"){clearPwaSession().then(()=>view("#auth")).catch(()=>view("#auth"));return}

@@ -1,7 +1,7 @@
 {
   "id": "/travel/",
   "name": "BEAM Travel History",
-  "short_name": "BEAM Voyages",
+  "short_name": "BTH",
   "description": "Votre carnet de voyages personnel et privé.",
   "lang": "fr",
   "start_url": "/travel/",
