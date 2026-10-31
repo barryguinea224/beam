@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   disposable-postgres:
-    name: Profile contacts: grants, RLS and constraints (NO staging writes)
+    name: "Profile contacts: grants, RLS and constraints (NO staging writes)"
     runs-on: ubuntu-latest
     timeout-minutes: 10
     services:
