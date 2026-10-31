@@ -63,6 +63,17 @@ const countrySelectors={
  trip:window.BEAM_COUNTRY_PICKER.attach($("#tripCountrySelect"),$("#tripCountrySearch"),{placeholder:"Choisir un pays"})
 };
 function countryName(code){return COUNTRY_NAMES[code]||code}
+// The dashboard must stay usable if the optional printable-album module fails.
+// Mirror the tiny title rule locally; never require the album to initialize.
+function travelDashboardTitle(input){
+ const name=typeof input==="string"?input.trim().replace(/\s+/g," ").slice(0,80):"";
+ const fromAlbum=window.BEAM_PERSONAL_JOURNAL?.titleForName?.(name);
+ if(typeof fromAlbum==="string"&&fromAlbum)return fromAlbum;
+ if(!name)return "Mon carnet de voyage";
+ const hMuet=/^(?:hélène|hélèna|henri|henry|hugo|hugues|hadrien|habib|hamid|hicham|hassan|hiba|houda)(?:\b|$)/i;
+ const vowel=/^[aàâäeéèêëiîïoôöuùûüœæ]/i.test(name)||hMuet.test(name);
+ return "Carnet "+(vowel?"d'":"de ")+name;
+}
 function tripDates(a,b){let A=new Date(a+"T12:00:00"),B=new Date(b+"T12:00:00"),sameMonth=A.getMonth()===B.getMonth()&&A.getFullYear()===B.getFullYear(),sameYear=A.getFullYear()===B.getFullYear();if(sameMonth)return A.getDate()+" → "+B.toLocaleDateString("fr-FR",{day:"numeric",month:"long",year:"numeric"});if(sameYear)return A.toLocaleDateString("fr-FR",{day:"numeric",month:"short"})+" → "+B.toLocaleDateString("fr-FR",{day:"numeric",month:"short",year:"numeric"});return A.toLocaleDateString("fr-FR",{day:"numeric",month:"short",year:"numeric"})+" → "+B.toLocaleDateString("fr-FR",{day:"numeric",month:"short",year:"numeric"})}
 function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 let mapReady=false,mapLoading=false;
@@ -91,7 +102,7 @@ function render(){
  const api=window.BEAM_DASHBOARD_FILTERS;renderFilterOptions();
  const visible=api.apply(trips,dashboardFilters),stats=api.summary(visible,dashboardFilters),counts=countryCounts(),active=Object.values(dashboardFilters).some(Boolean);
  const name=typeof profile.display_name==="string"?profile.display_name.trim().replace(/\s+/g," "):"";
- $("#dashboardTitle").textContent=window.BEAM_PERSONAL_JOURNAL.titleForName(name);
+ $("#dashboardTitle").textContent=travelDashboardTitle(name);
  const national=dashboardFilters.scope==="domestic";
  $("#nt").textContent=stats.trips;
  $("#ntl").textContent=national?(stats.trips===1?"séjour national":"séjours nationaux"):(stats.trips===1?"voyage à l’étranger":"voyages à l’étranger");
@@ -737,7 +748,7 @@ $("#travelerNameForm").onsubmit=async event=>{
    if(error||!data||accountState!=="active"||user?.id!==uid)
      throw new Error("Nom non confirmé. Réessayez.");
    profile.display_name=data.display_name;
-   $("#dashboardTitle").textContent=window.BEAM_PERSONAL_JOURNAL.titleForName(data.display_name);
+   $("#dashboardTitle").textContent=travelDashboardTitle(data.display_name);
    $("#travelerName").value=data.display_name;
    travelerNameNotice("Nom enregistré. Il pourra figurer sur votre PDF.");
  }catch(err){travelerNameNotice(err.message||"Impossible d’enregistrer le nom.")}
@@ -746,7 +757,14 @@ $("#travelerNameForm").onsubmit=async event=>{
 // Private printable journal: separate button/module from the factual Travel History PDF.
 // Snapshot filters on click and verify account ownership again before rendering.
 let journalPrintBusy=false;
+const journalButton=$("#printJournal");
+if(typeof window.BEAM_PERSONAL_JOURNAL?.render!=="function"){
+ journalButton.disabled=true;
+ journalButton.textContent="Carnet imprimable indisponible";
+ journalButton.title="Le carnet imprimable est temporairement indisponible ; vos voyages restent accessibles.";
+}
 $("#printJournal").onclick=async()=>{
+ if(typeof window.BEAM_PERSONAL_JOURNAL?.render!=="function")return;
  if(journalPrintBusy||accountState!=="active"||!S||!user)return;
  const uid=user.id,filters=window.BEAM_DASHBOARD_FILTERS.normalize(dashboardFilters);
  // Must open on the original tap to avoid popup blocking on Android.
