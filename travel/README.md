@@ -19,8 +19,9 @@ Espace personnel de mémoire de voyage : voyages, activités, notes, photos priv
 4. Dans **Authentication → Email Templates → Magic Link**, inclure `{{ .Token }}` dans le modèle pour envoyer un vrai code à 6 chiffres ; vérifier sa réception sur téléphone.
 5. Créer chaque compte manuellement après paiement depuis **Authentication → Users → Add user**, avec l'e-mail du client et **Auto Confirm User**, sans mot de passe.
 6. Suivre le document de sécurité `supabase/INVITE_ONLY_AUDIT.md` et attendre les tests hostiles avant publication.
-   **Staging (31/10/2026)** : inscriptions publiques, anonymous sign-ins et manual linking désactivés ; fournisseur Email actif ; modèle e-mail avec `{{ .Token }}` déjà configuré le 29/10 — ne pas le refaire.
+   **Staging (31/10/2026)** : inscriptions publiques, anonymous sign-ins et manual linking désactivés ; fournisseur Email actif ; **modèle d'e-mail encore par défaut « Your sign-in link », sans `{{ .Token }}`**. Après branchement du SMTP Resend, remplacer ce modèle par un OTP à six chiffres et tester la délivrabilité.
    **Production (nouveau projet)** : répéter ces trois désactivations et reconfigurer le modèle e-mail avec `{{ .Token }}` ; tester le refus de `/auth/v1/signup`, l'OTP inconnu et l'OTP client avant ouverture.
+   **SMTP** : configurer manuellement Resend dans Supabase Auth après vérification des DNS de `auth.beamguinee.com` chez Netlify ; utiliser une clé **Sending access** limitée au sous-domaine. Ne pas activer l'intégration automatique Resend–Supabase.
 7. Copier `config.example.js` vers `config.js` et renseigner uniquement l'URL Supabase et la clé publique anon/publishable.
 8. Ne jamais ajouter `service_role` au navigateur ou au dépôt.
 
