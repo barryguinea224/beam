@@ -274,7 +274,7 @@ function setFiltersOpen(open){
  panel.setAttribute("aria-modal",String(next&&matchMedia("(max-width:899px)").matches));
  trigger.setAttribute("aria-expanded",String(next));
  if(next){filterReturnFocus=document.activeElement;$("#closeFilters").focus()}
- else if(filterReturnFocus&&document.contains(filterReturnFocus)){filterReturnFocus.focus();filterReturnFocus=null}
+ else {disarmOverlayBack();if(filterReturnFocus&&document.contains(filterReturnFocus)){filterReturnFocus.focus();filterReturnFocus=null}}
 }
 $("#toggleFilters").onclick=()=>setFiltersOpen(!$("#filterPanel").classList.contains("filterOpen"));
 $("#closeFilters").onclick=()=>setFiltersOpen(false);
@@ -337,7 +337,7 @@ function closeAccountPanel(){
  if($("#accountOverlay").classList.contains("accountEditing"))restoreAccountBaseline();
  $("#accountOverlay").classList.remove("accountOpen","accountEditing");
  $("#accountOverlay").setAttribute("aria-hidden","true");$("#openAccount").setAttribute("aria-expanded","false");
- if(accountReturnFocus?.isConnected)accountReturnFocus.focus();return true;
+ disarmOverlayBack();if(accountReturnFocus?.isConnected)accountReturnFocus.focus();return true;
 }
 $("#openAccount").onclick=openAccountPanel;
 $("#closeAccount").onclick=closeAccountPanel;
@@ -352,6 +352,7 @@ $("#cancelAccountEdit").onclick=()=>{
 // Browser history is used as an overlay sentinel; Android Back closes the top layer first.
 let overlayHistoryArmed=false;
 function armOverlayBack(){if(!overlayHistoryArmed){history.pushState({beamOverlay:true},"",location.href);overlayHistoryArmed=true;}}
+function disarmOverlayBack(){if(overlayHistoryArmed){overlayHistoryArmed=false;if(history.state?.beamOverlay)history.back();}}
 window.addEventListener("popstate",()=>{
  if($("#accountOverlay").classList.contains("accountOpen")){if(!closeAccountPanel()){armOverlayBack();return}overlayHistoryArmed=false;return}
  if($("#filterPanel").classList.contains("filterOpen")){setFiltersOpen(false);overlayHistoryArmed=false;return}
