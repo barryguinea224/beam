@@ -56,7 +56,7 @@ function mockedSupabase(){
    };
    return q;
   }
- }}}};
+ }}};
 }
 async function main(){
  const server=serve();
