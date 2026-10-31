@@ -6,6 +6,11 @@ on:
     paths:
       - "travel/index.html"
       - "travel/factual-pdf.js"
+      - "travel/factual-pdf-file.js"
+      - "travel/supabase/migrations/20261031120000_optional_profile_contacts.sql"
+      - "tests/travel-factual-pdf-file.cjs"
+      - "tests/travel-factual-pdf-share-browser.cjs"
+      - "tests/travel-factual-contacts-ui.cjs"
       - "travel/countries.js"
       - "travel/supabase/schema.sql"
       - "tests/travel-factual-pdf.cjs"
@@ -48,3 +53,9 @@ jobs:
           command -v pdftotext || (sudo apt-get update -qq && sudo apt-get install -y -qq poppler-utils)
       - name: Verify printed PDF pages, statement and absence of images
         run: node tests/travel-factual-pdf-layout.cjs
+      - name: Verify native share-file A4 bytes and contact opt-in
+        run: node tests/travel-factual-pdf-file.cjs
+      - name: Verify Android file share and safe local download fallback
+        run: node tests/travel-factual-pdf-share-browser.cjs
+      - name: Verify real mobile profile save, Auth email and one-shot consent
+        run: node tests/travel-factual-contacts-ui.cjs

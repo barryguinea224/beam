@@ -60,7 +60,29 @@ async function main(){
    }
    const images=execFileSync("pdfimages",["-list",destination],{encoding:"utf8"}).trim().split("\n");
    assert.equal(images.length,2,"Generated PDF must contain NO images");
-   console.log("BEAM PDF PRINT PASS: "+count+" A4 pages, non-official notice on each, no private data/images");
+   // Actual Chromium print with optional contacts: only the three declared
+   // fields appear. No passport, memory or storage path may leak into A4.
+   await page.evaluate(({rows,generatedAt})=>{
+    window.BEAM_TRAVEL_PDF.render(document,rows.slice(0,2),{
+     displayName:"Fatou Diallo",generatedAt:new Date(generatedAt),
+     includeContacts:true,
+     contacts:{email:"account.verified@example.net",phone:"+224612345678",
+      postalAddress:"Conakry, Guinée",passport:"PASSPORT_NOT_ALLOWED"}
+    });
+   },{rows,generatedAt:"2026-10-31T12:00:00Z"});
+   const consentDestination=path.join(dir,"opt-in.pdf");
+   fs.writeFileSync(consentDestination,await page.pdf({printBackground:true,preferCSSPageSize:true}));
+   const consentText=execFileSync("pdftotext",["-layout",consentDestination,"-"],{encoding:"utf8"});
+   assert.match(consentText,/Coordonnées déclarées/);
+   assert.match(consentText,/account.verified@example.net/);
+   assert.match(consentText,/\+224612345678/);
+   assert.match(consentText,/Conakry, Guinée/);
+   for(const unsafe of [SECRET,"PASSPORT_NOT_ALLOWED","note","storage_path"]){
+    assert.ok(!consentText.includes(unsafe),"Opt-in printed PDF leaked "+unsafe);
+   }
+   const consentInfo=execFileSync("pdfinfo",[consentDestination],{encoding:"utf8"});
+   assert.match(consentInfo,/Page size:\s+[\d.]+ x [\d.]+ pts \(A4\)/);
+   console.log("BEAM PDF PRINT PASS: "+count+" A4 pages, optional contacts on consent, no private data/images");
   }finally{await page.close()}
  }finally{await browser.close();fs.rmSync(dir,{recursive:true,force:true})}
 }

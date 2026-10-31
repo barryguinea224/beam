@@ -5,6 +5,10 @@ create extension if not exists pgcrypto;
 create table public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   display_name text check(char_length(display_name)<=80),
+  phone text constraint profiles_phone_valid
+    check(phone is null or (char_length(phone)<=30 and phone ~ '^\+[0-9]{6,15}$')),
+  postal_address text constraint profiles_postal_address_valid
+    check(postal_address is null or (char_length(postal_address)<=300 and btrim(postal_address)<>'')),
   nationality text check(char_length(nationality)<=60),
   home_city text not null default 'Conakry' check(char_length(home_city)<=80),
   country_of_residence char(2) check(country_of_residence ~ '^[A-Z]{2}$'),
@@ -221,7 +225,7 @@ alter table public.media enable row level security;
 create policy "profil lecture" on public.profiles for select to authenticated using(id=auth.uid());
 create policy "profil modification" on public.profiles for update to authenticated using(id=auth.uid() and private.account_accepts_writes(auth.uid())) with check(id=auth.uid() and private.account_accepts_writes(auth.uid()));
 revoke update on public.profiles from authenticated;
-grant update(display_name,nationality,home_city,country_of_residence) on public.profiles to authenticated;
+grant update(display_name,nationality,home_city,country_of_residence,phone,postal_address) on public.profiles to authenticated;
 revoke insert,delete on public.profiles from authenticated;
 -- Reads: owner only. Writes: owner AND account not being deleted (db_write_barrier.sql).
 create policy "voyages lecture" on public.trips for select to authenticated using(user_id=auth.uid());

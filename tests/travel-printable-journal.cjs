@@ -31,7 +31,7 @@ assert.equal(journal.filterLabel({country:"SN",year:"2026"}),"Sénégal · 2026"
 assert.equal(journal.filterLabel({scope:"domestic"}),"Séjours nationaux");
 assert.equal(journal.filterLabel(FILTERS.EMPTY),"Tous les voyages");
 const projection=journal.viewTrip({...trips[0],
- email:"SECRET_EMAIL",passport:"SECRET_PASSPORT",phone:"SECRET_PHONE",
+ email:"SECRET_EMAIL",passport:"SECRET_PASSPORT",phone:"SECRET_PHONE",postal_address:"SECRET_POSTAL_ADDRESS",
  storage_path:"SECRET_STORAGE_PATH",user_id:"SECRET_USER",document_number:"SECRET_DOCUMENT"},
  [{title:"Visite du marché",place:"Dakar",happened_on:"2026-04-03",document_number:"SECRET_DOC"}],
  ["https://example.invalid/photo.webp"]);
