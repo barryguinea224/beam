@@ -10,6 +10,7 @@ on:
       - "travel/visual-cards.js"
       - "travel/sw.js"
       - "tests/travel-printable-journal*"
+      - "tests/travel-album-compact-a4.cjs"
       - "tests/travel-script-load-order.cjs"
       - "tests/travel-real-index-load.cjs"
       - "tests/travel-dashboard-*"
@@ -58,11 +59,15 @@ jobs:
         run: node tests/travel-real-index-load.cjs
       - name: Vérifier l’album A4 et générer les captures de démonstration
         run: node tests/travel-printable-journal-layout.cjs
+      - name: Valider les deux voyages compacts (5 pages A4) et leurs captures
+        run: node tests/travel-album-compact-a4.cjs
       - name: Publier les captures A4 (données de test uniquement)
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: beam-album-a4-preview
-          path: test-artifacts/travel-journal/
+          path: |
+            test-artifacts/travel-journal/
+            test-artifacts/travel-album-retouches/
           retention-days: 14
           if-no-files-found: warn
