@@ -26,6 +26,7 @@ set role authenticated;
 select set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',false);
 do $$
 declare n integer;
+ bad_phone text;
 begin
  update public.profiles set phone='+224612345678',postal_address='Kaloum, Conakry'
   where id='11111111-1111-4111-8111-111111111111';
@@ -60,6 +61,21 @@ begin
   raise exception 'Long address was accepted';
  exception when check_violation then null;
  end;
+ -- Reject too-short international codes, letters, unnormalized national
+ -- numbers, formatted numbers and numbers longer than 15 digits.
+ for bad_phone in
+  select unnest(array[
+   '+1','abc','+2246220956301234567',
+   '622095630','00224622095630','+224 622 09 56 30'
+  ])
+ loop
+  begin
+   update public.profiles set phone=bad_phone
+    where id='11111111-1111-4111-8111-111111111111';
+   raise exception 'Invalid phone accepted: %',bad_phone;
+  exception when check_violation then null;
+  end;
+ end loop;
  update public.profiles set phone=null,postal_address=null
   where id='11111111-1111-4111-8111-111111111111';
  get diagnostics n=row_count;
