@@ -21,7 +21,7 @@ async function main(){
       filterPanel+'<section class="panel"><div class="map" id="map"><svg viewBox="0 0 200 90"><path class="visited selectedCountry" data-country="FR" aria-pressed="true" d="M20 20h85v45h-85z"></path></svg></div><div id="countryList" class="countryList"><button class="countryChip" aria-pressed="true">France <b>2</b></button><button class="countryChip" aria-pressed="false">Guinée <b>1</b></button></div></section>'+footer+'</div></main></body></html>');
     await page.addStyleTag({content:baseCss+"\n"+filterCss});
     const data=await page.evaluate(()=>{
-      const controls=[...document.querySelectorAll("#filterPanel select,#resetFilters,#countryList button,#logout")].map(el=>{
+      const controls=[...document.querySelectorAll("#filterPanel select,#filterPanel button,#countryList button,#logout")].map(el=>{
         const b=el.getBoundingClientRect();return {tag:el.tagName,left:b.left,right:b.right,height:b.height,width:b.width,text:el.textContent?.trim()};
       });
       const svg=document.querySelector(".selectedCountry");
