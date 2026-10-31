@@ -4,7 +4,7 @@
 (function(root){
  "use strict";
  const NOTICE="Document personnel, non destiné aux démarches administratives";
- const MAX_PHOTOS_PER_TRIP=4,MAX_TOTAL_PHOTOS=40,SIGNED_SECONDS=120;
+ const MAX_PHOTOS_PER_TRIP=4,MAX_TOTAL_PHOTOS=40,SIGNED_SECONDS=300;
  const COUNTRIES=root?.BEAM_COUNTRIES||
    (typeof require==="function"?require("./countries.js"):null);
  const FILTERS=root?.BEAM_DASHBOARD_FILTERS||
@@ -41,6 +41,13 @@
    photos:(Array.isArray(photos)?photos:[]).slice(0,MAX_PHOTOS_PER_TRIP)
      .filter(p=>typeof p==="string"&&p.startsWith("https://"))
   });
+ }
+ // Favorites, then owner's position, then date; existing media fields.
+ function preferredMediaQuery(query){
+  return query.order("is_favorite",{ascending:false})
+   .order("position",{ascending:true})
+   .order("created_at",{ascending:true})
+   .limit(MAX_PHOTOS_PER_TRIP);
  }
  function filterLabel(input){
   const s=FILTERS.normalize(input),parts=[];
@@ -80,6 +87,7 @@
  ".photos figure{margin:0;min-width:0;break-inside:avoid}",
  ".photos img{display:block;width:100%;height:62mm;max-width:100%;object-fit:contain;border:1px solid #d5e0d7;background:#f4f6f4}",
  ".empty{color:#596d61}",
+ ".photo-missing{color:#874d23;font-size:9.5pt;overflow-wrap:anywhere;border:1px dashed #b79b80;padding:3mm;margin:2mm 0}",
  "@media screen{body{padding:10px 12px;background:#e9efea}main{background:white;padding:18px;box-shadow:0 4px 20px #22392a33}.page-head,.page-foot{position:static;font-size:9pt;margin:8px 0}.cover{min-height:45vh}.journey{break-before:auto;border-top:2px solid #174d3a;margin-top:24px}.toolbar{flex-wrap:wrap}}",
  "@media print{.toolbar,.page-head,.page-foot{display:none!important}.cover{min-height:195mm}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}figure,img{break-inside:avoid}}",
  "@media(max-width:420px){h1{font-size:29pt}.facts{grid-template-columns:1fr}.photos{grid-template-columns:1fr}.photos img{height:50mm}}"
@@ -88,6 +96,12 @@
   if(!doc?.createElement||!model||!Array.isArray(model.trips))throw new Error("Carnet indisponible.");
   const name=clean(model.name).replace(/\s+/g," ").slice(0,80);
   const list=model.trips.map(t=>viewTrip(t.trip,t.activities,t.photos));
+  // Failed signatures must also be reported, not just <img> errors.
+  const preflightFailures=model.trips.map(t=>{
+   const n=Number(t.missingPhotos);
+   return Number.isInteger(n)&&n>0?Math.min(n,MAX_PHOTOS_PER_TRIP):0;
+  });
+  const unavailableBeforeLoad=preflightFailures.reduce((sum,n)=>sum+n,0);
   doc.documentElement.lang="fr";
   const charset=doc.createElement("meta");charset.setAttribute("charset","utf-8");
   // window.open('') starts without a viewport meta: Android defaults to a
@@ -105,7 +119,8 @@
   const toolbar=txt(main,"div","","toolbar");
   const btn=txt(toolbar,"button","Imprimer / Enregistrer en PDF");
   btn.type="button";btn.disabled=true;
-  txt(toolbar,"span","Chargement des photos…","load-status");
+  const status=txt(toolbar,"span","Chargement des photos…","load-status");
+  status.setAttribute("role","status");status.setAttribute("aria-live","polite");
   btn.addEventListener("click",()=>doc.defaultView?.print());
   const cover=txt(main,"section","","cover");
   txt(cover,"p","BEAM · CARNET PERSONNEL","brand");
@@ -114,7 +129,7 @@
   txt(cover,"p",list.length+" voyage"+(list.length===1?"":"s")+" dans ce carnet.");
   txt(cover,"p",NOTICE,"notice");
   if(!list.length)txt(main,"p","Aucun voyage ne correspond aux filtres sélectionnés.","empty");
-  for(const trip of list){
+  for(const [index,trip] of list.entries()){
    const page=txt(main,"section","","journey");
    txt(page,"p",trip.domestic?"Séjour national":"Voyage à l’étranger","intro");
    txt(page,"h2",trip.country);
@@ -136,7 +151,11 @@
     if(details)txt(row,"small",details);
    }
    txt(page,"h3","Photos du voyage");
-   if(!trip.photos.length)txt(page,"p","Aucune photo disponible pour l’impression.","empty");
+   if(!trip.photos.length&&!preflightFailures[index])
+    txt(page,"p","Aucune photo disponible pour l’impression.","empty");
+   if(preflightFailures[index])
+    txt(page,"p",preflightFailures[index]+" photo"+(preflightFailures[index]===1?"":"s")+
+      " indisponible"+(preflightFailures[index]===1?"":"s")+" lors de la préparation.","photo-missing");
    const grid=txt(page,"div","","photos");
    for(const url of trip.photos){
     const figure=txt(grid,"figure","");
@@ -146,19 +165,54 @@
     img.src=url;figure.appendChild(img);
    }
   }
-  // Images must load before printing, especially on slower Android browsers.
+  // img.complete can also mean a failed image: inspect naturalWidth.
+  // Display clear placeholders for images unavailable after a 30-second limit.
   const images=[...doc.querySelectorAll("img")];
-  const done=()=>{if(doc.defaultView?.closed)return;btn.disabled=false;const status=toolbar.querySelector(".load-status");if(status)status.textContent="Prêt pour l’impression · les photos indisponibles seront ignorées."};
-  if(!images.length)done();
-  else Promise.race([
-   Promise.all(images.map(img=>img.complete?Promise.resolve():new Promise(resolve=>{
-    img.addEventListener("load",resolve,{once:true});img.addEventListener("error",resolve,{once:true});
-   }))),
-   new Promise(resolve=>setTimeout(resolve,12000))
-  ]).then(done).catch(done);
+  const plural=n=>n===1?"1 photo n'a pas pu être chargée":n+" photos n'ont pas pu être chargées";
+  const total=images.length+unavailableBeforeLoad;
+  let loaded=0;
+  function finish(failures){
+   if(doc.defaultView?.closed)return;
+   btn.disabled=false;
+   status.textContent=failures
+    ?"Prêt pour l’impression · "+plural(failures)+"."
+    :"Prêt pour l’impression · "+loaded+" photo"+(loaded===1?"":"s")+" chargée"+(loaded===1?"":"s")+".";
+  }
+  function loadedImage(img){
+   return new Promise(resolve=>{
+    let settled=false;
+    const success=()=>settle(img.naturalWidth>0);
+    const failure=()=>settle(false);
+    let timer;
+    function settle(ok){
+     if(settled)return;
+     settled=true;
+     clearTimeout(timer);
+     img.removeEventListener("load",success);
+     img.removeEventListener("error",failure);
+     if(!ok){
+      const figure=img.parentNode;
+      img.remove();
+      if(figure)txt(figure,"figcaption","Photo indisponible pour l’impression.","photo-missing");
+     }
+     resolve(ok);
+    }
+    img.addEventListener("load",success);
+    img.addEventListener("error",failure);
+    timer=setTimeout(()=>settle(false),30000);
+    if(img.complete)settle(img.naturalWidth>0);
+   });
+  }
+  if(!images.length)finish(unavailableBeforeLoad);
+  else Promise.all(images.map(img=>loadedImage(img).then(ok=>{
+   if(ok)loaded++;
+   if(!doc.defaultView?.closed)status.textContent="Chargement des photos · "+loaded+" / "+total;
+   return ok;
+  }))).then(results=>finish(unavailableBeforeLoad+results.filter(ok=>!ok).length))
+    .catch(()=>finish(total-loaded));
   return list.length;
  }
- const api=Object.freeze({NOTICE,MAX_PHOTOS_PER_TRIP,MAX_TOTAL_PHOTOS,SIGNED_SECONDS,filterLabel,viewTrip,render});
+ const api=Object.freeze({NOTICE,MAX_PHOTOS_PER_TRIP,MAX_TOTAL_PHOTOS,SIGNED_SECONDS,preferredMediaQuery,filterLabel,viewTrip,render});
  if(root)root.BEAM_PERSONAL_JOURNAL=api;
  if(typeof module!=="undefined"&&module.exports)module.exports=api;
 })(typeof window!=="undefined"?window:undefined);
