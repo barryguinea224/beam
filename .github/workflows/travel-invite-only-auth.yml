@@ -1,0 +1,35 @@
+name: BEAM Travel invitation-only authentication — PR review
+
+on:
+  pull_request:
+    branches: [main, feature/beam-travel-history-v1]
+    paths:
+      - "travel/index.html"
+      - "supabase/config.toml"
+      - "tests/travel-invite-only-auth.cjs"
+      - "travel/supabase/tests/auth_invite_only.ts"
+      - ".github/workflows/travel-invite-only-auth.yml"
+      - ".github/workflows/victim-bench.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  invite-only-static:
+    name: No browser signup / neutral authentication responses
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Assert login client and local Auth config
+        run: node tests/travel-invite-only-auth.cjs
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Type-check protected integration probe (no secrets)
+        run: deno check travel/supabase/tests/auth_invite_only.ts
