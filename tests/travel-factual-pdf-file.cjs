@@ -42,6 +42,8 @@ try{
   assert.match(info,/Page size:\s+[\d.]+ x [\d.]+ pts \(A4\)/);
   const text=execFileSync("pdftotext",["-layout",file,"-"],{encoding:"utf8"});
   assert.match(text,/Historique de voyages/);
+  assert.ok(!text.includes("BEAM"),"PDF file must be unbranded");
+  assert.ok(!Buffer.from(buffer).toString("latin1").includes("BEAM"),"PDF bytes must be unbranded");
   assert.match(text,/Dakar/);
   assert.match(text,/Sénégal/);
   assert.match(text,/Paris/);
@@ -71,6 +73,7 @@ try{
  assert.ok(Number(info.match(/^Pages:\s+(\d+)/m)?.[1])>=3);
  const text=execFileSync("pdftotext",["-layout",file,"-"],{encoding:"utf8"});
  assert.ok(text.includes("Dakar"));
+ assert.ok(!text.includes("BEAM"));
  assert.ok(!text.includes(secret));
  assert.deepEqual(PDF.CONTACT_FIELDS,["email","phone","postalAddress"]);
  console.log("PASS local factual PDF bytes: A4, contact opt-in isolation, untrusted source fields dropped, 120 rows multipage");

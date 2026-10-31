@@ -79,7 +79,7 @@ function fakeSupabase(){
 }
 async function waitPopup(page,doClick){
  const [popup]=await Promise.all([page.waitForEvent("popup",{timeout:12000}),doClick()]);
- await popup.waitForFunction(()=>document.title==="BEAM - Travel History PDF",null,{timeout:12000});
+ await popup.waitForFunction(()=>document.title==="Historique de voyages",null,{timeout:12000});
  return popup;
 }
 async function main(){
@@ -131,6 +131,7 @@ async function main(){
    await page.waitForFunction(expected=>window.__contactStore.profile.country_of_residence===expected,alternativeResidence);
    assert.equal(await page.evaluate(()=>window.__contactStore.updates.length),residenceUpdatesBefore+1,
     "saving residence must make exactly one profile update");
+   await page.locator("#editAccount").click();
    const original=await page.locator("#contactPhone").inputValue();
    await page.locator("#contactPhone").fill("+224 622 09 56 30");
    const updatesBefore=await page.evaluate(()=>window.__contactStore.updates.length);
@@ -204,7 +205,63 @@ async function main(){
    });
    await page.goto("http://127.0.0.1:"+server.address().port+"/travel/",{waitUntil:"load"});
    await page.waitForFunction(()=>document.querySelector("#openAccount")&&!document.querySelector("#openAccount").classList.contains("hidden"));
+   // Assert the REAL mobile page matches the approved action layout.
+   if(width<900){
+    const layout=await page.evaluate(()=>{
+     const box=id=>{const r=document.querySelector(id).getBoundingClientRect();
+      return {top:r.top,left:r.left,bottom:r.bottom,width:r.width,height:r.height}};
+     return {add:box("#add"),pdf:box("#pdf"),journal:box("#printJournal"),
+      consent:box(".pdfContactChoice"),map:box("#travelMapPanel"),
+      overflow:document.documentElement.scrollWidth-innerWidth};
+    });
+    assert.ok(layout.overflow<=1,"real mobile page has horizontal overflow at "+width);
+    assert.ok(Math.abs(layout.pdf.top-layout.journal.top)<=2,"PDF/journal must share a row at "+width);
+    assert.ok(Math.abs(layout.pdf.height-layout.journal.height)<=2,"PDF/journal buttons must have equal height at "+width);
+    assert.ok(layout.add.width>=layout.pdf.width+layout.journal.width-4,"Add button must span both columns at "+width);
+    assert.ok(layout.consent.top>=layout.pdf.bottom-2,"PDF consent must appear below its action at "+width);
+    assert.ok(layout.map.top<850,"map must be visible without scrolling at "+width);
+   }else{
+    const branded=await page.locator("#app > .w > header").textContent();
+    assert.ok(!branded.includes("BEAM"),"signed-in desktop header must be client-owned");
+   }
    await page.screenshot({path:path.join(shots,"carnet-real-"+width+".png"),fullPage:true});
+   if(width===360){
+    // Use the actual dashboard title renderer; no fake text-only DOM substitute.
+    const declaredName="Mariama Djouldé Doumbouya Diallo Barry";
+    const expectedTitle="Carnet de "+declaredName;
+    const shortFont=await page.evaluate(()=>{
+      setDashboardTitle("Mariama");
+      return parseFloat(getComputedStyle(document.querySelector("#dashboardTitle")).fontSize);
+    });
+    const long=await page.evaluate(name=>{
+      setDashboardTitle(name);
+      const title=document.querySelector("#dashboardTitle"),map=document.querySelector("#travelMapPanel");
+      const css=getComputedStyle(title),rect=title.getBoundingClientRect(),mapRect=map.getBoundingClientRect();
+      const range=document.createRange();range.selectNodeContents(title);
+      return {fullText:title.textContent,titleHeight:rect.height,
+        lineHeight:parseFloat(css.lineHeight),fontSize:parseFloat(css.fontSize),
+        lineCount:range.getClientRects().length,overflow:css.overflow,
+        webkitLineClamp:css.webkitLineClamp,textOverflow:css.textOverflow,
+        scrollHeight:title.scrollHeight,clientHeight:title.clientHeight,
+        scrollWidth:title.scrollWidth,clientWidth:title.clientWidth,
+        mapTop:mapRect.top,mapVisibleHeight:Math.min(850,mapRect.bottom)-Math.max(0,mapRect.top),
+        horizontalOverflow:document.documentElement.scrollWidth-innerWidth};
+    },declaredName);
+    assert.equal(long.fullText,expectedTitle,"the full declared name must be visible, unchanged");
+    assert.ok(!long.fullText.includes("…")&&!long.fullText.endsWith("..."),"no ellipsis or substituted initials");
+    assert.ok(long.fontSize<shortFont,"a long name must use a smaller fluid title size");
+    assert.ok(long.titleHeight<=long.lineHeight*3+2,"long name must fit in at most three visible lines");
+    assert.ok(long.lineCount<=3,"long title may wrap onto two or three lines");
+    assert.equal(long.overflow,"visible","do not clip the client's title");
+    assert.equal(long.webkitLineClamp,"none","no CSS line clamp may conceal the name");
+    assert.notEqual(long.textOverflow,"ellipsis","no text-overflow ellipsis");
+    assert.ok(long.scrollHeight<=long.clientHeight+2&&long.scrollWidth<=long.clientWidth+2,
+      "the complete title must fit its box without clipping or horizontal overflow");
+    assert.ok(long.horizontalOverflow<=1,"long name must not produce horizontal page overflow");
+    assert.ok(long.mapTop<850&&long.mapVisibleHeight>=80,
+      "map must remain visible in the first viewport with the complete long name");
+    await page.screenshot({path:path.join(shots,"carnet-real-long-360.png"),fullPage:true});
+   }
    await page.locator("#openAccount").click();
    await page.screenshot({path:path.join(shots,"compte-real-"+width+".png"),fullPage:true});
    assert.equal(await page.locator("#closeAccount").evaluate(el=>{

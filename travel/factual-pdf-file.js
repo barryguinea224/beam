@@ -72,8 +72,7 @@
   function horizontal(py){command("0.75 0.82 0.76 RG 0.6 w 42 "+py+" m 553 "+py+" l S")}
   function beginPage(){
    operations=[];pages.push(operations);
-   color(0.09,0.302,0.227);textAt("BEAM · TRAVEL HISTORY",42,809,11,true);
-   textAt("Historique de voyages",42,784,18,true);
+   color(0.09,0.302,0.227);textAt("Historique de voyages",42,809,18,true);
    color(0.18,0.24,0.2);
    textAt("Voyages internationaux déclarés par le voyageur",42,764,9);
    textAt("Voyageur : "+name,42,742,9);

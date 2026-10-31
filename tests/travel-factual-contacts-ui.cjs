@@ -79,7 +79,7 @@ function fakeSupabase(){
 }
 async function waitPopup(page,doClick){
  const [popup]=await Promise.all([page.waitForEvent("popup",{timeout:12000}),doClick()]);
- await popup.waitForFunction(()=>document.title==="BEAM - Travel History PDF",null,{timeout:12000});
+ await popup.waitForFunction(()=>document.title==="Historique de voyages",null,{timeout:12000});
  return popup;
 }
 async function main(){
@@ -140,6 +140,7 @@ async function main(){
    "(+224) 622.09-56-30"
   ];
   for(const [index,value] of accepted.entries()){
+   if(index>0)await page.locator("#editAccount").click();
    await page.locator("#contactPhone").fill(value);
    await page.locator("#contactPhone").blur();
    assert.equal(await page.locator("#contactPhone").inputValue(),"+224 622 09 56 30",
@@ -155,7 +156,7 @@ async function main(){
   }
   const updated=await page.evaluate(()=>window.__contactStore.updates);
   assert.deepEqual(updated,accepted.map(()=>({
-   phone:"+224622095630",postal_address:"Ratoma, Conakry",country_of_residence:"GN"
+   display_name:"Aminata Diallo",phone:"+224622095630",postal_address:"Ratoma, Conakry",country_of_residence:"GN"
   })),"every accepted spelling must be saved in the same canonical format");
 
   // Server returns compact number at load; reloading must show grouped value.
@@ -220,6 +221,7 @@ async function main(){
   assert.ok(queries.some(x=>x.selected==="display_name,deleting"));
   assert.ok(queries.some(x=>x.selected==="display_name,deleting,phone,postal_address"));
   assert.ok(queries.some(x=>x.selected==="phone,postal_address,deleting"));
+  assert.ok(trace.updates.every(x=>Object.keys(x).sort().join(",")==="country_of_residence,display_name,phone,postal_address"));
   assert.deepEqual(errors,[]);
   assert.deepEqual(external,[]);
   console.log("PASS real app mobile: profile contacts, verified Auth email, unchecked/one-shot opt-in, isolated factual PDF");

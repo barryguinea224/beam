@@ -104,7 +104,8 @@ assert.match(inline,/BEAM_PERSONAL_JOURNAL\?\.titleForName\?\.\(name\)/,
 assert.match(inline,/function travelDashboardTitle\(input\)/,
  "dashboard title fallback must exist independently");
 assert.match(inline,/travelDashboardTitle\(name\)/);
-assert.match(inline,/travelDashboardTitle\(data\.display_name\)/);
+assert.match(inline,/setDashboardTitle\(data\.display_name\)/,"saved full name must update the responsive dashboard title");
+assert.match(inline,/function setDashboardTitle\(name\)/,"name rendering must use the shared no-truncation helper");
 assert.match(inline,/window\.BEAM_PERSONAL_JOURNAL\?\.render/,
  "missing optional album must disable printing without crashing the dashboard");
 assert.match(inline,/BEAM_PERSONAL_JOURNAL\.preferredMediaQuery\(/);

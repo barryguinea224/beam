@@ -90,6 +90,11 @@
     const national=digits.slice(code.length);
     return "+"+code+(national?" "+groupDigits(national):"");
   }
+  function filenameForName(name){
+    const ascii=displayName(name).normalize("NFKD").replace(/[\u0300-\u036f]/g,"")
+      .replace(/[^a-zA-Z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,90);
+    return "Historique-de-voyages-"+(ascii||"Voyageur")+".pdf";
+  }
   function contactProjection(input){
     if(!input||typeof input!=="object")throw new Error("Coordonnées indisponibles.");
     const email=typeof input.email==="string"?input.email.trim():"";
@@ -183,7 +188,7 @@
     const contacts=includeContacts?contactProjection(metadata?.contacts):null;
     doc.documentElement.lang="fr";
     const meta=doc.createElement("meta");meta.setAttribute("charset","utf-8");
-    const title=doc.createElement("title");title.textContent="BEAM - Travel History PDF";
+    const title=doc.createElement("title");title.textContent="Historique de voyages";
     const style=doc.createElement("style");style.textContent=CSS;
     doc.head.replaceChildren(meta,title,style);
     doc.body.replaceChildren();
@@ -208,7 +213,7 @@
         const bytes=writer.make({...metadata,includeContacts,contacts},rawRows);
         exportBlob=new win.Blob([bytes],{type:"application/pdf"});
         exportFile=typeof win.File==="function"?
-          new win.File([bytes],"BEAM-Travel-History.pdf",{type:"application/pdf"}):null;
+          new win.File([bytes],filenameForName(name),{type:"application/pdf"}):null;
         share.disabled=false;
       }
     }catch{
@@ -221,7 +226,7 @@
       }
       const temporary=win.URL.createObjectURL(exportBlob);
       const anchor=doc.createElement("a");
-      anchor.href=temporary;anchor.download="BEAM-Travel-History.pdf";
+      anchor.href=temporary;anchor.download=filenameForName(name);
       anchor.rel="noopener noreferrer";anchor.hidden=true;
       doc.body.appendChild(anchor);
       anchor.click();anchor.remove();
@@ -242,14 +247,13 @@
       if(!supportsFiles){downloadFile();return}
       try{
         Promise.resolve(win.navigator.share({
-          files:[exportFile],title:"BEAM Travel History",text:"Historique de voyages déclaré"
+          files:[exportFile],title:"Historique de voyages",text:"Historique de voyages déclaré"
         })).catch(err=>{
           if(err?.name!=="AbortError")downloadFile();
         });
       }catch{downloadFile()}
     });
     const header=add(main,"header");
-    add(header,"div","BEAM · TRAVEL HISTORY","brand");
     add(header,"h1","Historique de voyages");
     add(header,"p","Voyages internationaux déclarés par le voyageur","subtitle");
     add(header,"p","Voyageur : "+name,"meta");
@@ -283,7 +287,7 @@
     add(doc.body,"footer",DECLARATION,"page-notice");
     return rows.length;
   }
-  const api=Object.freeze({VIEW,FIELDS,DECLARATION,CONTACT_FIELDS,normalizePhone,formatPhone,contactProjection,
+  const api=Object.freeze({VIEW,FIELDS,DECLARATION,CONTACT_FIELDS,normalizePhone,formatPhone,filenameForName,contactProjection,
     fetchRows,factualRows,render,displayName,generatedDate,purposeName});
   if(root)root.BEAM_TRAVEL_PDF=api;
   if(typeof module!=="undefined"&&module.exports)module.exports=api;

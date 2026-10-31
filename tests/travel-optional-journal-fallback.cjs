@@ -117,11 +117,12 @@ async function main(){
    ["Elhadj","Carnet d'Elhadj"],
    ["Yaya","Carnet de Yaya"]
   ]){
+   if(name!=="Aminata")await page.locator("#editAccount").click();
    await page.locator("#travelerName").fill(name);
    await page.locator("#travelerNameForm").evaluate(form=>form.requestSubmit());
    await page.waitForFunction(expected=>
     document.querySelector("#dashboardTitle")?.textContent===expected,expected,{timeout:10000});
-   assert.match(await page.locator("#travelerNameMessage").textContent(),/Nom enregistré/);
+   assert.match(await page.locator("#contactDetailsStatus").textContent(),/Informations enregistrées/);
   }
   assert.deepEqual(pageErrors,[],"without album the real page must have no uncaught errors");
   assert.deepEqual(consoleErrors,[],"no console errors if optional module is unavailable");

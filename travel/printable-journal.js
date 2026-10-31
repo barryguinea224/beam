@@ -9,7 +9,7 @@
  const FILTERS=root?.BEAM_DASHBOARD_FILTERS||(typeof require==="function"?require("./dashboard-filters.js"):null);
  if(!COUNTRIES||!FILTERS)throw new Error("Référentiels du carnet indisponibles.");
  const PURPOSES=Object.freeze({tourisme:"Tourisme",affaires:"Affaires",etudes:"Études",famille:"Famille",sante:"Santé",transit:"Transit",autre:"Autre"});
- const FLAGS=new Set("ae be bh ca cd cg ci cn de dz es fr gb gf gh gn gp it ma ml mq mt pt re sa sg sl sn tr us".split(" "));
+ const FLAGS=new Set(COUNTRIES.ORDER.map(code=>code.toLowerCase()));
  const clean=s=>typeof s==="string"?s.trim():"";
  // H muet requires lexical knowledge: use a small list of known given names
  // rather than eliding every H (including aspirated H).
@@ -258,7 +258,7 @@
   const viewport=doc.createElement("meta");viewport.setAttribute("name","viewport");
   viewport.setAttribute("content","width=device-width,initial-scale=1");
   const ref=doc.createElement("meta");ref.setAttribute("name","referrer");ref.setAttribute("content","no-referrer");
-  const title=doc.createElement("title");title.textContent="BEAM · Mon carnet de voyage";
+  const title=doc.createElement("title");title.textContent="Mon carnet de voyage";
   const style=doc.createElement("style");style.textContent=CSS;
   doc.head.replaceChildren(charset,viewport,ref,title,style);
   doc.body.replaceChildren();
@@ -276,7 +276,7 @@
   print.addEventListener("click",()=>doc.defaultView?.print());
   const main=el(doc.body,"main");
   const cover=el(main,"section","sheet-page cover");
-  el(cover,"p","eyebrow","BEAM · TRAVEL HISTORY");
+  el(cover,"p","eyebrow","MES VOYAGES");
   const art=el(cover,"div","cover-art");
   // Favorited photographs win across ALL filtered trips, not just the newest.
   // Fall back to any signed photograph; only then use the illustrated cover.
@@ -296,7 +296,7 @@
   el(cover,"p","cover-notice",NOTICE);
   const yearbook=el(main,"section","sheet-page summary");
   const summaryTop=el(yearbook,"div","summary-title");
-  el(summaryTop,"div","eyebrow","BEAM · EN IMAGES");
+  el(summaryTop,"div","eyebrow","MES VOYAGES EN IMAGES");
   el(summaryTop,"span","summary-kicker",period(list));
   el(yearbook,"h2",null,"Mon année en voyages");
   map(yearbook,model.mapSvgText,new Set(countries));
@@ -370,9 +370,9 @@
    }
   }
   const closing=el(main,"section","sheet-page closing");
-  el(closing,"p","eyebrow","BEAM · TRAVEL HISTORY");
+  el(closing,"p","eyebrow","MON CARNET PERSONNEL");
   el(closing,"h2",null,"Chaque voyage laisse une histoire.");
-  el(closing,"p",null,"Carnet généré le "+generatedAt.toLocaleDateString("fr-FR",{day:"numeric",month:"long",year:"numeric"})+" par BEAM Travel History");
+  el(closing,"p",null,"Carnet généré le "+generatedAt.toLocaleDateString("fr-FR",{day:"numeric",month:"long",year:"numeric"}));
   // The image-load path is intentionally independent of the signed URL source.
   // Failed signatures + failed image fetches are both reflected in the toolbar.
   const images=[...doc.querySelectorAll("img")].filter(img=>img.src.startsWith("https://"));

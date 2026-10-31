@@ -33,6 +33,7 @@ async function main(){
      includesPhone:decoded.includes("+224 612 34 56 78"),
      includesCompactPhone:decoded.includes("+224612345678"),
      includesPassport:decoded.includes("SECRET_PASSPORT"),
+     containsBrand:decoded.includes("BEAM"),
      title:payload.title,hasUrl:Object.prototype.hasOwnProperty.call(payload,"url")});
    }});
   });
@@ -51,11 +52,12 @@ async function main(){
   await page.waitForFunction(()=>window.__shareCalls.length===1);
   const a=await page.evaluate(()=>window.__shareCalls[0]);
   assert.equal(a.type,"application/pdf");
-  assert.equal(a.name,"BEAM-Travel-History.pdf");
+  assert.equal(a.name,"Historique-de-voyages-Fatou-Diallo.pdf");
   assert.equal(a.pdfHeader,"%PDF-1.4");
   assert.equal(a.includesEmail,false);
   assert.equal(a.includesPhone,false);
   assert.equal(a.includesPassport,false);
+  assert.equal(a.containsBrand,false,"shared PDF bytes must not contain BEAM");
   assert.equal(a.hasUrl,false,"must never send preview or private document URL");
 
   await page.evaluate(({rows,generatedAt})=>{
@@ -79,6 +81,7 @@ async function main(){
   assert.equal(b.includesPhone,true);
   assert.equal(b.includesCompactPhone,false,"shared file must show grouped phone only");
   assert.equal(b.includesPassport,false);
+  assert.equal(b.containsBrand,false);
 
   // Unsupported browser must download a local PDF, never share a link.
   await page.evaluate(()=>{
@@ -86,7 +89,7 @@ async function main(){
   });
   const [download]=await Promise.all([page.waitForEvent("download",{timeout:10000}),
    page.locator(".share-button").click()]);
-  assert.equal(download.suggestedFilename(),"BEAM-Travel-History.pdf");
+  assert.equal(download.suggestedFilename(),"Historique-de-voyages-Fatou-Diallo.pdf");
   assert.deepEqual(errors,[]);
   console.log("PASS mobile Chrome factual PDF share: native File, opt-in privacy, no URL, safe local download fallback");
   await context.close();
