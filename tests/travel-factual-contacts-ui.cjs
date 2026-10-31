@@ -155,7 +155,7 @@ async function main(){
   }
   const updated=await page.evaluate(()=>window.__contactStore.updates);
   assert.deepEqual(updated,accepted.map(()=>({
-   phone:"+224622095630",postal_address:"Ratoma, Conakry"
+   phone:"+224622095630",postal_address:"Ratoma, Conakry",country_of_residence:"GN"
   })),"every accepted spelling must be saved in the same canonical format");
 
   // Server returns compact number at load; reloading must show grouped value.
