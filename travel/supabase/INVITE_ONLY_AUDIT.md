@@ -4,10 +4,11 @@
 commerciale automatique, création de compte réservée au propriétaire de BEAM depuis
 Supabase Authentication → Users → Add user. Aucun espace administrateur dans le carnet.
 
-**État : BLOQUANT / NO-GO production** jusqu'aux essais sur le nouvel écran, au
-test réel d'un compte client avec code à six chiffres et à la configuration du futur
-projet de production. La configuration locale et le code navigateur ne suffisent
-PAS à désactiver les inscriptions dans Supabase Cloud.
+**État : SMTP dédié + OTP six chiffres validés sur le staging le 31/10/2026**,
+sur la base de l'essai réel confirmé par le propriétaire. **NO-GO production**
+jusqu'à la configuration du futur projet de production et à la validation des
+autres contrôles de publication. Le code navigateur ne suffit PAS à désactiver
+les inscriptions dans Supabase Cloud.
 
 ### Vérifications réalisées sur staging (31 octobre 2026 — informations communiquées par le propriétaire)
 
@@ -15,15 +16,31 @@ PAS à désactiver les inscriptions dans Supabase Cloud.
 - **Allow anonymous sign-ins : OFF**.
 - **Allow manual linking : OFF**.
 - **Fournisseur Email : ON**.
-- **Modèle du staging NON configuré pour le code OTP** (capture du propriétaire,
-  31 octobre 2026) : modèle par défaut « Your sign-in link », sans `{{ .Token }}`.
-  **À remplacer après la connexion SMTP Resend**, puis tester l'envoi et la saisie
-  d'un code réel à six chiffres.
+- **Modèle Magic Link du staging corrigé le 31/10/2026** : français,
+  utilisation de `{{ .Token }}` pour afficher un **code à six chiffres**,
+  expiration OTP **900 s (15 min)**.
+- **SMTP transactionnel opérationnel** : Resend, expéditeur
+  `connexion@auth.beamguinee.com`, région **Ireland**, domaine
+  `auth.beamguinee.com` vérifié (DKIM, SPF et DMARC `p=none` publiés dans
+  **Netlify DNS**). DMARC `p=none` surveille et ne bloque pas les messages
+  qui échouent à l'authentification ; réévaluer sa politique en production.
+- **Sécurité de l'envoi** : TLS **Enforced**, suivi des clics **désactivé**,
+  suivi des ouvertures **désactivé**. Configuration SMTP saisie
+  **manuellement** dans Supabase avec une clé Resend **Sending access**
+  restreinte au domaine ; **aucune intégration OAuth Resend–Supabase**.
+- **Sécurité des comptes** : double authentification activée pour
+  **Resend et Google**, d'après le propriétaire.
+- **Preuve fonctionnelle (31/10)** : code reçu en **boîte de réception**,
+  message **en français**, puis **connexion réussie avec ce code**.
+  Ce constat est rapporté par le propriétaire et ne constitue pas une
+  inspection indépendante des paramètres hébergés.
 - Adresse inconnue testée depuis l'ancienne prévisualisation : refusée, aucun
   utilisateur créé. L'ancienne UI affichait néanmoins l'erreur brute en anglais
   « Signups not allowed for this instance », donc divulguait un indice de statut.
-  La PR #26 corrige cet affichage ; **le test sur le nouveau déploiement est encore
-  nécessaire**, ainsi que le test de réception pour un compte client existant.
+  La PR #26 corrige cet affichage ; **le test sur la nouvelle interface**
+  a été confirmé ensuite par le propriétaire : message neutre, aucun e-mail
+  à l'adresse inconnue. L'accès par code pour une adresse cliente a
+  également été validé de bout en bout sur staging.
 - Le test direct `POST /auth/v1/signup` de la sonde hostile protégée demeure
   à exécuter/contrôler si aucune preuve de son résultat n'est enregistrée.
 
@@ -56,8 +73,21 @@ PAS à désactiver les inscriptions dans Supabase Cloud.
 - [ ] Désactiver **Allow anonymous sign-ins**.
 - [ ] Désactiver **Allow manual linking**.
 - [ ] Garder **Email** actif et vérifier les autres fournisseurs d'authentification.
-- [ ] Régler le modèle e-mail de production (Magic Link / OTP) pour inclure
-      `{{ .Token }}` et envoyer réellement un **code à six chiffres**.
+- [ ] Créer une **clé API Resend distincte** pour la production, de type
+      **Sending access** et limitée à `auth.beamguinee.com` (ou au domaine
+      d'envoi retenu) ; **ne pas réutiliser la clé du staging**.
+- [ ] Configurer **manuellement le SMTP Resend** sur le projet Supabase
+      de production, sans autorisation OAuth Resend–Supabase :
+      `connexion@auth.beamguinee.com` comme expéditeur, **Ireland**,
+      **TLS Enforced**, suivi des clics et ouvertures **désactivé**.
+- [ ] Vérifier DKIM, SPF, DMARC et les enregistrements DNS du domaine
+      d'envoi sur Netlify ; évaluer le passage progressif de DMARC
+      `p=none` à une politique d'application après observation des rapports.
+- [ ] Régler le modèle e-mail **Magic Link** en **français**, avec
+      `{{ .Token }}` ; vérifier **OTP six chiffres** et **expiration
+      900 s** sur le projet de production.
+- [ ] Tester la **réception en boîte de réception** et la connexion
+      effective par OTP pour un compte client autorisé en production.
 - [ ] Vérifier domaine d'envoi, délivrabilité, durée de vie, rate limit,
       Site URL et origines/redirections de production (sans prévisualisation privée).
 - [ ] Tester l'échec d'une inscription directe `POST /auth/v1/signup`, l'OTP
@@ -66,24 +96,30 @@ PAS à désactiver les inscriptions dans Supabase Cloud.
 - [ ] Vérifier les contrôles de confidentialité, RLS, Storage et suppression
       de compte existants avant l'ouverture.
 
-**Staging :** le modèle e-mail est encore « Your sign-in link » et ne contient
-**pas** `{{ .Token }}`. Mettre à jour le modèle *après* la configuration SMTP
-Resend, avant le test réel de connexion par code.
+**Staging — résolu le 31/10/2026 :** SMTP Resend dédié actif, modèle
+Magic Link français avec `{{ .Token }}`, OTP six chiffres valable
+900 secondes ; réception et connexion réellement testées. **Ne pas refaire
+ce réglage** pour ce chantier. Le nouveau projet de production doit recevoir
+sa propre configuration et une clé Resend distincte.
 
 ## SMTP transactionnel BEAM — configuration contrôlée
 
-- **Service retenu : Resend**, domaine d'envoi `auth.beamguinee.com`, région
-  `Ireland (eu-west-1)` si disponible. Les enregistrements exacts de
-  vérification SPF/DKIM/MX seront recopiés dans Netlify DNS après affichage
-  dans Resend ; ne pas inventer leurs valeurs.
+- **Service installé et testé sur staging le 31/10/2026 : Resend**,
+  domaine vérifié `auth.beamguinee.com`, région **Ireland**.
+  DKIM, SPF et DMARC `p=none` ont été configurés dans **Netlify DNS**.
+  Les valeurs exactes des enregistrements ne sont pas consignées ici :
+  consulter Resend et Netlify pour vérifier leur état réel.
 - **Pas d'intégration automatique Resend–Supabase ni de délégation OAuth
   de l'accès au projet Supabase** : saisir manuellement les paramètres SMTP
-  dans Supabase Auth. Créer une clé Resend à permission **Sending access**,
-  restreinte au domaine `auth.beamguinee.com`, distincte entre staging et
-  production si nécessaire ; ne jamais la placer dans Git, une capture ou le navigateur.
-- Champs à configurer après vérification du domaine : adresse expéditrice,
-  nom d'expéditeur, hôte `smtp.resend.com`, port SMTP compatible TLS,
-  utilisateur `resend`, mot de passe = clé Resend d'envoi.
+  dans Supabase Auth. Sur staging, la clé **Sending access** est
+  restreinte à `auth.beamguinee.com`. Pour la production, une
+  **nouvelle clé distincte** est obligatoire ; ne jamais placer une clé
+  dans Git, une capture ou le navigateur.
+- Paramètres de référence : expéditeur `connexion@auth.beamguinee.com`,
+  hôte `smtp.resend.com`, utilisateur `resend`, mot de passe = clé
+  Resend d'envoi **non documentée** ; TLS obligatoire (**Enforced**),
+  suivi des clics et des ouvertures désactivé. Vérifier le port SMTP
+  dans la configuration hébergée sans l'inférer à partir de ce document.
 - **Conserver le verrouillage des inscriptions** : le SMTP sert uniquement
   à la délivrabilité et ne doit pas réactiver l'inscription publique.
 
@@ -116,10 +152,12 @@ Resend, avant le test réel de connexion par code.
   avec `STAGING_SERVICE_ROLE_KEY` limitée à ce job. Les tests A/B
   existants se connectent aux identités précréées ; le victim bench continue
   à créer les comptes jetables via `admin.auth.admin.createUser`.
-- Essai réel sur téléphone et ordinateur : un compte créé manuellement reçoit
-  un code lisible à six chiffres, le saisit et retrouve ses voyages après reconnexion.
-  Une adresse inconnue et une adresse supprimée ne reçoivent **aucun accès**.
-  Vérifier aussi le comportement en cas d'échec SMTP/réseau et de demande répétée.
+- **Essai réel sur staging réussi le 31/10/2026**, selon le propriétaire :
+  code de six chiffres reçu en boîte de réception et connexion réussie.
+  Adresse inconnue : message neutre, aucun e-mail et aucun compte créé
+  (résultats rapportés). **Restent à compléter** : régression après chaque
+  changement d'Auth, scénario compte supprimé, panne SMTP/réseau,
+  demandes répétées et vérification sur un appareil partagé.
 - Répéter les contrôles **sur production** avant l'ouverture, avec des comptes
   de test dédiés et un nettoyage contrôlé, sans exécuter le banc destructif
   staging contre la production.
@@ -134,6 +172,9 @@ surveiller les limitations de débit et activer la protection anti-abus adaptée
 avant production. Ne pas déclarer « anti-énumération totale » sans audit
 du comportement réseau et solution serveur validée.
 
-**Critères de sortie du NO-GO :** protection serveur observée sur staging,
-test CI et staging verts, e-mail OTP à six chiffres réellement reçu,
-redirections/cookies validés, puis confirmation équivalente en production.
+**Critères de sortie du NO-GO production :** protection serveur du projet de
+production, clé Resend propre à la production, SMTP/TLS validés, modèle
+français avec `{{ .Token }}`, OTP six chiffres / 900 s reçu et utilisé en
+conditions réelles, CI/contrôles hostiles requis et redirections/cookies
+validés en production. **Le succès staging ne vaut pas autorisation de lancer
+la production.**
