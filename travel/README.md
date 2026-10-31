@@ -9,7 +9,7 @@ Espace personnel de mémoire de voyage : voyages, activités, notes, photos priv
 - Activités et notes privées
 - Photos privées uniquement (pas de vidéo en V1)
 - Réencodage navigateur des photos avant upload pour retirer EXIF/GPS
-- PDF : pays, villes, entrée, sortie, durée, motif **uniquement** ; aucune note, photo ou activité
+- PDF ambassade personnel : titre « Historique de voyages », nom complet, date en français, tableau de six colonnes factuelles, sans souvenir, photo, activité, identité ni notice ; contacts uniquement avec consentement explicite.
 - Aucun passeport, visa ou justificatif
 
 ## Installation
@@ -60,3 +60,8 @@ Les lignes métier sont en `ON DELETE CASCADE`. Les objets du bucket Storage doi
 - En mode installé, le bouton et l'aide privilégient le **code e-mail à six chiffres**. Le lien magique peut ouvrir Chrome en dehors de la PWA installée.
 - Tests `tests/travel-pwa-privacy.cjs` : manifest, dimensions des icônes, exclusion de toute réponse Supabase ou URL signée du cache, navigation hors ligne, purge isolée, nettoyage des jetons locaux.
 - **Borne de l'audit :** l'absence de mise en cache par le service worker n'annule pas les caches HTTP natifs des fournisseurs externes. Avant ouverture publique, vérifier également les directives HTTP de Supabase/Storage et la politique de session sur appareils partagés. Faire évoluer `CACHE_NAME` pour renouveler volontairement les ressources de secours préchargées ; **ce changement n'est pas requis pour recevoir un correctif en ligne**, puisque tous les fichiers publics passent en réseau d'abord. Les tests CI simulent une ancienne ressource mise en cache et vérifient qu'une nouvelle réponse réseau l'emporte.
+
+## Contrat PDF V1 — 31 octobre 2026
+- HTML imprimé et fichier partagé : seulement titre « Historique de voyages », nom complet, date, tableau des voyages étrangers, coordonnées si opt-in explicite.
+- Sans mention administrative, sous-titre déclaratif, conclusion ni marque. Vue `travel_history_pdf` : six champs fermés, séjours nationaux exclus, aucune donnée d'identité, souvenir, photo ou activité.
+- Coordonnées projetées depuis Auth/profil uniquement avec consentement décoché par défaut ; carnet personnel sans mention, ni identité, ni marque.

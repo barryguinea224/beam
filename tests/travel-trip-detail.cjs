@@ -62,6 +62,7 @@ function box(){
   classList:{add:v=>names.add(v),remove:v=>names.delete(v),contains:v=>names.has(v)},
   focus(){context.document.activeElement=this},replaceChildren(){this.innerHTML=''},
   reset(){this.value='';this.didReset=true},
+  add(option){this.options=(this.options||[]).concat(option)},
   querySelectorAll(){return []}
  };
 }
@@ -93,6 +94,7 @@ const S={
 };
 const context=vm.createContext({
  window:{BEAM_TRIP_DETAIL:DETAIL,BEAM_TRAVEL_PDF:PDF,confirm:()=>true},
+ Option:class {constructor(label,value){this.text=label;this.value=value}},
  document:{activeElement:null},
  S,user:{id:'owner'},accountState:'active',trips:[tripRecord],
  $:id=>{assert.ok(els[id], 'Missing DOM stub '+id);return els[id]},

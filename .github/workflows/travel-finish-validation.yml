@@ -50,4 +50,6 @@ jobs:
             test-artifacts/travel-responsive-real/carnet-real-1280.png
             test-artifacts/travel-responsive-real/compte-real-360.png
             test-artifacts/travel-responsive-real/compte-real-1280.png
+            test-artifacts/travel-onboarding-real/empty-360.png
+            test-artifacts/travel-onboarding-real/first-trip-360.png
           if-no-files-found: warn

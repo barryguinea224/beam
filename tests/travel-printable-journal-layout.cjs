@@ -71,7 +71,7 @@ async function main(){
       missingCaptions:document.querySelectorAll("figcaption.photo-missing").length
     }));
     assert.ok(audit.width<=width+1,"journal horizontal overflow on "+width+": "+JSON.stringify(audit));
-    assert.equal(audit.noticeHead,NOTICE);assert.equal(audit.noticeFoot,NOTICE);
+    assert.equal(audit.noticeHead,undefined);assert.equal(audit.noticeFoot,undefined);
     assert.match(audit.text,/Carnet d'Aminata Diallo/);
     assert.match(audit.text,/Sénégal · 2026/);
     assert.match(audit.text,/Séjour national/);
@@ -107,8 +107,7 @@ async function main(){
     assert.match(second,/Mon année en voyages/);
     for(let p=1;p<=pages;p++){
      const txt=execFileSync("pdftotext",["-f",String(p),"-l",String(p),"-layout",dest,"-"],{encoding:"utf8"});
-     if(!txt.includes(NOTICE))throw new Error("Mandatory disclaimer absent from printed A4 page "+
-       p+"/"+pages+"; page contents="+JSON.stringify(txt.slice(0,1100)));
+     if(txt.includes(NOTICE))throw new Error("Removed disclaimer appeared on page "+p);
     }
     const text=execFileSync("pdftotext",["-layout",dest,"-"],{encoding:"utf8"});
     assert.ok(!text.includes(PRIVATE_EMAIL)&&!text.includes(PASSPORT));

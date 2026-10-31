@@ -5,7 +5,7 @@
   "use strict";
   const VIEW="travel_history_pdf";
   const FIELDS=Object.freeze(["country_code","cities","entry_date","exit_date","duration_days","purpose"]);
-  const DECLARATION="Historique déclaré par l'utilisateur, non délivré par une autorité officielle";
+  const DECLARATION=""; // retired for personal documents
   const COUNTRY_NAMES=(root?.BEAM_COUNTRIES||(
     typeof require==="function"?require("./countries.js"):null
   ))?.NAMES;
@@ -108,8 +108,7 @@
   function generatedDate(value){
     if(!(value instanceof Date)||Number.isNaN(value.getTime()))
       throw new Error("Date de génération indisponible.");
-    return String(value.getDate()).padStart(2,"0")+"/"+
-      String(value.getMonth()+1).padStart(2,"0")+"/"+value.getFullYear();
+    return value.toLocaleDateString("fr-FR",{day:"numeric",month:"long",year:"numeric"});
   }
   function shortDate(raw){
     if(typeof raw!=="string"||!/^([0-9]{4})-([0-9]{2})-([0-9]{2})$/.test(raw))return "—";
@@ -147,8 +146,6 @@
     "h1{font-size:23pt;font-weight:700;line-height:1.15;margin:8mm 0 2mm}",
     ".subtitle{color:#66736e;margin:0}",
     ".meta{font-size:10pt;margin:6px 0;color:#33443a;overflow-wrap:anywhere}",
-    ".declaration{border:1px solid #174d3a;background:#f5f9f6;color:#25392e;padding:9px 12px;font-size:10pt;font-weight:700;margin:0 0 8mm}",
-    ".count{color:#4f5e56;font-size:10pt;margin:0 0 3mm}",
     "table{border-collapse:collapse;width:100%;table-layout:fixed}",
     "th{background:#eaf0ec;color:#174d3a;font-size:8.6pt;text-align:left;padding:9px 6px;border-bottom:2px solid #174d3a}",
     "td{padding:9px 6px;border-bottom:1px solid #dfe5e0;overflow-wrap:anywhere;vertical-align:top}",
@@ -157,8 +154,6 @@
     "thead{display:table-header-group}tr{break-inside:avoid}",
     ".code{font-size:8pt;color:#687970;display:block;margin-top:2px}",
     ".empty{padding:18px 0;color:#5e6961}",
-    ".footnote{font-size:9pt;color:#607269;margin:7mm 0 0}",
-    ".page-notice{position:fixed;bottom:0;left:0;right:0;border-top:1px solid #bfcfc4;padding-top:3mm;color:#44564a;font-size:8pt;text-align:center}",
     ".toolbar{margin:0 0 12mm;display:flex;gap:12px;align-items:center}",
     ".print-button{border:0;border-radius:25px;background:#174d3a;color:white;padding:11px 19px;font-weight:700;cursor:pointer;font-size:11pt}",
     ".toolbar-note{font-size:10pt;color:#5b6960}",
@@ -169,7 +164,7 @@
     ".declared-contacts h2{font:700 11pt Arial,sans-serif;color:#174d3a;margin:0 0 5px}",
     ".declared-contacts p{margin:3px 0;font-size:9.5pt;white-space:pre-wrap}",
     "@media print{.toolbar{display:none!important}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}a{display:none!important}}",
-    "@media screen{body{padding:24px 18px;background:#edf1ed}main{background:white;padding:28px;box-shadow:0 4px 25px #17231f20}.page-notice{position:static;margin-top:14mm}}",
+    "@media screen{body{padding:24px 18px;background:#edf1ed}main{background:white;padding:28px;box-shadow:0 4px 25px #17231f20}}",
     "@media(max-width:620px){body{padding:8px}main{padding:16px;overflow-x:auto}table{min-width:530px}.toolbar{flex-direction:column;align-items:stretch}}"
   ].join("\n");
   function add(parent,tag,content,cssClass){
@@ -247,7 +242,7 @@
       if(!supportsFiles){downloadFile();return}
       try{
         Promise.resolve(win.navigator.share({
-          files:[exportFile],title:"Historique de voyages",text:"Historique de voyages déclaré"
+          files:[exportFile],title:"Historique de voyages",text:"Historique de voyages"
         })).catch(err=>{
           if(err?.name!=="AbortError")downloadFile();
         });
@@ -255,9 +250,8 @@
     });
     const header=add(main,"header");
     add(header,"h1","Historique de voyages");
-    add(header,"p","Voyages internationaux déclarés par le voyageur","subtitle");
-    add(header,"p","Voyageur : "+name,"meta");
-    add(header,"p","Document généré le "+date,"meta");
+    add(header,"p",name,"meta");
+    add(header,"p",date,"meta");
     if(contacts){
       const box=add(main,"section",null,"declared-contacts");
       add(box,"h2","Coordonnées déclarées");
@@ -265,11 +259,7 @@
         if(contacts[key])add(box,"p",label+" : "+(key==="phone"?formatPhone(contacts[key]):contacts[key]));
       }
     }
-    add(main,"p",DECLARATION,"declaration");
-    add(main,"p",rows.length+" voyage"+(rows.length===1?"":"s")+" déclaré"+(rows.length===1?"":"s"),"count");
-    if(!rows.length){
-      add(main,"p","Aucun voyage international éligible à ce document.","empty");
-    }else{
+    {
       const table=add(main,"table");
       const thead=add(table,"thead");
       const heading=add(thead,"tr");
@@ -283,8 +273,7 @@
         for(const key of ["cities","entry","exit","duration","purpose"])add(tr,"td",trip[key]);
       }
     }
-    add(main,"p","Ce document présente uniquement les voyages déclarés à l’étranger. Il ne constitue pas une preuve de passage aux frontières.","footnote");
-    add(doc.body,"footer",DECLARATION,"page-notice");
+    // Only the personal facts in the closed contract are displayed.
     return rows.length;
   }
   const api=Object.freeze({VIEW,FIELDS,DECLARATION,CONTACT_FIELDS,normalizePhone,formatPhone,filenameForName,contactProjection,

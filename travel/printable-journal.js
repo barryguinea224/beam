@@ -3,7 +3,7 @@
 // No HTML interpolation, Auth email, identity document or stored signed URL.
 (function(root){
  "use strict";
- const NOTICE="Document personnel, non destiné aux démarches administratives";
+ const NOTICE=""; // retired personal-document notice
  const MAX_PHOTOS_PER_TRIP=4,MAX_TOTAL_PHOTOS=40,SIGNED_SECONDS=300;
  const COUNTRIES=root?.BEAM_COUNTRIES||(typeof require==="function"?require("./countries.js"):null);
  const FILTERS=root?.BEAM_DASHBOARD_FILTERS||(typeof require==="function"?require("./dashboard-filters.js"):null);
@@ -144,9 +144,9 @@
   svg.setAttribute("viewBox",[x,y,bw,bh].map(v=>Number(v.toFixed(2))).join(" "));
  }
  const CSS=[
-  "@page{size:A4;margin:27mm 14mm 26mm;@top-center{content:'Document personnel, non destiné aux démarches administratives';font:600 8pt Arial,sans-serif;color:#254e3c;border-bottom:1px solid #bdcfc1;padding-bottom:2mm}@bottom-center{content:'Document personnel, non destiné aux démarches administratives';font:600 8pt Arial,sans-serif;color:#254e3c;border-top:1px solid #bdcfc1;padding-top:2mm}@bottom-right{content:counter(page);font:700 8pt Arial,sans-serif;color:#254e3c}}",
+   "@page{size:A4;margin:15mm 14mm 15mm;@bottom-right{content:counter(page);font:700 8pt Arial,sans-serif;color:#254e3c}}",
   "*{box-sizing:border-box}",
-  "html,body{margin:0;background:#fff;color:#173328;font:11pt/1.5 system-ui,-apple-system,Arial,sans-serif}",
+  "html,body{margin:0;background:#fff;color:#173328;font:11pt/1.5 system-ui,-apple-system,'Noto Color Emoji','Apple Color Emoji',Arial,sans-serif}",
   "main{max-width:182mm;margin:auto;min-width:0}",
   ".screen-head,.screen-foot{position:fixed;z-index:5;left:0;right:0;text-align:center;background:#f9fcf8;color:#355745;font:600 11px/1.5 system-ui;padding:6px 10px;border-bottom:1px solid #d6e4da}",
   ".screen-head{top:0}.screen-foot{bottom:0;border-top:1px solid #d6e4da;border-bottom:0}",
@@ -262,8 +262,7 @@
   const style=doc.createElement("style");style.textContent=CSS;
   doc.head.replaceChildren(charset,viewport,ref,title,style);
   doc.body.replaceChildren();
-  el(doc.body,"div","screen-head",NOTICE);
-  el(doc.body,"div","screen-foot",NOTICE);
+  
   const toolbar=el(doc.body,"div","toolbar");
   const print=el(toolbar,"button","print-button","Imprimer / Enregistrer en PDF");
   print.type="button";print.disabled=true;
@@ -293,7 +292,7 @@
   const flags=el(coverDetails,"div","flag-strip");
   for(const code of countries.slice(0,24))flag(flags,code);
   el(coverDetails,"p","cover-caption",list.length+" voyage"+(list.length===1?"":"s")+" raconté"+(list.length===1?"":"s"));
-  el(cover,"p","cover-notice",NOTICE);
+  
   const yearbook=el(main,"section","sheet-page summary");
   const summaryTop=el(yearbook,"div","summary-title");
   el(summaryTop,"div","eyebrow","MES VOYAGES EN IMAGES");
