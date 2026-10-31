@@ -775,22 +775,27 @@ $("#printJournal").onclick=async()=>{
     const [activityResult,photoResult]=await Promise.all([
      S.from("activities").select("title,place,happened_on").eq("trip_id",trip.id).eq("user_id",uid)
       .order("created_at",{ascending:true}).limit(50),
-     S.from("media").select("id,storage_path").eq("trip_id",trip.id).eq("user_id",uid)
-      .order("created_at",{ascending:true}).limit(window.BEAM_PERSONAL_JOURNAL.MAX_PHOTOS_PER_TRIP)
+     window.BEAM_PERSONAL_JOURNAL.preferredMediaQuery(
+      S.from("media").select("id,storage_path").eq("trip_id",trip.id).eq("user_id",uid)
+     )
     ]);
     if(activityResult.error||photoResult.error)throw new Error("Contenu indisponible");
     const media=(photoResult.data||[]).slice(0,Math.min(remaining,window.BEAM_PERSONAL_JOURNAL.MAX_PHOTOS_PER_TRIP));
     remaining-=media.length;
     const photos=[];
+    let missingPhotos=0;
     for(const row of media){
-     if(!row.storage_path?.startsWith(uid+"/"+trip.id+"/"))continue;
-     const {data:signed,error:signError}=await S.storage.from("media")
-      .createSignedUrl(row.storage_path,window.BEAM_PERSONAL_JOURNAL.SIGNED_SECONDS);
-     if(signError||!signed?.signedUrl)continue;
-     const safe=window.BEAM_VISUAL_CARDS.trustedSignedUrl(signed.signedUrl,C.supabaseUrl);
-     if(safe)photos.push(safe); // RAM-only, never persist or cache via our SW.
+     if(!row.storage_path?.startsWith(uid+"/"+trip.id+"/")){missingPhotos++;continue}
+     try{
+      const {data:signed,error:signError}=await S.storage.from("media")
+       .createSignedUrl(row.storage_path,window.BEAM_PERSONAL_JOURNAL.SIGNED_SECONDS);
+      const safe=!signError&&signed?.signedUrl
+       ?window.BEAM_VISUAL_CARDS.trustedSignedUrl(signed.signedUrl,C.supabaseUrl):"";
+      if(safe)photos.push(safe); // RAM-only; no service-worker image caching.
+      else missingPhotos++; // A rejected/expired signature must be visible.
+     }catch{missingPhotos++}
     }
-    pack[position]={trip,activities:activityResult.data||[],photos};
+    pack[position]={trip,activities:activityResult.data||[],photos,missingPhotos};
    }
   }
   await Promise.all(Array.from({length:Math.min(3,selected.length)},()=>worker()));
