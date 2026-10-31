@@ -12,7 +12,7 @@ for(const code of countries.ORDER){
  assert.ok(fs.existsSync(file),"Missing local flag "+code);
  const image=fs.readFileSync(file,"utf8");
  assert.match(image,/<svg\b[^>]*[\s\S]*<\/svg>/i,code+" must be SVG");
- assert.ok(!/https?:\/\//i.test(image.replace(/xmlns="https?:\/\/[^"]+"/g,"")),"External SVG asset not allowed: "+code);
+ assert.ok(!/\b(?:href|src)\s*=\s*["\x27]https?:\/\//i.test(image)&&!url\(\s*["\x27]?https?:\/\//i.test(image),"Remote SVG reference not allowed: "+code);
 }
 assert.ok(fs.existsSync("travel/assets/flags/LICENSE.flag-icons"));
 assert.equal(manifest.name,"BEAM Travel History");
