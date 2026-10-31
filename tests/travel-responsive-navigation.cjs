@@ -226,17 +226,40 @@ async function main(){
    }
    await page.screenshot({path:path.join(shots,"carnet-real-"+width+".png"),fullPage:true});
    if(width===360){
-    await page.locator("#dashboardTitle").evaluate(n=>{
-      n.textContent="Carnet de Mariama Djouldé Doumbouya Diallo Barry";
+    // Use the actual dashboard title renderer; no fake text-only DOM substitute.
+    const declaredName="Mariama Djouldé Doumbouya Diallo Barry";
+    const expectedTitle="Carnet de "+declaredName;
+    const shortFont=await page.evaluate(()=>{
+      setDashboardTitle("Mariama");
+      return parseFloat(getComputedStyle(document.querySelector("#dashboardTitle")).fontSize);
     });
-    const long=await page.evaluate(()=>{
-      const name=document.querySelector("#dashboardTitle"),map=document.querySelector("#travelMapPanel");
-      const lineHeight=parseFloat(getComputedStyle(name).lineHeight);
-      return {titleHeight:name.getBoundingClientRect().height,lineHeight,
-        mapTop:map.getBoundingClientRect().top};
-    });
-    assert.ok(long.titleHeight<=long.lineHeight*2+2,"long name must occupy at most two lines");
-    assert.ok(long.mapTop<850,"map must remain in initial viewport with a long name");
+    const long=await page.evaluate(name=>{
+      setDashboardTitle(name);
+      const title=document.querySelector("#dashboardTitle"),map=document.querySelector("#travelMapPanel");
+      const css=getComputedStyle(title),rect=title.getBoundingClientRect(),mapRect=map.getBoundingClientRect();
+      const range=document.createRange();range.selectNodeContents(title);
+      return {fullText:title.textContent,titleHeight:rect.height,
+        lineHeight:parseFloat(css.lineHeight),fontSize:parseFloat(css.fontSize),
+        lineCount:range.getClientRects().length,overflow:css.overflow,
+        webkitLineClamp:css.webkitLineClamp,textOverflow:css.textOverflow,
+        scrollHeight:title.scrollHeight,clientHeight:title.clientHeight,
+        scrollWidth:title.scrollWidth,clientWidth:title.clientWidth,
+        mapTop:mapRect.top,mapVisibleHeight:Math.min(850,mapRect.bottom)-Math.max(0,mapRect.top),
+        horizontalOverflow:document.documentElement.scrollWidth-innerWidth};
+    },declaredName);
+    assert.equal(long.fullText,expectedTitle,"the full declared name must be visible, unchanged");
+    assert.ok(!long.fullText.includes("…")&&!long.fullText.endsWith("..."),"no ellipsis or substituted initials");
+    assert.ok(long.fontSize<shortFont,"a long name must use a smaller fluid title size");
+    assert.ok(long.titleHeight<=long.lineHeight*3+2,"long name must fit in at most three visible lines");
+    assert.ok(long.lineCount<=3,"long title may wrap onto two or three lines");
+    assert.equal(long.overflow,"visible","do not clip the client's title");
+    assert.equal(long.webkitLineClamp,"none","no CSS line clamp may conceal the name");
+    assert.notEqual(long.textOverflow,"ellipsis","no text-overflow ellipsis");
+    assert.ok(long.scrollHeight<=long.clientHeight+2&&long.scrollWidth<=long.clientWidth+2,
+      "the complete title must fit its box without clipping or horizontal overflow");
+    assert.ok(long.horizontalOverflow<=1,"long name must not produce horizontal page overflow");
+    assert.ok(long.mapTop<850&&long.mapVisibleHeight>=80,
+      "map must remain visible in the first viewport with the complete long name");
     await page.screenshot({path:path.join(shots,"carnet-real-long-360.png"),fullPage:true});
    }
    await page.locator("#openAccount").click();

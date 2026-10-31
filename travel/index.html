@@ -136,7 +136,9 @@ html.beamOffline #auth,html.beamOffline #app,html.beamOffline #modal,html.beamOf
  #app>.w>header{min-height:36px}
  #travelHero{padding:6px 0 5px;gap:7px}
  #travelHero .ey{display:none}
- #dashboardTitle{font-size:clamp(26px,7.5vw,28px);line-height:1.04;max-width:100%;margin:2px 0 3px;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden}
+ #dashboardTitle{font-size:clamp(26px,7.5vw,28px);line-height:1.07;max-width:100%;margin:2px 0 3px;display:block;white-space:normal;overflow:visible;overflow-wrap:anywhere;text-overflow:clip}
+ #dashboardTitle.longTitle{font-size:clamp(20px,5.8vw,24px);line-height:1.12}
+ #dashboardTitle.extraLongTitle{font-size:clamp(18px,5.15vw,21px);line-height:1.14}
  #travelHero .actions{margin-top:3px;gap:7px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-areas:"add add" "pdf journal" "consent .";align-items:stretch}
  #travelHero .actions #add{grid-area:add}
  #travelHero .actions #pdfActionGroup{display:contents}
@@ -277,6 +279,13 @@ function travelDashboardTitle(input){
  const vowel=/^[aàâäeéèêëiîïoôöuùûüœæ]/i.test(name)||hMuet.test(name);
  return "Carnet "+(vowel?"d'":"de ")+name;
 }
+function setDashboardTitle(name){
+ const heading=$("#dashboardTitle"),fullTitle=travelDashboardTitle(name);
+ heading.textContent=fullTitle;
+ // Never truncate the declared name; use a smaller fluid font for longer titles.
+ heading.classList.toggle("longTitle",fullTitle.length>34);
+ heading.classList.toggle("extraLongTitle",fullTitle.length>70);
+}
 function tripDates(a,b){let A=new Date(a+"T12:00:00"),B=new Date(b+"T12:00:00"),sameMonth=A.getMonth()===B.getMonth()&&A.getFullYear()===B.getFullYear(),sameYear=A.getFullYear()===B.getFullYear();if(sameMonth)return A.getDate()+" → "+B.toLocaleDateString("fr-FR",{day:"numeric",month:"long",year:"numeric"});if(sameYear)return A.toLocaleDateString("fr-FR",{day:"numeric",month:"short"})+" → "+B.toLocaleDateString("fr-FR",{day:"numeric",month:"short",year:"numeric"});return A.toLocaleDateString("fr-FR",{day:"numeric",month:"short",year:"numeric"})+" → "+B.toLocaleDateString("fr-FR",{day:"numeric",month:"short",year:"numeric"})}
 function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 let mapReady=false,mapLoading=false;
@@ -319,7 +328,7 @@ function render(){
  const api=window.BEAM_DASHBOARD_FILTERS;renderFilterOptions();
  const visible=api.apply(trips,dashboardFilters),stats=api.summary(visible,dashboardFilters),counts=countryCounts(),active=Object.values(dashboardFilters).some(Boolean);
  const name=typeof profile.display_name==="string"?profile.display_name.trim().replace(/\s+/g," "):"";
- $("#dashboardTitle").textContent=travelDashboardTitle(name);
+ setDashboardTitle(name);
  const national=dashboardFilters.scope==="domestic";
  $("#nt").textContent=stats.trips;
  $("#ntl").textContent=national?(stats.trips===1?"séjour national":"séjours nationaux"):(stats.trips===1?"voyage à l’étranger":"voyages à l’étranger");
@@ -1125,7 +1134,7 @@ $("#contactDetailsForm").onsubmit=async event=>{
   profile.display_name=data.display_name;
   profile.country_of_residence=data.country_of_residence||null;
   $("#travelerName").value=data.display_name;
-  $("#dashboardTitle").textContent=travelDashboardTitle(data.display_name);
+  setDashboardTitle(data.display_name);
   $("#contactPhone").value=window.BEAM_TRAVEL_PDF.formatPhone(data.phone||"");
   $("#contactPostalAddress").value=data.postal_address||"";
   countrySelectors.residence.reset(data.country_of_residence||"");
