@@ -58,7 +58,7 @@ async function main(){
     const dest=path.join(dir,"journal-"+width+".pdf");
     fs.writeFileSync(dest,await page.pdf({printBackground:true,preferCSSPageSize:true}));
     const info=execFileSync("pdfinfo",[dest],{encoding:"utf8"});
-    assert.match(info,/Page size:\s+595(?:\.\d+)? x 842(?:\.\d+)? pts \(A4\)/);
+    assert.match(info,/Page size:\s+595(?:\.\d+)? x 84[12](?:\.\d+)? pts \(A4\)/);
     const pages=Number(info.match(/^Pages:\s+(\d+)/m)?.[1]);
     assert.ok(pages>=3,"Expected multi-page A4 with cover, got "+pages);
     for(let p=1;p<=pages;p++){
