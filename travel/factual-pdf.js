@@ -29,15 +29,28 @@
   // Explicit opt-in contact projection: never read extra keys or Auth metadata.
   // These values come from the signed-in Auth user and their own profiles row.
   const CONTACT_FIELDS=Object.freeze(["email","phone","postalAddress"]);
+  // Validate one canonical number for form submission AND factual PDF export.
+  // 00... -> +..., national GN mobile 6XXXXXXXX -> +2246XXXXXXXX.
+  // Keep only explicitly accepted visual separators; no guessing other codes.
+  function normalizePhone(raw){
+    const input=typeof raw==="string"?raw:"";
+    let phone=input.trim().replace(/[\s.\-()]/g,"");
+    if(!phone)return "";
+    if(phone.startsWith("00"))phone="+"+phone.slice(2);
+    else if(/^6[0-9]{8}$/.test(phone))phone="+224"+phone;
+    if(!phone.startsWith("+"))
+      throw new Error("Téléphone invalide : ajoutez l’indicatif du pays (ex. +224 622 09 56 30).");
+    if(!/^\+[0-9]{6,15}$/.test(phone))
+      throw new Error("Téléphone invalide : 6 à 15 chiffres après + (ex. +224 622 09 56 30).");
+    return phone;
+  }
   function contactProjection(input){
     if(!input||typeof input!=="object")throw new Error("Coordonnées indisponibles.");
     const email=typeof input.email==="string"?input.email.trim():"";
-    const phone=typeof input.phone==="string"?input.phone.trim():"";
+    const phone=normalizePhone(input.phone);
     const postalAddress=typeof input.postalAddress==="string"?input.postalAddress.trim():"";
     if(email.length>254||!email||!email.includes("@")||/[\r\n<>]/.test(email))
       throw new Error("E-mail du compte indisponible.");
-    if(phone&&(!/^\+[0-9]{1,29}$/.test(phone)||phone.length>30))
-      throw new Error("Téléphone déclaré invalide.");
     if(postalAddress.length>300)throw new Error("Adresse déclarée trop longue.");
     return Object.freeze({email,phone,postalAddress});
   }
@@ -224,7 +237,7 @@
     add(doc.body,"footer",DECLARATION,"page-notice");
     return rows.length;
   }
-  const api=Object.freeze({VIEW,FIELDS,DECLARATION,CONTACT_FIELDS,contactProjection,
+  const api=Object.freeze({VIEW,FIELDS,DECLARATION,CONTACT_FIELDS,normalizePhone,contactProjection,
     fetchRows,factualRows,render,displayName,generatedDate,purposeName});
   if(root)root.BEAM_TRAVEL_PDF=api;
   if(typeof module!=="undefined"&&module.exports)module.exports=api;
