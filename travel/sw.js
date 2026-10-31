@@ -1,7 +1,7 @@
 // BEAM Travel History PWA — PRIVATE BY DEFAULT.
 // Cache only the audited, versioned public shell. No runtime cache writes.
 // Never cache Supabase, signed links, personal trips, photos or API responses.
-const CACHE_NAME = "beam-travel-shell-v1-20261031-full-client-name";
+const CACHE_NAME = "beam-travel-shell-v1-20261031-journey-flags-249";
 const SCOPE_PATH = "/travel/";
 const PUBLIC_SHELL = [
   "./index.html", "./config.js", "./offline-bootstrap.js", "./pwa.js",
@@ -11,6 +11,8 @@ const PUBLIC_SHELL = [
   "./visual-cards.js", "./visual-cards.css",
   "./assets/world-map.svg", "./manifest.webmanifest",
   "./icons/icon-192.png", "./icons/icon-512.png", "./icons/icon-maskable-512.png",
+  // Keep the 30 audited popular SVGs in the offline PUBLIC shell. Other ISO
+  // SVGs load from the same origin online; no private data or runtime caching.
   ...["ae","be","bh","ca","cd","cg","ci","cn","de","dz","es","fr","gb","gf","gh","gn","gp","it","ma","ml","mq","mt","pt","re","sa","sg","sl","sn","tr","us"].map(code => "./assets/flags/" + code + ".svg")
 ];
 const SAFE_PATHS = new Set(PUBLIC_SHELL.map(path => new URL(path, self.registration.scope).pathname));

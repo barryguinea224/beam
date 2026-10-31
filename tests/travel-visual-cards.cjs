@@ -10,8 +10,12 @@ vm.runInContext(fs.readFileSync(path.join(root,"visual-cards.js"),"utf8"),ctx);
 const CARD=ctx.window.BEAM_VISUAL_CARDS;
 const COUNTRIES=ctx.window.BEAM_COUNTRIES;
 assert.equal(CARD.COUNTRY_ART.length,6);
-assert.equal(CARD.FLAG_CODES.length,30);
-assert.equal(new Set(CARD.FLAG_CODES).size,30);
+assert.equal(COUNTRIES.ORDER.length,249,"canonical ISO catalogue must contain 249 entries");
+assert.equal(CARD.FLAG_CODES.length,249,"all ISO flags must be available in trip cards");
+assert.deepEqual(Array.from(CARD.FLAG_CODES),Array.from(COUNTRIES.ORDER),
+ "trip-card flags must track the canonical ISO ordering, not a manually maintained subset");
+assert.equal(new Set(CARD.FLAG_CODES).size,249);
+assert.ok(Object.isFrozen(CARD.FLAG_CODES),"country flags must stay immutable");
 for(const code of CARD.COUNTRY_ART){
  const p=path.join(root,"assets","countries",code.toLowerCase()+".webp");
  assert.ok(fs.existsSync(p),"Missing BEAM-local country WebP: "+code);
@@ -22,7 +26,7 @@ for(const code of CARD.COUNTRY_ART){
  assert.equal(binary.toString("ascii",8,12),"WEBP");
  assert.equal(CARD.countryArt(code),"./assets/countries/"+code.toLowerCase()+".webp");
 }
-for(const code of CARD.FLAG_CODES){
+for(const code of COUNTRIES.ORDER){
  assert.ok(COUNTRIES.valid(code));
  const p=path.join(root,"assets","flags",code.toLowerCase()+".svg");
  assert.ok(fs.existsSync(p),"Missing BEAM-local flag "+code);
@@ -30,11 +34,19 @@ for(const code of CARD.FLAG_CODES){
  assert.match(txt,/<svg\b/);
  assert.ok(!/<script|<foreignObject|\sonload=/i.test(txt),"Suspicious SVG: "+code);
  assert.equal(CARD.flag(code),"./assets/flags/"+code.toLowerCase()+".svg");
+ const tripCard=CARD.markup({id:"60000000-0000-4000-8000-000000000001",
+  country_code:code,cities:["Ville"],duration_days:1,is_domestic:false},
+  COUNTRIES.NAMES[code],"Tourisme","octobre 2026");
+ assert.ok(tripCard.includes('<img class="journeyFlag" src="./assets/flags/'+code.toLowerCase()+'.svg"'),
+  "The actual trip card must render its local flag: "+code);
+ assert.equal((tripCard.match(/class="journeyFlag"/g)||[]).length,1,
+  "Exactly one flag icon per trip card: "+code);
 }
 assert.ok(fs.existsSync(path.join(root,"assets","flags","LICENSE")));
 const credit=fs.readFileSync(path.join(root,"assets","CREDITS.md"),"utf8");
 assert.match(credit,/MIT/);assert.match(credit,/40 Ko/);
-assert.equal(CARD.flag("NZ"),"","No network request for an unbundled flag");
+assert.equal(CARD.flag("NZ"),"./assets/flags/nz.svg","New Zealand is now a local SVG");
+assert.equal(CARD.flag("JP"),"./assets/flags/jp.svg","Japan is now a local SVG");
 assert.equal(CARD.countryArt("NZ"),"","No network request for missing destination art");
 assert.equal(CARD.flag("ZZ"),"");assert.equal(CARD.countryArt("ZZ"),"");
 assert.equal(CARD.countryArt("FR"),"./assets/countries/fr.webp");
@@ -56,8 +68,15 @@ assert.ok(!html.includes("70000000-0000-4000-8000-000000000001"),
   "Private cover ID should not appear in the public HTML");
 const fallback=CARD.markup({...trip,country_code:"NZ",cities:["Auckland"]},"Nouvelle-Zélande","Tourisme","juin 2026");
 assert.ok(!fallback.includes("journeyBackdrop"),"Unsupported country uses CSS fallback");
-assert.ok(!fallback.includes('<img class="journeyFlag"'),"Unsupported flag uses ISO code only");
+assert.ok(fallback.includes('<img class="journeyFlag" src="./assets/flags/nz.svg"'),
+ "A country without a WebP backdrop must still show its local flag");
 assert.ok(fallback.includes("NZ"));
+const japan=CARD.markup({...trip,country_code:"JP",cities:["Tokyo"]},"Japon","Tourisme","octobre 2026");
+assert.ok(japan.includes('<img class="journeyFlag" src="./assets/flags/jp.svg"'),
+ "Japan flag must be visible on the actual trip card");
+assert.ok(!japan.includes("journeyBackdrop"),"Japan has no WebP backdrop but keeps its flag");
+const invalid=CARD.markup({...trip,country_code:"ZZ"},"Pays inconnu","Tourisme","octobre 2026");
+assert.ok(!invalid.includes('<img class="journeyFlag"'),"Unknown ISO values must not create image URLs");
 const SUPABASE="https://my-stage.supabase.co";
 assert.equal(CARD.trustedSignedUrl("https://my-stage.supabase.co/storage/v1/object/sign/media/uid/path.webp?token=TEST",SUPABASE),
  "https://my-stage.supabase.co/storage/v1/object/sign/media/uid/path.webp?token=TEST");
@@ -85,4 +104,4 @@ const css=fs.readFileSync(path.join(root,"visual-cards.css"),"utf8");
 assert.ok(!/url\s*\(/i.test(css),"Card CSS must never fetch third-party backgrounds");
 const pdf=fs.readFileSync(path.join(root,"factual-pdf.js"),"utf8");
 assert.ok(!/cover_media_id|storage_path|photo/.test(pdf.split("const FIELDS=")[1].split(";")[0]));
-console.log("PASS visual cards: local SVG/WebP, 40KB, strict signed URL host, escaped HTML, owner media query, unchanged factual PDF");
+console.log("PASS visual cards: 249 ISO SVG files and card icons incl. JP/NZ, safe WebP, signed URL host, escaped HTML, owner media query, unchanged factual PDF");

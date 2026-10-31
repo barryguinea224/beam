@@ -4,9 +4,10 @@
   "use strict";
   const COUNTRY_ART=Object.freeze(["FR","MA","GN","SA","TR","SN"]);
   const COUNTRY_SET=new Set(COUNTRY_ART);
-  // Only icons actually vendored in travel/assets/flags. Other ISO countries
-  // still show the accessible country label and ISO code, without 404 requests.
-  const FLAG_CODES=Object.freeze(["GN","FR","MA","SN","SA","TR","ML","CI","SL","BE","AE","CN","CA","US","GB","DE","IT","ES","PT","DZ","CD","CG","SG","BH","MT","GF","GP","RE","MQ","GH"]);
+  // All ISO 3166-1 alpha-2 flags are bundled locally; use the same 249-code
+  // catalogue as the printable journal, never a second manually curated list.
+  const COUNTRIES=root?.BEAM_COUNTRIES||(typeof require==="function"?require("./countries.js"):null);
+  const FLAG_CODES=Object.freeze([...COUNTRIES.ORDER]);
   const FLAG_SET=new Set(FLAG_CODES);
   const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   function esc(s){return String(s??"").replace(/[&<>"']/g,ch=>({
@@ -14,7 +15,7 @@
   })[ch])}
   function codeOf(raw){
     const code=typeof raw==="string"?raw.trim().toUpperCase():"";
-    return /^[A-Z]{2}$/.test(code) && root?.BEAM_COUNTRIES?.valid(code)?code:"";
+    return /^[A-Z]{2}$/.test(code) && COUNTRIES.valid(code)?code:"";
   }
   function countryArt(raw){
     const code=codeOf(raw);
