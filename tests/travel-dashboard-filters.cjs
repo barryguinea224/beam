@@ -13,6 +13,18 @@ const rows=[
  {id:"5",country_code:"SN",entry_date:"2024-03-15",purpose:"tourisme",is_domestic:false,duration_days:1,deleting:true}
 ];
 assert.equal(api.apply(rows,api.EMPTY).length,4,"deleted trips never appear");
+assert.deepEqual(api.summary(api.apply(rows,api.EMPTY),api.EMPTY),
+ {trips:3,countries:2,days:20,domestic:1},
+ "default headline counts only foreign trips, separate domestic stay");
+assert.deepEqual(api.summary(api.apply(rows,{year:"2026"}),{year:"2026"}),
+ {trips:2,countries:2,days:16,domestic:1},
+ "year filter updates international headline and separate domestic count");
+assert.deepEqual(api.summary(api.apply(rows,{country:"GN"}),{country:"GN"}),
+ {trips:0,countries:0,days:0,domestic:1},
+ "domestic-only country must not inflate the international headline");
+assert.deepEqual(api.summary(api.apply(rows,{scope:"foreign"}),{scope:"foreign"}),
+ {trips:3,countries:2,days:20,domestic:0},
+ "foreign selection excludes domestic rows from list and separate count");
 assert.deepEqual(api.options(rows).years,["2026","2025"]);
 assert.deepEqual(api.options(rows).countries,["FR","GN","SN"]);
 let state=api.toggleCountry(api.EMPTY,"FR");
@@ -22,11 +34,12 @@ state=api.toggleCountry(state,"FR");
 assert.deepEqual(state,api.EMPTY,"second tap unselects country");
 state=api.normalize({country:"FR",year:"2026",purpose:"tourisme",scope:"foreign"});
 assert.deepEqual(api.apply(rows,state).map(t=>t.id),["1"],"four filters compose");
-assert.deepEqual(api.summary(api.apply(rows,state)),{trips:1,countries:1,days:7,domestic:0});
+assert.deepEqual(api.summary(api.apply(rows,state),state),{trips:1,countries:1,days:7,domestic:0});
 assert.equal(api.apply(rows,{country:"GN",scope:"foreign"}).length,0);
 assert.deepEqual(api.apply(rows,{scope:"domestic"}).map(t=>t.id),["3"]);
-assert.deepEqual(api.summary(api.apply(rows,{scope:"domestic"})),
- {trips:1,countries:1,days:3,domestic:1});
+assert.deepEqual(api.summary(api.apply(rows,{scope:"domestic"}),{scope:"domestic"}),
+ {trips:1,countries:1,days:3,domestic:1},
+ "national selection switches headline to domestic stays");
 assert.equal(api.apply(rows,{year:"2025",purpose:"tourisme"}).length,0);
 assert.deepEqual(api.normalize({year:"<script>",purpose:"<script>",scope:"bad",country:"<X"}),
  api.EMPTY,"untrusted filter values fail closed");
@@ -59,6 +72,12 @@ assert.ok(!/dashboardFilters|filterCountry|filterYear|filterPurpose|filterScope/
  "PDF generation must never consume dashboard filters");
 assert.match(inline,/const visible=api\.apply\(trips,dashboardFilters\)/,
  "filtered rows must drive dashboard");
+assert.match(inline,/stats=api\.summary\(visible,dashboardFilters\)/,
+ "headline statistics must receive selected scope");
+assert.match(inline,/national=dashboardFilters\.scope==="domestic"/,
+ "only explicit national scope changes headline to domestic stays");
+assert.match(inline,/active\?visible\.length\+/,
+ "filter status must reflect displayed trip count, not foreign headline");
 assert.match(inline,/const name=typeof profile\.display_name/,
  "title must use loaded profile");
 assert.match(inline,/#dashboardTitle/);
