@@ -4,9 +4,26 @@
 commerciale automatique, création de compte réservée au propriétaire de BEAM depuis
 Supabase Authentication → Users → Add user. Aucun espace administrateur dans le carnet.
 
-**État : BLOQUANT / NO-GO** tant que le réglage Auth hébergé, les tests hostiles staging
-et l'essai réel du code à six chiffres ne sont pas validés. La configuration locale et
-le code navigateur ne suffisent PAS à désactiver les inscriptions dans Supabase Cloud.
+**État : BLOQUANT / NO-GO production** jusqu'aux essais sur le nouvel écran, au
+test réel d'un compte client avec code à six chiffres et à la configuration du futur
+projet de production. La configuration locale et le code navigateur ne suffisent
+PAS à désactiver les inscriptions dans Supabase Cloud.
+
+### Vérifications réalisées sur staging (31 octobre 2026 — informations communiquées par le propriétaire)
+
+- **Allow new users to sign up : OFF**.
+- **Allow anonymous sign-ins : OFF**.
+- **Allow manual linking : OFF**.
+- **Fournisseur Email : ON**.
+- Modèle d'e-mail du staging : `{{ .Token }}` **déjà installé le 29 octobre 2026**.
+  Ne pas le modifier pour ce chantier.
+- Adresse inconnue testée depuis l'ancienne prévisualisation : refusée, aucun
+  utilisateur créé. L'ancienne UI affichait néanmoins l'erreur brute en anglais
+  « Signups not allowed for this instance », donc divulguait un indice de statut.
+  La PR #26 corrige cet affichage ; **le test sur le nouveau déploiement est encore
+  nécessaire**, ainsi que le test de réception pour un compte client existant.
+- Le test direct `POST /auth/v1/signup` de la sonde hostile protégée demeure
+  à exécuter/contrôler si aucune preuve de son résultat n'est enregistrée.
 
 ## Contrôles obligatoires dans chaque projet Supabase (staging, puis production)
 
@@ -14,8 +31,8 @@ le code navigateur ne suffisent PAS à désactiver les inscriptions dans Supabas
    **Allow new users to sign up** (les intitulés peuvent évoluer).
    Ne pas désactiver le fournisseur Email : les comptes existants doivent encore
    recevoir des codes de connexion. Vérifier séparément que les inscriptions anonymes
-   sont désactivées, et qu'aucun fournisseur social autorisant une création publique
-   n'est activé.
+   sont désactivées, que **Allow manual linking** est désactivé et qu'aucun
+   fournisseur social autorisant une création publique n'est activé.
 2. Dans **Authentication → Email Templates → Magic Link**, personnaliser le modèle
    pour qu'il contienne le code de six chiffres `{{ .Token }}`. Par défaut,
    `signInWithOtp` envoie un lien magique, pas nécessairement un code lisible.
@@ -28,6 +45,27 @@ le code navigateur ne suffisent PAS à désactiver les inscriptions dans Supabas
 5. Paiement Orange Money/MTN MoMo ou WhatsApp : vérification du paiement
    **manuelle et indépendante** de l'inscription ; aucune promesse de facturation
    intégrée. Aucun contrôle d'expiration commerciale automatique en V1.
+
+## Checklist de mise en production — FUTUR PROJET PRODUCTION
+
+**Ne pas copier ni réutiliser les réglages ou secrets du staging comme preuve pour la production.**
+
+- [ ] Désactiver **Allow new users to sign up**.
+- [ ] Désactiver **Allow anonymous sign-ins**.
+- [ ] Désactiver **Allow manual linking**.
+- [ ] Garder **Email** actif et vérifier les autres fournisseurs d'authentification.
+- [ ] Régler le modèle e-mail de production (Magic Link / OTP) pour inclure
+      `{{ .Token }}` et envoyer réellement un **code à six chiffres**.
+- [ ] Vérifier domaine d'envoi, délivrabilité, durée de vie, rate limit,
+      Site URL et origines/redirections de production (sans prévisualisation privée).
+- [ ] Tester l'échec d'une inscription directe `POST /auth/v1/signup`, l'OTP
+      avec une adresse inconnue (aucun compte créé), l'OTP avec un compte créé
+      par BEAM, la déconnexion/reconnexion et l'absence d'énumération dans l'UI.
+- [ ] Vérifier les contrôles de confidentialité, RLS, Storage et suppression
+      de compte existants avant l'ouverture.
+
+**Staging uniquement :** le modèle e-mail contient déjà `{{ .Token }}`
+depuis le 29/10/2026 ; **ne pas le reconfigurer**.
 
 ## Contrat du navigateur
 
