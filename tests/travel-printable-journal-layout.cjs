@@ -65,7 +65,8 @@ async function main(){
     assert.ok(pages>=3,"Expected multi-page A4 with cover, got "+pages);
     for(let p=1;p<=pages;p++){
      const txt=execFileSync("pdftotext",["-f",String(p),"-l",String(p),"-layout",dest,"-"],{encoding:"utf8"});
-     assert.ok(txt.includes(NOTICE),"Mandatory disclaimer absent from printed A4 page "+p+"/"+pages);
+     if(!txt.includes(NOTICE))throw new Error("Mandatory disclaimer absent from printed A4 page "+
+       p+"/"+pages+"; page contents="+JSON.stringify(txt.slice(0,1100)));
     }
     const text=execFileSync("pdftotext",["-layout",dest,"-"],{encoding:"utf8"});
     assert.ok(!text.includes(PRIVATE_EMAIL)&&!text.includes(PASSPORT));
