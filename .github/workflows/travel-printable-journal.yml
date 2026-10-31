@@ -56,4 +56,13 @@ jobs:
           command -v pdfimages
       - name: Load real index.html in Android Chromium (no Supabase)
         run: node tests/travel-real-index-load.cjs
-      - run: node tests/travel-printable-journal-layout.cjs
+      - name: Vérifier l’album A4 et générer les captures de démonstration
+        run: node tests/travel-printable-journal-layout.cjs
+      - name: Publier les captures A4 (données de test uniquement)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: beam-album-a4-preview
+          path: test-artifacts/travel-journal/
+          retention-days: 14
+          if-no-files-found: warn
