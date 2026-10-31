@@ -62,7 +62,7 @@ assert.match(source,/img\.naturalWidth>0/, "complete=true is not proof of succes
 assert.match(source,/photos n'ont pas pu être chargées/, "missing photo count must be visible");
 assert.match(source,/img\.remove\(\)/, "broken photo must be replaced by a printable placeholder");
 assert.match(source,/setTimeout\(\(\)=>settle\(false\),30000\)/, "slow mobile photo wait must be bounded");
-assert.match(source,/unavailableBeforeLoad\+results\.filter\(ok=>!ok\)\.length/,
+assert.match(source,/initialFailed\+results\.filter\(x=>!x\)\.length/,
  "the warning must include both signing errors and failed image loads");
 const main=fs.readFileSync("travel/index.html","utf8");
 const inline=main.match(/<script>([\s\S]*?)<\/script>/)?.[1];
