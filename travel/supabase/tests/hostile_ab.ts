@@ -319,6 +319,9 @@ try {
       throw new Error("SECURITY REGRESSION: direct client Storage DELETE accepted");
     const {data:stillA,error:stillAErr}=await bucketA.download(storagePath);
     if(stillAErr||!stillA)throw new Error("INVALID TEST: direct DELETE removed/blocked owner's file");
+    const {data:listedA,error:listedAErr}=await bucketA.list(`${sa.user.id}/${ta.id}`,{limit:100});
+    if(listedAErr||!listedA?.some(row=>row.name===`${storageId}.webp`))
+      throw new Error("SECURITY REGRESSION: client DELETE removed A object from Storage listing");
     console.log("PASS direct client Storage DELETE denied without removing file");
 
     // The only supported deletion path is travel-delete: Storage first,
@@ -420,6 +423,9 @@ try {
       throw new Error("SECURITY REGRESSION: B direct client Storage DELETE accepted");
     const {data:stillB,error:stillBErr}=await bucketB.download(storagePathB);
     if(stillBErr||!stillB)throw new Error("INVALID TEST: B direct DELETE removed/blocked own file");
+    const {data:listedB,error:listedBErr}=await bucketB.list(`${sb.user.id}/${tb.id}`,{limit:100});
+    if(listedBErr||!listedB?.some(row=>row.name===`${storageIdB}.webp`))
+      throw new Error("SECURITY REGRESSION: client DELETE removed B object from Storage listing");
     console.log("PASS B direct Storage DELETE denied without removing file");
 
     const {data:removedB,error:removeBErr}=await B.functions.invoke("travel-delete",{
