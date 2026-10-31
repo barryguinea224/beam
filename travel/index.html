@@ -39,8 +39,8 @@ html.beamOffline #auth,html.beamOffline #app,html.beamOffline #modal,html.beamOf
  <small>Cette adresse provient de votre compte connecté. Elle ne peut pas être modifiée ici.</small></div>
  <div class="field"><label for="contactPhone">Téléphone</label>
  <input id="contactPhone" name="phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="30"
-  pattern="\+[0-9]{1,29}" placeholder="+224612345678" disabled>
- <small>Indicatif « + » suivi uniquement de chiffres, 30 caractères maximum.</small></div>
+  placeholder="+224 622 09 56 30" aria-describedby="contactPhoneHelp" disabled>
+ <small id="contactPhoneHelp">Ex. +224 622 09 56 30, 622095630 ou 00224622095630. Espaces et séparateurs acceptés ; ajoutez l’indicatif pour les autres pays.</small></div>
  <div class="field"><label for="contactPostalAddress">Adresse postale</label>
  <textarea id="contactPostalAddress" name="postal_address" autocomplete="street-address"
   maxlength="300" rows="3" placeholder="Adresse déclarée (300 caractères maximum)" disabled></textarea></div>
@@ -781,11 +781,13 @@ async function runAccountDeletion(pending){
 $("#contactDetailsForm").onsubmit=async event=>{
  event.preventDefault();
  if(accountState!=="active"||!S||!user||!contactFieldsReady||savingContacts)return;
- const phone=$("#contactPhone").value.trim();
  const address=$("#contactPostalAddress").value.trim();
  const notice=$("#contactDetailsStatus");
- if(phone&&(!/^\+[0-9]{1,29}$/.test(phone)||phone.length>30)){
-  notice.textContent="Téléphone invalide : commencez par +, suivi uniquement de chiffres.";return;
+ let phone;
+ try{phone=window.BEAM_TRAVEL_PDF.normalizePhone($("#contactPhone").value)}
+ catch(error){
+  notice.textContent=error?.message||"Téléphone invalide. Exemple : +224 622 09 56 30.";
+  return;
  }
  if(address.length>300){notice.textContent="Adresse trop longue (300 caractères maximum).";return}
  const uid=user.id,button=$("#saveContactDetails");
