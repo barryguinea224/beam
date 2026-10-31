@@ -23,6 +23,13 @@ assert.doesNotMatch(auth, /error\.message|error\.code|error\.status/, "never exp
 assert.match(auth, /loginNotice\(\);/, "same neutral access notice for existing and unknown email");
 assert.match(html, /id="accessHelp"[^>]*>Ce carnet est réservé aux clients BEAM\./);
 assert.match(html, /href="https:\/\/wa\.me\/224622095630"/);
+const otpBox = html.split('<div id="otpBox" class="hidden">')[1]?.split('<p id="loginMsg"')[0];
+assert.ok(otpBox, "OTP panel must exist");
+assert.match(otpBox, /id="otp"[^>]*aria-describedby="otpHelp"/, "help must be attached to the OTP field");
+assert.match(otpBox, /id="otpHelp">Pas de code après 2 minutes \? Vérifiez vos spams, ou /,
+  "two-minute help must appear below the code input");
+assert.match(otpBox, /<a href="https:\/\/wa\.me\/224622095630"[^>]*>écrivez-nous sur WhatsApp<\/a>/,
+  "OTP help must link to official BEAM WhatsApp");
 assert.match(html, /id="loginMsg"[^>]*role="status"[^>]*aria-live="polite"/);
 assert.match(toml, /\[auth\]\s*enable_signup\s*=\s*false/);
 assert.match(toml, /\[auth\.email\]\s*enable_signup\s*=\s*false/);
