@@ -7,7 +7,7 @@ const PUBLIC_SHELL = [
   "./index.html", "./config.js", "./offline-bootstrap.js", "./pwa.js",
   "./photo-utils.js", "./photo-upload.js", "./trip-detail.js",
   "./countries.js", "./country-picker.js", "./factual-pdf.js",
-  "./journal-stats.js", "./dashboard-filters.js", "./dashboard-filters.css",
+  "./journal-stats.js", "./dashboard-filters.js", "./dashboard-filters.css", "./printable-journal.js",
   "./visual-cards.js", "./visual-cards.css",
   "./assets/world-map.svg", "./manifest.webmanifest",
   "./icons/icon-192.png", "./icons/icon-512.png", "./icons/icon-maskable-512.png",
