@@ -13,6 +13,7 @@ on:
       - "tests/travel-album-compact-a4.cjs"
       - "tests/travel-script-load-order.cjs"
       - "tests/travel-real-index-load.cjs"
+      - "tests/travel-optional-journal-fallback.cjs"
       - "tests/travel-dashboard-*"
       - "tests/travel-visual-cards-layout.cjs"
       - ".github/workflows/travel-printable-journal.yml"
@@ -57,6 +58,8 @@ jobs:
           command -v pdfimages
       - name: Load real index.html in Android Chromium (no Supabase)
         run: node tests/travel-real-index-load.cjs
+      - name: Verify dashboard still works without optional printable journal
+        run: node tests/travel-optional-journal-fallback.cjs
       - name: Vérifier l’album A4 et générer les captures de démonstration
         run: node tests/travel-printable-journal-layout.cjs
       - name: Valider les deux voyages compacts (5 pages A4) et leurs captures
