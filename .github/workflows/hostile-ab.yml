@@ -79,6 +79,14 @@ jobs:
       - name: Execute canonical schema from scratch
         env: { PGPASSWORD: postgres }
         run: psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f travel/supabase/schema.sql
+      - name: Exercise idempotent SQL/Storage hardening migration (disposable Postgres only)
+        env: { PGPASSWORD: postgres }
+        run: |
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f travel/supabase/migrations/20261031080000_sql_storage_hardening.sql
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f travel/supabase/migrations/20261031080000_sql_storage_hardening.sql
+      - name: Reject exposed definer RPCs and cross-user helper calls
+        env: { PGPASSWORD: postgres }
+        run: psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f travel/supabase/tests/sql_storage_hardening.sql
       - name: Exercise deletion retry lease state machine
         env: { PGPASSWORD: postgres }
         run: psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f travel/supabase/tests/deletion_retry_worker.sql
@@ -118,6 +126,7 @@ jobs:
           # Type-check the destructive bench here, before its separate approval gate.
           deno check travel/supabase/tests/victim_bench.ts
           deno check supabase/functions/travel-delete/index.ts
+          deno test supabase/functions/_shared/travel-public-errors_test.ts
           deno check supabase/functions/travel-deletion-retry/index.ts
           deno check supabase/functions/travel-deletion-monitor/index.ts
 
