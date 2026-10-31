@@ -289,8 +289,11 @@ function fitMapToVisited(){
  const boxes=paths.map(p=>p.getBBox());
  const x=Math.min(...boxes.map(b=>b.x)),y=Math.min(...boxes.map(b=>b.y));
  const right=Math.max(...boxes.map(b=>b.x+b.width)),bottom=Math.max(...boxes.map(b=>b.y+b.height));
- const w=Math.max(right-x,24),h=Math.max(bottom-y,18),pad=Math.max(w,h)*.9;
- const vx=Math.max(0,x-pad),vy=Math.max(0,y-pad),vw=Math.min(1000,w+pad*2),vh=Math.min(445,h+pad*2);
+ const w=Math.max(right-x,24),h=Math.max(bottom-y,18);
+ // Small bounded padding follows visited-country bounds; no large empty atlas bands.
+ const padx=Math.max(12,w*.12),pady=Math.max(10,h*.16);
+ const vx=Math.max(0,x-padx),vy=Math.max(0,y-pady);
+ const vw=Math.min(1000,right+padx)-vx,vh=Math.min(445,bottom+pady)-vy;
  svg.setAttribute("viewBox",[vx,vy,vw,vh].join(" "));
  $("#map").style.aspectRatio=vw+" / "+vh;
 }
