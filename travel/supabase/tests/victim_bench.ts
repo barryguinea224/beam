@@ -514,21 +514,33 @@ try {
       secondFailure?.deletion_claim_token === null,
       "worker retries after simulated backoff elapsed");
 
-    // The original authenticated manual resume remains valid despite failed worker attempts.
+    // Manual resume remains allowed after failed worker retries, but the public
+    // response MUST expose only the generic error. Inspect internal state solely
+    // through the staging admin client; never expect SQL/Storage codes over HTTP.
+    const { data: beforeRefusal, error: beforeRefusalError } = await admin.from("profiles")
+      .select("deleting,deletion_requested_at").eq("id", victim.id).single();
+    if (beforeRefusalError) throw new Error("PROFILE_BEFORE_REFUSAL_CHECK_FAILED");
+    check(beforeRefusal?.deleting === true && !!beforeRefusal?.deletion_requested_at,
+      "account is locked before rejected manual resume");
+    const firstRequestedAt = String(beforeRefusal.deletion_requested_at);
+
     const r = await callDelete(oldToken, { action: "delete_account", confirmation: "SUPPRIMER" });
-    check(r.status !== 403, "resume does not require fresh authentication", JSON.stringify(r));
     check(
-      r.status >= 400 && String(r.body.error ?? "").startsWith("OWNED_OBJECTS_REMAIN"),
-      "account deletion refused while an owned object remains",
+      r.status === 503 && r.body.error === "DELETE_UNAVAILABLE",
+      "account deletion refused with neutral 503 while an owned object remains",
       JSON.stringify(r),
     );
+    check(Object.keys(r.body).length === 1, "deletion refusal exposes no internal fields", JSON.stringify(r));
     check(await userExists(victim.id), "Auth user still exists after refused deletion");
-    const { data: prof } = await admin.from("profiles").select("deleting,deletion_requested_at").eq("id", victim.id)
-      .single();
-    check(prof?.deleting === true, "profile stays deleting=true");
+    const { data: prof, error: profError } = await admin.from("profiles")
+      .select("deleting,deletion_requested_at").eq("id", victim.id).single();
+    if (profError) throw new Error("PROFILE_AFTER_REFUSAL_CHECK_FAILED");
+    check(prof?.deleting === true, "profile stays deleting=true after refused deletion");
     check(
-      !!prof?.deletion_requested_at && Date.parse(String(prof.deletion_requested_at)) === Date.parse(SYNTHETIC_FIRST_REQUEST),
-      "first deletion request date preserved across retries",
+      !!prof?.deletion_requested_at &&
+        Date.parse(String(prof.deletion_requested_at)) === Date.parse(firstRequestedAt) &&
+        Date.parse(firstRequestedAt) === Date.parse(SYNTHETIC_FIRST_REQUEST),
+      "first deletion request date unchanged across worker retries and rejected manual resume",
     );
     check((await listAll(victim.id)).length === 0, "resumed cleanup emptied the remaining files of the prefix");
 
