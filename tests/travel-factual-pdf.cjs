@@ -32,6 +32,20 @@ for(const [input,expected] of acceptedPhoneInputs){
   "PDF must use the same normalization as the profile form");
 }
 assert.equal(PDF.normalizePhone(""),"","phone is optional");
+assert.equal(PDF.formatPhone(""),"","optional phone has no display label");
+for(const [raw,expected] of [
+ ["+224622095630","+224 622 09 56 30"],
+ ["622 09 56 30","+224 622 09 56 30"],
+ ["00224622095630","+224 622 09 56 30"],
+ ["+221777123456","+221 777 123 456"],
+ ["+33612345678","+33 612 345 678"],
+ ["+12025550123","+1 202 555 01 23"]
+]){
+ assert.equal(PDF.formatPhone(raw),expected,"group for display, never for DB: "+raw);
+ assert.equal(PDF.normalizePhone(PDF.formatPhone(raw)),PDF.normalizePhone(raw),
+  "display value must round-trip to the stored compact format");
+}
+assert.throws(()=>PDF.formatPhone("+1"),/Téléphone/);
 for(const phone of ["+1","abc","+2246220956301234567","6220956301",
  "224622095630","++224622095630"]){
  assert.throws(()=>PDF.normalizePhone(phone),/indicatif|6 à 15|Téléphone/i,
@@ -197,7 +211,9 @@ assert.equal(PDF.render(opted,fixtures,{
 }),1);
 assert.match(opted.body.textContent,/Coordonnées déclarées/);
 assert.match(opted.body.textContent,/private\.person@example\.net/);
-assert.match(opted.body.textContent,/\+224612345678/);
+assert.match(opted.body.textContent,/\+224 612 34 56 78/);
+assert.ok(!opted.body.textContent.includes("+224612345678"),
+ "HTML PDF must show a grouped phone, not the compact database value");
 assert.match(opted.body.textContent,/Conakry, Guinée/);
 assert.ok(!opted.body.textContent.includes("SECRET_PASSPORT_123"));
 assert.equal(document.documentElement.lang,"fr");

@@ -59,3 +59,10 @@ jobs:
         run: node tests/travel-factual-pdf-share-browser.cjs
       - name: Verify real mobile profile save, Auth email and one-shot consent
         run: node tests/travel-factual-contacts-ui.cjs
+      - name: Upload 360px account contact layout (fictitious account only)
+        uses: actions/upload-artifact@v4
+        with:
+          name: beam-travel-contacts-360px
+          path: test-artifacts/travel-contact-finish/account-contacts-360.png
+          if-no-files-found: error
+          retention-days: 14

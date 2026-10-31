@@ -30,7 +30,8 @@ async function main(){
     const decoded=new TextDecoder("windows-1252").decode(b);
     window.__shareCalls.push({type:file.type,name:file.name,size:file.size,
      pdfHeader:decoded.slice(0,8),includesEmail:decoded.includes("auth@example.net"),
-     includesPhone:decoded.includes("+224612345678"),
+     includesPhone:decoded.includes("+224 612 34 56 78"),
+     includesCompactPhone:decoded.includes("+224612345678"),
      includesPassport:decoded.includes("SECRET_PASSPORT"),
      title:payload.title,hasUrl:Object.prototype.hasOwnProperty.call(payload,"url")});
    }});
@@ -68,13 +69,15 @@ async function main(){
   text=await page.locator("body").textContent();
   assert.match(text,/Coordonnées déclarées/);
   assert.match(text,/auth@example.net/);
-  assert.match(text,/\+224612345678/);
+  assert.match(text,/\+224 612 34 56 78/);
+  assert.ok(!text.includes("+224612345678"));
   assert.ok(!text.includes(secret));
   await page.locator(".share-button").click();
   await page.waitForFunction(()=>window.__shareCalls.length===2);
   const b=await page.evaluate(()=>window.__shareCalls[1]);
   assert.equal(b.includesEmail,true);
   assert.equal(b.includesPhone,true);
+  assert.equal(b.includesCompactPhone,false,"shared file must show grouped phone only");
   assert.equal(b.includesPassport,false);
 
   // Unsupported browser must download a local PDF, never share a link.
