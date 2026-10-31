@@ -23,6 +23,7 @@ const edges={
  "country-picker.js":["countries.js"],
  "factual-pdf.js":["countries.js"],
  "visual-cards.js":["countries.js"],
+ "factual-pdf-file.js":["factual-pdf.js"],
  "printable-journal.js":["countries.js","dashboard-filters.js","visual-cards.js"]
 };
 function verifyOrder(order){
@@ -57,6 +58,6 @@ const journal=fs.readFileSync(path.join(__dirname,"..","travel","printable-journ
 assert.match(journal,/BEAM_DASHBOARD_FILTERS/, "the journal's filter dependency must remain explicitly checked");
 assert.match(journal,/BEAM_COUNTRIES/, "the journal's country dependency must remain explicitly checked");
 const sw=fs.readFileSync(path.join(__dirname,"..","travel","sw.js"),"utf8");
-assert.match(sw,/beam-travel-shell-v1-20261031-album-title-fallback/);
+assert.match(sw,/beam-travel-shell-v1-20261031-factual-contacts/);
 assert.ok(sw.includes('"./printable-journal.js"')&&sw.includes('"./dashboard-filters.js"')&&sw.includes('"./visual-cards.js"'));
 console.log("PASS real index.html script dependency graph and PWA shell version");
