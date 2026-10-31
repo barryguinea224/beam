@@ -186,6 +186,10 @@ async function main(){
   await fs.mkdir(shotDir,{recursive:true});
   await page.locator("#myAccount").screenshot({path:path.join(shotDir,"account-contacts-360.png")});
 
+  // Close the modal account drawer before using the dashboard PDF action.
+  await page.locator("#closeAccount").click();
+  assert.equal(await page.locator("#accountOverlay").getAttribute("aria-hidden"),"true");
+  assert.equal(await page.locator("#pdf").isVisible(),true,"PDF button visible on mobile");
   // Unchecked PDF must neither reread extra columns nor call getUser().
   const off=await waitPopup(page,()=>page.locator("#pdf").click());
   let text=await off.locator("body").textContent();
