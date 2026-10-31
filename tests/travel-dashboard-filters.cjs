@@ -99,10 +99,11 @@ assert.match(inline,/active\?visible\.length\+/,
 assert.match(inline,/const name=typeof profile\.display_name/,
  "title must use loaded profile");
 assert.match(inline,/#dashboardTitle/);
-assert.match(app,/<section id="accountSession"[^>]*>[\\s\\S]*?<h3 id="accountSessionTitle">Session<\\/h3>[\\s\\S]*?<button id="logout"[^>]*>Se déconnecter<\\/button>[\\s\\S]*?<\\/section>/,
+const accountMarkup=app.slice(app.indexOf('id="myAccount"'));
+const sessionMarkup=accountMarkup.slice(accountMarkup.indexOf('id="accountSession"'));
+assert.ok(accountMarkup.includes('id="accountSession"')&&sessionMarkup.includes('<h3 id="accountSessionTitle">Session</h3>')&&
+ sessionMarkup.indexOf('id="logout"')>0&&sessionMarkup.indexOf('id="logout"')<sessionMarkup.indexOf('</section>'),
  "logout must be inside the account Session card");
-assert.ok(app.indexOf('id="myAccount"')<app.indexOf('id="accountSession"')&&app.indexOf('id="accountSession"')<app.indexOf('id="logout"'),
- "Session must be nested in the account drawer before logout");
 assert.match(app,/<button id="logout" type="button" class="btn ghost">Se déconnecter<\/button>/);
 assert.equal((app.match(/id="logout"/g)||[]).length,1);
 assert.match(inline,/toggleCountry\(dashboardFilters,code\)/);
