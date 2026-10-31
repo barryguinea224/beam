@@ -70,6 +70,24 @@
  .accountOverlay #myAccount{position:absolute;right:0;top:0;width:min(420px,100%);min-height:100dvh;box-shadow:-20px 0 45px #10241a25}
  .accountOverlay #dashboardFooter{position:absolute;right:0;top:auto;width:min(420px,100%)}
 }
+/* Stage 4: large-screen two-column composition, with short-screen fallback. */
+@media(min-width:900px){
+ #app .w{display:grid;grid-template-columns:minmax(0,.94fr) minmax(0,1.06fr);grid-template-areas:"header header" "hero trips" "map trips" "filters trips";gap:14px 22px;align-items:start}
+ #app .w>header{grid-area:header;min-width:0}
+ #travelHero{grid-area:hero;display:block;padding:18px 0 0;position:sticky;top:8px}
+ #travelHero .statsWrap{margin-top:18px}
+ #headerActions{display:flex;align-items:center;gap:8px;flex-wrap:wrap} #headerActions .pdfContactChoice{font-size:12px}
+ #travelMapPanel{grid-area:map;position:sticky;top:210px;margin:0;min-width:0}
+ #travelMapPanel .map{height:min(42vh,420px);min-height:180px}
+ #filterAnchor{grid-area:filters;position:sticky;top:min(70vh,640px);align-self:start}
+ #travelPanels{grid-area:trips;min-width:0;max-height:calc(100dvh - 88px);overflow-y:auto;overscroll-behavior:contain}
+ #travelTripsPanel{min-height:300px}
+}
+@media(min-width:900px) and (max-height:760px){
+ #app .w{align-items:start}
+ #travelHero,#travelMapPanel,#filterAnchor{position:static}
+ #travelPanels{max-height:none;overflow:visible}
+}
 /* Fail closed while disconnected: previously-rendered private data is hidden. */
 #offline{display:none;min-height:100dvh;padding:12vh 20px;text-align:center;max-width:520px;margin:auto}
 #offline h1{font-size:clamp(30px,8vw,44px);line-height:1.16}
@@ -79,7 +97,7 @@ html.beamOffline #auth,html.beamOffline #app,html.beamOffline #modal,html.beamOf
 <script src="/travel/offline-bootstrap.js"></script></head><body>
 <section id="offline" role="status" aria-live="polite"><div class="ey">BEAM · Travel History</div><h1>Connexion nécessaire pour consulter votre carnet</h1><p>Vos voyages et photos sont privés et indisponibles hors ligne. Reconnectez-vous à Internet pour continuer.</p></section>
 <section id="auth" class="auth hidden"><div class="ey">BEAM · Travel History</div><h1>Gardez vos voyages.<br>Retrouvez votre histoire.</h1><p class="sub">Un espace personnel pour vos destinations, dates, activités, souvenirs et photos.</p><form id="login"><div class="field"><label for="email">E-mail</label><input id="email" type="email" autocomplete="email" required></div><button class="btn">Recevoir un code</button></form><div id="otpBox" class="hidden"><p class="sub">Si cette adresse est autorisée, vous recevrez un code à 6 chiffres par e-mail.</p><form id="otpForm"><div class="field"><label for="otp">Code à 6 chiffres</label><input id="otp" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" aria-describedby="otpHelp" required><small id="otpHelp">Pas de code après 2 minutes ? Vérifiez vos spams, ou <a href="https://wa.me/224622095630" target="_blank" rel="noopener noreferrer">écrivez-nous sur WhatsApp</a>.</small></div><button class="btn">Continuer avec le code</button></form><div class="actions"><button id="resend" type="button" class="btn ghost" disabled>Renvoyer un code · 60 s</button></div></div><p id="loginMsg" class="notice hidden" role="status" aria-live="polite"></p><p class="sub" id="accessHelp">Ce carnet est réservé aux clients BEAM. <a href="https://wa.me/224622095630" target="_blank" rel="noopener noreferrer">Contactez-nous sur WhatsApp</a>.</p></section>
-<main id="app" class="hidden"><div class="w"><header class="top"><div class="brand"><b>BEAM</b> TRAVEL HISTORY</div><button type="button" id="openAccount" class="btn ghost" aria-controls="accountOverlay" aria-expanded="false">Mon compte</button></header>
+<main id="app" class="hidden"><div class="w"><header class="top"><div class="brand"><b>BEAM</b> TRAVEL HISTORY</div><div id="headerActions" class="headerActions"></div><button type="button" id="openAccount" class="btn ghost" aria-controls="accountOverlay" aria-expanded="false">Mon compte</button></header>
 <section id="travelHero" class="hero"><div><div class="ey">Mon espace de voyage</div><h1 id="dashboardTitle">Mon carnet de voyage</h1><p class="sub">L'espace raconte le voyage. Le PDF restitue les faits.</p><div class="actions"><button id="add" class="btn">+ Ajouter un voyage</button><button id="pdf" class="btn ghost">Travel History PDF</button><label class="pdfContactChoice" for="includePdfContacts"><input id="includePdfContacts" type="checkbox" autocomplete="off" disabled> Inclure mes coordonnées dans ce PDF</label><button id="printJournal" class="btn ghost" type="button">Mon carnet de voyage</button></div></div><div class="statsWrap"><div class="stats"><div class="stat"><b id="nt">0</b><small id="ntl">voyages à l’étranger</small></div><div class="stat"><b id="nc">0</b><small id="ncl">pays à l’étranger</small></div><div class="stat"><b id="nd">0</b><small id="ndl">jours à l’étranger</small></div></div><p id="domesticCount" class="mapInfo" role="status" aria-live="polite"></p></div></section>
 <section id="accountStatusChecking" class="panel" role="status" aria-live="polite"><p>Vérification de votre compte…</p></section>
 <section id="deletionPending" class="panel hidden" role="status" aria-live="polite">
@@ -235,6 +253,17 @@ function render(){
  $("#trips").innerHTML=visible.length?visible.map(x=>window.BEAM_VISUAL_CARDS.markup(x,countryName(x.country_code),window.BEAM_TRAVEL_PDF.purposeName(x.purpose),tripDates(x.entry_date,x.exit_date))).join(""):(trips.length?"<p>Aucun voyage ne correspond aux filtres.</p>":"<p>Aucun voyage pour le moment.</p>");
  renderFilterChips();applyMapState();scheduleMap();scheduleCoverImages();
 }
+function positionHeaderActions(){
+ const header=$("#headerActions"),hero=$("#travelHero .actions");
+ if(!header||!hero)return;
+ for(const id of ["#pdf","#printJournal","#includePdfContacts"]){
+  const node=$(id);if(!node)continue;
+  if(id==="includePdfContacts"){const label=node.closest("label");if(label)(matchMedia("(min-width:900px)").matches?header:hero).append(label)}
+  else (matchMedia("(min-width:900px)").matches?header:hero).append(node);
+ }
+}
+positionHeaderActions();
+window.addEventListener("resize",positionHeaderActions);
 let filterReturnFocus=null;
 function setFiltersOpen(open){
  const panel=$("#filterPanel"),trigger=$("#toggleFilters");
