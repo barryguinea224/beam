@@ -352,7 +352,7 @@ function setAccountState(state){
  accountState=state;
  const active=state==="active";
  for(const id of ["#travelHero","#filterAnchor","#travelMapPanel","#travelPanels","#openAccount","#residencePanel","#myAccount"]){
-   $(id).classList.toggle("hidden",!active&&(id!=="#residencePanel"&&id!=="#myAccount"));
+   $(id).classList.toggle("hidden",!active);
  }
  $("#deletionPending").classList.toggle("hidden",state!=="deleting");
  $("#accountStatusUnavailable").classList.toggle("hidden",state!=="unavailable");
