@@ -28,7 +28,9 @@ alter policy "profil modification" on public.profiles
 
 -- Column-level privileges, never a table-wide UPDATE grant.
 revoke update on public.profiles from authenticated;
-grant update(phone,postal_address) on public.profiles to authenticated;
+-- Preserve the existing profile-column permissions, especially display_name.
+grant update(display_name,nationality,home_city,country_of_residence,phone,postal_address)
+  on public.profiles to authenticated;
 revoke all on public.profiles from anon;
 
 -- Intentionally no access to auth.users, no new RPC, no profile INSERT/DELETE,
