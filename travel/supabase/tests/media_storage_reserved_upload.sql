@@ -50,7 +50,7 @@ end $$;
 
 -- An authenticated client must NEVER directly delete a Storage object, even
 -- if it is the owner and has SQL DELETE table privilege in the fixture.
-do $
+do $$
 declare removed bigint;
 begin
   delete from storage.objects
@@ -58,7 +58,7 @@ begin
     and name='30000000-0000-4000-8000-000000000021/40000000-0000-4000-8000-000000000021/50000000-0000-4000-8000-000000000021.webp';
   get diagnostics removed = row_count;
   if removed <> 0 then raise exception 'AUTHENTICATED_DIRECT_STORAGE_DELETE_ACCEPTED'; end if;
-end $;
+end $$;
 
 -- The browser must not recycle a reserved media row into a new Storage path.
 -- Run as the same authenticated owner, not as a database administrator.
