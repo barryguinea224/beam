@@ -171,6 +171,29 @@ async function main(){
    console.log("PASS real account overlay and filters navigation "+width+"px");
    await context.close();
   }
+  // Screenshots of the actual application, never a synthetic HTML replica.
+  const shots=path.resolve("test-artifacts/travel-responsive-real");
+  await fs.mkdir(shots,{recursive:true});
+  for(const width of [320,360,390,768,1280]){
+   const context=await browser.newContext({viewport:{width,height:850},isMobile:width<900,hasTouch:width<900,serviceWorkers:"block"});
+   const page=await context.newPage();
+   await page.route("**/*",route=>{
+    const u=new URL(route.request().url());
+    if(u.hostname==="cdn.jsdelivr.net")return route.fulfill({status:200,contentType:"application/javascript",body:"("+fakeSupabase.toString()+")();"});
+    if(u.hostname==="127.0.0.1")return route.continue();
+    return route.abort();
+   });
+   await page.goto("http://127.0.0.1:"+server.address().port+"/travel/",{waitUntil:"load"});
+   await page.waitForFunction(()=>document.querySelector("#openAccount")&&!document.querySelector("#openAccount").classList.contains("hidden"));
+   await page.screenshot({path:path.join(shots,"carnet-real-"+width+".png"),fullPage:true});
+   await page.locator("#openAccount").click();
+   await page.screenshot({path:path.join(shots,"compte-real-"+width+".png"),fullPage:true});
+   assert.equal(await page.locator("#closeAccount").evaluate(el=>{
+    const r=el.getBoundingClientRect(),top=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);
+    return top===el||el.contains(top);
+   }),true,"account drawer must not be obscured in screenshot width "+width);
+   await context.close();
+  }
  }finally{await browser.close();await new Promise(resolve=>server.close(resolve))}
 }
 main().catch(e=>{console.error(e);process.exitCode=1});
