@@ -6,7 +6,7 @@ create table public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   display_name text check(char_length(display_name)<=80),
   phone text constraint profiles_phone_valid
-    check(phone is null or (char_length(phone)<=30 and phone ~ '^\+[0-9]{1,29}$')),
+    check(phone is null or (char_length(phone)<=30 and phone ~ '^\+[0-9]{6,15}$')),
   postal_address text constraint profiles_postal_address_valid
     check(postal_address is null or (char_length(postal_address)<=300 and btrim(postal_address)<>'')),
   nationality text check(char_length(nationality)<=60),
