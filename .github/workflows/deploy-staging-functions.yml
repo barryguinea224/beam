@@ -1,7 +1,8 @@
 name: Deploy BEAM Travel functions — STAGING ONLY
 
-# Migration vérifiée par Julaybib sur staging : 10 fonctions %deletion%,
-# 0 exécutable par anon, 0 par authenticated, private.deletion_retry_runs présente.
+# Déploiement de sécurité PR #28 : uniquement travel-delete, APRÈS migration
+# SQL sur staging et validation des contrôles RLS. Rien n'est exécuté sans label
+# explicite et approbation du mainteneur dans l'environnement protégé.
 # REVIEW BEFORE FIRST EXECUTION. Does not run on push or synchronize.
 # Require explicit PR label AND approval of protected environment staging-functions-deploy.
 # Do not give this workflow production secrets or service-role credentials.
@@ -36,9 +37,9 @@ jobs:
       github.event_name == 'pull_request' &&
       github.event.action == 'labeled' &&
       github.event.label.name == 'staging-functions-deploy-approved' &&
-      github.event.pull_request.number == 6 &&
+      github.event.pull_request.number == 28 &&
       github.event.pull_request.head.repo.full_name == github.repository &&
-      github.event.pull_request.head.ref == 'feature/travel-deletion-retry-worker'
+      github.event.pull_request.head.ref == 'security/travel-sql-storage-errors-hardening'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -55,15 +56,12 @@ jobs:
           import pathlib
           import tomllib
           config = tomllib.loads(pathlib.Path("supabase/config.toml").read_text())
-          expected = {
-              "travel-delete": True,
-              "travel-deletion-retry": False,
-              "travel-deletion-monitor": False,
-          }
+          expected = {"travel-delete": True}
           for name, jwt in expected.items():
               assert config["functions"][name]["verify_jwt"] is jwt, f"Unexpected JWT setting for {name}"
               assert pathlib.Path(f"supabase/functions/{name}/index.ts").is_file()
           assert pathlib.Path("supabase/functions/_shared/travel-deletion.ts").is_file()
+          assert pathlib.Path("supabase/functions/_shared/travel-public-errors.ts").is_file()
           print("Function source and JWT configuration verified.")
           PY
       - name: Install Deno
@@ -74,11 +72,10 @@ jobs:
         run: |
           set -euo pipefail
           deno check supabase/functions/travel-delete/index.ts
-          deno check supabase/functions/travel-deletion-retry/index.ts
-          deno check supabase/functions/travel-deletion-monitor/index.ts
+          deno test supabase/functions/_shared/travel-public-errors_test.ts
 
   deploy:
-    name: Deploy three Edge Functions to staging ONLY
+    name: Deploy travel-delete only to staging
     needs: [preflight]
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -107,17 +104,15 @@ jobs:
         uses: supabase/setup-cli@v1
         with:
           version: 2.122.0
-      - name: Deploy only the three reviewed functions
+      - name: Deploy only the reviewed travel-delete function
         shell: bash
         run: |
           set -euo pipefail
           # Hardcoded known staging project; never derive target from inputs.
           project_ref="coigbvhxywbmqgacmhzf"
           supabase functions deploy travel-delete --project-ref "$project_ref"
-          supabase functions deploy travel-deletion-retry --project-ref "$project_ref"
-          supabase functions deploy travel-deletion-monitor --project-ref "$project_ref"
           supabase functions list --project-ref "$project_ref"
-      - name: Verify function-origin 401 and travel-delete gateway protection
+      - name: Verify unchanged worker auth and travel-delete gateway protection
         shell: bash
         run: |
           set -euo pipefail
@@ -150,4 +145,5 @@ jobs:
           fi
           echo "Worker and monitor returned function-origin 401; travel-delete rejected anonymous POST."
 
-# Deliberately no workflow_dispatch or automatic push trigger. PR review first.
+# Deliberately no workflow_dispatch or automatic push trigger. PR #28 review,
+# staging SQL migration, scoped deployment token, label and human approval first.

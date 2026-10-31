@@ -6,7 +6,8 @@ as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;
 alter table storage.objects enable row level security;
 grant usage on schema auth,storage,public to authenticated;
 grant execute on function auth.uid() to authenticated;
-grant select,insert on storage.objects to authenticated;
+-- Grant DELETE in the fixture to prove the RLS policy, not table grants, blocks it.
+grant select,insert,delete on storage.objects to authenticated;
 grant select on public.media to authenticated;
 -- The real client can read its own trips; the disposable PostgreSQL
 -- harness must explicitly grant SELECT to exercise the invoker trigger.
@@ -45,6 +46,18 @@ begin
   values('50000000-0000-4000-8000-000000000021','media',
     '30000000-0000-4000-8000-000000000021/40000000-0000-4000-8000-000000000021/50000000-0000-4000-8000-000000000021.webp',
     '30000000-0000-4000-8000-000000000021','30000000-0000-4000-8000-000000000021');
+end $$;
+
+-- An authenticated client must NEVER directly delete a Storage object, even
+-- if it is the owner and has SQL DELETE table privilege in the fixture.
+do $$
+declare removed bigint;
+begin
+  delete from storage.objects
+  where bucket_id='media'
+    and name='30000000-0000-4000-8000-000000000021/40000000-0000-4000-8000-000000000021/50000000-0000-4000-8000-000000000021.webp';
+  get diagnostics removed = row_count;
+  if removed <> 0 then raise exception 'AUTHENTICATED_DIRECT_STORAGE_DELETE_ACCEPTED'; end if;
 end $$;
 
 -- The browser must not recycle a reserved media row into a new Storage path.

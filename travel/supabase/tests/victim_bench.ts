@@ -208,18 +208,35 @@ async function newTrip(a: Actor, entry: string, exit: string): Promise<string> {
   if (error || !data) throw new Error(`TRIP_INSERT_FAILED ${error?.message}`);
   return data.id as string;
 }
-async function addPhoto(a: Actor, tripId: string): Promise<{ mediaId: string; path: string }> {
+// Browser-compatible order: reserve the photo row before touching Storage.
+async function reservePhoto(a: Actor, tripId: string): Promise<{ mediaId: string; path: string }> {
   const path = `${a.id}/${tripId}/${crypto.randomUUID()}.webp`;
-  const { error: upErr } = await a.client.storage.from(BUCKET).upload(path, webp(), {
+  const { data, error } = await a.client.from("media")
+    .insert({ trip_id: tripId, storage_path: path, kind: "photo" }).select("id").single();
+  if (error || !data) throw new Error(`MEDIA_RESERVATION_FAILED ${error?.message}`);
+  return { mediaId: data.id as string, path };
+}
+async function addPhoto(a: Actor, tripId: string): Promise<{ mediaId: string; path: string }> {
+  const reserved = await reservePhoto(a, tripId);
+  const { error: upErr } = await a.client.storage.from(BUCKET).upload(reserved.path, webp(), {
     contentType: "image/webp",
     upsert: false,
     cacheControl: "60",
   });
-  if (upErr) throw new Error(`UPLOAD_FAILED ${upErr.message}`);
-  const { data, error } = await a.client.from("media").insert({ trip_id: tripId, storage_path: path, kind: "photo" })
-    .select("id").single();
-  if (error || !data) throw new Error(`MEDIA_INSERT_FAILED ${error?.message}`);
-  return { mediaId: data.id as string, path };
+  if (upErr) {
+    // The test harness has the service-role key; the browser MUST NOT delete
+    // media rows or Storage objects directly. Clean failed disposable fixtures
+    // in server order: optional Storage object, then its reserved row.
+    if (await objectPresent(reserved.path)) {
+      const { error: removeError } = await admin.storage.from(BUCKET).remove([reserved.path]);
+      if (removeError || await objectPresent(reserved.path)) throw new Error("PHOTO_UPLOAD_ROLLBACK_FAILED");
+    }
+    const { error: resetError } = await admin.from("media").delete()
+      .eq("id", reserved.mediaId).eq("user_id", a.id);
+    if (resetError) throw new Error("PHOTO_RESERVATION_ROLLBACK_FAILED");
+    throw new Error(`UPLOAD_FAILED ${upErr.message}`);
+  }
+  return reserved;
 }
 async function objectPresent(path: string): Promise<boolean> {
   const i = path.lastIndexOf("/");
@@ -282,6 +299,22 @@ try {
   const pb = await addPhoto(bystander, tb);
   pass("fixtures created through the normal client path (RLS, Storage policies)");
 
+  // Positive guard: uploading without a media reservation must fail on a
+  // writable trip, not on a deleting account or trip. It must create nothing.
+  {
+    const unreserved = `${victim.id}/${t2}/${crypto.randomUUID()}.webp`;
+    const ownedBefore = await countOwned(victim.id);
+    const mediaBefore = await rowCount("media", "trip_id", t2);
+    const { error } = await victim.client.storage.from(BUCKET).upload(unreserved, webp(), {
+      contentType: "image/webp", upsert: false,
+    });
+    check(!!error, "normal active trip rejects Storage upload without media reservation");
+    check(!await objectPresent(unreserved), "unreserved upload created no object");
+    check(await rowCount("media", "trip_id", t2) === mediaBefore,
+      "unreserved upload created no media row");
+    check(await countOwned(victim.id) === ownedBefore, "unreserved upload preserved owned-object count");
+  }
+
   // The worker is privileged but MUST refuse calls without its dedicated staging secret.
   check((await callRetry()).status === 401, "retry endpoint rejects a request without a secret");
   check((await callRetry("invalid-" + crypto.randomUUID())).status === 401,
@@ -334,6 +367,12 @@ try {
       }));
     }
     check((await listAll(prefix)).length === 130, "130 objects present before synthetic interruption");
+    // Reserve an exact path while this trip is active. An absent reservation
+    // would make the later locked-upload check pass for the wrong reason.
+    const lockedReservation = await reservePhoto(victim, t3);
+    check(await rowCount("media", "id", lockedReservation.mediaId) === 1 &&
+      !await objectPresent(lockedReservation.path),
+      "locked-trip fixture: valid unused reservation exists before the lock");
     // State an interrupted delete_trip would leave behind: locked + partially cleaned.
     const { error: lockErr } = await admin.from("trips").update({
       deleting: true,
@@ -343,10 +382,16 @@ try {
     const { error: partErr } = await admin.storage.from(BUCKET).remove(paths.slice(0, 20));
     if (partErr) throw new Error(`SYNTHETIC_PARTIAL_REMOVE_FAILED ${partErr.message}`);
     check((await listAll(prefix)).length === 110, "110 objects remain (>100, two list pages)");
-    // While locked, the owner cannot add a file to this trip.
+    // The path is reserved. Only the trip deletion barrier can forbid this
+    // upload; missing media-row or quota protection is not the reason.
+    const ownedBeforeLockedUpload = await countOwned(victim.id);
     const { error: lockedUpload } = await victim.client.storage.from(BUCKET)
-      .upload(`${prefix}/${crypto.randomUUID()}.webp`, webp(), { contentType: "image/webp", upsert: false });
-    check(!!lockedUpload, "upload into a trip being deleted is refused");
+      .upload(lockedReservation.path, webp(), { contentType: "image/webp", upsert: false });
+    check(!!lockedUpload, "reserved upload into a trip being deleted is refused");
+    check(!await objectPresent(lockedReservation.path) &&
+      await rowCount("media", "id", lockedReservation.mediaId) === 1 &&
+      await countOwned(victim.id) === ownedBeforeLockedUpload,
+      "locked-trip upload refusal preserves reserved row and owned-object count");
     const run = await dispatchRetry(created);
     checkRunCounts(run, 1, 1, 1, 0, "stale interrupted trip is processed by the worker");
     check(await rowCount("trips", "id", t3) === 0, "worker resumes and deletes interrupted stale trip");
@@ -396,17 +441,20 @@ try {
   // 5. Owned object outside the user prefix -> account deletion must be refused
   const orphanPath = `${ORPHAN_ROOT}/${victim.id}/${crypto.randomUUID()}.webp`;
   {
-    const src = `${victim.id}/${t4}/${crypto.randomUUID()}.webp`;
-    const { error: upErr } = await victim.client.storage.from(BUCKET).upload(src, webp(), {
-      contentType: "image/webp",
-      upsert: false,
-    });
-    if (upErr) throw new Error(`ORPHAN_SOURCE_UPLOAD_FAILED ${upErr.message}`);
-    const { error: mvErr } = await admin.storage.from(BUCKET).move(src, orphanPath);
+    const objectsBefore = await countOwned(victim.id);
+    const reserved = await addPhoto(victim, t4); // media first, then Storage upload
+    check(await rowCount("media", "id", reserved.mediaId) === 1 &&
+      await objectPresent(reserved.path) &&
+      await countOwned(victim.id) === objectsBefore + 1,
+      "orphan source: reserved media row and one owned object");
+    const { error: mvErr } = await admin.storage.from(BUCKET).move(reserved.path, orphanPath);
     if (mvErr) throw new Error(`ORPHAN_MOVE_FAILED ${mvErr.message}`);
-    // Fixture validity: the moved object must still be owned by the victim, otherwise this
-    // scenario would pass for the wrong reason.
-    check(await countOwned(victim.id) >= 1, "fixture valid: victim owns an object outside its prefix");
+    // The admin move deliberately creates an out-of-prefix orphan. The
+    // reservation row remains (with its old path); owned Storage count is stable.
+    check(!await objectPresent(reserved.path) && await objectPresent(orphanPath) &&
+      await rowCount("media", "id", reserved.mediaId) === 1 &&
+      await countOwned(victim.id) === objectsBefore + 1,
+      "fixture valid: one owned orphan outside user prefix, quota row retained");
   }
 
   const oldToken = victim.token; // captured BEFORE any account deletion
@@ -415,17 +463,26 @@ try {
   //     would leave behind (locked, partially cleaned), built BEFORE the first real call.
   //     Fresh authentication must not be required to resume an already-locked deletion.
   const SYNTHETIC_FIRST_REQUEST = "2020-06-01T00:00:00.000Z";
+  let lockedAccountReservation: { mediaId: string; path: string } | null = null;
   {
     const extra: string[] = [];
+    const objectCountBefore = await countOwned(victim.id);
+    const reservedRowsBefore = await rowCount("media", "trip_id", t4);
     for (let i = 0; i < 3; i++) {
-      const p = `${victim.id}/${t4}/${crypto.randomUUID()}.webp`;
-      const { error } = await victim.client.storage.from(BUCKET).upload(p, webp(), {
-        contentType: "image/webp",
-        upsert: false,
-      });
-      if (error) throw new Error(`ACCOUNT_FIXTURE_UPLOAD_FAILED ${error.message}`);
-      extra.push(p);
+      const photo = await addPhoto(victim, t4); // create reservation before upload
+      extra.push(photo.path);
     }
+    check(await rowCount("media", "trip_id", t4) === reservedRowsBefore + 3 &&
+      reservedRowsBefore + 4 <= 10 &&
+      await countOwned(victim.id) === objectCountBefore + 3,
+      "account fixture: three reserved photos respect quota and owned-object counts");
+    // This fourth reservation must exist BEFORE the profile is locked. The
+    // later upload denial then tests the lock rather than a missing row.
+    lockedAccountReservation = await reservePhoto(victim, t4);
+    check(await rowCount("media", "id", lockedAccountReservation.mediaId) === 1 &&
+      !await objectPresent(lockedAccountReservation.path) &&
+      await rowCount("media", "trip_id", t4) === reservedRowsBefore + 4,
+      "locked-account fixture: exact unused reservation exists within photo quota");
     const { error: lockErr } = await admin.from("profiles")
       .update({ deleting: true, deletion_requested_at: SYNTHETIC_FIRST_REQUEST }).eq("id", victim.id);
     if (lockErr) throw new Error(`SYNTHETIC_ACCOUNT_LOCK_FAILED ${lockErr.message}`);
@@ -437,9 +494,16 @@ try {
   // 5c. While the account is deleting=true, the still-valid session must not write
   //     anywhere: Storage (already guarded) AND the database (trips, activities, media).
   {
+    if (!lockedAccountReservation) throw new Error("LOCKED_ACCOUNT_RESERVATION_MISSING");
+    const reserved = lockedAccountReservation as { mediaId: string; path: string };
+    const ownedBeforeRefusal = await countOwned(victim.id);
     const { error: up } = await victim.client.storage.from(BUCKET)
-      .upload(`${victim.id}/${t4}/${crypto.randomUUID()}.webp`, webp(), { contentType: "image/webp", upsert: false });
-    check(!!up, "deleting account: Storage upload refused");
+      .upload(reserved.path, webp(), { contentType: "image/webp", upsert: false });
+    check(!!up, "deleting account: exact reserved Storage upload refused");
+    check(!await objectPresent(reserved.path) &&
+      await rowCount("media", "id", reserved.mediaId) === 1 &&
+      await countOwned(victim.id) === ownedBeforeRefusal,
+      "deleting account: refusal preserves reserved row and owned-object count");
 
     const { data: tIns, error: tInsErr } = await victim.client.from("trips").insert({
       country_code: "SN",
@@ -514,21 +578,33 @@ try {
       secondFailure?.deletion_claim_token === null,
       "worker retries after simulated backoff elapsed");
 
-    // The original authenticated manual resume remains valid despite failed worker attempts.
+    // Manual resume remains allowed after failed worker retries, but the public
+    // response MUST expose only the generic error. Inspect internal state solely
+    // through the staging admin client; never expect SQL/Storage codes over HTTP.
+    const { data: beforeRefusal, error: beforeRefusalError } = await admin.from("profiles")
+      .select("deleting,deletion_requested_at").eq("id", victim.id).single();
+    if (beforeRefusalError) throw new Error("PROFILE_BEFORE_REFUSAL_CHECK_FAILED");
+    check(beforeRefusal?.deleting === true && !!beforeRefusal?.deletion_requested_at,
+      "account is locked before rejected manual resume");
+    const firstRequestedAt = String(beforeRefusal.deletion_requested_at);
+
     const r = await callDelete(oldToken, { action: "delete_account", confirmation: "SUPPRIMER" });
-    check(r.status !== 403, "resume does not require fresh authentication", JSON.stringify(r));
     check(
-      r.status >= 400 && String(r.body.error ?? "").startsWith("OWNED_OBJECTS_REMAIN"),
-      "account deletion refused while an owned object remains",
+      r.status === 503 && r.body.error === "DELETE_UNAVAILABLE",
+      "account deletion refused with neutral 503 while an owned object remains",
       JSON.stringify(r),
     );
+    check(Object.keys(r.body).length === 1, "deletion refusal exposes no internal fields", JSON.stringify(r));
     check(await userExists(victim.id), "Auth user still exists after refused deletion");
-    const { data: prof } = await admin.from("profiles").select("deleting,deletion_requested_at").eq("id", victim.id)
-      .single();
-    check(prof?.deleting === true, "profile stays deleting=true");
+    const { data: prof, error: profError } = await admin.from("profiles")
+      .select("deleting,deletion_requested_at").eq("id", victim.id).single();
+    if (profError) throw new Error("PROFILE_AFTER_REFUSAL_CHECK_FAILED");
+    check(prof?.deleting === true, "profile stays deleting=true after refused deletion");
     check(
-      !!prof?.deletion_requested_at && Date.parse(String(prof.deletion_requested_at)) === Date.parse(SYNTHETIC_FIRST_REQUEST),
-      "first deletion request date preserved across retries",
+      !!prof?.deletion_requested_at &&
+        Date.parse(String(prof.deletion_requested_at)) === Date.parse(firstRequestedAt) &&
+        Date.parse(firstRequestedAt) === Date.parse(SYNTHETIC_FIRST_REQUEST),
+      "first deletion request date unchanged across worker retries and rejected manual resume",
     );
     check((await listAll(victim.id)).length === 0, "resumed cleanup emptied the remaining files of the prefix");
 

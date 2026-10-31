@@ -88,7 +88,7 @@ alter table public.trips add constraint trips_cover_same_trip_owner
   foreign key (cover_media_id,id,user_id) references public.media(id,trip_id,user_id)
   on delete set null (cover_media_id);
 
-create function public.check_same_owner() returns trigger language plpgsql security invoker set search_path=public as $$
+create function public.check_same_owner() returns trigger language plpgsql security invoker set search_path='' as $$
 begin
  if not exists(select 1 from public.trips t where t.id=new.trip_id and t.user_id=new.user_id and not t.deleting)
  then raise exception 'Ce voyage n''appartient pas à cet utilisateur ou est en suppression'; end if;
@@ -190,40 +190,50 @@ create function public.handle_new_user() returns trigger language plpgsql securi
 begin insert into public.profiles(id,display_name) values(new.id,nullif(new.raw_user_meta_data->>'display_name','')); return new; end $$;
 create trigger on_auth_user_created after insert on auth.users for each row execute function public.handle_new_user();
 revoke execute on function public.handle_new_user() from public,anon,authenticated;
+revoke execute on function public.check_same_owner(), public.check_trip_dates(),
+  public.touch_updated_at() from public,anon,authenticated;
 
-create function public.account_accepts_writes(uid uuid) returns boolean language sql stable security definer set search_path='' as $$
- select exists(select 1 from public.profiles p where p.id=uid and not p.deleting);
-$$;
-revoke execute on function public.account_accepts_writes(uuid) from public,anon;
-grant execute on function public.account_accepts_writes(uuid) to authenticated;
+-- Definer RLS helpers live outside the exposed Data API, fail closed on other users.
+create schema if not exists private;
+grant usage on schema private to authenticated;
 
-create function public.trip_accepts_writes(uid uuid, trip uuid) returns boolean language sql stable security definer set search_path='' as $$
- select exists(select 1 from public.trips t join public.profiles p on p.id=t.user_id
-   where t.id=trip and t.user_id=uid and not t.deleting and not p.deleting);
+create function private.account_accepts_writes(uid uuid)
+returns boolean language sql stable security definer set search_path='' as $$
+  select uid = (select auth.uid())
+    and exists(select 1 from public.profiles p where p.id=uid and not p.deleting);
 $$;
-revoke execute on function public.trip_accepts_writes(uuid,uuid) from public,anon;
-grant execute on function public.trip_accepts_writes(uuid,uuid) to authenticated;
+revoke execute on function private.account_accepts_writes(uuid) from public,anon,authenticated;
+grant execute on function private.account_accepts_writes(uuid) to authenticated;
+
+create function private.trip_accepts_writes(uid uuid, trip uuid)
+returns boolean language sql stable security definer set search_path='' as $$
+  select uid = (select auth.uid())
+    and exists(select 1 from public.trips t join public.profiles p on p.id=t.user_id
+      where t.id=trip and t.user_id=uid and not t.deleting and not p.deleting);
+$$;
+revoke execute on function private.trip_accepts_writes(uuid,uuid) from public,anon,authenticated;
+grant execute on function private.trip_accepts_writes(uuid,uuid) to authenticated;
 
 alter table public.profiles enable row level security;
 alter table public.trips enable row level security;
 alter table public.activities enable row level security;
 alter table public.media enable row level security;
 create policy "profil lecture" on public.profiles for select to authenticated using(id=auth.uid());
-create policy "profil modification" on public.profiles for update to authenticated using(id=auth.uid() and public.account_accepts_writes(auth.uid())) with check(id=auth.uid() and public.account_accepts_writes(auth.uid()));
+create policy "profil modification" on public.profiles for update to authenticated using(id=auth.uid() and private.account_accepts_writes(auth.uid())) with check(id=auth.uid() and private.account_accepts_writes(auth.uid()));
 revoke update on public.profiles from authenticated;
 grant update(display_name,nationality,home_city,country_of_residence) on public.profiles to authenticated;
 revoke insert,delete on public.profiles from authenticated;
 -- Reads: owner only. Writes: owner AND account not being deleted (db_write_barrier.sql).
 create policy "voyages lecture" on public.trips for select to authenticated using(user_id=auth.uid());
-create policy "voyages création" on public.trips for insert to authenticated with check(user_id=auth.uid() and public.account_accepts_writes(auth.uid()));
-create policy "voyages modification" on public.trips for update to authenticated using(user_id=auth.uid() and public.account_accepts_writes(auth.uid()) and not deleting) with check(user_id=auth.uid() and public.account_accepts_writes(auth.uid()) and not deleting);
+create policy "voyages création" on public.trips for insert to authenticated with check(user_id=auth.uid() and private.account_accepts_writes(auth.uid()));
+create policy "voyages modification" on public.trips for update to authenticated using(user_id=auth.uid() and private.account_accepts_writes(auth.uid()) and not deleting) with check(user_id=auth.uid() and private.account_accepts_writes(auth.uid()) and not deleting);
 create policy "activités lecture" on public.activities for select to authenticated using(user_id=auth.uid());
-create policy "activités création" on public.activities for insert to authenticated with check(user_id=auth.uid() and public.account_accepts_writes(auth.uid()) and public.trip_accepts_writes(auth.uid(), trip_id));
-create policy "activités modification" on public.activities for update to authenticated using(user_id=auth.uid() and public.account_accepts_writes(auth.uid()) and public.trip_accepts_writes(auth.uid(), trip_id)) with check(user_id=auth.uid() and public.account_accepts_writes(auth.uid()) and public.trip_accepts_writes(auth.uid(), trip_id));
-create policy "activités suppression" on public.activities for delete to authenticated using(user_id=auth.uid() and public.account_accepts_writes(auth.uid()));
+create policy "activités création" on public.activities for insert to authenticated with check(user_id=auth.uid() and private.account_accepts_writes(auth.uid()) and private.trip_accepts_writes(auth.uid(), trip_id));
+create policy "activités modification" on public.activities for update to authenticated using(user_id=auth.uid() and private.account_accepts_writes(auth.uid()) and private.trip_accepts_writes(auth.uid(), trip_id)) with check(user_id=auth.uid() and private.account_accepts_writes(auth.uid()) and private.trip_accepts_writes(auth.uid(), trip_id));
+create policy "activités suppression" on public.activities for delete to authenticated using(user_id=auth.uid() and private.account_accepts_writes(auth.uid()));
 create policy "médias lecture" on public.media for select to authenticated using(user_id=auth.uid());
-create policy "médias création" on public.media for insert to authenticated with check(user_id=auth.uid() and public.account_accepts_writes(auth.uid()) and public.trip_accepts_writes(auth.uid(), trip_id));
-create policy "médias modification" on public.media for update to authenticated using(user_id=auth.uid() and public.account_accepts_writes(auth.uid()) and public.trip_accepts_writes(auth.uid(), trip_id)) with check(user_id=auth.uid() and public.account_accepts_writes(auth.uid()) and public.trip_accepts_writes(auth.uid(), trip_id));
+create policy "médias création" on public.media for insert to authenticated with check(user_id=auth.uid() and private.account_accepts_writes(auth.uid()) and private.trip_accepts_writes(auth.uid(), trip_id));
+create policy "médias modification" on public.media for update to authenticated using(user_id=auth.uid() and private.account_accepts_writes(auth.uid()) and private.trip_accepts_writes(auth.uid(), trip_id)) with check(user_id=auth.uid() and private.account_accepts_writes(auth.uid()) and private.trip_accepts_writes(auth.uid(), trip_id));
 revoke all on public.profiles,public.trips,public.activities,public.media from anon;
 -- Destructive trip/media deletion is server-only: raw browser DELETE would orphan Storage.
 revoke delete on public.trips, public.media from authenticated;
@@ -241,11 +251,11 @@ from public.trips where not is_domestic and not deleting;
 insert into storage.buckets(id,name,public,file_size_limit,allowed_mime_types)
 values('media','media',false,10485760,array['image/webp']) on conflict(id) do nothing;
 create policy "storage lire" on storage.objects for select to authenticated using(
- bucket_id='media' and (storage.foldername(name))[1]=auth.uid()::text and public.account_accepts_writes(auth.uid()));
+ bucket_id='media' and (storage.foldername(name))[1]=auth.uid()::text and private.account_accepts_writes(auth.uid()));
 create policy "storage ajouter" on storage.objects for insert to authenticated with check(
  bucket_id='media'
  and (storage.foldername(name))[1]=auth.uid()::text
- and public.trip_accepts_writes(
+ and private.trip_accepts_writes(
    auth.uid(),
    case when (storage.foldername(name))[2] ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
         then ((storage.foldername(name))[2])::uuid else null end
@@ -254,8 +264,8 @@ create policy "storage ajouter" on storage.objects for insert to authenticated w
    where m.storage_path=storage.objects.name and m.user_id=auth.uid()
 )
 );
-create policy "storage supprimer" on storage.objects for delete to authenticated using(
- bucket_id='media' and (storage.foldername(name))[1]=auth.uid()::text and public.account_accepts_writes(auth.uid()));
+-- No client DELETE policy: Storage objects must be removed by the verified
+-- service-role travel-delete protocol, before a related media row is removed.
 
 -- Server-only ownership guard used immediately before Auth user deletion.
 -- Keep this RPC in public so PostgREST can reach it, but only service_role may execute it.

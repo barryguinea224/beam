@@ -312,10 +312,28 @@ try {
   console.log("STORAGE HOSTILE TESTS PASSED");
 } finally {
   if(storageUploaded){
-    const {data:removedA,error:removeErr}=await bucketA.remove([storagePath]);
-    if(removeErr) throw new Error("STORAGE CLEANUP FAILED: "+removeErr.message);
-    console.log("A remove() returned objects:", removedA?.length ?? 0);
-    if((removedA?.length ?? 0)!==1) throw new Error("STORAGE CLEANUP FAILED: remove() did not confirm exactly one deleted object");
+    // Browser DELETE is forbidden. A no-op [] response is also a denial:
+    // prove that the existing object remains readable before server deletion.
+    const {data:rawRemovedA,error:rawRemoveAErr}=await bucketA.remove([storagePath]);
+    if(!rawRemoveAErr && (rawRemovedA?.length ?? 0)>0)
+      throw new Error("SECURITY REGRESSION: direct client Storage DELETE accepted");
+    const {data:stillA,error:stillAErr}=await bucketA.download(storagePath);
+    if(stillAErr||!stillA)throw new Error("INVALID TEST: direct DELETE removed/blocked owner's file");
+    const {data:listedA,error:listedAErr}=await bucketA.list(`${sa.user.id}/${ta.id}`,{limit:100});
+    if(listedAErr||!listedA?.some(row=>row.name===`${storageId}.webp`))
+      throw new Error("SECURITY REGRESSION: client DELETE removed A object from Storage listing");
+    console.log("PASS direct client Storage DELETE denied without removing file");
+
+    // The only supported deletion path is travel-delete: Storage first,
+    // media row second, verified by the server.
+    const {data:removedA,error:removeErr}=await A.functions.invoke("travel-delete",{
+      body:{action:"delete_photo",media_id:storageId}
+    });
+    if(removeErr||removedA?.ok!==true)
+      throw new Error("STORAGE SERVER CLEANUP FAILED: "+(removeErr?.message??JSON.stringify(removedA)));
+    const {data:mediaAfterA,error:mediaAfterAErr}=await A.from("media").select("id").eq("id",storageId);
+    if(mediaAfterAErr||(mediaAfterA??[]).length)
+      throw new Error("STORAGE SERVER CLEANUP FAILED: media reservation remains");
 
     const fileName=storagePath.split("/").at(-1)!;
     const folder=`${sa.user.id}/${ta.id}`;
@@ -400,12 +418,37 @@ try {
     console.log("CLEANUP PASS: direct authenticated HTTP no longer serves deleted object");
   }
   if(storageUploadedB){
-    const {data:removedB,error:removeBErr}=await bucketB.remove([storagePathB]);
-    if(removeBErr) throw new Error("STORAGE B CLEANUP FAILED: "+removeBErr.message);
-    if((removedB?.length ?? 0)!==1) throw new Error("STORAGE B CLEANUP FAILED: remove() did not confirm exactly one deleted object");
-    const {data:bAfter,error:bAfterErr}=await bucketB.download(storagePathB);
-    if(!bAfterErr&&bAfter) throw new Error("SECURITY REGRESSION: B Storage cleanup object still exists");
-    console.log("CLEANUP PASS: B Storage control object removed");
+    const {data:rawRemovedB,error:rawRemoveBErr}=await bucketB.remove([storagePathB]);
+    if(!rawRemoveBErr && (rawRemovedB?.length ?? 0)>0)
+      throw new Error("SECURITY REGRESSION: B direct client Storage DELETE accepted");
+    const {data:stillB,error:stillBErr}=await bucketB.download(storagePathB);
+    if(stillBErr||!stillB)throw new Error("INVALID TEST: B direct DELETE removed/blocked own file");
+    const {data:listedB,error:listedBErr}=await bucketB.list(`${sb.user.id}/${tb.id}`,{limit:100});
+    if(listedBErr||!listedB?.some(row=>row.name===`${storageIdB}.webp`))
+      throw new Error("SECURITY REGRESSION: client DELETE removed B object from Storage listing");
+    console.log("PASS B direct Storage DELETE denied without removing file");
+
+    const {data:removedB,error:removeBErr}=await B.functions.invoke("travel-delete",{
+      body:{action:"delete_photo",media_id:storageIdB}
+    });
+    if(removeBErr||removedB?.ok!==true)
+      throw new Error("STORAGE B SERVER CLEANUP FAILED: "+(removeBErr?.message??JSON.stringify(removedB)));
+    // A post-delete SDK download can still return a cached Blob (60 s). Use
+    // server-side Storage metadata plus a cache-busting HTTP read as proof.
+    const {data:bListAfter,error:bListAfterErr}=await bucketB.list(`${sb.user.id}/${tb.id}`,{limit:100});
+    if(bListAfterErr||bListAfter?.some(row=>row.name===`${storageIdB}.webp`))
+      throw new Error("SECURITY REGRESSION: B Storage object remains in listing");
+    const freshB=await fetch(
+      `${env.SUPABASE_URL}/storage/v1/object/authenticated/media/${storagePathB}?nocache=${crypto.randomUUID()}`,{
+        headers:{Authorization:`Bearer ${sb.access_token}`,apikey:env.SUPABASE_PUBLISHABLE_KEY},
+        cache:"no-store"
+      }
+    );
+    if(freshB.ok)throw new Error("SECURITY REGRESSION: B Storage object still served by fresh HTTP read");
+    await freshB.body?.cancel();
+    const {data:bRow,error:bRowErr}=await B.from("media").select("id").eq("id",storageIdB);
+    if(bRowErr||(bRow??[]).length)throw new Error("SECURITY REGRESSION: B media reservation remains");
+    console.log("CLEANUP PASS: B Storage object and media row removed through travel-delete");
   }
 }
 console.log("Next phase: server deletion operations + retained-JWT deletion replay.");
