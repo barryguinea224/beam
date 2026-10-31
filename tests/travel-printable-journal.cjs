@@ -48,6 +48,10 @@ assert.equal(journal.titleForName("Elhadj Barry"),"Carnet d'Elhadj Barry");
 assert.equal(journal.titleForName("Alpha Barry"),"Carnet d'Alpha Barry");
 assert.equal(journal.titleForName("Hélène"),"Carnet d'Hélène");
 assert.equal(journal.titleForName("Barry"),"Carnet de Barry");
+for(const name of ["Youssouf","Yaya","Yacouba","Yÿoussouf"])
+ assert.equal(journal.titleForName(name),"Carnet de "+name);
+for(const name of ["Elhadj","Aminata","Ousmane"])
+ assert.equal(journal.titleForName(name),"Carnet d'"+name);
 assert.equal(journal.titleForName(""),"Mon carnet de voyage");
 const album=fs.readFileSync("travel/printable-journal.js","utf8");
 for(const marker of ["Mon année en voyages","photo-mosaic","activity-timeline",
@@ -95,8 +99,14 @@ assert.match(inline,/\.eq\("user_id",uid\)\.eq\("deleting",false\)/);
 assert.match(inline,/\.from\("activities"\)\.select\("title,place,happened_on"\)/);
 assert.match(inline,/\.from\("media"\)\.select\("id,storage_path,is_favorite"\)/);
 assert.match(inline,/if\(row\.is_favorite&&!favoritePhoto\)favoritePhoto=safe/);
-assert.match(inline,/BEAM_PERSONAL_JOURNAL\.titleForName\(name\)/);
-assert.match(inline,/BEAM_PERSONAL_JOURNAL\.titleForName\(data\.display_name\)/);
+assert.match(inline,/BEAM_PERSONAL_JOURNAL\?\.titleForName\?\.\(name\)/,
+ "dashboard may consult album but cannot require it");
+assert.match(inline,/function travelDashboardTitle\(input\)/,
+ "dashboard title fallback must exist independently");
+assert.match(inline,/travelDashboardTitle\(name\)/);
+assert.match(inline,/travelDashboardTitle\(data\.display_name\)/);
+assert.match(inline,/window\.BEAM_PERSONAL_JOURNAL\?\.render/,
+ "missing optional album must disable printing without crashing the dashboard");
 assert.match(inline,/BEAM_PERSONAL_JOURNAL\.preferredMediaQuery\(/);
 assert.match(inline,/pack\[position\]=\{trip,activities:activityResult\.data\|\|\[\],photos,favoritePhoto,missingPhotos\}/,
  "failed photo signatures must reach the private print status");
