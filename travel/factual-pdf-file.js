@@ -26,7 +26,8 @@
    if(cp1252[code]){out+=String.fromCharCode(cp1252[code]);continue}
    if(code<32)continue;
    const transliterated=character.normalize("NFKD").replace(/[\u0300-\u036f]/g,"");
-   out+=/^[ -~]+$/.test(transliterated)?transliterated:"?";
+   if(!/^[ -~]+$/.test(transliterated))throw new Error("Caractères non pris en charge par le partage PDF : utilisez l’impression Chrome.");
+   out+=transliterated;
   }
   return out;
  }
