@@ -17,7 +17,7 @@
  function titleForName(input){
   const name=clean(input).replace(/\s+/g," ").slice(0,80);
   if(!name)return "Mon carnet de voyage";
-  const elide=/^[aàâäeéèêëiîïoôöuùûüyÿœæ]/i.test(name)||H_MUET.test(name);
+  const elide=/^[aàâäeéèêëiîïoôöuùûüœæ]/i.test(name)||H_MUET.test(name);
   return "Carnet "+(elide?"d'":"de ")+name;
  }
  const el=(parent,tag,klass,text)=>{
