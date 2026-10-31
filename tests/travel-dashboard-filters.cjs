@@ -99,7 +99,10 @@ assert.match(inline,/active\?visible\.length\+/,
 assert.match(inline,/const name=typeof profile\.display_name/,
  "title must use loaded profile");
 assert.match(inline,/#dashboardTitle/);
-assert.match(app,/id="dashboardFooter"/);
+assert.match(app,/<section id="accountSession"[^>]*>[\\s\\S]*?<h3 id="accountSessionTitle">Session<\\/h3>[\\s\\S]*?<button id="logout"[^>]*>Se déconnecter<\\/button>[\\s\\S]*?<\\/section>/,
+ "logout must be inside the account Session card");
+assert.ok(app.indexOf('id="myAccount"')<app.indexOf('id="accountSession"')&&app.indexOf('id="accountSession"')<app.indexOf('id="logout"'),
+ "Session must be nested in the account drawer before logout");
 assert.match(app,/<button id="logout" type="button" class="btn ghost">Se déconnecter<\/button>/);
 assert.equal((app.match(/id="logout"/g)||[]).length,1);
 assert.match(inline,/toggleCountry\(dashboardFilters,code\)/);
@@ -115,4 +118,4 @@ assert.match(sw,/beam-travel-shell-v1-20261031-/);
 assert.ok(!sw.includes('beam-travel-shell-v1-20261030'),
  "PWA cache must not regress to the old static shell");
 
-console.log("PASS dashboard filter composition, country toggle, profile header, footer logout and PDF isolation");
+console.log("PASS dashboard filter composition, country toggle, profile header, account Session logout and PDF isolation");
