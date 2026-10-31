@@ -27,19 +27,19 @@ async function main(){
     assert.ok(data.contained,"map viewBox must encompass 3 continents: "+JSON.stringify(data));
     assert.ok(data.scroll<=width+1,"horizontal overflow "+width+": "+JSON.stringify(data));
     if(width<900){
-      // Japan is an archipelago: the bounding-box center may fall in the sea.
-      // Tap a painted point from an actual SVG subpath instead.
+      // Search a point actually painted by Japan, not its empty bounding-box centre.
+      await page.locator("#map-JP").scrollIntoViewIfNeeded();
       const painted=await page.locator("#map-JP").evaluate(p=>{
-        const svg=p.ownerSVGElement,transform=p.getScreenCTM();
-        for(let i=0;i<=240;i++){
-          const q=p.getPointAtLength(p.getTotalLength()*i/240);
-          const pt=svg.createSVGPoint();pt.x=q.x;pt.y=q.y;
-          const screen=pt.matrixTransform(transform);
-          const local=pt.matrixTransform(p.getCTM().inverse());
-          if(p.isPointInFill(local)&&screen.x>=0&&screen.y>=0&&screen.x<innerWidth&&screen.y<innerHeight)
-            return {x:screen.x,y:screen.y};
+        const rect=p.getBoundingClientRect();
+        for(let row=0;row<=80;row++){
+          for(let col=0;col<=80;col++){
+            const x=rect.left+(col+.5)*rect.width/81;
+            const y=rect.top+(row+.5)*rect.height/81;
+            if(x>=0&&y>=0&&x<innerWidth&&y<innerHeight&&document.elementFromPoint(x,y)===p)
+              return {x,y};
+          }
         }
-        throw Error("No painted point on Japan inside viewport");
+        throw Error("No hit-testable Japan point inside viewport");
       });
       await page.touchscreen.tap(painted.x,painted.y);
       const focus=await page.locator("#map-JP").evaluate(p=>({outline:getComputedStyle(p).outlineStyle,stroke:getComputedStyle(p).stroke}));
