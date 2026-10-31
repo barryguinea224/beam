@@ -101,6 +101,12 @@ async function main(){
    const account=page.locator("#accountOverlay"),discard=page.locator("#discardConfirm");
    await page.locator("#openAccount").click();
    assert.ok(await account.evaluate(n=>n.classList.contains("accountOpen")));
+   assert.equal(await page.locator("#closeAccount").evaluate(el=>{
+    const r=el.getBoundingClientRect(),top=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);
+    return top===el||el.contains(top);
+   }),true,"account close must be topmost hit target at "+width);
+   assert.equal(await page.locator("#logout").evaluate(el=>el.closest("#accountSession")!==null),true,
+    "sign out belongs inside the account Session card");
    await page.evaluate(()=>history.back());
    await page.waitForFunction(()=>!document.querySelector("#accountOverlay").classList.contains("accountOpen"));
    assert.ok(page.url().includes("/travel/"),"Android Back must remain on carnet");
@@ -152,6 +158,10 @@ async function main(){
    await page.waitForFunction(()=>!document.querySelector("#filterPanel").classList.contains("filterOpen"));
    assert.equal(await page.evaluate(()=>document.activeElement?.id),"toggleFilters");
    await page.locator("#toggleFilters").click();
+   assert.equal(await page.locator("#closeFilters").evaluate(el=>{
+    const r=el.getBoundingClientRect(),top=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);
+    return top===el||el.contains(top);
+   }),true,"filters close must be topmost hit target at "+width);
    await page.keyboard.press("Escape");
    assert.ok(!await page.locator("#filterPanel").evaluate(n=>n.classList.contains("filterOpen")));
    assert.equal(await page.evaluate(()=>document.activeElement?.id),"toggleFilters");
