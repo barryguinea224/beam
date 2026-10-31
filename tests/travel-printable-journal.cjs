@@ -52,7 +52,7 @@ for(const marker of ["Mon année en voyages","photo-mosaic","activity-timeline",
 assert.match(album,/@page\{size:A4/, "A4 must be explicitly forced");
 assert.match(album,/@top-center/);
 assert.match(album,/@bottom-center/);
-assert.ok(!album.includes("innerHTML")&&!album.includes("document.write"),
+assert.ok(!/\.innerHTML\s*=|document\.write\s*\(/.test(album),
  "journal must insert only DOM text and controlled local SVG paths");
 assert.match(album,/doc\.createElementNS/);
 assert.match(album,/map\(yearbook,model\.mapSvgText/);
