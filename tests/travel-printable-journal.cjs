@@ -8,7 +8,18 @@ const PDF=require("../travel/factual-pdf.js");
 const NOTICE="Document personnel, non destiné aux démarches administratives";
 assert.equal(journal.NOTICE,NOTICE);
 assert.equal(journal.MAX_PHOTOS_PER_TRIP,4);
-assert.ok(journal.SIGNED_SECONDS>0 && journal.SIGNED_SECONDS<=180);
+assert.equal(journal.SIGNED_SECONDS,300,"slow mobile connections need five-minute photo signatures");
+const calls=[],query={
+ order(field,options){calls.push(["order",field,options.ascending]);return this},
+ limit(n){calls.push(["limit",n]);return this}
+};
+assert.equal(journal.preferredMediaQuery(query),query);
+assert.deepEqual(calls,[
+ ["order","is_favorite",false],
+ ["order","position",true],
+ ["order","created_at",true],
+ ["limit",4]
+],"four print photos must favor favorites, then owner position, then creation date");
 const trips=[
  {id:"1",country_code:"SN",cities:["Dakar"],entry_date:"2026-04-01",exit_date:"2026-04-08",duration_days:8,purpose:"tourisme",note:"Mon souvenir de Dakar",is_domestic:false},
  {id:"2",country_code:"GN",cities:["Kindia"],entry_date:"2025-03-01",exit_date:"2025-03-02",duration_days:2,purpose:"famille",note:"Mon séjour à Kindia",is_domestic:true},
@@ -31,6 +42,13 @@ assert.equal(projection.memory,"Mon souvenir de Dakar");
 assert.equal(projection.activities[0].title,"Visite du marché");
 assert.equal(journal.viewTrip(trips[1]).domestic,true);
 assert.equal(journal.viewTrip(trips[1]).country,"Guinée");
+const source=fs.readFileSync("travel/printable-journal.js","utf8");
+assert.match(source,/img\.naturalWidth>0/, "complete=true is not proof of successful photo loading");
+assert.match(source,/photos n'ont pas pu être chargées/, "missing photo count must be visible");
+assert.match(source,/img\.remove\(\)/, "broken photo must be replaced by a printable placeholder");
+assert.match(source,/setTimeout\(\(\)=>settle\(false\),30000\)/, "slow mobile photo wait must be bounded");
+assert.match(source,/unavailableBeforeLoad\+results\.filter\(ok=>!ok\)\.length/,
+ "the warning must include both signing errors and failed image loads");
 const main=fs.readFileSync("travel/index.html","utf8");
 const inline=main.match(/<script>([\s\S]*?)<\/script>/)?.[1];
 assert.ok(inline);new vm.Script(inline);
@@ -43,6 +61,9 @@ assert.match(inline,/BEAM_VISUAL_CARDS\.trustedSignedUrl/);
 assert.match(inline,/\.eq\("user_id",uid\)\.eq\("deleting",false\)/);
 assert.match(inline,/\.from\("activities"\)\.select\("title,place,happened_on"\)/);
 assert.match(inline,/\.from\("media"\)\.select\("id,storage_path"\)/);
+assert.match(inline,/BEAM_PERSONAL_JOURNAL\.preferredMediaQuery\(/);
+assert.match(inline,/pack\[position\]=\{trip,activities:activityResult\.data\|\|\[\],photos,missingPhotos\}/,
+ "failed photo signatures must reach the private print status");
 assert.match(inline,/window\.BEAM_TRAVEL_PDF\.fetchRows\(S,uid\)/);
 const printHandler=inline.slice(inline.indexOf('$("#printJournal").onclick'),inline.indexOf('$("#pdf").onclick'));
 assert.ok(!/BEAM_TRAVEL_PDF\.render|travel_history_pdf/.test(printHandler),
