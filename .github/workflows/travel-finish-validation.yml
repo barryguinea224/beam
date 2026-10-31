@@ -23,12 +23,19 @@ jobs:
           npx playwright install --with-deps chromium
           sudo apt-get update -qq
           sudo apt-get install -y poppler-utils
-      - name: Run every test except server-only mobile smoke
+      - name: Run every test including mobile-smoke with local site server
         shell: bash
         run: |
           set -euo pipefail
+          python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/beam-mobile-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:8765/ >/dev/null; then break; fi
+            sleep .2
+          done
+          curl --fail --silent http://127.0.0.1:8765/ >/dev/null
           for test in tests/*.cjs; do
-            if [[ "$test" == "tests/mobile-smoke.cjs" ]]; then continue; fi
             echo "::group::$test"
             node "$test"
             echo "::endgroup::"
