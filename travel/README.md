@@ -3,7 +3,7 @@
 Espace personnel de mémoire de voyage : voyages, activités, notes, photos privées et export PDF factuel.
 
 ## Scope V1
-- Magic link e-mail via Supabase Auth
+- Accès réservé aux clients provisionnés par BEAM ; connexion e-mail par code OTP à 6 chiffres, sans mot de passe
 - Carte et historique
 - Ajouter/modifier un voyage
 - Activités et notes privées
@@ -15,9 +15,12 @@ Espace personnel de mémoire de voyage : voyages, activités, notes, photos priv
 ## Installation
 1. Créer un projet Supabase en Europe.
 2. Exécuter `supabase/schema.sql` dans SQL Editor.
-3. Activer l'authentification e-mail par lien magique.
-4. Copier `config.example.js` vers `config.js` et renseigner uniquement l'URL Supabase et la clé publique anon/publishable.
-5. Ne jamais ajouter `service_role` au navigateur ou au dépôt.
+3. Dans **Authentication → General Configuration**, désactiver **Allow new users to sign up** sur chaque projet hébergé (staging puis production). Le fichier `supabase/config.toml` configure seulement l'environnement local.
+4. Dans **Authentication → Email Templates → Magic Link**, inclure `{{ .Token }}` dans le modèle pour envoyer un vrai code à 6 chiffres ; vérifier sa réception sur téléphone.
+5. Créer chaque compte manuellement après paiement depuis **Authentication → Users → Add user**, avec l'e-mail du client et **Auto Confirm User**, sans mot de passe.
+6. Suivre le document de sécurité `supabase/INVITE_ONLY_AUDIT.md` et attendre les tests hostiles avant publication.
+7. Copier `config.example.js` vers `config.js` et renseigner uniquement l'URL Supabase et la clé publique anon/publishable.
+8. Ne jamais ajouter `service_role` au navigateur ou au dépôt.
 
 
 ## Travel History PDF V1 — contrat factuel et confidentiel
