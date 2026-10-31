@@ -58,7 +58,9 @@ async function main(){
     const dest=path.join(dir,"journal-"+width+".pdf");
     fs.writeFileSync(dest,await page.pdf({printBackground:true,preferCSSPageSize:true}));
     const info=execFileSync("pdfinfo",[dest],{encoding:"utf8"});
-    assert.match(info,/Page size:\s+595(?:\.\d+)? x 84[12](?:\.\d+)? pts \(A4\)/);
+    const a4=info.match(/Page size:\s+([\d.]+) x ([\d.]+) pts \(A4\)/);
+    assert.ok(a4 && Math.abs(Number(a4[1])-595.28)<1.5 &&
+      Math.abs(Number(a4[2])-841.89)<1.5,"Printed document must be physical A4: "+info);
     const pages=Number(info.match(/^Pages:\s+(\d+)/m)?.[1]);
     assert.ok(pages>=3,"Expected multi-page A4 with cover, got "+pages);
     for(let p=1;p<=pages;p++){
