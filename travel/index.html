@@ -317,7 +317,7 @@ function openTripDetail(id){
  if(!$("#tripDetailModal").classList.contains("open"))detailReturnFocus=document.activeElement;
  detailTripId=id;
  $("#detailTitle").textContent=(trip.cities||[]).join(", ")||countryName(trip.country_code);
- $("#detailIntro").textContent=countryName(trip.country_code)+" · "+(trip.is_domestic?"Voyage intérieur":"Voyage à l’étranger");
+ $("#detailIntro").textContent=countryName(trip.country_code)+" · "+(trip.is_domestic?"Séjour national":"Voyage à l’étranger");
  const fact=(label,value)=>'<div class="detailFact"><dt>'+esc(label)+'</dt><dd>'+esc(value)+'</dd></div>';
  $("#detailFacts").innerHTML=[
    fact("Pays",countryName(trip.country_code)),
