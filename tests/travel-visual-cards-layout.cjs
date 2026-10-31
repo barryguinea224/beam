@@ -44,7 +44,7 @@ async function main(){
     }
     assert.equal(state.cards.length,4);
     assert.ok(state.cards[0].label.includes("France"));
-    assert.ok(state.cards[1].label.includes("Voyage intérieur"));
+    assert.ok(state.cards[1].label.includes("Séjour national"));
     assert.ok(state.cards[2].label.includes("Djeddah"));
     assert.ok(state.cards[3].label.includes("Nouvelle-Zélande"));
     assert.ok(state.flagUrls.every(src=>src.startsWith("./assets/flags/")));

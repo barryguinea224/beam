@@ -1,0 +1,54 @@
+name: BEAM Travel — carnet imprimable personnel (PR review)
+
+on:
+  pull_request:
+    branches: [feature/beam-travel-history-v1]
+    paths:
+      - "travel/index.html"
+      - "travel/printable-journal.js"
+      - "travel/dashboard-filters.js"
+      - "travel/visual-cards.js"
+      - "travel/sw.js"
+      - "tests/travel-printable-journal*"
+      - "tests/travel-dashboard-*"
+      - "tests/travel-visual-cards-layout.cjs"
+      - ".github/workflows/travel-printable-journal.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    name: Carnet privé, filtres, PDF factuel inchangé et cache neutre
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false,fetch-depth: 0}
+      - uses: actions/setup-node@v4
+        with: {node-version: "22"}
+      - name: Assert no changes to factual PDF module, SQL view or schema
+        run: |
+          git fetch --no-tags origin feature/beam-travel-history-v1
+          git diff --exit-code --name-only "origin/feature/beam-travel-history-v1" HEAD -- travel/factual-pdf.js travel/supabase/schema.sql travel/supabase/migrations
+      - run: |
+          node tests/travel-printable-journal.cjs
+          node tests/travel-dashboard-filters.cjs
+          node tests/travel-factual-pdf.cjs
+
+  print-a4:
+    name: A4 multipage, mention à chaque page et photo privée
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: "22"}
+      - run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+          command -v pdfinfo || (sudo apt-get update -qq && sudo apt-get install -y -qq poppler-utils)
+          command -v pdftotext
+          command -v pdfimages
+      - run: node tests/travel-printable-journal-layout.cjs
