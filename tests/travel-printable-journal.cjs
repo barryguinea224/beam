@@ -36,18 +36,33 @@ const projection=journal.viewTrip({...trips[0],
  [{title:"Visite du marché",place:"Dakar",happened_on:"2026-04-03",document_number:"SECRET_DOC"}],
  ["https://example.invalid/photo.webp"]);
 assert.deepEqual(Object.keys(projection).sort(),
- ["country","cities","entry","exit","duration","purpose","domestic","memory","activities","photos"].sort());
+ ["code","country","cities","entry","exit","entryISO","exitISO","duration","days","purpose","domestic","memory","activities","photos"].sort());
 assert.ok(!JSON.stringify(projection).includes("SECRET_"));
 assert.equal(projection.memory,"Mon souvenir de Dakar");
 assert.equal(projection.activities[0].title,"Visite du marché");
 assert.equal(journal.viewTrip(trips[1]).domestic,true);
 assert.equal(journal.viewTrip(trips[1]).country,"Guinée");
+assert.equal(journal.period(trips.map(t=>journal.viewTrip(t))),"2025 – 2026");
+assert.equal(journal.period([journal.viewTrip(trips[0])]),"2026");
+const album=fs.readFileSync("travel/printable-journal.js","utf8");
+for(const marker of ["Mon année en voyages","photo-mosaic","activity-timeline",
+ "ink-saver","Économie d’encre","atlas-visited","counter(page)","Carnet généré le"]){
+ assert.ok(album.includes(marker),"visual album element missing: "+marker);
+}
+assert.match(album,/@page\{size:A4/, "A4 must be explicitly forced");
+assert.match(album,/@top-center/);
+assert.match(album,/@bottom-center/);
+assert.ok(!/\.innerHTML\s*=|document\.write\s*\(/.test(album),
+ "journal must insert only DOM text and controlled local SVG paths");
+assert.match(album,/doc\.createElementNS/);
+assert.match(album,/map\(yearbook,model\.mapSvgText/);
+assert.match(album,/limitReached/, "exhaustion of photo quota must be announced");
 const source=fs.readFileSync("travel/printable-journal.js","utf8");
 assert.match(source,/img\.naturalWidth>0/, "complete=true is not proof of successful photo loading");
 assert.match(source,/photos n'ont pas pu être chargées/, "missing photo count must be visible");
 assert.match(source,/img\.remove\(\)/, "broken photo must be replaced by a printable placeholder");
 assert.match(source,/setTimeout\(\(\)=>settle\(false\),30000\)/, "slow mobile photo wait must be bounded");
-assert.match(source,/unavailableBeforeLoad\+results\.filter\(ok=>!ok\)\.length/,
+assert.match(source,/initialFailed\+results\.filter\(x=>!x\)\.length/,
  "the warning must include both signing errors and failed image loads");
 const main=fs.readFileSync("travel/index.html","utf8");
 const inline=main.match(/<script>([\s\S]*?)<\/script>/)?.[1];
