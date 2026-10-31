@@ -36,6 +36,25 @@
  #travelHero .actions .btn{font-size:13px;padding:10px 12px}
  #travelMapPanel .map{min-height:170px}
 }
+/* Stage 2 — responsive filter overlay, preserving existing filter data model. */
+.filterAnchor{position:relative;margin:0 0 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.activeFilterChips{display:flex;gap:6px;flex-wrap:wrap}
+.activeFilterChips button{border:1px solid var(--line);background:white;border-radius:99px;padding:9px 12px;min-height:44px;cursor:pointer}
+#toggleFilters,#closeFilters,#applyFilters,#resetFilters{min-height:44px}
+#filterPanel{display:none;z-index:45;margin:0;min-width:0}
+#filterPanel.filterOpen{display:block}
+#filterPanel .top h2{margin:0}
+#filterPanel .dashboardFiltersActions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+#filterPanel .dashboardFiltersActions p{width:100%}
+@media(max-width:899px){
+ #filterPanel.filterOpen{position:fixed;inset:auto 0 0;max-height:calc(100dvh - 12px);overflow-y:auto;overscroll-behavior:contain;border-radius:24px 24px 0 0;padding:18px 16px max(16px,env(safe-area-inset-bottom));box-shadow:0 0 0 100vmax #10241ab0}
+ #filterPanel .dashboardFiltersActions{position:sticky;bottom:0;background:white;padding:12px 0 max(8px,env(safe-area-inset-bottom));margin-top:12px;border-top:1px solid var(--line)}
+ #filterPanel .dashboardFiltersActions .btn{flex:1 1 115px}
+ #filterPanel .dashboardFiltersActions p{margin:0;font-size:12px}
+}
+@media(min-width:900px){
+ #filterPanel.filterOpen{position:absolute;top:calc(100% + 8px);left:0;width:min(390px,95vw);max-height:min(75dvh,650px);overflow-y:auto;box-shadow:0 18px 40px #10241a30}
+}
 /* Fail closed while disconnected: previously-rendered private data is hidden. */
 #offline{display:none;min-height:100dvh;padding:12vh 20px;text-align:center;max-width:520px;margin:auto}
 #offline h1{font-size:clamp(30px,8vw,44px);line-height:1.16}
@@ -55,7 +74,7 @@ html.beamOffline #auth,html.beamOffline #app,html.beamOffline #modal,html.beamOf
 <p id="finishDeletionMessage" class="notice hidden" role="status" aria-live="polite"></p>
 </section>
 <section id="accountStatusUnavailable" class="panel hidden" role="alert"><h2>État du compte indisponible</h2><p>Impossible de vérifier si votre compte est en cours de suppression. Les modifications restent désactivées. Réessayez, ou déconnectez-vous puis reconnectez-vous.</p><button id="retryAccountStatus" type="button" class="btn ghost">Réessayer</button></section>
-<p id="appMsg" class="notice hidden"></p><section id="residencePanel" class="panel" style="margin-bottom:16px"><div class="top"><div><h2 style="margin-bottom:4px">Résidence actuelle</h2><p class="mapInfo" style="margin:0">Utilisée uniquement pour proposer si un nouveau voyage est intérieur. Elle ne reclassifie jamais vos anciens voyages.</p></div><div class="field" style="min-width:210px;margin:0"><label for="residenceSearch" class="ey" style="font-size:11px">Rechercher un pays de résidence</label><input id="residenceSearch" type="search" placeholder="Ex. Guinée, Sénégal" autocomplete="off" aria-controls="residence"><select id="residence" aria-label="Pays de résidence"><option value="">Choisir</option></select></div></div></section><section id="filterPanel" class="panel" aria-labelledby="filterTitle" style="margin-bottom:16px"><h2 id="filterTitle">Filtrer mon carnet</h2><div class="dashboardFilters"><div class="field"><label for="filterCountry">Pays</label><select id="filterCountry"><option value="">Tous les pays</option></select></div><div class="field"><label for="filterYear">Année d’entrée</label><select id="filterYear"><option value="">Toutes les années</option></select></div><div class="field"><label for="filterPurpose">Motif</label><select id="filterPurpose"><option value="">Tous les motifs</option><option value="tourisme">Tourisme</option><option value="affaires">Affaires</option><option value="etudes">Études</option><option value="famille">Famille</option><option value="sante">Santé</option><option value="transit">Transit</option><option value="autre">Autre</option></select></div><div class="field"><label for="filterScope">Type de voyage</label><select id="filterScope"><option value="">Tous les types</option><option value="foreign">Voyages à l’étranger</option><option value="domestic">Séjours nationaux</option></select></div></div><div class="dashboardFiltersActions"><button id="resetFilters" type="button" class="btn ghost">Tout afficher</button><p id="filterStatus" role="status" aria-live="polite">Tous les voyages sont affichés.</p></div></section><section id="travelMapPanel" class="panel" aria-labelledby="travelMapTitle"><h2 id="travelMapTitle">Ma carte</h2><div class="map" id="map" aria-live="polite">Chargement de la carte…</div><p id="mapInfo" class="mapInfo"></p><div id="countryList" class="countryList" aria-label="Pays visités"></div></section><div id="travelPanels" class="grid"><section class="panel" id="travelTripsPanel"><h2>Mes voyages</h2><div id="trips"></div></section></div><section id="myAccount" class="panel" aria-labelledby="myAccountTitle" style="margin-top:18px"><h2 id="myAccountTitle">Mon compte</h2>
+<p id="appMsg" class="notice hidden"></p><section id="residencePanel" class="panel" style="margin-bottom:16px"><div class="top"><div><h2 style="margin-bottom:4px">Résidence actuelle</h2><p class="mapInfo" style="margin:0">Utilisée uniquement pour proposer si un nouveau voyage est intérieur. Elle ne reclassifie jamais vos anciens voyages.</p></div><div class="field" style="min-width:210px;margin:0"><label for="residenceSearch" class="ey" style="font-size:11px">Rechercher un pays de résidence</label><input id="residenceSearch" type="search" placeholder="Ex. Guinée, Sénégal" autocomplete="off" aria-controls="residence"><select id="residence" aria-label="Pays de résidence"><option value="">Choisir</option></select></div></div></section><div id="filterAnchor" class="filterAnchor"><button id="toggleFilters" class="btn ghost" type="button" aria-expanded="false" aria-controls="filterPanel">Filtrer les voyages</button><div id="activeFilterChips" class="activeFilterChips" aria-label="Filtres actifs"></div><section id="filterPanel" class="panel" aria-labelledby="filterTitle" role="dialog" aria-modal="false" aria-hidden="true" tabindex="-1"><div class="top"><h2 id="filterTitle">Filtrer mon carnet</h2><button id="closeFilters" class="btn ghost" type="button" aria-label="Fermer les filtres">✕</button></div><div class="dashboardFilters"><div class="field"><label for="filterCountry">Pays</label><select id="filterCountry"><option value="">Tous les pays</option></select></div><div class="field"><label for="filterYear">Année d’entrée</label><select id="filterYear"><option value="">Toutes les années</option></select></div><div class="field"><label for="filterPurpose">Motif</label><select id="filterPurpose"><option value="">Tous les motifs</option><option value="tourisme">Tourisme</option><option value="affaires">Affaires</option><option value="etudes">Études</option><option value="famille">Famille</option><option value="sante">Santé</option><option value="transit">Transit</option><option value="autre">Autre</option></select></div><div class="field"><label for="filterScope">Type de voyage</label><select id="filterScope"><option value="">Tous les types</option><option value="foreign">Voyages à l’étranger</option><option value="domestic">Séjours nationaux</option></select></div></div><div class="dashboardFiltersActions"><button id="applyFilters" type="button" class="btn">Voir les voyages</button><button id="resetFilters" type="button" class="btn ghost">Tout afficher</button><p id="filterStatus" role="status" aria-live="polite">Tous les voyages sont affichés.</p></div></section></div><section id="travelMapPanel" class="panel" aria-labelledby="travelMapTitle"><h2 id="travelMapTitle">Ma carte</h2><div class="map" id="map" aria-live="polite">Chargement de la carte…</div><p id="mapInfo" class="mapInfo"></p><div id="countryList" class="countryList" aria-label="Pays visités"></div></section><div id="travelPanels" class="grid"><section class="panel" id="travelTripsPanel"><h2>Mes voyages</h2><div id="trips"></div></section></div><section id="myAccount" class="panel" aria-labelledby="myAccountTitle" style="margin-top:18px"><h2 id="myAccountTitle">Mon compte</h2>
 <form id="travelerNameForm" aria-label="Nom déclaré pour le PDF" style="max-width:520px;margin-bottom:22px">
  <div class="field"><label for="travelerName">Nom du voyageur (pour le PDF)</label>
  <input id="travelerName" name="display_name" type="text" maxlength="80" autocomplete="name" required placeholder="Prénom et nom">
@@ -199,7 +218,44 @@ function render(){
  $("#mapInfo").textContent=dashboardFilters.country?countryName(dashboardFilters.country)+" sélectionné · appuyez à nouveau pour tout afficher.":"Choisissez un pays sur la carte ou dans les étiquettes.";
  $("#countryList").innerHTML=[...counts].sort((a,b)=>countryName(a[0]).localeCompare(countryName(b[0]),"fr")).map(([code,n])=>`<button type="button" class="countryChip" data-country="${esc(code)}" aria-pressed="${dashboardFilters.country===code}" aria-label="${esc(countryName(code))}, ${n} voyage${n===1?"":"s"}, ${dashboardFilters.country===code?"désélectionner":"sélectionner"}">${esc(countryName(code))} <b>${n}</b></button>`).join("");
  $("#trips").innerHTML=visible.length?visible.map(x=>window.BEAM_VISUAL_CARDS.markup(x,countryName(x.country_code),window.BEAM_TRAVEL_PDF.purposeName(x.purpose),tripDates(x.entry_date,x.exit_date))).join(""):(trips.length?"<p>Aucun voyage ne correspond aux filtres.</p>":"<p>Aucun voyage pour le moment.</p>");
- applyMapState();scheduleMap();scheduleCoverImages();
+ renderFilterChips();applyMapState();scheduleMap();scheduleCoverImages();
+}
+let filterReturnFocus=null;
+function setFiltersOpen(open){
+ const panel=$("#filterPanel"),trigger=$("#toggleFilters");
+ if(!panel||!trigger)return;
+ const next=!!open&&accountState==="active";
+ panel.classList.toggle("filterOpen",next);
+ panel.setAttribute("aria-hidden",String(!next));
+ panel.setAttribute("aria-modal",String(next&&matchMedia("(max-width:899px)").matches));
+ trigger.setAttribute("aria-expanded",String(next));
+ if(next){filterReturnFocus=document.activeElement;$("#closeFilters").focus()}
+ else if(filterReturnFocus&&document.contains(filterReturnFocus)){filterReturnFocus.focus();filterReturnFocus=null}
+}
+$("#toggleFilters").onclick=()=>setFiltersOpen(!$("#filterPanel").classList.contains("filterOpen"));
+$("#closeFilters").onclick=()=>setFiltersOpen(false);
+$("#applyFilters").onclick=()=>{setFiltersOpen(false);$("#travelTripsPanel").scrollIntoView({behavior:"smooth",block:"start"})};
+document.addEventListener("pointerdown",e=>{if($("#filterPanel").classList.contains("filterOpen")&&!e.target.closest("#filterAnchor"))setFiltersOpen(false)});
+document.addEventListener("keydown",e=>{
+ if(!$("#filterPanel").classList.contains("filterOpen"))return;
+ if(e.key==="Escape"){e.preventDefault();setFiltersOpen(false)}
+ if(e.key==="Tab"&&matchMedia("(max-width:899px)").matches){
+  const focusable=[...$("#filterPanel").querySelectorAll("button:not(:disabled),select:not(:disabled),input:not(:disabled)")];
+  const first=focusable[0],last=focusable.at(-1);
+  if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}
+  else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}
+ }
+});
+function renderFilterChips(){
+ const labels={country:"Pays",year:"Année",purpose:"Motif",scope:"Type"};
+ const root=$("#activeFilterChips");root.replaceChildren();
+ for(const [key,value] of Object.entries(dashboardFilters)){
+  if(!value)continue;
+  const label=key==="country"?countryName(value):($("#filter"+({country:"Country",year:"Year",purpose:"Purpose",scope:"Scope"}[key]))?.selectedOptions[0]?.textContent||value);
+  const b=document.createElement("button");b.type="button";b.textContent=label+" ×";b.setAttribute("aria-label","Retirer le filtre "+labels[key]+" : "+label);
+  b.onclick=()=>{dashboardFilters=window.BEAM_DASHBOARD_FILTERS.normalize({...dashboardFilters,[key]:""});render()};
+  root.append(b);
+ }
 }
 $("#countryList").onclick=e=>{let b=e.target.closest?.(".countryChip[data-country]");if(b)selectMapCountry(b.dataset.country)};
 for(const [id,field] of [["#filterCountry","country"],["#filterYear","year"],["#filterPurpose","purpose"],["#filterScope","scope"]]){
