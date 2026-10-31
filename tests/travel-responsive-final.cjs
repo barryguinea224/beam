@@ -27,7 +27,21 @@ async function main(){
     assert.ok(data.contained,"map viewBox must encompass 3 continents: "+JSON.stringify(data));
     assert.ok(data.scroll<=width+1,"horizontal overflow "+width+": "+JSON.stringify(data));
     if(width<900){
-      await page.locator("#map-JP").tap();
+      // Japan is an archipelago: the bounding-box center may fall in the sea.
+      // Tap a painted point from an actual SVG subpath instead.
+      const painted=await page.locator("#map-JP").evaluate(p=>{
+        const svg=p.ownerSVGElement,transform=p.getScreenCTM();
+        for(let i=0;i<=240;i++){
+          const q=p.getPointAtLength(p.getTotalLength()*i/240);
+          const pt=svg.createSVGPoint();pt.x=q.x;pt.y=q.y;
+          const screen=pt.matrixTransform(transform);
+          const local=pt.matrixTransform(p.getCTM().inverse());
+          if(p.isPointInFill(local)&&screen.x>=0&&screen.y>=0&&screen.x<innerWidth&&screen.y<innerHeight)
+            return {x:screen.x,y:screen.y};
+        }
+        throw Error("No painted point on Japan inside viewport");
+      });
+      await page.touchscreen.tap(painted.x,painted.y);
       const focus=await page.locator("#map-JP").evaluate(p=>({outline:getComputedStyle(p).outlineStyle,stroke:getComputedStyle(p).stroke}));
       assert.equal(focus.outline,"none","touch must not leave keyboard-only focus outline");
     }
