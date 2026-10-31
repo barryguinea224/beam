@@ -144,7 +144,7 @@
   svg.setAttribute("viewBox",[x,y,bw,bh].map(v=>Number(v.toFixed(2))).join(" "));
  }
  const CSS=[
-   "@page{size:A4;margin:15mm 14mm 15mm}",
+   "@page{size:A4;margin:15mm 14mm 15mm;@bottom-right{content:counter(page);font:700 8pt Arial,sans-serif;color:#254e3c}}",
   "*{box-sizing:border-box}",
   "html,body{margin:0;background:#fff;color:#173328;font:11pt/1.5 system-ui,-apple-system,'Noto Color Emoji','Apple Color Emoji',Arial,sans-serif}",
   "main{max-width:182mm;margin:auto;min-width:0}",
