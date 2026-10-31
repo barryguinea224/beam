@@ -86,7 +86,12 @@ async function main(){
   await page.locator('#tripForm [name="entry_date"]').fill("2026-07-01");
   await page.locator('#tripForm [name="exit_date"]').fill("2026-07-06");
   await page.locator("#saveTrip").click();
-  await page.waitForFunction(()=>window.__fixture.trips.length===1);
+  await page.waitForFunction(()=>window.__fixture.trips.length===1,null,{timeout:9000}).catch(async error=>{
+   const details=await page.evaluate(()=>({tripMsg:document.querySelector("#tripMsg")?.textContent,
+    saved:document.querySelector("#saveTrip")?.textContent,modal:document.querySelector("#modal")?.className,
+    validation:[...document.querySelector("#tripForm").elements].filter(x=>x.validity&&!x.checkValidity()).map(x=>({name:x.name,message:x.validationMessage}))}));
+   throw new Error("First trip was not saved: "+JSON.stringify(details)+"; "+error.message);
+  });
   await page.locator("#welcomeCard").waitFor({state:"hidden"});
   assert.equal(await page.locator("#travelMapPanel").isVisible(),true);
   assert.equal(await page.locator("#pdf").isVisible(),true);
