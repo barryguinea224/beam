@@ -18,6 +18,14 @@ assert.deepEqual(PDF.FIELDS,[
 ]);
 assert.equal(PDF.DECLARATION,
  "Historique déclaré par l'utilisateur, non délivré par une autorité officielle");
+assert.deepEqual(PDF.CONTACT_FIELDS,["email","phone","postalAddress"]);
+assert.deepEqual(PDF.contactProjection({
+ email:"f@example.net",phone:"+224612345678",postalAddress:"Labé",
+ passport:"SECRET_PASSPORT",birth_date:"SECRET_DOB",auth_metadata:"SECRET_META"
+}),{email:"f@example.net",phone:"+224612345678",postalAddress:"Labé"});
+assert.throws(()=>PDF.contactProjection({email:"x@example.net",phone:"622 22",postalAddress:"Labé"}),/Téléphone/);
+assert.throws(()=>PDF.contactProjection({email:"x@example.net",phone:"+224123",postalAddress:"x".repeat(301)}),/Adresse/);
+assert.throws(()=>PDF.contactProjection({email:"none",phone:"",postalAddress:""}),/E-mail/);
 
 const schema=fs.readFileSync("travel/supabase/schema.sql","utf8");
 const view=schema.match(/create view public\.travel_history_pdf[\s\S]*?;/)?.[0];
@@ -47,14 +55,26 @@ assert.match(inline,/\.select\("country_of_residence,display_name,deleting"\)/,
  "Journal must load display_name from the user's profile");
 assert.match(inline,/\.update\(\{display_name:value\}\)/,
  "Profile name must be persisted");
-assert.match(inline,/\.select\("display_name,deleting"\)/,
- "PDF generation must re-read the latest profile and deletion flag");
+assert.match(inline,/includeContacts\?"display_name,deleting,phone,postal_address":"display_name,deleting"/,
+ "PDF must only fetch extra contacts when opted in");
 assert.ok(inline.includes("if(!profile.display_name?.trim()){requestTravelerName();return}"),
  "Empty profile name must block PDF and request a name");
-assert.ok(inline.includes("window.BEAM_TRAVEL_PDF.render(tab.document,data,{displayName:name,generatedAt})"),
- "Profile name and generation date must be passed to PDF");
-assert.ok(app.includes('<script src="./factual-pdf.js"></script>'),
- "PDF module must be loaded locally");
+assert.match(inline,/window\.BEAM_TRAVEL_PDF\.render\(tab\.document,data,\{/,
+ "Profile and opt-in data must be passed to factual PDF");
+assert.match(inline,/displayName:name,generatedAt,includeContacts,contacts/);
+assert.match(inline,/S\.auth\.getUser\(\)/, "Auth must verify email at opt-in time");
+assert.match(inline,/freshUser\.id!==uid/, "Auth account ownership must be checked");
+assert.match(inline,/"#includePdfContacts"\)\.checked=false/, "consent checkbox must reset");
+assert.match(app,/id="accountEmail"[^>]*readonly/, "Auth email display must be read-only");
+assert.match(app,/id="contactPhone"/);
+assert.match(app,/id="contactPostalAddress"/);
+assert.match(inline,/\.update\(\{phone:phone\|\|null,postal_address:address\|\|null\}\)/,
+ "profile updates must only target the two optional contact columns");
+assert.ok(app.includes('<script src="./factual-pdf.js"></script>') &&
+ app.includes('<script src="./factual-pdf-file.js"></script>'),
+ "PDF renderer and local share writer must both load");
+assert.ok(app.indexOf('src="./factual-pdf.js"')<app.indexOf('src="./factual-pdf-file.js"'),
+ "Local file writer depends on factual renderer");
 assert.ok(inline.includes('window.BEAM_TRAVEL_PDF.fetchRows(S,uid)'),
  "PDF button must query the view, never the editable trips array");
 assert.ok(!inline.includes('$("#pdf").onclick=()=>window.print()'),
@@ -133,6 +153,28 @@ assert.throws(()=>PDF.render(denied,fixtures,{displayName:"",generatedAt}),/nom 
 assert.equal(denied.body.children.length,0,"No anonymous PDF may be rendered");
 assert.equal(PDF.render(document,fixtures,{displayName:travelerName,generatedAt}),1);
 const all=[...nodes(document.head),...nodes(document.body)];
+const undisclosed="private.person@example.net";
+const off=new Document();
+assert.equal(PDF.render(off,fixtures,{
+ displayName:"Fatou Diallo",generatedAt,includeContacts:false,
+ contacts:{email:undisclosed,phone:"+224612345678",postalAddress:"PRIVATE_ADDRESS_991",
+  passport:"SECRET_PASSPORT_123"}
+}),1);
+assert.ok(!off.body.textContent.includes(undisclosed));
+assert.ok(!off.body.textContent.includes("+224612345678"));
+assert.ok(!off.body.textContent.includes("PRIVATE_ADDRESS_991"));
+assert.ok(!off.body.textContent.includes("Coordonnées déclarées"));
+const opted=new Document();
+assert.equal(PDF.render(opted,fixtures,{
+ displayName:"Fatou Diallo",generatedAt,includeContacts:true,
+ contacts:{email:undisclosed,phone:"+224612345678",
+  postalAddress:"Conakry, Guinée",passport:"SECRET_PASSPORT_123"}
+}),1);
+assert.match(opted.body.textContent,/Coordonnées déclarées/);
+assert.match(opted.body.textContent,/private\.person@example\.net/);
+assert.match(opted.body.textContent,/\+224612345678/);
+assert.match(opted.body.textContent,/Conakry, Guinée/);
+assert.ok(!opted.body.textContent.includes("SECRET_PASSPORT_123"));
 assert.equal(document.documentElement.lang,"fr");
 assert.equal(all.filter(x=>x.tagName==="IMG").length,0,"No private photos in PDF");
 assert.equal(all.filter(x=>x.tagName==="SCRIPT").length,0);
