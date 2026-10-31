@@ -433,8 +433,19 @@ try {
     });
     if(removeBErr||removedB?.ok!==true)
       throw new Error("STORAGE B SERVER CLEANUP FAILED: "+(removeBErr?.message??JSON.stringify(removedB)));
-    const {data:bAfter,error:bAfterErr}=await bucketB.download(storagePathB);
-    if(!bAfterErr&&bAfter)throw new Error("SECURITY REGRESSION: B Storage cleanup object still exists");
+    // A post-delete SDK download can still return a cached Blob (60 s). Use
+    // server-side Storage metadata plus a cache-busting HTTP read as proof.
+    const {data:bListAfter,error:bListAfterErr}=await bucketB.list(`${sb.user.id}/${tb.id}`,{limit:100});
+    if(bListAfterErr||bListAfter?.some(row=>row.name===`${storageIdB}.webp`))
+      throw new Error("SECURITY REGRESSION: B Storage object remains in listing");
+    const freshB=await fetch(
+      `${env.SUPABASE_URL}/storage/v1/object/authenticated/media/${storagePathB}?nocache=${crypto.randomUUID()}`,{
+        headers:{Authorization:`Bearer ${sb.access_token}`,apikey:env.SUPABASE_PUBLISHABLE_KEY},
+        cache:"no-store"
+      }
+    );
+    if(freshB.ok)throw new Error("SECURITY REGRESSION: B Storage object still served by fresh HTTP read");
+    await freshB.body?.cancel();
     const {data:bRow,error:bRowErr}=await B.from("media").select("id").eq("id",storageIdB);
     if(bRowErr||(bRow??[]).length)throw new Error("SECURITY REGRESSION: B media reservation remains");
     console.log("CLEANUP PASS: B Storage object and media row removed through travel-delete");
