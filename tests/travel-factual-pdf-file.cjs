@@ -56,7 +56,8 @@ try{
   }else{
    assert.match(text,/Coordonnées déclarées/);
    assert.match(text,/private@example.net/);
-   assert.match(text,/\+224612345678/);
+   assert.match(text,/\+224 612 34 56 78/,"shared A4 PDF must show grouped phone");
+   assert.ok(!text.includes("+224612345678"),"shared PDF must not print compact DB phone");
    assert.match(text,/Conakry, Guinée/);
    assert.ok(!text.includes("SECRET_PASSPORT_NOT_WHITELISTED"));
   }
