@@ -71,7 +71,43 @@ html.beamOffline #auth,html.beamOffline #app,html.beamOffline #modal,html.beamOf
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./config.js"></script><script src="./pwa.js"></script><script src="./photo-utils.js"></script><script src="./photo-upload.js"></script><script src="./trip-detail.js"></script><script src="./countries.js"></script><script src="./country-picker.js"></script><script src="./factual-pdf.js"></script><script src="./factual-pdf-file.js"></script><script src="./journal-stats.js"></script><script src="./dashboard-filters.js"></script><script src="./visual-cards.js"></script><script src="./printable-journal.js"></script><script>
 const C=window.BEAM_TRAVEL_CONFIG||{},ok=C.supabaseUrl&&!C.supabaseUrl.includes("YOUR_")&&C.supabaseAnonKey&&!C.supabaseAnonKey.includes("YOUR_"),S=ok&&typeof supabase!=="undefined"?supabase.createClient(C.supabaseUrl,C.supabaseAnonKey):null,$=s=>document.querySelector(s);let user,trips=[],accountState="loading";
 function view(id){$("#auth").classList.add("hidden");$("#app").classList.add("hidden");$(id).classList.remove("hidden")}
-let profile={country_of_residence:null,display_name:null};let dashboardFilters=window.BEAM_DASHBOARD_FILTERS.normalize(window.BEAM_DASHBOARD_FILTERS.EMPTY);
+let profile={country_of_residence:null,display_name:null};
+let contactFieldsReady=false,savingContacts=false;
+function clearContactFields(){
+ contactFieldsReady=false;
+ $("#accountEmail").value="";$("#contactPhone").value="";$("#contactPostalAddress").value="";
+ $("#contactPhone").disabled=true;$("#contactPostalAddress").disabled=true;
+ $("#saveContactDetails").disabled=true;
+ $("#includePdfContacts").checked=false;
+ $("#contactDetailsStatus").textContent="Coordonnées privées indisponibles hors session.";
+}
+// Contacts are a separate optional query so a preview deployed before its SQL
+// migration never prevents the rest of the dashboard from loading.
+async function loadOptionalContacts(){
+ if(!user||accountState!=="active")return;
+ const uid=user.id;
+ $("#accountEmail").value=typeof user.email==="string"?user.email:"";
+ contactFieldsReady=false;
+ $("#contactPhone").disabled=true;$("#contactPostalAddress").disabled=true;
+ $("#saveContactDetails").disabled=true;
+ $("#contactDetailsStatus").textContent="Chargement des coordonnées…";
+ try{
+  const {data,error}=await S.from("profiles").select("phone,postal_address,deleting")
+   .eq("id",uid).single();
+  if(accountState!=="active"||user?.id!==uid)return;
+  if(error||!data||data.deleting)throw new Error("Colonnes indisponibles");
+  $("#contactPhone").value=data.phone||"";
+  $("#contactPostalAddress").value=data.postal_address||"";
+  contactFieldsReady=true;
+  $("#contactPhone").disabled=false;$("#contactPostalAddress").disabled=false;
+  $("#saveContactDetails").disabled=false;
+  $("#contactDetailsStatus").textContent="Facultatives. Rien n'est ajouté au PDF sans votre accord.";
+ }catch{
+  if(user?.id===uid&&accountState==="active")
+   $("#contactDetailsStatus").textContent="Coordonnées indisponibles jusqu'à l'activation de la migration.";
+ }
+}
+let dashboardFilters=window.BEAM_DASHBOARD_FILTERS.normalize(window.BEAM_DASHBOARD_FILTERS.EMPTY);
 const COUNTRY_NAMES=window.BEAM_COUNTRIES.NAMES;
 const countrySelectors={
  residence:window.BEAM_COUNTRY_PICKER.attach($("#residence"),$("#residenceSearch"),{placeholder:"Choisir sa résidence"}),
@@ -167,6 +203,7 @@ async function load(){
  const {data,error}=await S.from("trips").select("*").eq("deleting",false).order("entry_date",{ascending:false});
  if(error){$("#appMsg").textContent="Impossible de rafraîchir vos voyages. Réessayez.";$("#appMsg").classList.remove("hidden");throw error}
  trips=data||[];render();
+ await loadOptionalContacts();
 }
 function layoutDebug(){if(!new URLSearchParams(location.search).has("debug"))return;setTimeout(()=>{let vv=window.visualViewport,els=[...document.querySelectorAll("body *")].filter(e=>{let r=e.getBoundingClientRect();return r.right>innerWidth+1||r.left<-1||e.scrollWidth>e.clientWidth+1}).map(e=>({tag:e.tagName,id:e.id,cls:e.className,right:Math.round(e.getBoundingClientRect().right),left:Math.round(e.getBoundingClientRect().left),sw:e.scrollWidth,cw:e.clientWidth}));let pre=document.createElement("pre");pre.style="position:relative;z-index:99999;white-space:pre-wrap;overflow-wrap:anywhere;background:#111;color:#fff;padding:12px;font:12px monospace";pre.textContent=JSON.stringify({innerWidth,screenWidth:screen.width,devicePixelRatio,visualViewport:vv&&vv.width,overflow:els},null,2);document.body.prepend(pre)},500)}
 async function init(){if(!navigator.onLine)return;layoutDebug();if(!ok||!S){view("#auth");$("#loginMsg").textContent="Configuration Supabase requise.";$("#loginMsg").classList.remove("hidden");return}let {data:{session}}=await S.auth.getSession();user=session?.user;if(user){setAccountState("loading");view("#app");await load()}else {view("#auth");let p=pendingAuth();if(p?.email)showOtp(p.email)}}
@@ -224,7 +261,8 @@ $("#resend").onclick=async()=>{
   await sendAccess(email);
 };
 async function clearPwaSession(){
- clearPending();user=null;trips=[];profile={country_of_residence:null,display_name:null};dashboardFilters=window.BEAM_DASHBOARD_FILTERS.normalize(window.BEAM_DASHBOARD_FILTERS.EMPTY);
+ clearPending();user=null;trips=[];profile={country_of_residence:null,display_name:null};
+ clearContactFields();dashboardFilters=window.BEAM_DASHBOARD_FILTERS.normalize(window.BEAM_DASHBOARD_FILTERS.EMPTY);
  try{resetPhotoUI(null)}catch{}
  // Remove private content from hidden DOM as well as the visible journal.
  for(const id of ["#trips","#detailPhotos","#photoGallery","#detailFacts","#detailActivities",
@@ -738,6 +776,33 @@ async function runAccountDeletion(pending){
    if(!confirmed&&user){try{await load()}catch{setAccountState("unavailable")}}
  }
 };
+$("#contactDetailsForm").onsubmit=async event=>{
+ event.preventDefault();
+ if(accountState!=="active"||!S||!user||!contactFieldsReady||savingContacts)return;
+ const phone=$("#contactPhone").value.trim();
+ const address=$("#contactPostalAddress").value.trim();
+ const notice=$("#contactDetailsStatus");
+ if(phone&&(!/^\+[0-9]{1,29}$/.test(phone)||phone.length>30)){
+  notice.textContent="Téléphone invalide : commencez par +, suivi uniquement de chiffres.";return;
+ }
+ if(address.length>300){notice.textContent="Adresse trop longue (300 caractères maximum).";return}
+ const uid=user.id,button=$("#saveContactDetails");
+ savingContacts=true;button.disabled=true;notice.textContent="Enregistrement…";
+ try{
+  const {data,error}=await S.from("profiles")
+   .update({phone:phone||null,postal_address:address||null})
+   .eq("id",uid).select("phone,postal_address").single();
+  if(error||!data||accountState!=="active"||user?.id!==uid)
+   throw new Error("Coordonnées non enregistrées.");
+  $("#contactPhone").value=data.phone||"";
+  $("#contactPostalAddress").value=data.postal_address||"";
+  notice.textContent="Coordonnées enregistrées. Leur inclusion dans le PDF reste facultative.";
+ }catch{notice.textContent="Impossible d'enregistrer ces coordonnées. Vérifiez votre connexion."}
+ finally{
+  savingContacts=false;
+  if(accountState==="active"&&contactFieldsReady)button.disabled=false;
+ }
+};
 let savingTravelerName=false;
 function travelerNameNotice(message){
  const notice=$("#travelerNameMessage");notice.textContent=message;notice.classList.remove("hidden");
@@ -854,6 +919,9 @@ $("#printJournal").onclick=async()=>{
 
 $("#pdf").onclick=async()=>{
  if(accountState!=="active"||!S||!user||savingTravelerName)return;
+ const includeContacts=$("#includePdfContacts").checked===true;
+ // Consent is a one-shot choice; never retain it for the next PDF generation.
+ $("#includePdfContacts").checked=false;
  if(!profile.display_name?.trim()){requestTravelerName();return}
  const uid=user.id,button=$("#pdf");
  // Open synchronously from the click, before the async RLS query, to avoid mobile popup blockers.
@@ -871,7 +939,8 @@ $("#pdf").onclick=async()=>{
    tab.document.write('<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>BEAM Travel History</title></head><body><p>Préparation de votre historique factuel…</p></body></html>');
    tab.document.close();
    const {data:currentProfile,error:nameError}=await S.from("profiles")
-     .select("display_name,deleting").eq("id",uid).single();
+     .select(includeContacts?"display_name,deleting,phone,postal_address":"display_name,deleting")
+     .eq("id",uid).single();
    if(nameError||!currentProfile||currentProfile.deleting)
      throw new Error("Profil indisponible");
    // Do not silently fall back to the authentication email or an inferred identity.
@@ -880,11 +949,26 @@ $("#pdf").onclick=async()=>{
      requestTravelerName();return;
    }
    const name=window.BEAM_TRAVEL_PDF.displayName(currentProfile.display_name);
+   let contacts=null;
+   if(includeContacts){
+    // Never use an email provided by the profile, a form or the browser URL.
+    // Auth service confirms the current account identity afresh.
+    const {data:authData,error:authError}=await S.auth.getUser();
+    const freshUser=authData?.user;
+    if(authError||!freshUser||freshUser.id!==uid||!freshUser.email)
+     throw new Error("Identité du compte non confirmée.");
+    contacts=window.BEAM_TRAVEL_PDF.contactProjection({
+     email:freshUser.email,phone:currentProfile.phone,
+     postalAddress:currentProfile.postal_address
+    });
+   }
    const generatedAt=new Date();
    const {data,error}=await window.BEAM_TRAVEL_PDF.fetchRows(S,uid);
    if(error||!data)throw new Error("Lecture indisponible");
    if(accountState!=="active"||!user||user.id!==uid)throw new Error("Session expirée");
-   if(!tab.closed)window.BEAM_TRAVEL_PDF.render(tab.document,data,{displayName:name,generatedAt});
+   if(!tab.closed)window.BEAM_TRAVEL_PDF.render(tab.document,data,{
+    displayName:name,generatedAt,includeContacts,contacts
+   });
  }catch{
    if(!tab.closed)tab.document.body.textContent="Impossible de préparer l’historique. Revenez au carnet et réessayez.";
    status.textContent="Impossible de préparer le PDF factuel. Vérifiez votre connexion et réessayez.";
