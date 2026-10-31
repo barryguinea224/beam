@@ -91,7 +91,7 @@ function render(){
  const api=window.BEAM_DASHBOARD_FILTERS;renderFilterOptions();
  const visible=api.apply(trips,dashboardFilters),stats=api.summary(visible,dashboardFilters),counts=countryCounts(),active=Object.values(dashboardFilters).some(Boolean);
  const name=typeof profile.display_name==="string"?profile.display_name.trim().replace(/\s+/g," "):"";
- $("#dashboardTitle").textContent=name?"Carnet de "+name:"Mon carnet de voyage";
+ $("#dashboardTitle").textContent=window.BEAM_PERSONAL_JOURNAL.titleForName(name);
  const national=dashboardFilters.scope==="domestic";
  $("#nt").textContent=stats.trips;
  $("#ntl").textContent=national?(stats.trips===1?"séjour national":"séjours nationaux"):(stats.trips===1?"voyage à l’étranger":"voyages à l’étranger");
@@ -737,7 +737,7 @@ $("#travelerNameForm").onsubmit=async event=>{
    if(error||!data||accountState!=="active"||user?.id!==uid)
      throw new Error("Nom non confirmé. Réessayez.");
    profile.display_name=data.display_name;
-   $("#dashboardTitle").textContent="Carnet de "+data.display_name;
+   $("#dashboardTitle").textContent=window.BEAM_PERSONAL_JOURNAL.titleForName(data.display_name);
    $("#travelerName").value=data.display_name;
    travelerNameNotice("Nom enregistré. Il pourra figurer sur votre PDF.");
  }catch(err){travelerNameNotice(err.message||"Impossible d’enregistrer le nom.")}
@@ -776,13 +776,14 @@ $("#printJournal").onclick=async()=>{
      S.from("activities").select("title,place,happened_on").eq("trip_id",trip.id).eq("user_id",uid)
       .order("created_at",{ascending:true}).limit(50),
      window.BEAM_PERSONAL_JOURNAL.preferredMediaQuery(
-      S.from("media").select("id,storage_path").eq("trip_id",trip.id).eq("user_id",uid)
+      S.from("media").select("id,storage_path,is_favorite").eq("trip_id",trip.id).eq("user_id",uid)
      )
     ]);
     if(activityResult.error||photoResult.error)throw new Error("Contenu indisponible");
     const media=(photoResult.data||[]).slice(0,Math.min(remaining,window.BEAM_PERSONAL_JOURNAL.MAX_PHOTOS_PER_TRIP));
     remaining-=media.length;
     const photos=[];
+    let favoritePhoto="";
     let missingPhotos=0;
     for(const row of media){
      if(!row.storage_path?.startsWith(uid+"/"+trip.id+"/")){missingPhotos++;continue}
@@ -791,11 +792,14 @@ $("#printJournal").onclick=async()=>{
        .createSignedUrl(row.storage_path,window.BEAM_PERSONAL_JOURNAL.SIGNED_SECONDS);
       const safe=!signError&&signed?.signedUrl
        ?window.BEAM_VISUAL_CARDS.trustedSignedUrl(signed.signedUrl,C.supabaseUrl):"";
-      if(safe)photos.push(safe); // RAM-only; no service-worker image caching.
+      if(safe){
+       photos.push(safe); // RAM-only; no service-worker image caching.
+       if(row.is_favorite&&!favoritePhoto)favoritePhoto=safe;
+      }
       else missingPhotos++; // A rejected/expired signature must be visible.
      }catch{missingPhotos++}
     }
-    pack[position]={trip,activities:activityResult.data||[],photos,missingPhotos};
+    pack[position]={trip,activities:activityResult.data||[],photos,favoritePhoto,missingPhotos};
    }
   }
   await Promise.all(Array.from({length:Math.min(3,selected.length)},()=>worker()));
