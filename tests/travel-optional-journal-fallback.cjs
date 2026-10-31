@@ -109,7 +109,9 @@ async function main(){
   assert.match(initial.journalMessage,/Carnet imprimable indisponible/);
   assert.equal(initial.factualReady,"object");
   assert.equal(initial.mapModule,"object");
-  for(const [name,expected] of [
+  await page.locator("#openAccount").click();
+   await page.locator("#editAccount").click();
+   for(const [name,expected] of [
    ["Aminata","Carnet d'Aminata"],
    ["Yacouba","Carnet de Yacouba"],
    ["Elhadj","Carnet d'Elhadj"],

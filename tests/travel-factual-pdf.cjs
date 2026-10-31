@@ -107,8 +107,8 @@ assert.match(inline,/"#includePdfContacts"\)\.checked=false/, "consent checkbox 
 assert.match(app,/id="accountEmail"[^>]*readonly/, "Auth email display must be read-only");
 assert.match(app,/id="contactPhone"/);
 assert.match(app,/id="contactPostalAddress"/);
-assert.match(inline,/\.update\(\{phone:phone\|\|null,postal_address:address\|\|null\}\)/,
- "profile updates must only target the two optional contact columns");
+assert.match(inline,/\.update\(\{phone:phone\|\|null,postal_address:address\|\|null,country_of_residence:residence\}\)/,
+ "profile updates must only target phone, postal_address and country_of_residence");
 assert.ok(app.includes('<script src="./factual-pdf.js"></script>') &&
  app.includes('<script src="./factual-pdf-file.js"></script>'),
  "PDF renderer and local share writer must both load");

@@ -99,7 +99,11 @@ assert.match(inline,/active\?visible\.length\+/,
 assert.match(inline,/const name=typeof profile\.display_name/,
  "title must use loaded profile");
 assert.match(inline,/#dashboardTitle/);
-assert.match(app,/id="dashboardFooter"/);
+const accountMarkup=app.slice(app.indexOf('id="myAccount"'));
+const sessionMarkup=accountMarkup.slice(accountMarkup.indexOf('id="accountSession"'));
+assert.ok(accountMarkup.includes('id="accountSession"')&&sessionMarkup.includes('<h3 id="accountSessionTitle">Session</h3>')&&
+ sessionMarkup.indexOf('id="logout"')>0&&sessionMarkup.indexOf('id="logout"')<sessionMarkup.indexOf('</section>'),
+ "logout must be inside the account Session card");
 assert.match(app,/<button id="logout" type="button" class="btn ghost">Se déconnecter<\/button>/);
 assert.equal((app.match(/id="logout"/g)||[]).length,1);
 assert.match(inline,/toggleCountry\(dashboardFilters,code\)/);
@@ -111,8 +115,8 @@ for(const id of ["filterCountry","filterYear","filterPurpose","filterScope","res
 assert.ok(app.includes('<script src="./dashboard-filters.js"></script>'));
 const sw=fs.readFileSync("travel/sw.js","utf8");
 assert.ok(sw.includes("./dashboard-filters.js")&&sw.includes("./dashboard-filters.css"));
-assert.match(sw,/beam-travel-shell-v1-20261031-/);
+assert.match(sw,/beam-travel-shell-v1-20261031-account-residence-save/);
 assert.ok(!sw.includes('beam-travel-shell-v1-20261030'),
  "PWA cache must not regress to the old static shell");
 
-console.log("PASS dashboard filter composition, country toggle, profile header, footer logout and PDF isolation");
+console.log("PASS dashboard filter composition, country toggle, profile header, account Session logout and PDF isolation");

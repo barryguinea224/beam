@@ -10,17 +10,127 @@
 .account-contacts-title small{font-family:inherit;font-size:.65em;color:var(--muted);font-weight:400}
 .account-contacts-form .field{max-width:100%}
 .pdfContactChoice{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--ink);cursor:pointer;max-width:100%}.pdfContactChoice input{width:18px;height:18px;accent-color:var(--g);flex-shrink:0}.field,.two>.field{min-width:0;max-width:100%}.field input,.field select{min-width:0;width:100%;max-width:100%}#tripCountrySelect,#residence{width:100%;min-width:0;max-width:100%;text-overflow:ellipsis}#tripCountrySearch,#residenceSearch{width:100%;min-width:0;max-width:100%}
+/* Refactor stage 1: give the real SVG map priority over secondary controls. */
+#app .w{max-width:1240px}
+#travelHero{padding:clamp(22px,5vw,48px) 0 20px;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr)}
+#dashboardTitle{font-size:clamp(34px,5vw,60px);line-height:1.04;overflow-wrap:break-word}
+#travelMapPanel{margin-bottom:16px}
+#travelMapPanel h2{margin:0 0 14px}
+#travelMapPanel .map{height:min(55vh,460px);min-height:220px;display:grid;place-items:center}
+#travelMapPanel .map svg{width:100%;height:100%;max-height:none;object-fit:contain}
+#travelTripsPanel{width:100%}
+#travelPanels{display:block}
+#map path:focus:not(:focus-visible){outline:none;stroke:#fff;stroke-width:.7}
+#map path.visited:focus:not(:focus-visible){stroke:#073b2b;stroke-width:1.4}
+#map path:focus-visible{outline:2px solid var(--g);outline-offset:1px;stroke:var(--g);stroke-width:2}
+@media(max-width:899px){
+ #travelHero{grid-template-columns:minmax(0,1fr);padding:18px 0 12px;gap:14px}
+ #dashboardTitle{font-size:clamp(32px,8.8vw,44px);margin:7px 0}
+ #travelHero .sub{font-size:14px;margin:8px 0}
+ #travelHero .actions{margin-top:12px}
+ #travelHero .statsWrap{align-self:stretch}
+ #travelMapPanel{padding:clamp(10px,3vw,20px)}
+ #travelMapPanel .map{height:min(55vh,460px)}
+}
+@media(max-width:359px){
+ #travelHero .actions .btn{font-size:13px;padding:10px 12px}
+ #travelMapPanel .map{min-height:170px}
+}
+/* Stage 2 — responsive filter overlay, preserving existing filter data model. */
+.filterAnchor{position:relative;margin:0 0 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.activeFilterChips{display:flex;gap:6px;flex-wrap:wrap}
+.activeFilterChips button{border:1px solid var(--line);background:white;border-radius:99px;padding:9px 12px;min-height:44px;cursor:pointer}
+#toggleFilters,#closeFilters,#applyFilters,#resetFilters{min-height:44px}
+#filterPanel{display:none;z-index:45;margin:0;min-width:0}
+#filterPanel.filterOpen{display:block}
+#filterPanel .top h2{margin:0}
+#filterPanel .dashboardFiltersActions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+#filterPanel .dashboardFiltersActions p{width:100%}
+@media(max-width:899px){
+ #filterPanel.filterOpen{position:fixed;inset:auto 0 0;max-height:calc(100dvh - 12px);overflow-y:auto;overscroll-behavior:contain;border-radius:24px 24px 0 0;padding:18px 16px max(16px,env(safe-area-inset-bottom));box-shadow:0 0 0 100vmax #10241ab0}
+ #filterPanel .dashboardFiltersActions{position:sticky;bottom:0;background:white;padding:12px 0 max(8px,env(safe-area-inset-bottom));margin-top:12px;border-top:1px solid var(--line)}
+ #filterPanel .dashboardFiltersActions .btn{flex:1 1 115px}
+ #filterPanel .dashboardFiltersActions p{margin:0;font-size:12px}
+}
+@media(min-width:900px){
+ #filterPanel.filterOpen{position:absolute;top:calc(100% + 8px);left:0;width:min(390px,95vw);max-height:min(75dvh,650px);overflow-y:auto;box-shadow:0 18px 40px #10241a30}
+}
+/* Stage 3: account lives outside the travel dashboard. */
+.accountOverlay{display:none;position:fixed;inset:0;z-index:65;background:#12251cb0;overflow-y:auto}
+.accountOverlay.accountOpen{display:block}
+/* Confirmation is above the account drawer and filter sheet, including on Android. */
+#discardConfirm{z-index:90;display:none;align-items:center;justify-content:center;padding:20px}
+#discardConfirm.accountOpen{display:flex}
+#discardConfirm > .panel{width:min(100%,440px);max-height:calc(100dvh - 40px);overflow-y:auto;border-radius:16px}
+#myAccount{margin:0 auto;max-width:720px;min-height:100dvh;border-radius:0}
+#dashboardFooter{padding:16px;max-width:720px;margin:auto;background:white}
+.accountOverlay:not(.accountEditing) #travelerNameForm,
+.accountOverlay:not(.accountEditing) #contactDetailsForm,
+.accountOverlay:not(.accountEditing) #residencePanel{display:none}
+.accountOverlay.accountEditing #editAccount{display:none}
+.accountOverlay:not(.accountEditing) #cancelAccountEdit{display:none}
+#accountReadSummary{white-space:pre-line;overflow-wrap:anywhere;line-height:1.8}
+@media(min-width:900px){
+ .accountOverlay #myAccount{position:absolute;right:0;top:0;width:min(420px,100%);min-height:100dvh;box-shadow:-20px 0 45px #10241a25}
+}
+/* Stage 4: large-screen two-column composition, with short-screen fallback. */
+@media(min-width:900px){
+ #app .w{display:grid;grid-template-columns:minmax(0,.94fr) minmax(0,1.06fr);grid-template-areas:"header header" "hero trips" "map trips" "filters trips";gap:14px 22px;align-items:start}
+ #app .w>header{grid-area:header;min-width:0}
+ #travelHero{grid-area:hero;display:block;padding:18px 0 0;position:sticky;top:8px}
+ #travelHero .statsWrap{margin-top:18px}
+ #headerActions{display:flex;align-items:center;gap:8px;flex-wrap:wrap} #headerActions .pdfContactChoice{font-size:12px}
+ #travelMapPanel{grid-area:map;position:sticky;top:210px;margin:0;min-width:0}
+ #travelMapPanel .map{height:min(42vh,420px);min-height:180px}
+ #filterAnchor{grid-area:filters;position:sticky;top:min(70vh,640px);align-self:start}
+ #travelPanels{grid-area:trips;min-width:0;max-height:calc(100dvh - 88px);overflow-y:auto;overscroll-behavior:contain}
+ #travelTripsPanel{min-height:300px}
+}
+@media(min-width:900px) and (max-height:760px){
+ #app .w{align-items:start}
+ #travelHero,#travelMapPanel,#filterAnchor{position:static}
+ #travelPanels{max-height:none;overflow:visible}
+}
 /* Fail closed while disconnected: previously-rendered private data is hidden. */
 #offline{display:none;min-height:100dvh;padding:12vh 20px;text-align:center;max-width:520px;margin:auto}
 #offline h1{font-size:clamp(30px,8vw,44px);line-height:1.16}
 html.beamOffline #offline{display:block}
 html.beamOffline #auth,html.beamOffline #app,html.beamOffline #modal,html.beamOffline #tripDetailModal{display:none!important}
+
+/* Account cards and non-overlapping session controls. */
+#myAccount{display:flex;flex-direction:column;gap:14px}
+#myAccount > .panel{margin:0;width:100%;min-width:0}
+#accountSession{position:static;inset:auto;z-index:auto}
+#accountSensitive summary{cursor:pointer;font-weight:700;min-height:44px;display:flex;align-items:center}
+#residenceReadSummary{font-weight:600}
+.accountOverlay:not(.accountEditing) #residencePanel{display:block}
+.accountOverlay:not(.accountEditing) #residencePanel .field{display:none}
+.accountOverlay.accountEditing #changeResidence{display:none}
+.pdfActionGroup{display:flex;flex-direction:column;align-items:stretch;gap:5px;min-width:0}
+.pdfActionGroup .pdfContactChoice{display:flex;align-items:center;gap:6px;font-size:12px;line-height:1.3;white-space:normal}
+@media(max-width:899px){
+ #travelHero{display:flex;flex-direction:column}
+ #travelHero .statsWrap{order:1}
+ #travelHero > div:first-child{display:contents}
+ #travelHero .ey,#travelHero h1{order:0}
+ #travelHero .sub{display:none}
+ #travelHero .actions{order:2;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+ #travelHero .actions #add{grid-column:1/-1;width:100%}
+ #travelHero .actions .pdfActionGroup,#travelHero .actions #printJournal{width:100%;min-width:0}
+ #travelHero .actions .pdfActionGroup .btn,#travelHero .actions #printJournal{width:100%;white-space:normal}
+}
+@media(min-width:900px){
+ #app .w{grid-template-areas:"header header" "hero filters" "map trips" ". trips"}
+ #filterAnchor{position:relative;top:auto;z-index:5;align-self:end}
+ #travelPanels{grid-area:trips}
+ #headerActions .pdfActionGroup{max-width:220px}
+}
 </style><link rel="stylesheet" href="./visual-cards.css"><link rel="stylesheet" href="./dashboard-filters.css">
 <script src="/travel/offline-bootstrap.js"></script></head><body>
 <section id="offline" role="status" aria-live="polite"><div class="ey">BEAM · Travel History</div><h1>Connexion nécessaire pour consulter votre carnet</h1><p>Vos voyages et photos sont privés et indisponibles hors ligne. Reconnectez-vous à Internet pour continuer.</p></section>
 <section id="auth" class="auth hidden"><div class="ey">BEAM · Travel History</div><h1>Gardez vos voyages.<br>Retrouvez votre histoire.</h1><p class="sub">Un espace personnel pour vos destinations, dates, activités, souvenirs et photos.</p><form id="login"><div class="field"><label for="email">E-mail</label><input id="email" type="email" autocomplete="email" required></div><button class="btn">Recevoir un code</button></form><div id="otpBox" class="hidden"><p class="sub">Si cette adresse est autorisée, vous recevrez un code à 6 chiffres par e-mail.</p><form id="otpForm"><div class="field"><label for="otp">Code à 6 chiffres</label><input id="otp" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" aria-describedby="otpHelp" required><small id="otpHelp">Pas de code après 2 minutes ? Vérifiez vos spams, ou <a href="https://wa.me/224622095630" target="_blank" rel="noopener noreferrer">écrivez-nous sur WhatsApp</a>.</small></div><button class="btn">Continuer avec le code</button></form><div class="actions"><button id="resend" type="button" class="btn ghost" disabled>Renvoyer un code · 60 s</button></div></div><p id="loginMsg" class="notice hidden" role="status" aria-live="polite"></p><p class="sub" id="accessHelp">Ce carnet est réservé aux clients BEAM. <a href="https://wa.me/224622095630" target="_blank" rel="noopener noreferrer">Contactez-nous sur WhatsApp</a>.</p></section>
-<main id="app" class="hidden"><div class="w"><header class="top"><div class="brand"><b>BEAM</b> TRAVEL HISTORY</div></header>
-<section id="travelHero" class="hero"><div><div class="ey">Mon espace de voyage</div><h1 id="dashboardTitle">Mon carnet de voyage</h1><p class="sub">L'espace raconte le voyage. Le PDF restitue les faits.</p><div class="actions"><button id="add" class="btn">+ Ajouter un voyage</button><button id="pdf" class="btn ghost">Travel History PDF</button><label class="pdfContactChoice" for="includePdfContacts"><input id="includePdfContacts" type="checkbox" autocomplete="off" disabled> Inclure mes coordonnées dans ce PDF</label><button id="printJournal" class="btn ghost" type="button">Mon carnet de voyage</button></div></div><div class="statsWrap"><div class="stats"><div class="stat"><b id="nt">0</b><small id="ntl">voyages à l’étranger</small></div><div class="stat"><b id="nc">0</b><small id="ncl">pays à l’étranger</small></div><div class="stat"><b id="nd">0</b><small id="ndl">jours à l’étranger</small></div></div><p id="domesticCount" class="mapInfo" role="status" aria-live="polite"></p></div></section>
+<main id="app" class="hidden"><div class="w"><header class="top"><div class="brand"><b>BEAM</b> TRAVEL HISTORY</div><div id="headerActions" class="headerActions"></div><button type="button" id="openAccount" class="btn ghost" aria-controls="accountOverlay" aria-expanded="false">Mon compte</button></header>
+<section id="travelHero" class="hero"><div><div class="ey">Mon espace de voyage</div><h1 id="dashboardTitle">Mon carnet de voyage</h1><p class="sub">L'espace raconte le voyage. Le PDF restitue les faits.</p><div class="actions"><button id="add" class="btn">+ Ajouter un voyage</button><div id="pdfActionGroup" class="pdfActionGroup"><button id="pdf" class="btn ghost">PDF ambassade</button><label class="pdfContactChoice" for="includePdfContacts"><input id="includePdfContacts" type="checkbox" autocomplete="off" disabled> Inclure mes coordonnées dans ce PDF</label></div><button id="printJournal" class="btn ghost" type="button">Mon carnet de voyage</button></div></div><div class="statsWrap"><div class="stats"><div class="stat"><b id="nt">0</b><small id="ntl">voyages à l’étranger</small></div><div class="stat"><b id="nc">0</b><small id="ncl">pays à l’étranger</small></div><div class="stat"><b id="nd">0</b><small id="ndl">jours à l’étranger</small></div></div><p id="domesticCount" class="mapInfo" role="status" aria-live="polite"></p></div></section>
 <section id="accountStatusChecking" class="panel" role="status" aria-live="polite"><p>Vérification de votre compte…</p></section>
 <section id="deletionPending" class="panel hidden" role="status" aria-live="polite">
 <h2>Suppression de votre compte en cours</h2>
@@ -29,8 +139,9 @@ html.beamOffline #auth,html.beamOffline #app,html.beamOffline #modal,html.beamOf
 <p id="finishDeletionMessage" class="notice hidden" role="status" aria-live="polite"></p>
 </section>
 <section id="accountStatusUnavailable" class="panel hidden" role="alert"><h2>État du compte indisponible</h2><p>Impossible de vérifier si votre compte est en cours de suppression. Les modifications restent désactivées. Réessayez, ou déconnectez-vous puis reconnectez-vous.</p><button id="retryAccountStatus" type="button" class="btn ghost">Réessayer</button></section>
-<p id="appMsg" class="notice hidden"></p><section id="residencePanel" class="panel" style="margin-bottom:16px"><div class="top"><div><h2 style="margin-bottom:4px">Résidence actuelle</h2><p class="mapInfo" style="margin:0">Utilisée uniquement pour proposer si un nouveau voyage est intérieur. Elle ne reclassifie jamais vos anciens voyages.</p></div><div class="field" style="min-width:210px;margin:0"><label for="residenceSearch" class="ey" style="font-size:11px">Rechercher un pays de résidence</label><input id="residenceSearch" type="search" placeholder="Ex. Guinée, Sénégal" autocomplete="off" aria-controls="residence"><select id="residence" aria-label="Pays de résidence"><option value="">Choisir</option></select></div></div></section><section id="filterPanel" class="panel" aria-labelledby="filterTitle" style="margin-bottom:16px"><h2 id="filterTitle">Filtrer mon carnet</h2><div class="dashboardFilters"><div class="field"><label for="filterCountry">Pays</label><select id="filterCountry"><option value="">Tous les pays</option></select></div><div class="field"><label for="filterYear">Année d’entrée</label><select id="filterYear"><option value="">Toutes les années</option></select></div><div class="field"><label for="filterPurpose">Motif</label><select id="filterPurpose"><option value="">Tous les motifs</option><option value="tourisme">Tourisme</option><option value="affaires">Affaires</option><option value="etudes">Études</option><option value="famille">Famille</option><option value="sante">Santé</option><option value="transit">Transit</option><option value="autre">Autre</option></select></div><div class="field"><label for="filterScope">Type de voyage</label><select id="filterScope"><option value="">Tous les types</option><option value="foreign">Voyages à l’étranger</option><option value="domestic">Séjours nationaux</option></select></div></div><div class="dashboardFiltersActions"><button id="resetFilters" type="button" class="btn ghost">Tout afficher</button><p id="filterStatus" role="status" aria-live="polite">Tous les voyages sont affichés.</p></div></section><div id="travelPanels" class="grid"><section class="panel"><h2>Ma carte</h2><div class="map" id="map" aria-live="polite">Chargement de la carte…</div><p id="mapInfo" class="mapInfo"></p><div id="countryList" class="countryList" aria-label="Pays visités"></div></section><section class="panel"><h2>Mes voyages</h2><div id="trips"></div></section></div><section id="myAccount" class="panel" aria-labelledby="myAccountTitle" style="margin-top:18px"><h2 id="myAccountTitle">Mon compte</h2>
-<form id="travelerNameForm" aria-label="Nom déclaré pour le PDF" style="max-width:520px;margin-bottom:22px">
+<p id="appMsg" class="notice hidden"></p><div id="filterAnchor" class="filterAnchor"><button id="toggleFilters" class="btn ghost" type="button" aria-expanded="false" aria-controls="filterPanel">Filtrer les voyages</button><div id="activeFilterChips" class="activeFilterChips" aria-label="Filtres actifs"></div><section id="filterPanel" class="panel" aria-labelledby="filterTitle" role="dialog" aria-modal="false" aria-hidden="true" tabindex="-1"><div class="top"><h2 id="filterTitle">Filtrer mon carnet</h2><button id="closeFilters" class="btn ghost" type="button" aria-label="Fermer les filtres">✕</button></div><div class="dashboardFilters"><div class="field"><label for="filterCountry">Pays</label><select id="filterCountry"><option value="">Tous les pays</option></select></div><div class="field"><label for="filterYear">Année d’entrée</label><select id="filterYear"><option value="">Toutes les années</option></select></div><div class="field"><label for="filterPurpose">Motif</label><select id="filterPurpose"><option value="">Tous les motifs</option><option value="tourisme">Tourisme</option><option value="affaires">Affaires</option><option value="etudes">Études</option><option value="famille">Famille</option><option value="sante">Santé</option><option value="transit">Transit</option><option value="autre">Autre</option></select></div><div class="field"><label for="filterScope">Type de voyage</label><select id="filterScope"><option value="">Tous les types</option><option value="foreign">Voyages à l’étranger</option><option value="domestic">Séjours nationaux</option></select></div></div><div class="dashboardFiltersActions"><button id="applyFilters" type="button" class="btn">Voir les voyages</button><button id="resetFilters" type="button" class="btn ghost">Tout afficher</button><p id="filterStatus" role="status" aria-live="polite">Tous les voyages sont affichés.</p></div></section></div><section id="travelMapPanel" class="panel" aria-labelledby="travelMapTitle"><h2 id="travelMapTitle">Ma carte</h2><div class="map" id="map" aria-live="polite">Chargement de la carte…</div><p id="mapInfo" class="mapInfo"></p><div id="countryList" class="countryList" aria-label="Pays visités"></div></section><div id="travelPanels" class="grid"><section class="panel" id="travelTripsPanel"><h2>Mes voyages</h2><div id="trips"></div></section></div><div id="discardConfirm" class="accountOverlay" aria-hidden="true"><section class="panel" role="alertdialog" aria-modal="true" aria-labelledby="discardTitle" aria-describedby="discardDescription" tabindex="-1"><h2 id="discardTitle">Abandonner les modifications ?</h2><p id="discardDescription">Les informations non enregistrées seront perdues.</p><div class="actions"><button type="button" id="discardStay" class="btn ghost">Continuer la modification</button><button type="button" id="discardLeave" class="btn">Abandonner</button></div></section></div>
+<div id="accountOverlay" class="accountOverlay" aria-hidden="true"><section id="myAccount" class="panel" role="dialog" aria-modal="true" aria-labelledby="myAccountTitle" tabindex="-1"><div class="top"><h2 id="myAccountTitle">Mon compte</h2><button type="button" id="closeAccount" class="btn ghost">Fermer</button></div><section id="accountProfileCard" class="panel"><h3>Mon profil</h3><p id="accountReadSummary" class="mapInfo"></p><div class="actions"><button type="button" id="editAccount" class="btn ghost">Modifier</button><button type="button" id="cancelAccountEdit" class="btn ghost">Annuler</button></div></section>
+<section id="residencePanel" class="panel" style="margin-bottom:16px"><div class="top"><div><h2 style="margin-bottom:4px">Pays de résidence</h2><p id="residenceReadSummary" class="mapInfo"></p><button type="button" id="changeResidence" class="btn ghost">Changer</button><p class="mapInfo" style="margin:0">Utilisée uniquement pour proposer si un nouveau voyage est intérieur. Elle ne reclassifie jamais vos anciens voyages.</p></div><div class="field" style="min-width:210px;margin:0"><label for="residenceSearch" class="ey" style="font-size:11px">Rechercher un pays de résidence</label><input id="residenceSearch" type="search" placeholder="Ex. Guinée, Sénégal" autocomplete="off" aria-controls="residence"><select id="residence" aria-label="Pays de résidence"><option value="">Choisir</option></select></div></div></section><form id="travelerNameForm" aria-label="Nom déclaré pour le PDF" style="max-width:520px;margin-bottom:22px">
  <div class="field"><label for="travelerName">Nom du voyageur (pour le PDF)</label>
  <input id="travelerName" name="display_name" type="text" maxlength="80" autocomplete="name" required placeholder="Prénom et nom">
  <small>Ce nom déclaré figurera sur votre historique PDF, sans numéro de pièce d’identité.</small></div>
@@ -51,7 +162,7 @@ html.beamOffline #auth,html.beamOffline #app,html.beamOffline #modal,html.beamOf
  <button id="saveContactDetails" type="submit" class="btn ghost" disabled>Enregistrer mes coordonnées</button>
  <p id="contactDetailsStatus" role="status" aria-live="polite" class="mapInfo">Vérification des coordonnées…</p>
  <small>Ces informations figurent sur le PDF factuel uniquement si vous cochez « Inclure mes coordonnées » avant de le générer.</small>
-</form><p id="deleteAccountInfo" class="mapInfo">Vous pouvez supprimer définitivement votre compte et ses données de voyage, y compris les photos privées. Cette action est irréversible.</p><div class="actions"><button id="deleteAccountOpen" type="button" class="btn ghost" aria-describedby="deleteAccountInfo">Supprimer mon compte</button></div><form id="deleteAccountForm" class="hidden" aria-labelledby="deleteAccountConfirmTitle"><h3 id="deleteAccountConfirmTitle">Confirmer la suppression</h3><p>Votre compte, vos voyages, activités, souvenirs et photos seront définitivement supprimés. Ils ne pourront pas être restaurés.</p><div class="field"><label for="deleteAccountConfirm">Saisissez <strong>SUPPRIMER</strong> pour confirmer</label><input id="deleteAccountConfirm" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="9" pattern="SUPPRIMER" required></div><div class="actions"><button id="deleteAccountSubmit" type="submit" class="btn" style="background:#a8271d" disabled>Supprimer définitivement</button><button id="deleteAccountCancel" type="button" class="btn ghost">Annuler</button></div></form><p id="deleteAccountMessage" class="notice hidden" role="status" aria-live="polite"></p></section><footer id="dashboardFooter"><button id="logout" type="button" class="btn ghost">Se déconnecter</button></footer></div></main>
+</form><details id="accountSensitive" class="panel"><summary>Zone sensible</summary><p id="deleteAccountInfo" class="mapInfo">Vous pouvez supprimer définitivement votre compte et ses données de voyage, y compris les photos privées. Cette action est irréversible.</p><div class="actions"><button id="deleteAccountOpen" type="button" class="btn ghost" aria-describedby="deleteAccountInfo">Supprimer mon compte</button></div><form id="deleteAccountForm" class="hidden" aria-labelledby="deleteAccountConfirmTitle"><h3 id="deleteAccountConfirmTitle">Confirmer la suppression</h3><p>Votre compte, vos voyages, activités, souvenirs et photos seront définitivement supprimés. Ils ne pourront pas être restaurés.</p><div class="field"><label for="deleteAccountConfirm">Saisissez <strong>SUPPRIMER</strong> pour confirmer</label><input id="deleteAccountConfirm" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="9" pattern="SUPPRIMER" required></div><div class="actions"><button id="deleteAccountSubmit" type="submit" class="btn" style="background:#a8271d" disabled>Supprimer définitivement</button><button id="deleteAccountCancel" type="button" class="btn ghost">Annuler</button></div></form><p id="deleteAccountMessage" class="notice hidden" role="status" aria-live="polite"></p></details><section id="accountSession" class="panel" aria-labelledby="accountSessionTitle"><h3 id="accountSessionTitle">Session</h3><p class="mapInfo">Terminer cette session sur cet appareil.</p><button id="logout" type="button" class="btn ghost">Se déconnecter</button></section></section></div></div></main>
 <div id="modal" class="modal"><form id="tripForm" class="sheet"><div class="top"><h2 id="tripTitle">Ajouter un voyage</h2><button type="button" id="close" class="btn ghost">Fermer</button></div><div class="two"><div class="field"><label>Pays</label><label for="tripCountrySearch">Rechercher un pays ou territoire</label><input id="tripCountrySearch" type="search" autocomplete="off" placeholder="Ex. ara, etats, congo…" aria-controls="tripCountrySelect"><select id="tripCountrySelect" name="country_code" aria-label="Pays sélectionné" required><option value="">Choisir un pays</option></select></div><div class="field"><label>Ville(s)</label><input name="cities" required placeholder="Ex. Labé, Kankan"></div></div><div class="two"><div class="field"><label>Entrée</label><input name="entry_date" type="date" required></div><div class="field"><label>Sortie</label><input name="exit_date" type="date" required></div></div><div class="field"><label>Voyage intérieur ?</label><select name="is_domestic" id="isDomestic"><option value="false">Non</option><option value="true">Oui</option></select><small id="domesticHint">Vous pouvez corriger cette proposition.</small></div><div class="field"><label>Motif</label><select name="purpose"><option value="tourisme">Tourisme</option><option value="affaires">Affaires</option><option value="etudes">Études</option><option value="famille">Famille</option><option value="sante">Santé</option><option value="transit">Transit</option><option value="autre">Autre</option></select></div><div id="photoField" class="field"><label for="photos">Photos privées</label><p id="photoInfo" class="photoHelp">10 photos maximum par voyage · 8 Mo maximum par photo. JPEG, PNG ou WebP uniquement. Les images sont converties en WebP sans données GPS avant l'envoi.</p><input id="photos" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" multiple aria-describedby="photoInfo photoUsage"><p id="photoUsage" class="photoHelp" role="status" aria-live="polite">0 / 10 photos enregistrées</p><div id="photoGallery" class="photoGrid" aria-label="Photos enregistrées et en attente"></div><p id="photoMessage" class="notice hidden" role="status" aria-live="polite"></p></div><div class="field"><label>Souvenir / note privée</label><textarea name="note"></textarea></div><p id="tripMsg" class="notice hidden"></p><button id="saveTrip" class="btn">Enregistrer</button></form></div>
 <div id="tripDetailModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="detailTitle" aria-describedby="detailIntro">
   <div id="detailSheet" class="sheet detailSheet" tabindex="-1">
@@ -173,23 +284,177 @@ function render(){
  $("#mapInfo").textContent=dashboardFilters.country?countryName(dashboardFilters.country)+" sélectionné · appuyez à nouveau pour tout afficher.":"Choisissez un pays sur la carte ou dans les étiquettes.";
  $("#countryList").innerHTML=[...counts].sort((a,b)=>countryName(a[0]).localeCompare(countryName(b[0]),"fr")).map(([code,n])=>`<button type="button" class="countryChip" data-country="${esc(code)}" aria-pressed="${dashboardFilters.country===code}" aria-label="${esc(countryName(code))}, ${n} voyage${n===1?"":"s"}, ${dashboardFilters.country===code?"désélectionner":"sélectionner"}">${esc(countryName(code))} <b>${n}</b></button>`).join("");
  $("#trips").innerHTML=visible.length?visible.map(x=>window.BEAM_VISUAL_CARDS.markup(x,countryName(x.country_code),window.BEAM_TRAVEL_PDF.purposeName(x.purpose),tripDates(x.entry_date,x.exit_date))).join(""):(trips.length?"<p>Aucun voyage ne correspond aux filtres.</p>":"<p>Aucun voyage pour le moment.</p>");
- applyMapState();scheduleMap();scheduleCoverImages();
+ renderFilterChips();applyMapState();scheduleMap();scheduleCoverImages();
+}
+function positionHeaderActions(){
+ const header=$("#headerActions"),hero=$("#travelHero .actions"),group=$("#pdfActionGroup");
+ if(!header||!hero||!group)return;
+ const target=matchMedia("(min-width:900px)").matches?header:hero;
+ target.append(group,$("#printJournal"));
+}
+
+positionHeaderActions();
+window.addEventListener("resize",positionHeaderActions);
+let filterReturnFocus=null;
+function setFiltersOpen(open){
+ const panel=$("#filterPanel"),trigger=$("#toggleFilters");
+ if(!panel||!trigger)return;
+ const next=!!open&&accountState==="active";
+ panel.classList.toggle("filterOpen",next);
+ panel.setAttribute("aria-hidden",String(!next));
+ panel.setAttribute("aria-modal",String(next&&matchMedia("(max-width:899px)").matches));
+ trigger.setAttribute("aria-expanded",String(next));
+ if(next){filterReturnFocus=document.activeElement;$("#closeFilters").focus();armOverlayBack()}
+ else {disarmOverlayBack();if(filterReturnFocus&&document.contains(filterReturnFocus)){filterReturnFocus.focus();filterReturnFocus=null}}
+}
+$("#toggleFilters").onclick=()=>setFiltersOpen(!$("#filterPanel").classList.contains("filterOpen"));
+$("#closeFilters").onclick=()=>setFiltersOpen(false);
+$("#applyFilters").onclick=()=>{setFiltersOpen(false);$("#travelTripsPanel").scrollIntoView({behavior:"smooth",block:"start"})};
+document.addEventListener("pointerdown",e=>{if($("#filterPanel").classList.contains("filterOpen")&&!e.target.closest("#filterAnchor"))setFiltersOpen(false)});
+document.addEventListener("keydown",e=>{
+ if(!$("#filterPanel").classList.contains("filterOpen"))return;
+ if(e.key==="Escape"){e.preventDefault();setFiltersOpen(false)}
+ if(e.key==="Tab"&&matchMedia("(max-width:899px)").matches){
+  const focusable=[...$("#filterPanel").querySelectorAll("button:not(:disabled),select:not(:disabled),input:not(:disabled)")];
+  const first=focusable[0],last=focusable.at(-1);
+  if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}
+  else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}
+ }
+});
+function renderFilterChips(){
+ const labels={country:"Pays",year:"Année",purpose:"Motif",scope:"Type"};
+ const root=$("#activeFilterChips");root.replaceChildren();
+ for(const [key,value] of Object.entries(dashboardFilters)){
+  if(!value)continue;
+  const label=key==="country"?countryName(value):($("#filter"+({country:"Country",year:"Year",purpose:"Purpose",scope:"Scope"}[key]))?.selectedOptions[0]?.textContent||value);
+  const b=document.createElement("button");b.type="button";b.textContent=label+" ×";b.setAttribute("aria-label","Retirer le filtre "+labels[key]+" : "+label);
+  b.onclick=()=>{dashboardFilters=window.BEAM_DASHBOARD_FILTERS.normalize({...dashboardFilters,[key]:""});render()};
+  root.append(b);
+ }
 }
 $("#countryList").onclick=e=>{let b=e.target.closest?.(".countryChip[data-country]");if(b)selectMapCountry(b.dataset.country)};
 for(const [id,field] of [["#filterCountry","country"],["#filterYear","year"],["#filterPurpose","purpose"],["#filterScope","scope"]]){
  $(id).onchange=e=>{dashboardFilters=window.BEAM_DASHBOARD_FILTERS.normalize({...dashboardFilters,[field]:e.target.value});render()};
 }
 $("#resetFilters").onclick=()=>{dashboardFilters=window.BEAM_DASHBOARD_FILTERS.normalize(window.BEAM_DASHBOARD_FILTERS.EMPTY);render()};
+let accountReturnFocus=null;
+let accountBaseline=null;
+function captureAccountBaseline(){accountBaseline={name:$("#travelerName").value.trim(),phone:$("#contactPhone").value,postal:$("#contactPostalAddress").value,residence:$("#residence").value};}
+function restoreAccountBaseline(){if(!accountBaseline)return;$("#travelerName").value=accountBaseline.name;$("#contactPhone").value=accountBaseline.phone;$("#contactPostalAddress").value=accountBaseline.postal;countrySelectors.residence.reset(accountBaseline.residence);}
+function accountDirty(){return !!accountBaseline&&(
+ $("#travelerName").value.trim()!==accountBaseline.name||
+ $("#contactPhone").value!==accountBaseline.phone||
+ $("#contactPostalAddress").value!==accountBaseline.postal||
+ $("#residence").value!==accountBaseline.residence
+);}
+function accountSummary(){
+ const country=profile.country_of_residence||$("#residence").value;
+ $("#residenceReadSummary").textContent=country?(String.fromCodePoint(...[...country.toUpperCase()].map(c=>127397+c.charCodeAt(0)))+" "+countryName(country)):"Non renseigné";
+ $("#accountReadSummary").textContent=[
+  "Nom : "+(profile.display_name||"Non renseigné"),
+  "E-mail : "+(user?.email||""),
+  "Téléphone : "+($("#contactPhone").value||"Non renseigné"),
+  "Adresse : "+($("#contactPostalAddress").value||"Non renseignée"),
+  "Résidence : "+(profile.country_of_residence?countryName(profile.country_of_residence):"Non renseignée")
+ ].join("\n");
+}
+function openAccountPanel(){
+ if(accountState!=="active")return;
+ setFiltersOpen(false);accountReturnFocus=document.activeElement;
+ accountSummary();$("#accountOverlay").classList.add("accountOpen");
+ $("#accountOverlay").setAttribute("aria-hidden","false");$("#openAccount").setAttribute("aria-expanded","true");
+ $("#closeAccount").focus();armOverlayBack();
+}
+let discardAction=null;
+function askDiscard(action){
+ discardAction=action;
+ $("#discardConfirm").classList.add("accountOpen");
+ $("#discardConfirm").setAttribute("aria-hidden","false");
+ $("#discardStay").focus();
+}
+function dismissDiscard(accept){
+ $("#discardConfirm").classList.remove("accountOpen");
+ $("#discardConfirm").setAttribute("aria-hidden","true");
+ const action=discardAction;discardAction=null;
+ if(accept&&action)action();
+ else $("#contactPhone").focus();
+}
+$("#discardStay").onclick=()=>dismissDiscard(false);
+$("#discardLeave").onclick=()=>dismissDiscard(true);
+function closeAccountPanel(force=false){
+ if(!force&&$("#accountOverlay").classList.contains("accountEditing")&&accountDirty()){
+  askDiscard(()=>closeAccountPanel(true));return false;
+ }
+ if($("#accountOverlay").classList.contains("accountEditing"))restoreAccountBaseline();
+ $("#accountOverlay").classList.remove("accountOpen","accountEditing");
+ $("#accountOverlay").setAttribute("aria-hidden","true");$("#openAccount").setAttribute("aria-expanded","false");
+ disarmOverlayBack();if(accountReturnFocus?.isConnected)accountReturnFocus.focus();return true;
+}
+$("#openAccount").onclick=openAccountPanel;
+$("#closeAccount").onclick=()=>closeAccountPanel();
+$("#changeResidence").onclick=()=>{$("#editAccount").click();$("#residenceSearch").focus()};
+$("#editAccount").onclick=()=>{
+ captureAccountBaseline();
+ $("#accountOverlay").classList.add("accountEditing");$("#travelerName").focus();
+};
+function cancelAccountEdit(force=false){
+ if(!force&&accountDirty()){askDiscard(()=>cancelAccountEdit(true));return}
+ restoreAccountBaseline();$("#accountOverlay").classList.remove("accountEditing");accountSummary();$("#editAccount").focus();
+}
+$("#cancelAccountEdit").onclick=()=>cancelAccountEdit();
+
+// Browser history is used as an overlay sentinel; Android Back closes the top layer first.
+let overlayHistoryArmed=false;
+let overlayHistoryDisarming=false;
+let overlayHistoryPendingArm=false;
+let overlayPopClosing=false;
+function armOverlayBack(){
+ if(overlayHistoryDisarming){overlayHistoryPendingArm=true;return}
+ if(!overlayHistoryArmed){history.pushState({beamOverlay:true},"",location.href);overlayHistoryArmed=true}
+}
+function disarmOverlayBack(){
+ if(overlayPopClosing){overlayHistoryArmed=false;return}
+ if(overlayHistoryArmed&&history.state?.beamOverlay){
+  overlayHistoryArmed=false;overlayHistoryDisarming=true;history.back();
+ }
+}
+window.addEventListener("popstate",()=>{
+ if(overlayHistoryDisarming){
+  overlayHistoryDisarming=false;
+  if(overlayHistoryPendingArm){overlayHistoryPendingArm=false;armOverlayBack()}
+  return;
+ }
+ overlayHistoryArmed=false;
+ overlayPopClosing=true;
+ try{
+  if($("#accountOverlay").classList.contains("accountOpen")){
+   if(!closeAccountPanel())armOverlayBack();
+   return;
+  }
+  if($("#filterPanel").classList.contains("filterOpen")){setFiltersOpen(false);return}
+ }finally{overlayPopClosing=false}
+});
+
+document.addEventListener("keydown",e=>{
+ if($("#discardConfirm").classList.contains("accountOpen")&&e.key==="Tab"){
+  const first=$("#discardStay"),last=$("#discardLeave");
+  if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}
+  else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}
+  return;
+ }
+ if(e.key==="Escape"&&$("#discardConfirm").classList.contains("accountOpen")){e.preventDefault();e.stopImmediatePropagation();dismissDiscard(false);return}
+ if(e.key==="Escape"&&$("#accountOverlay").classList.contains("accountOpen")){e.preventDefault();e.stopImmediatePropagation();closeAccountPanel()}
+});
 function setAccountState(state){
  accountState=state;
  const active=state==="active";
- for(const id of ["#travelHero","#filterPanel","#residencePanel","#travelPanels","#myAccount"]){
+ for(const id of ["#travelHero","#filterAnchor","#travelMapPanel","#travelPanels","#openAccount","#residencePanel","#myAccount"]){
    $(id).classList.toggle("hidden",!active);
  }
  $("#deletionPending").classList.toggle("hidden",state!=="deleting");
  $("#accountStatusUnavailable").classList.toggle("hidden",state!=="unavailable");
  $("#accountStatusChecking").classList.toggle("hidden",state!=="loading");
- if(!active){clearContactFields();$("#modal").classList.remove("open");if($("#tripDetailModal").classList.contains("open"))closeTripDetail()}
+ if(!active){$("#accountOverlay").classList.remove("accountOpen","accountEditing");$("#accountOverlay").setAttribute?.("aria-hidden","true");clearContactFields();$("#modal").classList.remove("open");if($("#tripDetailModal").classList.contains("open"))closeTripDetail()}
 }
 async function load(){
  if(!user)return;
@@ -294,7 +559,7 @@ $("#logout").onclick=async()=>{
  await clearPwaSession();
  // A fresh page cannot re-display previously loaded private trips.
  location.replace(location.pathname);
-};$("#residence").onchange=async e=>{if(accountState!=="active")return;let value=e.target.value||null,{error}=await S.from("profiles").update({country_of_residence:value}).eq("id",user.id);if(error){$("#appMsg").textContent="Impossible d’enregistrer la résidence.";$("#appMsg").classList.remove("hidden");e.target.value=profile.country_of_residence||"";return}profile.country_of_residence=value;$("#appMsg").textContent="Résidence actuelle enregistrée. Vos anciens voyages restent inchangés.";$("#appMsg").classList.remove("hidden");setTimeout(()=>$("#appMsg").classList.add("hidden"),4000)};let editingTripId=null,editingOriginalCountry=null;function proposeDomestic(code){if(!profile.country_of_residence||!code)return false;return code===profile.country_of_residence}function setDomesticProposal(code){$("#isDomestic").value=String(proposeDomestic(code));$("#domesticHint").textContent=profile.country_of_residence?"Proposition selon votre résidence actuelle. Vous pouvez la corriger.":"Aucune résidence enregistrée : vérifiez ce choix."}function openNewTrip(){if(accountState!=="active")return;editingTripId=null;editingOriginalCountry=null;$("#tripForm").reset();countrySelectors.trip.reset("");setDomesticProposal("");$("#tripTitle").textContent="Ajouter un voyage";$("#saveTrip").textContent="Enregistrer";resetPhotoUI(null);$("#tripMsg").classList.add("hidden");$("#modal").classList.add("open")}function openEditTrip(id){if(accountState!=="active")return;let x=trips.find(t=>t.id===id);if(!x)return;editingTripId=id;editingOriginalCountry=x.country_code;let f=$("#tripForm");countrySelectors.trip.reset(x.country_code);f.country_code.value=x.country_code;f.cities.value=x.cities.join(", ");f.entry_date.value=x.entry_date;f.exit_date.value=x.exit_date;f.purpose.value=x.purpose;f.note.value=x.note||"";f.is_domestic.value=String(!!x.is_domestic);$("#domesticHint").textContent="Classification enregistrée pour ce voyage. Elle reste stable tant que le pays ne change pas.";$("#tripTitle").textContent="Modifier le voyage";$("#saveTrip").textContent="Enregistrer les modifications";resetPhotoUI(id);$("#tripMsg").classList.add("hidden");$("#modal").classList.add("open");refreshMedia(id).catch(()=>showPhotoMessage("Impossible de charger les photos. Réessayez en rouvrant le voyage."))}$("#tripForm").country_code.onchange=e=>{let code=e.target.value;if(!editingTripId||code!==editingOriginalCountry)setDomesticProposal(code)};$("#add").onclick=openNewTrip;// Signed URLs are never embedded in saved HTML or handed to decorative CDNs.
+};$("#residence").onchange=()=>{ /* Draft only: saved with the account form, never on selection. */ };let editingTripId=null,editingOriginalCountry=null;function proposeDomestic(code){if(!profile.country_of_residence||!code)return false;return code===profile.country_of_residence}function setDomesticProposal(code){$("#isDomestic").value=String(proposeDomestic(code));$("#domesticHint").textContent=profile.country_of_residence?"Proposition selon votre résidence actuelle. Vous pouvez la corriger.":"Aucune résidence enregistrée : vérifiez ce choix."}function openNewTrip(){if(accountState!=="active")return;editingTripId=null;editingOriginalCountry=null;$("#tripForm").reset();countrySelectors.trip.reset("");setDomesticProposal("");$("#tripTitle").textContent="Ajouter un voyage";$("#saveTrip").textContent="Enregistrer";resetPhotoUI(null);$("#tripMsg").classList.add("hidden");$("#modal").classList.add("open")}function openEditTrip(id){if(accountState!=="active")return;let x=trips.find(t=>t.id===id);if(!x)return;editingTripId=id;editingOriginalCountry=x.country_code;let f=$("#tripForm");countrySelectors.trip.reset(x.country_code);f.country_code.value=x.country_code;f.cities.value=x.cities.join(", ");f.entry_date.value=x.entry_date;f.exit_date.value=x.exit_date;f.purpose.value=x.purpose;f.note.value=x.note||"";f.is_domestic.value=String(!!x.is_domestic);$("#domesticHint").textContent="Classification enregistrée pour ce voyage. Elle reste stable tant que le pays ne change pas.";$("#tripTitle").textContent="Modifier le voyage";$("#saveTrip").textContent="Enregistrer les modifications";resetPhotoUI(id);$("#tripMsg").classList.add("hidden");$("#modal").classList.add("open");refreshMedia(id).catch(()=>showPhotoMessage("Impossible de charger les photos. Réessayez en rouvrant le voyage."))}$("#tripForm").country_code.onchange=e=>{let code=e.target.value;if(!editingTripId||code!==editingOriginalCountry)setDomesticProposal(code)};$("#add").onclick=openNewTrip;// Signed URLs are never embedded in saved HTML or handed to decorative CDNs.
 // Only visible cards are signed, and only after owner-scoped media verification.
 let coverLoadEpoch=0,coverObserver=null;
 function scheduleCoverImages(){
@@ -800,15 +1065,19 @@ $("#contactDetailsForm").onsubmit=async event=>{
  }
  if(address.length>300){notice.textContent="Adresse trop longue (300 caractères maximum).";return}
  const uid=user.id,button=$("#saveContactDetails");
+ const residence=$("#residence").value||null;
  savingContacts=true;button.disabled=true;notice.textContent="Enregistrement…";
  try{
   const {data,error}=await S.from("profiles")
-   .update({phone:phone||null,postal_address:address||null})
-   .eq("id",uid).select("phone,postal_address").single();
+   .update({phone:phone||null,postal_address:address||null,country_of_residence:residence})
+   .eq("id",uid).select("phone,postal_address,country_of_residence").single();
   if(error||!data||accountState!=="active"||user?.id!==uid)
    throw new Error("Coordonnées non enregistrées.");
   $("#contactPhone").value=window.BEAM_TRAVEL_PDF.formatPhone(data.phone||"");
   $("#contactPostalAddress").value=data.postal_address||"";
+  profile.country_of_residence=data.country_of_residence||null;
+  if(accountBaseline){accountBaseline.phone=$("#contactPhone").value;accountBaseline.postal=$("#contactPostalAddress").value;accountBaseline.residence=$("#residence").value;}
+  accountSummary();
   notice.textContent="Coordonnées enregistrées. Leur inclusion dans le PDF reste facultative.";
  }catch{notice.textContent="Impossible d'enregistrer ces coordonnées. Vérifiez votre connexion."}
  finally{
@@ -843,6 +1112,7 @@ $("#travelerNameForm").onsubmit=async event=>{
    profile.display_name=data.display_name;
    $("#dashboardTitle").textContent=travelDashboardTitle(data.display_name);
    $("#travelerName").value=data.display_name;
+   if(accountBaseline)accountBaseline.name=data.display_name;
    travelerNameNotice("Nom enregistré. Il pourra figurer sur votre PDF.");
  }catch(err){travelerNameNotice(err.message||"Impossible d’enregistrer le nom.")}
  finally{savingTravelerName=false;btn.disabled=false;btn.textContent="Enregistrer le nom"}

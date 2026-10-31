@@ -105,6 +105,8 @@ async function main(){
   await page.goto(url,{waitUntil:"load",timeout:20000});
   await page.waitForFunction(()=>!document.querySelector("#saveContactDetails")?.disabled,
    null,{timeout:12000});
+  await page.locator("#openAccount").click();
+  await page.locator("#editAccount").click();
   assert.equal(await page.locator("#accountEmail").inputValue(),"login@example.net");
   assert.equal(await page.locator("#accountEmail").getAttribute("readonly"),"");
   assert.equal(await page.locator("#includePdfContacts").isChecked(),false);
@@ -153,14 +155,16 @@ async function main(){
   }
   const updated=await page.evaluate(()=>window.__contactStore.updates);
   assert.deepEqual(updated,accepted.map(()=>({
-   phone:"+224622095630",postal_address:"Ratoma, Conakry"
+   phone:"+224622095630",postal_address:"Ratoma, Conakry",country_of_residence:"GN"
   })),"every accepted spelling must be saved in the same canonical format");
 
   // Server returns compact number at load; reloading must show grouped value.
   await page.reload({waitUntil:"load"});
   await page.waitForFunction(()=>!document.querySelector("#saveContactDetails")?.disabled,
    null,{timeout:12000});
-  assert.equal(await page.locator("#contactPhone").inputValue(),"+224 622 09 56 30",
+  await page.locator("#openAccount").click();
+   await page.locator("#editAccount").click();
+   assert.equal(await page.locator("#contactPhone").inputValue(),"+224 622 09 56 30",
    "profile reload must display the compact stored phone grouped");
   const updatesAfterReload=await page.evaluate(()=>window.__contactStore.updates.length);
   const rejected=["+1","abc","+2246220956301234567","6220956301"];
@@ -182,6 +186,10 @@ async function main(){
   await fs.mkdir(shotDir,{recursive:true});
   await page.locator("#myAccount").screenshot({path:path.join(shotDir,"account-contacts-360.png")});
 
+  // Close the modal account drawer before using the dashboard PDF action.
+  await page.locator("#closeAccount").click();
+  assert.equal(await page.locator("#accountOverlay").getAttribute("aria-hidden"),"true");
+  assert.equal(await page.locator("#pdf").isVisible(),true,"PDF button visible on mobile");
   // Unchecked PDF must neither reread extra columns nor call getUser().
   const off=await waitPopup(page,()=>page.locator("#pdf").click());
   let text=await off.locator("body").textContent();

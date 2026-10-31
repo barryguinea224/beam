@@ -8,8 +8,8 @@ const filterCss=fs.readFileSync("travel/dashboard-filters.css","utf8");
 const filterPanel=html.match(/<section id="filterPanel"([\s\S]*?)<div id="travelPanels"/)?.[0]
  ?.replace(/<div id="travelPanels"$/,"");
 assert.ok(baseCss&&filterPanel&&filterPanel.includes('id="filterScope"'),"real dashboard filter markup missing");
-const footer=html.match(/<footer id="dashboardFooter"[\s\S]*?<\/footer>/)?.[0];
-assert.ok(footer,"real dashboard footer markup missing");
+const session=html.match(/<section id="accountSession"[\s\S]*?<\/section>/)?.[0];
+assert.ok(session&&session.includes('id="logout"'),"real account Session markup missing");
 
 async function main(){
  const browser=await chromium.launch({headless:true,args:["--no-sandbox","--disable-dev-shm-usage"]});
@@ -18,10 +18,11 @@ async function main(){
    const page=await browser.newPage({viewport:{width,height:760},isMobile:true,hasTouch:true,deviceScaleFactor:2});
    try{
     await page.setContent('<!doctype html><html lang="fr"><meta name="viewport" content="width=device-width,initial-scale=1"><body><main id="app"><div class="w"><section class="hero" id="travelHero"><div><h1 id="dashboardTitle">Carnet de Mariama Djouldé Doumbouya</h1><div class="actions"><button class="btn">Ajouter un voyage</button><button class="btn ghost">Travel History PDF</button></div></div><div class="statsWrap"><div class="stats"><div class="stat"><b>2</b><small>voyages affichés</small></div><div class="stat"><b>1</b><small>pays affiché</small></div><div class="stat"><b>10</b><small>jours affichés</small></div></div></div></section>'+
-      filterPanel+'<section class="panel"><div class="map" id="map"><svg viewBox="0 0 200 90"><path class="visited selectedCountry" data-country="FR" aria-pressed="true" d="M20 20h85v45h-85z"></path></svg></div><div id="countryList" class="countryList"><button class="countryChip" aria-pressed="true">France <b>2</b></button><button class="countryChip" aria-pressed="false">Guinée <b>1</b></button></div></section>'+footer+'</div></main></body></html>');
+      filterPanel+'<section class="panel"><div class="map" id="map"><svg viewBox="0 0 200 90"><path class="visited selectedCountry" data-country="FR" aria-pressed="true" d="M20 20h85v45h-85z"></path></svg></div><div id="countryList" class="countryList"><button class="countryChip" aria-pressed="true">France <b>2</b></button><button class="countryChip" aria-pressed="false">Guinée <b>1</b></button></div></section>'+'<div id="accountOverlay" class="accountOverlay accountOpen"><section id="myAccount" class="panel">'+session+'</section></div></div></main></body></html>');
     await page.addStyleTag({content:baseCss+"\n"+filterCss});
+    await page.evaluate(()=>{const panel=document.querySelector("#filterPanel");panel.classList.add("filterOpen");panel.setAttribute("aria-hidden","false");});
     const data=await page.evaluate(()=>{
-      const controls=[...document.querySelectorAll("#filterPanel select,#resetFilters,#countryList button,#logout")].map(el=>{
+      const controls=[...document.querySelectorAll("#filterPanel select,#filterPanel button,#countryList button,#logout")].map(el=>{
         const b=el.getBoundingClientRect();return {tag:el.tagName,left:b.left,right:b.right,height:b.height,width:b.width,text:el.textContent?.trim()};
       });
       const svg=document.querySelector(".selectedCountry");
