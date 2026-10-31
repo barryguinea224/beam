@@ -122,6 +122,7 @@ jobs:
 
       - name: Preflight hostile bench and deletion functions
         run: |
+          node tests/travel-victim-bench-neutral-error.cjs
           deno check travel/supabase/tests/hostile_ab.ts
           # Type-check the destructive bench here, before its separate approval gate.
           deno check travel/supabase/tests/victim_bench.ts
