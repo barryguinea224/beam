@@ -69,7 +69,7 @@ function fakeSupabase(){
    };
    return api;
   }
- }}}};
+ }}};
 }
 async function waitPopup(page,doClick){
  const [popup]=await Promise.all([page.waitForEvent("popup",{timeout:12000}),doClick()]);
