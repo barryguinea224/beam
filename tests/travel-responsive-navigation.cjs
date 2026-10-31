@@ -79,7 +79,7 @@ function fakeSupabase(){
 }
 async function waitPopup(page,doClick){
  const [popup]=await Promise.all([page.waitForEvent("popup",{timeout:12000}),doClick()]);
- await popup.waitForFunction(()=>document.title==="BEAM - Travel History PDF",null,{timeout:12000});
+ await popup.waitForFunction(()=>document.title==="Historique de voyages",null,{timeout:12000});
  return popup;
 }
 async function main(){
@@ -131,6 +131,7 @@ async function main(){
    await page.waitForFunction(expected=>window.__contactStore.profile.country_of_residence===expected,alternativeResidence);
    assert.equal(await page.evaluate(()=>window.__contactStore.updates.length),residenceUpdatesBefore+1,
     "saving residence must make exactly one profile update");
+   await page.locator("#editAccount").click();
    const original=await page.locator("#contactPhone").inputValue();
    await page.locator("#contactPhone").fill("+224 622 09 56 30");
    const updatesBefore=await page.evaluate(()=>window.__contactStore.updates.length);

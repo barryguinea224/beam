@@ -16,6 +16,7 @@ assert.ok(pdfModule.includes('require("./countries.js")'),
 assert.deepEqual(PDF.FIELDS,[
  "country_code","cities","entry_date","exit_date","duration_days","purpose"
 ]);
+assert.equal(PDF.filenameForName("Élodie D’Été"),"Historique-de-voyages-Elodie-D-Ete.pdf");
 assert.equal(PDF.DECLARATION,
  "Historique déclaré par l'utilisateur, non délivré par une autorité officielle");
 assert.deepEqual(PDF.CONTACT_FIELDS,["email","phone","postalAddress"]);
@@ -92,8 +93,8 @@ assert.ok(app.includes('id="travelerNameForm"') && app.includes('maxlength="80"'
  "Accessible traveler-name form missing");
 assert.match(inline,/\.select\("country_of_residence,display_name,deleting"\)/,
  "Journal must load display_name from the user's profile");
-assert.match(inline,/\.update\(\{display_name:value\}\)/,
- "Profile name must be persisted");
+assert.match(inline,/\.update\(\{display_name:name,phone:phone\|\|null,postal_address:address\|\|null,country_of_residence:residence\}\)/,
+ "All profile fields must be saved together once");
 assert.match(inline,/includeContacts\?"display_name,deleting,phone,postal_address":"display_name,deleting"/,
  "PDF must only fetch extra contacts when opted in");
 assert.ok(inline.includes("if(!profile.display_name?.trim()){requestTravelerName();return}"),
@@ -107,8 +108,8 @@ assert.match(inline,/"#includePdfContacts"\)\.checked=false/, "consent checkbox 
 assert.match(app,/id="accountEmail"[^>]*readonly/, "Auth email display must be read-only");
 assert.match(app,/id="contactPhone"/);
 assert.match(app,/id="contactPostalAddress"/);
-assert.match(inline,/\.update\(\{phone:phone\|\|null,postal_address:address\|\|null,country_of_residence:residence\}\)/,
- "profile updates must only target phone, postal_address and country_of_residence");
+assert.match(inline,/\.update\(\{display_name:name,phone:phone\|\|null,postal_address:address\|\|null,country_of_residence:residence\}\)/,
+ "profile update must target exactly the four approved columns");
 assert.ok(app.includes('<script src="./factual-pdf.js"></script>') &&
  app.includes('<script src="./factual-pdf-file.js"></script>'),
  "PDF renderer and local share writer must both load");
@@ -217,6 +218,8 @@ assert.ok(!opted.body.textContent.includes("+224612345678"),
 assert.match(opted.body.textContent,/Conakry, Guinée/);
 assert.ok(!opted.body.textContent.includes("SECRET_PASSPORT_123"));
 assert.equal(document.documentElement.lang,"fr");
+assert.equal(document.head.textContent.includes("BEAM"),false,"PDF title must be neutral");
+assert.equal(document.body.textContent.includes("BEAM"),false,"PDF HTML must be neutral");
 assert.equal(all.filter(x=>x.tagName==="IMG").length,0,"No private photos in PDF");
 assert.equal(all.filter(x=>x.tagName==="SCRIPT").length,0);
 assert.equal(all.filter(x=>x.tagName==="A").length,0);

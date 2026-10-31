@@ -25,6 +25,8 @@ assert.match(app, /forgetLocalAuth\(C\.supabaseUrl\)/);
 
 const manifest=JSON.parse(fs.readFileSync("travel/manifest.webmanifest","utf8"));
 assert.equal(manifest.name,"BEAM Travel History");
+assert.equal(manifest.short_name,"BTH");
+assert.match(app,/<meta name="apple-mobile-web-app-title" content="BTH">/);
 assert.equal(manifest.start_url,"/travel/");
 assert.equal(manifest.scope,"/travel/");
 assert.equal(manifest.display,"standalone");

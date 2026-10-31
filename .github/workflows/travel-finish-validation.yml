@@ -1,0 +1,46 @@
+name: BEAM Travel finish — full JS tests and real-page captures
+on:
+  pull_request:
+    branches: [feature/beam-travel-history-v1]
+    paths:
+      - "travel/**"
+      - "tests/**"
+      - ".github/workflows/travel-finish-validation.yml"
+permissions:
+  contents: read
+jobs:
+  all-cjs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Install Playwright, Chromium and PDF utilities
+        run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+          sudo apt-get update -qq
+          sudo apt-get install -y poppler-utils
+      - name: Run every test except server-only mobile smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          for test in tests/*.cjs; do
+            if [[ "$test" == "tests/mobile-smoke.cjs" ]]; then continue; fi
+            echo "::group::$test"
+            node "$test"
+            echo "::endgroup::"
+          done
+      - name: Upload captures from REAL application at 360 and 1280 px
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: travel-finish-real-page-360-1280
+          path: |
+            test-artifacts/travel-responsive-real/carnet-real-360.png
+            test-artifacts/travel-responsive-real/carnet-real-1280.png
+            test-artifacts/travel-responsive-real/compte-real-360.png
+            test-artifacts/travel-responsive-real/compte-real-1280.png
+          if-no-files-found: warn

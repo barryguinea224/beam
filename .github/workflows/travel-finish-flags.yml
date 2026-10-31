@@ -1,0 +1,48 @@
+name: One-time local ISO flag import for Travel History
+on:
+  push:
+    branches: [fix/travel-client-owned-finish-20261031]
+    paths:
+      - ".github/workflows/travel-finish-flags.yml"
+permissions:
+  contents: write
+jobs:
+  import:
+    if: github.repository == 'barryguinea224/beam'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Import pinned MIT licensed flag-icons SVG files
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --no-checkout --filter=blob:none https://github.com/lipis/flag-icons.git "$RUNNER_TEMP/flag-icons"
+          git -C "$RUNNER_TEMP/flag-icons" fetch --depth=1 origin ac7e0eb3259eb62aa6100c435607e2fe03896a97
+          git -C "$RUNNER_TEMP/flag-icons" checkout --detach ac7e0eb3259eb62aa6100c435607e2fe03896a97
+          python3 - <<'PY'
+          from pathlib import Path
+          import re, shutil
+          src=Path("travel/countries.js").read_text()
+          values=re.search(r'const DATA="([^"]+)"',src).group(1)
+          codes=re.findall(r'(?:^|;)([A-Z]{2})=',values)
+          assert len(codes)==249 and len(set(codes))==249, "ISO catalogue changed"
+          source=Path("/tmp") # use the checkout supplied by RUNNER_TEMP
+          import os
+          source=Path(os.environ["RUNNER_TEMP"])/"flag-icons"/"flags"/"4x3"
+          dest=Path("travel/assets/flags")
+          dest.mkdir(parents=True,exist_ok=True)
+          for code in codes:
+              f=source/(code.lower()+".svg")
+              assert f.is_file(), f"missing flag: {code}"
+              shutil.copyfile(f,dest/f.name)
+          shutil.copyfile(source.parent.parent/"LICENSE",dest/"LICENSE.flag-icons")
+          assert len([c for c in codes if (dest/(c.lower()+".svg")).is_file()])==249
+          print("Copied all 249 ISO country/territory flag SVGs locally")
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add travel/assets/flags/
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "assets(travel): vendor 249 local ISO flag SVG files"
+          git push origin "HEAD:$GITHUB_REF_NAME"

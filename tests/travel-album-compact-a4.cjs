@@ -62,7 +62,9 @@ async function main(){
      flags:document.querySelectorAll(".timeline-row .album-flag").length,
      width:document.documentElement.scrollWidth,viewport:innerWidth,
      noticeTop:document.querySelector(".screen-head")?.textContent,
-     noticeBottom:document.querySelector(".screen-foot")?.textContent
+     noticeBottom:document.querySelector(".screen-foot")?.textContent,
+     pageTitle:document.title,
+     hasBrand:document.body.textContent.includes("BEAM")
     }));
     assert.equal(audit.coverPhoto,photoUrl,"cover must use Dakar favorite although newest Labé has no photo");
     assert.equal(audit.title,"Carnet d'Elhadj Barry");
@@ -80,6 +82,8 @@ async function main(){
     assert.ok(audit.timeline[1].includes("Dakar")&&audit.timeline[1].includes("1 jour"));
     assert.ok(audit.width<=width+1,"no horizontal overflow at "+width+"px");
     assert.equal(audit.noticeTop,NOTICE);assert.equal(audit.noticeBottom,NOTICE);
+    assert.equal(audit.pageTitle,"Mon carnet de voyage");
+    assert.equal(audit.hasBrand,false,"client journal must not contain brand");
     const pdf=await page.pdf({preferCSSPageSize:true,printBackground:true});
     fs.mkdirSync(resultDir,{recursive:true});
     const file=path.join(resultDir,"album-retouches-"+width+".pdf");
@@ -92,6 +96,7 @@ async function main(){
     for(let i=1;i<=pages;i++){
      const text=execFileSync("pdftotext",["-f",String(i),"-l",String(i),"-layout",file,"-"],{encoding:"utf8"});
      assert.ok(text.includes(NOTICE),"missing legal notice on page "+i);
+     assert.ok(!text.includes("BEAM"),"brand leaked on journal page "+i);
      texts.push(text);
     }
     assert.match(texts[0],/Carnet d'Elhadj/);
