@@ -253,7 +253,8 @@ assert.equal(document.prints,1,"Save as PDF is initiated by explicit user action
 
 const empty=new Document();
 assert.equal(PDF.render(empty,[],{displayName:"Fatou Diallo",generatedAt}),0);
-assert.match(empty.body.textContent,/Aucun voyage international/);
+assert.equal(empty.body.textContent.includes("Aucun voyage international"),false,"Personal PDF has no explanatory prose");
+assert.match(empty.body.textContent,/PaysVille\(s\)EntréeSortieDuréeMotif/);
 assert.ok(nodes(empty.body).find(x=>x.tagName==="BUTTON").disabled,
  "Cannot print an empty travel history");
 
