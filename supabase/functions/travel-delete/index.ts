@@ -1,3 +1,4 @@
+import { safeDeletionError, safeInternalDeletionCode } from "../_shared/travel-public-errors.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.95.0";
 import {
   adminClient,
@@ -29,6 +30,7 @@ function cors(req: Request): Record<string, string> {
 
 const json = (req: Request, body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...cors(req), "content-type": "application/json" } });
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 async function caller(req: Request) {
   const auth = req.headers.get("authorization") || "";
@@ -53,7 +55,16 @@ Deno.serve(async (req: Request) => {
 
   try {
     const user = await caller(req);
-    const body = await req.json() as Action;
+    const body = await req.json().catch(() => null) as Action | null;
+    if (!body || typeof body !== "object" || !("action" in body)) {
+      return json(req, { error: "INVALID_REQUEST" }, 400);
+    }
+    if (body.action === "delete_photo" && (!("media_id" in body) || !UUID.test(body.media_id))) {
+      return json(req, { error: "INVALID_REQUEST" }, 400);
+    }
+    if (body.action === "delete_trip" && (!("trip_id" in body) || !UUID.test(body.trip_id))) {
+      return json(req, { error: "INVALID_REQUEST" }, 400);
+    }
     const admin = adminClient();
 
     if (body.action === "delete_photo") {
@@ -86,7 +97,8 @@ Deno.serve(async (req: Request) => {
 
     return json(req, { error: "UNKNOWN_ACTION" }, 400);
   } catch (e) {
-    const message = e instanceof Error ? e.message : "UNKNOWN_ERROR";
-    return json(req, { error: message }, message === "UNAUTHENTICATED" ? 401 : 500);
+    console.error("travel-delete failure", safeInternalDeletionCode(e));
+    const safe = safeDeletionError(e);
+    return json(req, { error: safe.error }, safe.status);
   }
 });
