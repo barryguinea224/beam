@@ -31,6 +31,7 @@ function element(id) {
     classList:{
       add(name){classes.add(name)},
       remove(name){classes.delete(name)},
+      toggle(name,force){const yes=force===undefined?!classes.has(name):!!force;if(yes)classes.add(name);else classes.delete(name);return yes},
       contains(name){return classes.has(name)}
     },
     replaceChildren(){this.innerHTML=''},
@@ -38,7 +39,7 @@ function element(id) {
   };
 }
 function harness() {
-  const ids=['#photos','#photoGallery','#photoUsage','#photoMessage','#saveTrip',
+  const ids=['#photos','#photoGallery','#photoUsage','#photoLoadStatus','#photoRetry','#photoMessage','#saveTrip',
     '#modal','#tripForm','#tripMsg','#tripTitle','#appMsg','#close'];
   const els=Object.fromEntries(ids.map(id=>[id,element(id)]));
   const records=[],uploads=[],revoked=[],calls=[];

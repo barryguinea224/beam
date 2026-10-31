@@ -162,6 +162,18 @@ html.beamOffline #auth,html.beamOffline #app,html.beamOffline #modal,html.beamOf
 @media(min-width:900px){
  #travelMapPanel .map{height:auto;min-height:200px;max-height:min(42vh,420px);aspect-ratio:1000 / 445}
 }
+
+#photoLoadStatus{display:flex;align-items:center;gap:8px;margin:0;font-weight:650;color:var(--g)}
+#photoLoadStatus.hidden{display:none}
+.photoSpinner{display:inline-block;flex:none;width:16px;height:16px;border-radius:50%;border:2px solid #b4cfc1;border-top-color:var(--g);animation:photoSpin .85s linear infinite}
+@keyframes photoSpin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.photoSpinner{animation:none;border-style:dotted}}
+#photoRetry{justify-self:start}
+.photoThumbSlot{height:145px;position:relative;display:grid;place-items:center;overflow:hidden;border-radius:9px;background:#eff2ee}
+.photoTile .photoThumbSlot img{height:145px;width:100%;object-fit:contain;opacity:0;transition:opacity .16s ease}
+.photoTile .photoThumbSlot img.loaded{opacity:1}
+.photoThumbPlaceholder{position:absolute;inset:0;display:flex;justify-content:center;align-items:center;padding:12px;font-size:12px;color:#455a4e;text-align:center}
+.photoThumbSlot img.loaded+.photoThumbPlaceholder{display:none}
 </style><link rel="stylesheet" href="./visual-cards.css"><link rel="stylesheet" href="./dashboard-filters.css">
 <script src="/travel/offline-bootstrap.js"></script></head><body>
 <section id="offline" role="status" aria-live="polite"><div class="ey">BEAM · Travel History</div><h1>Connexion nécessaire pour consulter votre carnet</h1><p>Vos voyages et photos sont privés et indisponibles hors ligne. Reconnectez-vous à Internet pour continuer.</p></section>
@@ -200,7 +212,7 @@ html.beamOffline #auth,html.beamOffline #app,html.beamOffline #modal,html.beamOf
  <p id="contactDetailsStatus" role="status" aria-live="polite" class="mapInfo">Vérification des coordonnées…</p>
  <small>Ces informations figurent sur le PDF factuel uniquement si vous cochez « Inclure mes coordonnées » avant de le générer.</small>
 </form><details id="accountSensitive" class="panel"><summary>Zone sensible</summary><p id="deleteAccountInfo" class="mapInfo">Vous pouvez supprimer définitivement votre compte et ses données de voyage, y compris les photos privées. Cette action est irréversible.</p><div class="actions"><button id="deleteAccountOpen" type="button" class="btn ghost" aria-describedby="deleteAccountInfo">Supprimer mon compte</button></div><form id="deleteAccountForm" class="hidden" aria-labelledby="deleteAccountConfirmTitle"><h3 id="deleteAccountConfirmTitle">Confirmer la suppression</h3><p>Votre compte, vos voyages, activités, souvenirs et photos seront définitivement supprimés. Ils ne pourront pas être restaurés.</p><div class="field"><label for="deleteAccountConfirm">Saisissez <strong>SUPPRIMER</strong> pour confirmer</label><input id="deleteAccountConfirm" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="9" pattern="SUPPRIMER" required></div><div class="actions"><button id="deleteAccountSubmit" type="submit" class="btn" style="background:#a8271d" disabled>Supprimer définitivement</button><button id="deleteAccountCancel" type="button" class="btn ghost">Annuler</button></div></form><p id="deleteAccountMessage" class="notice hidden" role="status" aria-live="polite"></p></details><section id="accountSession" class="panel" aria-labelledby="accountSessionTitle"><h3 id="accountSessionTitle">Session</h3><p class="mapInfo">Terminer cette session sur cet appareil.</p><button id="logout" type="button" class="btn ghost">Se déconnecter</button></section></section></div></div></main>
-<div id="modal" class="modal"><form id="tripForm" class="sheet"><div class="top"><h2 id="tripTitle">Ajouter un voyage</h2><button type="button" id="close" class="btn ghost">Fermer</button></div><div class="two"><div class="field"><label>Pays</label><label for="tripCountrySearch">Rechercher un pays ou territoire</label><input id="tripCountrySearch" type="search" autocomplete="off" placeholder="Ex. ara, etats, congo…" aria-controls="tripCountrySelect"><select id="tripCountrySelect" name="country_code" aria-label="Pays sélectionné" required><option value="">Choisir un pays</option></select></div><div class="field"><label>Ville(s)</label><input name="cities" required placeholder="Ex. Labé, Kankan"></div></div><div class="two"><div class="field"><label>Entrée</label><input name="entry_date" type="date" required></div><div class="field"><label>Sortie</label><input name="exit_date" type="date" required></div></div><div class="field"><label>Voyage intérieur ?</label><select name="is_domestic" id="isDomestic"><option value="false">Non</option><option value="true">Oui</option></select><small id="domesticHint">Vous pouvez corriger cette proposition.</small></div><div class="field"><label>Motif</label><select name="purpose"><option value="tourisme">Tourisme</option><option value="affaires">Affaires</option><option value="etudes">Études</option><option value="famille">Famille</option><option value="sante">Santé</option><option value="transit">Transit</option><option value="autre">Autre</option></select></div><div id="photoField" class="field"><label for="photos">Photos privées</label><p id="photoInfo" class="photoHelp">10 photos maximum par voyage · 8 Mo maximum par photo. JPEG, PNG ou WebP uniquement. Les images sont converties en WebP sans données GPS avant l'envoi.</p><input id="photos" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" multiple aria-describedby="photoInfo photoUsage"><p id="photoUsage" class="photoHelp" role="status" aria-live="polite">0 / 10 photos enregistrées</p><div id="photoGallery" class="photoGrid" aria-label="Photos enregistrées et en attente"></div><p id="photoMessage" class="notice hidden" role="status" aria-live="polite"></p></div><div class="field"><label>Souvenir / note privée</label><textarea name="note"></textarea></div><p id="tripMsg" class="notice hidden"></p><button id="saveTrip" class="btn">Enregistrer</button></form></div>
+<div id="modal" class="modal"><form id="tripForm" class="sheet"><div class="top"><h2 id="tripTitle">Ajouter un voyage</h2><button type="button" id="close" class="btn ghost">Fermer</button></div><div class="two"><div class="field"><label>Pays</label><label for="tripCountrySearch">Rechercher un pays ou territoire</label><input id="tripCountrySearch" type="search" autocomplete="off" placeholder="Ex. ara, etats, congo…" aria-controls="tripCountrySelect"><select id="tripCountrySelect" name="country_code" aria-label="Pays sélectionné" required><option value="">Choisir un pays</option></select></div><div class="field"><label>Ville(s)</label><input name="cities" required placeholder="Ex. Labé, Kankan"></div></div><div class="two"><div class="field"><label>Entrée</label><input name="entry_date" type="date" required></div><div class="field"><label>Sortie</label><input name="exit_date" type="date" required></div></div><div class="field"><label>Voyage intérieur ?</label><select name="is_domestic" id="isDomestic"><option value="false">Non</option><option value="true">Oui</option></select><small id="domesticHint">Vous pouvez corriger cette proposition.</small></div><div class="field"><label>Motif</label><select name="purpose"><option value="tourisme">Tourisme</option><option value="affaires">Affaires</option><option value="etudes">Études</option><option value="famille">Famille</option><option value="sante">Santé</option><option value="transit">Transit</option><option value="autre">Autre</option></select></div><div id="photoField" class="field"><label for="photos">Photos privées</label><p id="photoInfo" class="photoHelp">10 photos maximum par voyage · 8 Mo maximum par photo. JPEG, PNG ou WebP uniquement. Les images sont converties en WebP sans données GPS avant l'envoi.</p><input id="photos" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" multiple aria-describedby="photoInfo photoUsage photoLoadStatus"><p id="photoLoadStatus" class="photoHelp hidden" role="status" aria-live="polite"><span class="photoSpinner" aria-hidden="true"></span>Chargement de vos photos…</p><p id="photoUsage" class="photoHelp" role="status" aria-live="polite">0 / 10 photos enregistrées</p><div id="photoGallery" class="photoGrid" aria-label="Photos enregistrées et en attente"></div><p id="photoMessage" class="notice hidden" role="alert"></p><button id="photoRetry" type="button" class="btn ghost hidden">Réessayer</button></div><div class="field"><label>Souvenir / note privée</label><textarea name="note"></textarea></div><p id="tripMsg" class="notice hidden"></p><button id="saveTrip" class="btn">Enregistrer</button></form></div>
 <div id="tripDetailModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="detailTitle" aria-describedby="detailIntro">
   <div id="detailSheet" class="sheet detailSheet" tabindex="-1">
     <div class="detailTop"><div><div class="ey">Ma fiche voyage</div><h2 id="detailTitle">Voyage</h2><p id="detailIntro" class="detailIntro">Informations et souvenirs privés.</p></div><button id="detailClose" type="button" class="btn ghost">Fermer</button></div>
@@ -825,28 +837,58 @@ $("#detailActivities").onclick=async e=>{
 };
 
 const PHOTO=window.BEAM_PHOTO;
-let existingMedia=[],pendingPhotos=[],pendingPhotoId=0,photoSelecting=false,mediaReady=false,mediaRequest=0,mediaBusy=false;
+let existingMedia=[],pendingPhotos=[],pendingPhotoId=0,photoSelecting=false,mediaReady=false,mediaError=false,mediaRequest=0,mediaBusy=false;
 function showPhotoMessage(text){const el=$("#photoMessage");el.textContent=text;el.classList.remove("hidden")}
 function updatePhotoUsage(){
- const saved=existingMedia.length,waiting=pendingPhotos.length,remaining=PHOTO.MAX_PHOTOS-saved-waiting;
- $("#photoUsage").textContent=saved+" enregistrée"+(saved===1?"":"s")+" + "+waiting+" en attente / "+PHOTO.MAX_PHOTOS+
+ const saved=existingMedia.length,waiting=pendingPhotos.length,remaining=Math.max(0,PHOTO.MAX_PHOTOS-saved-waiting);
+ // Until the owner-scoped media list arrives, displaying 0 saved is inaccurate.
+ $("#photoLoadStatus").classList.toggle("hidden",mediaReady||mediaError);
+ $("#photoUsage").classList.toggle("hidden",!mediaReady);
+ $("#photoRetry").classList.toggle("hidden",!mediaError);
+ if(mediaReady)$("#photoUsage").textContent=saved+" enregistrée"+(saved===1?"":"s")+" + "+waiting+" en attente / "+PHOTO.MAX_PHOTOS+
    " · "+remaining+" place"+(remaining===1?"":"s")+" disponible"+(remaining===1?"":"s");
  $("#photos").disabled=!mediaReady||mediaBusy||photoSelecting||savingTrip||remaining<=0||accountState!=="active";
  $("#saveTrip").disabled=mediaBusy||photoSelecting||savingTrip||accountState!=="active";
 }
+function photoPreview(row){
+ return (row.url?'<img loading="lazy" alt="Souvenir privé de ce voyage" src="'+esc(row.url)+'">':"")+
+   '<span class="photoThumbPlaceholder">'+(row.previewUnavailable?"Prévisualisation indisponible":"Chargement de la miniature…")+'</span>';
+}
+function wirePhotoThumbs(container){
+ for(const img of container.querySelectorAll?.(".photoThumbSlot img")||[]){
+  const ready=()=>img.classList.add("loaded");
+  const failed=()=>{
+   const slot=img.closest(".photoThumbSlot");img.remove();
+   const label=slot?.querySelector(".photoThumbPlaceholder");
+   if(label)label.textContent="Prévisualisation indisponible";
+  };
+  if(img.complete){if(img.naturalWidth>0)ready();else failed()}
+  else{img.onload=ready;img.onerror=failed}
+ }
+}
 function renderPhotoGallery(){
- const saved=existingMedia.map(row=>'<div class="photoTile">'+
-   (row.url?'<img loading="lazy" alt="Souvenir privé de ce voyage" src="'+esc(row.url)+'">':'<p>Prévisualisation indisponible</p>')+
+ const saved=existingMedia.map(row=>'<div class="photoTile" data-media-id="'+esc(row.id)+'"><div class="photoThumbSlot">'+
+   photoPreview(row)+'</div>'+
    '<div class="actions"><button type="button" class="btn ghost setCoverPhoto" data-id="'+esc(row.id)+'" aria-pressed="'+
     String(trips.find(t=>t.id===editingTripId)?.cover_media_id===row.id)+'">'+
     (trips.find(t=>t.id===editingTripId)?.cover_media_id===row.id?'Retirer la couverture':'Choisir comme couverture')+
-    '</button><button type="button" class="btn ghost downloadPhoto" data-id="'+esc(row.id)+'">Télécharger</button>'+
+   '</button><button type="button" class="btn ghost downloadPhoto" data-id="'+esc(row.id)+'">Télécharger</button>'+
    '<button type="button" class="btn ghost removePhoto" data-id="'+esc(row.id)+'">Supprimer</button></div></div>');
  const waiting=pendingPhotos.map(entry=>'<div class="photoTile"><img alt="Photo en attente d’envoi" src="'+esc(entry.url)+'">'+
    '<p class="photoPendingLabel">En attente · '+esc(entry.file.name)+'</p><div class="actions">'+
    '<button type="button" class="btn ghost removePendingPhoto" data-pending-id="'+esc(entry.id)+
    '" aria-label="Retirer '+esc(entry.file.name)+'">Retirer</button></div></div>');
  $("#photoGallery").innerHTML=saved.concat(waiting).join("");
+ wirePhotoThumbs($("#photoGallery"));
+}
+function updateSignedThumbnail(row){
+ // Resolve each thumbnail independently. Never reset other previews or the queued files.
+ const tiles=$("#photoGallery").querySelectorAll?.(".photoTile[data-media-id]")||[];
+ const tile=[...tiles].find(node=>node.dataset.mediaId===row.id);
+ const slot=tile?.querySelector(".photoThumbSlot");
+ if(!slot)return;
+ slot.innerHTML=photoPreview(row);
+ wirePhotoThumbs(slot);
 }
 function removePendingPhoto(id){
  const i=pendingPhotos.findIndex(entry=>entry.id===id);
@@ -859,10 +901,9 @@ function removePendingPhoto(id){
 function resetPhotoUI(tripId){
  mediaRequest++;
  for(const entry of pendingPhotos)URL.revokeObjectURL(entry.url);
- pendingPhotos=[];existingMedia=[];mediaReady=!tripId;
+ pendingPhotos=[];existingMedia=[];mediaReady=!tripId;mediaError=false;
  $("#photos").value="";$("#photoGallery").replaceChildren();$("#photoMessage").classList.add("hidden");
  updatePhotoUsage();
- if(tripId){$("#photoUsage").textContent="Chargement des photos…";$("#photos").disabled=true}
 }
 $("#close").onclick=()=>{
  if(savingTrip||mediaBusy||photoSelecting)return;
@@ -872,19 +913,36 @@ $("#close").onclick=()=>{
 };
 async function refreshMedia(tripId){
  const seq=++mediaRequest;
- mediaReady=false;updatePhotoUsage();
- const {data,error}=await S.from("media").select("id,storage_path,created_at")
-   .eq("user_id",user.id).eq("trip_id",tripId).order("created_at",{ascending:true});
- if(seq!==mediaRequest||editingTripId!==tripId||accountState!=="active")return;
- if(error||!data){$("#photoUsage").textContent="Photos indisponibles — ajout désactivé.";showPhotoMessage("Impossible de charger les photos. Réessayez en rouvrant le voyage.");return}
- const signed=await Promise.all(data.map(async row=>{
-   const {data:url,error:urlError}=await S.storage.from("media").createSignedUrl(row.storage_path,300);
-   return {...row,url:urlError?"":(url?.signedUrl||"")};
- }));
- if(seq!==mediaRequest||editingTripId!==tripId||accountState!=="active")return;
- existingMedia=signed;renderPhotoGallery();
- mediaReady=true;updatePhotoUsage();
+ mediaReady=false;mediaError=false;$("#photoMessage").classList.add("hidden");updatePhotoUsage();
+ try{
+  const {data,error}=await S.from("media").select("id,storage_path,created_at")
+    .eq("user_id",user.id).eq("trip_id",tripId).order("created_at",{ascending:true});
+  if(seq!==mediaRequest||editingTripId!==tripId||accountState!=="active")return;
+  if(error||!Array.isArray(data))throw new Error("Media list unavailable");
+  // Rows establish the quota immediately, regardless of outstanding preview signatures.
+  existingMedia=data.map(row=>({...row,url:"",previewUnavailable:false}));
+  mediaReady=true;renderPhotoGallery();updatePhotoUsage();
+  for(const row of existingMedia){
+   void (async()=>{
+    let signedUrl="";
+    try{
+     const {data:url,error:urlError}=await S.storage.from("media").createSignedUrl(row.storage_path,300);
+     if(!urlError)signedUrl=url?.signedUrl||"";
+    }catch{ /* A failed preview must not block the picker. */ }
+    if(seq!==mediaRequest||editingTripId!==tripId||accountState!=="active")return;
+    row.url=signedUrl;row.previewUnavailable=!signedUrl;
+    updateSignedThumbnail(row);
+   })();
+  }
+ }catch{
+  if(seq!==mediaRequest||editingTripId!==tripId||accountState!=="active")return;
+  existingMedia=[];mediaReady=false;mediaError=true;updatePhotoUsage();
+  showPhotoMessage("Impossible de charger la liste de vos photos. Vérifiez votre connexion, puis réessayez.");
+ }
 }
+$("#photoRetry").onclick=()=>{
+ if(editingTripId&&mediaError&&!savingTrip)return refreshMedia(editingTripId);
+};
 $("#photos").onchange=async()=>{
  const input=$("#photos"),files=Array.from(input.files);
  input.value=""; // The picker may be reopened; the queued File objects are retained.
