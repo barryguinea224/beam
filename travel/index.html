@@ -67,17 +67,41 @@ function tripDates(a,b){let A=new Date(a+"T12:00:00"),B=new Date(b+"T12:00:00"),
 function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 let mapReady=false,mapLoading=false;
 function countryCounts(){let m=new Map();for(const t of trips)m.set(t.country_code,(m.get(t.country_code)||0)+1);return m}
-function selectMapCountry(code){let n=countryCounts().get(code)||0;$("#mapInfo").textContent=n?countryName(code)+" · "+n+" "+(n===1?"voyage":"voyages"):"";$("#map").querySelectorAll("path").forEach(p=>p.setAttribute("aria-pressed",p.dataset.country===code?"true":"false"))}
+function selectMapCountry(code){if(!countryCounts().has(code))return;dashboardFilters=window.BEAM_DASHBOARD_FILTERS.toggleCountry(dashboardFilters,code);render()}
 function fitMapToVisited(){if(!mapReady)return;let svg=$("#map svg"),paths=[...countryCounts().keys()].map(c=>$("#map-"+CSS.escape(c))).filter(Boolean);if(!paths.length){svg.setAttribute("viewBox","0 0 1000 445");return}let boxes=paths.map(p=>p.getBBox()),x=Math.min(...boxes.map(b=>b.x)),y=Math.min(...boxes.map(b=>b.y)),r=Math.max(...boxes.map(b=>b.x+b.width)),bt=Math.max(...boxes.map(b=>b.y+b.height)),w=Math.max(r-x,24),h=Math.max(bt-y,18),pad=Math.max(w,h)*.9;svg.setAttribute("viewBox",[Math.max(0,x-pad),Math.max(0,y-pad),Math.min(1000,w+pad*2),Math.min(445,h+pad*2)].join(" "))}
-function applyMapState(){if(!mapReady)return;let counts=countryCounts();$("#map").querySelectorAll("path[data-country]").forEach(p=>{let n=counts.get(p.dataset.country)||0;p.classList.toggle("visited",n>0);p.setAttribute("tabindex","0");p.setAttribute("role","button");p.setAttribute("aria-label",countryName(p.dataset.country)+(n?" · "+n+" "+(n===1?"voyage":"voyages"):""))});fitMapToVisited()}
+function applyMapState(){if(!mapReady)return;const counts=countryCounts();$("#map").querySelectorAll("path[data-country]").forEach(p=>{const n=counts.get(p.dataset.country)||0,active=dashboardFilters.country===p.dataset.country;p.classList.toggle("visited",n>0);p.classList.toggle("selectedCountry",active);p.setAttribute("tabindex",n>0?"0":"-1");p.setAttribute("role","button");p.setAttribute("aria-disabled",n>0?"false":"true");p.setAttribute("aria-pressed",active?"true":"false");p.setAttribute("aria-label",countryName(p.dataset.country)+(n?" · "+n+" "+(n===1?"voyage":"voyages"):" · aucun voyage"))});fitMapToVisited()}
 async function loadMap(){if(mapReady||mapLoading)return;mapLoading=true;try{let r=await fetch("./assets/world-map.svg",{cache:"force-cache"});if(!r.ok)throw new Error("map "+r.status);$("#map").innerHTML=await r.text();mapReady=true;applyMapState();$("#map").onclick=e=>{let p=e.target.closest?.("path[data-country]");if(p)selectMapCountry(p.dataset.country);else $("#mapInfo").textContent=""};$("#map").onkeydown=e=>{let p=e.target.closest?.("path[data-country]");if(p&&(e.key==="Enter"||e.key===" ")){e.preventDefault();selectMapCountry(p.dataset.country)}}}catch(e){$("#map").textContent="Carte indisponible. La liste des pays reste accessible."}finally{mapLoading=false}}
 function scheduleMap(){(window.requestIdleCallback||((fn)=>setTimeout(fn,0)))(loadMap)}
-function render(){let counts=countryCounts(),stats=window.BEAM_JOURNAL_STATS.summarize(trips);
- $("#nt").textContent=stats.trips;
- $("#ntl").textContent=stats.trips===1?"voyage à l’étranger":"voyages à l’étranger";
- $("#nc").textContent=stats.countries;
- $("#nd").textContent=stats.days;
- $("#domesticCount").textContent=stats.domestic?"+ "+stats.domestic+" séjour"+(stats.domestic===1?"":"s")+" intérieur"+(stats.domestic===1?"":"s"):"";$("#countryList").innerHTML=[...counts].sort((a,b)=>countryName(a[0]).localeCompare(countryName(b[0]),"fr")).map(([code,n])=>`<button type="button" class="countryChip" data-country="${esc(code)}">${esc(countryName(code))} <b>${n}</b></button>`).join("");$("#countryList").onclick=e=>{let b=e.target.closest(".countryChip");if(b)selectMapCountry(b.dataset.country)};$("#trips").innerHTML=trips.length?trips.map(x=>window.BEAM_VISUAL_CARDS.markup(x,countryName(x.country_code),window.BEAM_TRAVEL_PDF.purposeName(x.purpose),tripDates(x.entry_date,x.exit_date))).join(""):"<p>Aucun voyage pour le moment.</p>";applyMapState();scheduleMap();scheduleCoverImages()}
+function renderFilterOptions(){
+ const api=window.BEAM_DASHBOARD_FILTERS,opts=api.options(trips),country=$("#filterCountry"),year=$("#filterYear");
+ const sorted=opts.countries.sort((a,b)=>countryName(a).localeCompare(countryName(b),"fr"));
+ country.replaceChildren(new Option("Tous les pays",""),...sorted.map(code=>new Option(countryName(code),code)));
+ year.replaceChildren(new Option("Toutes les années",""),...opts.years.map(y=>new Option(y,y)));
+ if(dashboardFilters.country&&!opts.countries.includes(dashboardFilters.country))dashboardFilters=api.normalize({...dashboardFilters,country:""});
+ if(dashboardFilters.year&&!opts.years.includes(dashboardFilters.year))dashboardFilters=api.normalize({...dashboardFilters,year:""});
+ country.value=dashboardFilters.country;year.value=dashboardFilters.year;
+ $("#filterPurpose").value=dashboardFilters.purpose;$("#filterScope").value=dashboardFilters.scope;
+}
+function render(){
+ const api=window.BEAM_DASHBOARD_FILTERS;renderFilterOptions();
+ const visible=api.apply(trips,dashboardFilters),stats=api.summary(visible),counts=countryCounts(),active=Object.values(dashboardFilters).some(Boolean);
+ const name=typeof profile.display_name==="string"?profile.display_name.trim().replace(/\s+/g," "):"";
+ $("#dashboardTitle").textContent=name?"Carnet de "+name:"Mon carnet de voyage";
+ $("#nt").textContent=stats.trips;$("#ntl").textContent=stats.trips===1?"voyage affiché":"voyages affichés";
+ $("#nc").textContent=stats.countries;$("#nd").textContent=stats.days;
+ $("#domesticCount").textContent=stats.domestic?"Dont "+stats.domestic+" séjour"+(stats.domestic===1?"":"s")+" national"+(stats.domestic===1?"":"aux"):"";
+ $("#filterStatus").textContent=active?stats.trips+" voyage"+(stats.trips===1?"":"s")+" correspondant"+(stats.trips===1?"":"s")+" aux filtres.":"Tous les voyages sont affichés.";
+ $("#resetFilters").disabled=!active;
+ $("#mapInfo").textContent=dashboardFilters.country?countryName(dashboardFilters.country)+" sélectionné · appuyez à nouveau pour tout afficher.":"Choisissez un pays sur la carte ou dans les étiquettes.";
+ $("#countryList").innerHTML=[...counts].sort((a,b)=>countryName(a[0]).localeCompare(countryName(b[0]),"fr")).map(([code,n])=>`<button type="button" class="countryChip" data-country="${esc(code)}" aria-pressed="${dashboardFilters.country===code}" aria-label="${esc(countryName(code))}, ${n} voyage${n===1?"":"s"}, ${dashboardFilters.country===code?"désélectionner":"sélectionner"}">${esc(countryName(code))} <b>${n}</b></button>`).join("");
+ $("#trips").innerHTML=visible.length?visible.map(x=>window.BEAM_VISUAL_CARDS.markup(x,countryName(x.country_code),window.BEAM_TRAVEL_PDF.purposeName(x.purpose),tripDates(x.entry_date,x.exit_date))).join(""):(trips.length?"<p>Aucun voyage ne correspond aux filtres.</p>":"<p>Aucun voyage pour le moment.</p>");
+ applyMapState();scheduleMap();scheduleCoverImages();
+}
+$("#countryList").onclick=e=>{let b=e.target.closest?.(".countryChip[data-country]");if(b)selectMapCountry(b.dataset.country)};
+for(const [id,field] of [["#filterCountry","country"],["#filterYear","year"],["#filterPurpose","purpose"],["#filterScope","scope"]]){
+ $(id).onchange=e=>{dashboardFilters=window.BEAM_DASHBOARD_FILTERS.normalize({...dashboardFilters,[field]:e.target.value});render()};
+}
+$("#resetFilters").onclick=()=>{dashboardFilters=window.BEAM_DASHBOARD_FILTERS.normalize(window.BEAM_DASHBOARD_FILTERS.EMPTY);render()};
 function setAccountState(state){
  accountState=state;
  const active=state==="active";
