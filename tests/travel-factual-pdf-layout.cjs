@@ -75,7 +75,8 @@ async function main(){
    const consentText=execFileSync("pdftotext",["-layout",consentDestination,"-"],{encoding:"utf8"});
    assert.match(consentText,/Coordonnées déclarées/);
    assert.match(consentText,/account.verified@example.net/);
-   assert.match(consentText,/\+224612345678/);
+    assert.match(consentText,/\+224 612 34 56 78/);
+    assert.ok(!consentText.includes("+224612345678"),"the printed phone must be grouped");
    assert.match(consentText,/Conakry, Guinée/);
    for(const unsafe of [SECRET,"PASSPORT_NOT_ALLOWED","note","storage_path"]){
     assert.ok(!consentText.includes(unsafe),"Opt-in printed PDF leaked "+unsafe);
