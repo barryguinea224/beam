@@ -349,7 +349,7 @@ function accountDirty(){return !!accountBaseline&&(
 );}
 function accountSummary(){
  const country=profile.country_of_residence||$("#residence").value;
- $("#residenceReadSummary").textContent=country?(countryFlag(country)+" "+countryName(country)):"Non renseigné";
+ $("#residenceReadSummary").textContent=country?(String.fromCodePoint(...[...country.toUpperCase()].map(c=>127397+c.charCodeAt(0)))+" "+countryName(country)):"Non renseigné";
  $("#accountReadSummary").textContent=[
   "Nom : "+(profile.display_name||"Non renseigné"),
   "E-mail : "+(user?.email||""),
