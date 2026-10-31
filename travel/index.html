@@ -800,8 +800,16 @@ $("#printJournal").onclick=async()=>{
   }
   await Promise.all(Array.from({length:Math.min(3,selected.length)},()=>worker()));
   if(accountState!=="active"||user?.id!==uid||tab.closed)throw new Error("Session expirée");
+  // Local public map geometry only. Failure is non-blocking; no travel data sent.
+  let mapSvgText="";
+  try{
+   const response=await fetch("./assets/world-map.svg",{cache:"force-cache"});
+   if(response.ok)mapSvgText=await response.text();
+  }catch{}
+  if(accountState!=="active"||user?.id!==uid||tab.closed)throw new Error("Session expirée");
   window.BEAM_PERSONAL_JOURNAL.render(tab.document,{
-   name:current.display_name,filters,trips:pack
+   name:current.display_name,filters,trips:pack,mapSvgText,
+   limitReached:remaining===0,generatedAt:new Date()
   });
  }catch{fail();$("#appMsg").textContent="Impossible de préparer le carnet imprimable. Vérifiez votre connexion et réessayez.";$("#appMsg").classList.remove("hidden")}
  finally{journalPrintBusy=false;button.disabled=false;button.textContent="Mon carnet de voyage"}
