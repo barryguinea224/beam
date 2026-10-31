@@ -162,7 +162,9 @@ async function main(){
   await page.reload({waitUntil:"load"});
   await page.waitForFunction(()=>!document.querySelector("#saveContactDetails")?.disabled,
    null,{timeout:12000});
-  assert.equal(await page.locator("#contactPhone").inputValue(),"+224 622 09 56 30",
+  await page.locator("#openAccount").click();
+   await page.locator("#editAccount").click();
+   assert.equal(await page.locator("#contactPhone").inputValue(),"+224 622 09 56 30",
    "profile reload must display the compact stored phone grouped");
   const updatesAfterReload=await page.evaluate(()=>window.__contactStore.updates.length);
   const rejected=["+1","abc","+2246220956301234567","6220956301"];
