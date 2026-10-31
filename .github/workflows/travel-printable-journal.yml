@@ -31,17 +31,13 @@ jobs:
         with: {persist-credentials: false,fetch-depth: 0}
       - uses: actions/setup-node@v4
         with: {node-version: "22"}
-      - name: Protect factual PDF and SQL from printable-only changes
+      - name: Protect SQL; independently validate the intentional PDF debranding
         run: |
           git fetch --no-tags origin feature/beam-travel-history-v1
-          # Factual-PDF/contact PRs intentionally edit SQL and factual-pdf.js.
-          # Only guard against that scope creep when the PRINTABLE module itself
-          # changed; the separate factual-PDF workflow covers intentional edits.
-          if git diff --quiet "origin/feature/beam-travel-history-v1" HEAD -- travel/printable-journal.js; then
-            echo "Printable journal module untouched; factual PDF/SQL changes belong to their own review."
-          else
-            git diff --exit-code --name-only "origin/feature/beam-travel-history-v1" HEAD -- travel/factual-pdf.js travel/supabase/schema.sql travel/supabase/migrations
-          fi
+          git diff --exit-code --name-only "origin/feature/beam-travel-history-v1" HEAD -- travel/supabase/schema.sql travel/supabase/migrations
+          node tests/travel-factual-pdf.cjs
+          # PDF branding is intentionally removed under the client-owned requirement.
+          # The factual-PDF workflow and the full suite validate document contents.
       - run: |
           node tests/travel-script-load-order.cjs
           node tests/travel-printable-journal.cjs
