@@ -75,7 +75,7 @@ assert.equal(PDF.VIEW,"travel_history_pdf");
 assert.deepEqual(PDF.FIELDS,["country_code","cities","entry_date","exit_date","duration_days","purpose"]);
 const sw=fs.readFileSync("travel/sw.js","utf8");
 assert.ok(sw.includes('"./printable-journal.js"'));
-assert.ok(sw.includes("20261031-personal-journal"));
+assert.match(sw,/beam-travel-shell-v1-20261031-/,"cache revision must remain explicit");
 assert.ok(!sw.includes("storage/v1/object/sign")&&!sw.includes("signedUrl"));
 assert.match(sw,/url\.origin === self\.location\.origin/);
 assert.match(sw,/url\.search === ""/);
