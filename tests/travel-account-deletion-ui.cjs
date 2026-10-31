@@ -67,7 +67,9 @@ function statusNodes() {
   };
 }
 const fake = statusNodes();
-const context = vm.createContext({ accountState: "loading", $: fake.$ });
+let clearedContacts=0;
+const context = vm.createContext({ accountState: "loading", $: fake.$,
+  clearContactFields: () => { clearedContacts++; } });
 vm.runInContext(renderer, context);
 
 vm.runInContext('setAccountState("deleting")', context);
@@ -86,7 +88,10 @@ for (const id of ["#travelHero","#residencePanel","#travelPanels","#myAccount"])
   assert.ok(fake.$(id).classList.contains("hidden"), id + " must fail closed");
 }
 
+assert.equal(clearedContacts,2,
+  "transition to deleting or unavailable must erase private declared contacts");
 vm.runInContext('setAccountState("active")', context);
+assert.equal(clearedContacts,2,"active status should not reset editable contacts");
 for (const id of ["#travelHero","#residencePanel","#travelPanels","#myAccount"]) {
   assert.ok(!fake.$(id).classList.contains("hidden"), id + " should reopen for active account");
 }
