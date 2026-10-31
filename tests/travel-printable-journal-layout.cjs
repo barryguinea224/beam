@@ -114,7 +114,8 @@ async function main(){
     assert.ok(!text.includes(PRIVATE_EMAIL)&&!text.includes(PASSPORT));
     assert.ok(text.includes("Séjour national")&&text.includes("Sénégal")&&text.includes("Kindia"));
     assert.ok(text.includes("Activité au Sénégal"));
-    assert.ok(text.includes("Carnet généré le 31 octobre 2026 par BEAM Travel History"));
+    assert.ok(text.includes("Carnet généré le 31 octobre 2026"));
+    assert.ok(!text.includes("BEAM"),"printed journal must not contain the vendor brand");
     const pageNumberTest=execFileSync("pdftotext",["-f","2","-l","2","-layout",dest,"-"],{encoding:"utf8"});
     assert.match(pageNumberTest,/\b2\b/,"page numbers should be present in A4 margin boxes");
     await page.locator("#inkSaver").check();
