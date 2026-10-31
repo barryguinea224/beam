@@ -9,6 +9,10 @@ const NOTICE="Document personnel, non destiné aux démarches administratives";
 const PRIVATE_EMAIL="PRIVATE_EMAIL_MUST_NOT_APPEAR_3952";
 const PASSPORT="PRIVATE_PASSPORT_MUST_NOT_APPEAR_9321";
 const signedUrl="https://private-photo.example.test/temporary.webp?token=TEST_ONLY";
+const missingUrls=[
+ "https://private-photo.example.test/missing-1.webp?token=TEST_ONLY",
+ "https://private-photo.example.test/missing-2.webp?token=TEST_ONLY"
+];
 const webp=Buffer.from("UklGRiIAAABXRUJQVlA4IBYAAAAwAQCdASoBAAEAAUAmJaQAA3AA/v89WAAAAA==","base64");
 async function main(){
  const browser=await chromium.launch({headless:true,args:["--no-sandbox","--disable-dev-shm-usage"]});
@@ -16,14 +20,17 @@ async function main(){
  try{
   for(const width of [360,390]){
    const page=await browser.newPage({viewport:{width,height:760},isMobile:true,hasTouch:true});
-   await page.route("https://private-photo.example.test/**",route=>
-     route.fulfill({status:200,body:webp,contentType:"image/webp",headers:{"cache-control":"no-store"}}));
+   await page.route("https://private-photo.example.test/**",route=>{
+      if(route.request().url().includes("/missing-"))
+        return route.fulfill({status:404,body:"",headers:{"cache-control":"no-store"}});
+      return route.fulfill({status:200,body:webp,contentType:"image/webp",headers:{"cache-control":"no-store"}});
+    });
    try{
     await page.setContent('<!doctype html><html lang="fr"><head></head><body></body></html>');
     await page.addScriptTag({path:path.resolve("travel/countries.js")});
     await page.addScriptTag({path:path.resolve("travel/dashboard-filters.js")});
     await page.addScriptTag({path:path.resolve("travel/printable-journal.js")});
-    await page.evaluate(({signedUrl,PRIVATE_EMAIL,PASSPORT})=>{
+    await page.evaluate(({signedUrl,missingUrls,PRIVATE_EMAIL,PASSPORT})=>{
       const trip={
        id:"test-1",country_code:"SN",cities:["Dakar"],entry_date:"2026-04-01",exit_date:"2026-04-09",
        duration_days:9,purpose:"tourisme",is_domestic:false,note:"Souvenir privé de Dakar",
@@ -33,18 +40,20 @@ async function main(){
       BEAM_PERSONAL_JOURNAL.render(document,{
        name:"Aminata Diallo",filters:{country:"SN",year:"2026"},
        trips:[
-        {trip,activities:Array.from({length:45},(_,i)=>({title:"Activité au Sénégal "+i,place:"Dakar",happened_on:"2026-04-03"})),photos:[signedUrl]},
+        {trip,activities:Array.from({length:45},(_,i)=>({title:"Activité au Sénégal "+i,place:"Dakar",happened_on:"2026-04-03"})),photos:[signedUrl,...missingUrls]},
         {trip:national,activities:[{title:"Visite familiale"}],photos:[]}
        ]
       });
-    },{signedUrl,PRIVATE_EMAIL,PASSPORT});
+    },{signedUrl,missingUrls,PRIVATE_EMAIL,PASSPORT});
     await page.waitForFunction(()=>!document.querySelector(".toolbar button").disabled,{timeout:15000});
     const audit=await page.evaluate(()=>({
      text:document.body.textContent, title:document.title,
      width:document.documentElement.scrollWidth,innerWidth,
      photos:[...document.querySelectorAll("img")].map(x=>({ref:x.getAttribute("referrerpolicy"),complete:x.complete})),
      noticeHead:document.querySelector(".page-head")?.textContent,
-     noticeFoot:document.querySelector(".page-foot")?.textContent
+     noticeFoot:document.querySelector(".page-foot")?.textContent,
+      status:document.querySelector(".load-status")?.textContent,
+      missingCaptions:document.querySelectorAll("figcaption.photo-missing").length
     }));
     assert.ok(audit.width<=width+1,"journal horizontal overflow on "+width+": "+JSON.stringify(audit));
     assert.equal(audit.noticeHead,NOTICE);assert.equal(audit.noticeFoot,NOTICE);
@@ -55,6 +64,10 @@ async function main(){
     assert.match(audit.text,/Visite familiale/);
     assert.ok(!audit.text.includes(PRIVATE_EMAIL)&&!audit.text.includes(PASSPORT));
     assert.ok(audit.photos.every(x=>x.ref==="no-referrer"));
+    assert.match(audit.status,/2 photos n'ont pas pu être chargées/,
+      "two failed images must be explicitly reported before print");
+    assert.equal(audit.missingCaptions,2,"failed photos must have printed placeholders");
+    assert.equal(audit.photos.length,1,"only successfully loaded images remain");
     const dest=path.join(dir,"journal-"+width+".pdf");
     fs.writeFileSync(dest,await page.pdf({printBackground:true,preferCSSPageSize:true}));
     const info=execFileSync("pdfinfo",[dest],{encoding:"utf8"});
