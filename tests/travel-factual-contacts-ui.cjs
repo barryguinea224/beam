@@ -102,14 +102,41 @@ async function main(){
   assert.equal(await page.locator("#accountEmail").inputValue(),"login@example.net");
   assert.equal(await page.locator("#accountEmail").getAttribute("readonly"),"");
   assert.equal(await page.locator("#includePdfContacts").isChecked(),false);
-  await page.locator("#contactPhone").fill("+224612345678");
-  await page.locator("#contactPostalAddress").fill("Ratoma, Conakry");
-  await page.locator("#contactDetailsForm").evaluate(form=>form.requestSubmit());
-  await page.waitForFunction(()=>document.querySelector("#contactDetailsStatus")
-   ?.textContent?.includes("enregistrées"),null,{timeout:10000});
+  assert.equal(await page.locator("#contactPhone").getAttribute("pattern"),null,
+   "the browser must not reject formatted numbers before the normalizer");
+  const accepted=[
+   "+224 622 09 56 30","622095630","00224622095630",
+   "(+224) 622.09-56-30"
+  ];
+  for(const [index,value] of accepted.entries()){
+   await page.locator("#contactPhone").fill(value);
+   await page.locator("#contactPostalAddress").fill("Ratoma, Conakry");
+   await page.locator("#contactDetailsForm").evaluate(form=>form.requestSubmit());
+   await page.waitForFunction(expected=>
+    window.__contactStore.updates.length===expected&&
+    document.querySelector("#contactDetailsStatus")?.textContent?.includes("enregistrées"),
+    index+1,{timeout:10000});
+   assert.equal(await page.locator("#contactPhone").inputValue(),"+224622095630",
+    "the visible saved phone must be canonical E.164 for "+value);
+  }
   const updated=await page.evaluate(()=>window.__contactStore.updates);
-  assert.deepEqual(updated,[{phone:"+224612345678",postal_address:"Ratoma, Conakry"}],
-   "owner profile update must never include system/delete/user columns");
+  assert.deepEqual(updated,accepted.map(()=>({
+   phone:"+224622095630",postal_address:"Ratoma, Conakry"
+  })),"every accepted spelling must be saved in the same canonical format");
+
+  const rejected=["+1","abc","+2246220956301234567","6220956301"];
+  for(const value of rejected){
+   await page.locator("#contactPhone").fill(value);
+   // Use the real browser form submit (including HTML validity checks).
+   await page.locator("#contactDetailsForm").evaluate(form=>form.requestSubmit());
+   await page.waitForFunction(()=>document.querySelector("#contactDetailsStatus")
+    ?.textContent?.includes("Téléphone invalide"),null,{timeout:10000});
+   const trace=await page.evaluate(()=>window.__contactStore.updates.length);
+   assert.equal(trace,accepted.length,"invalid phone must never reach Supabase: "+value);
+   assert.match(await page.locator("#contactDetailsStatus").textContent(),/indicatif|6 à 15|224/,
+    "error must guide the user with an international example");
+  }
+  await page.locator("#contactPhone").fill("+224 622 09 56 30");
 
   // Unchecked PDF must neither reread extra columns nor call getUser().
   const off=await waitPopup(page,()=>page.locator("#pdf").click());
