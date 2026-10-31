@@ -63,20 +63,32 @@ des permissions, policies et Advisor du staging. Aucune DDL exécutée sur stagi
       ni message SQL, ni e-mail.
 - [ ] Revue humaine du patch complet et des workflows avant application.
 
-## Déploiement conditionnel, après approbation
+## Déploiement conditionnel, après approbation — un seul cycle staging
 
-1. Vérifier l'absence de modifications concurrentes des policies et le
-   schéma exposé par la Data API. Contrôler les grants `private`.
-2. Appliquer la migration SQL **sur le projet STAGING seulement**, avec
-   fenêtre de test ; **ne pas appliquer automatiquement pendant la CI**.
-3. Réexécuter les tests de sécurité JWT/RLS (A/B), plus un test réel
-   `storage.remove` avec une photo réservée : le fichier doit encore
-   exister et la ligne `media` rester cohérente. Tester aussi les suppressions
-   autorisées via `travel-delete` avec un compte jetable et nettoyage.
-4. Vérifier l'Advisor (attendus : plus de fonctions `SECURITY DEFINER`
-   exposées ni de fonction à `search_path` modifiable).
-5. Mettre à jour et redéployer la seule Edge Function `travel-delete` sur
-   staging **après** validation SQL, puis refaire les tests erreurs et UI.
+**Ne pas lancer le banc destructif contre une version mixte (ancien `travel-delete`
+avec la nouvelle migration SQL, ou inversement).** En cas d'échec intermédiaire,
+arrêter les tests destructifs, conserver le staging fermé et diagnostiquer.
+
+1. Avant de démarrer : faire approuver la PR, vérifier le SHA des fichiers,
+   l'absence de modifications concurrentes des policies, le schéma exposé
+   par la Data API (le schéma `private` ne doit pas y figurer),
+   les grants et les comptes jetables autorisés.
+2. Dans la même fenêtre de déploiement, sur **STAGING seulement** :
+   **appliquer la migration SQL**, puis **redéployer `travel-delete`**
+   avec son utilitaire `travel-public-errors.ts`. Ne pas appliquer
+   automatiquement la migration pendant la CI.
+3. Une fois le code et la base cohérents, vérifier l'Advisor, les tests
+   JWT/RLS A/B et le refus de `storage.remove` depuis le client.
+   Les suppressions autorisées doivent passer uniquement par `travel-delete`.
+4. Déclencher **ensuite** le banc `victim_bench.ts` via son label et
+   l'approbation `staging-destructive`. Lorsqu'un objet appartenant au
+   compte bloque la suppression, il doit constater **HTTP 503** et
+   **`DELETE_UNAVAILABLE`**, puis confirmer via le client administrateur
+   que l'utilisateur Auth existe encore, que `profiles.deleting=true`
+   et que `deletion_requested_at` reste inchangé. Les codes
+   `OWNED_OBJECTS_REMAIN` sont **internes seulement** (journal du worker).
+5. Retester l'UI, les messages neutres, la suppression et le nettoyage
+   des comptes jetables. Conserver les preuves avant de lever le NO-GO staging.
 6. La mise en production reste **NO-GO** sans revue finale, secrets
    production distincts et tests équivalents sur le futur projet de production.
 
