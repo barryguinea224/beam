@@ -30,6 +30,9 @@ function fakeSupabase(){
  const uid="22222222-2222-4222-8222-222222222222";
  const profile={display_name:"Aminata Diallo",country_of_residence:"GN",deleting:false,
   phone:null,postal_address:null};
+ // Persist ONLY fictitious browser-test contact values across a page reload.
+ // This is a local mock store, never production Supabase data.
+ try{Object.assign(profile,JSON.parse(sessionStorage.getItem("beam.synthetic-contacts")||"{}"))}catch{}
  const trip={id:"11111111-1111-4111-8111-111111111111",country_code:"SN",cities:["Dakar"],
   entry_date:"2026-06-03",exit_date:"2026-06-08",duration_days:6,
   purpose:"tourisme",is_domestic:false,note:"SECRET_PERSONAL_MEMORY",
@@ -56,6 +59,9 @@ function fakeSupabase(){
      if(query.updateFields){
       window.__contactStore.updates.push(query.updateFields);
       for(const [key,value] of Object.entries(query.updateFields))profile[key]=value;
+      sessionStorage.setItem("beam.synthetic-contacts",JSON.stringify({
+       phone:profile.phone,postal_address:profile.postal_address
+      }));
      }
      return {data:{...profile},error:null};
     },
@@ -156,6 +162,7 @@ async function main(){
    null,{timeout:12000});
   assert.equal(await page.locator("#contactPhone").inputValue(),"+224 622 09 56 30",
    "profile reload must display the compact stored phone grouped");
+  const updatesAfterReload=await page.evaluate(()=>window.__contactStore.updates.length);
   const rejected=["+1","abc","+2246220956301234567","6220956301"];
   for(const value of rejected){
    await page.locator("#contactPhone").fill(value);
@@ -164,7 +171,7 @@ async function main(){
    await page.waitForFunction(()=>document.querySelector("#contactDetailsStatus")
     ?.textContent?.includes("Téléphone invalide"),null,{timeout:10000});
    const trace=await page.evaluate(()=>window.__contactStore.updates.length);
-   assert.equal(trace,accepted.length,"invalid phone must never reach Supabase: "+value);
+   assert.equal(trace,updatesAfterReload,"invalid phone must never reach Supabase: "+value);
    assert.match(await page.locator("#contactDetailsStatus").textContent(),/indicatif|6 à 15|224/,
     "error must guide the user with an international example");
   }
