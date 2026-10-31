@@ -51,7 +51,7 @@
   return parts.join(" · ")||"Tous les voyages";
  }
  const CSS=[
- "@page{size:A4;margin:26mm 15mm 22mm}",
+ "@page{size:A4;margin:28mm 15mm 25mm;@top-center{content:'Document personnel, non destiné aux démarches administratives';font:700 8pt Arial,sans-serif;color:#294d3d;border-bottom:1px solid #8cae9b;padding-bottom:2mm}@bottom-center{content:'Document personnel, non destiné aux démarches administratives';font:700 8pt Arial,sans-serif;color:#294d3d;border-top:1px solid #8cae9b;padding-top:2mm}}",
  "*{box-sizing:border-box}",
  "html,body{margin:0;padding:0;background:white;color:#1a3026;font:11pt/1.45 Arial,Helvetica,sans-serif}",
  "main{max-width:180mm;margin:auto}",
@@ -81,7 +81,7 @@
  ".photos img{display:block;width:100%;height:62mm;max-width:100%;object-fit:contain;border:1px solid #d5e0d7;background:#f4f6f4}",
  ".empty{color:#596d61}",
  "@media screen{body{padding:10px 12px;background:#e9efea}main{background:white;padding:18px;box-shadow:0 4px 20px #22392a33}.page-head,.page-foot{position:static;font-size:9pt;margin:8px 0}.cover{min-height:45vh}.journey{break-before:auto;border-top:2px solid #174d3a;margin-top:24px}.toolbar{flex-wrap:wrap}}",
- "@media print{.toolbar{display:none!important}.cover{min-height:205mm}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}figure,img{break-inside:avoid}}",
+ "@media print{.toolbar,.page-head,.page-foot{display:none!important}.cover{min-height:195mm}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}figure,img{break-inside:avoid}}",
  "@media(max-width:420px){h1{font-size:29pt}.facts{grid-template-columns:1fr}.photos{grid-template-columns:1fr}.photos img{height:50mm}}"
  ].join("\n");
  function render(doc,model){
