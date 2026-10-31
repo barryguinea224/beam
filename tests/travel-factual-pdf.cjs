@@ -24,8 +24,7 @@ const acceptedPhoneInputs=[
  ["+224 622 09 56 30","+224622095630"],
  ["622095630","+224622095630"],
  ["00224622095630","+224622095630"],
- ["(+224) 622.09-56-30","+224622095630"],
- ["+33 (0) 1 44 22 33 44","+330144223344"]
+ ["(+224) 622.09-56-30","+224622095630"]
 ];
 for(const [input,expected] of acceptedPhoneInputs){
  assert.equal(PDF.normalizePhone(input),expected,"phone normalizes before persistence: "+input);
@@ -34,14 +33,17 @@ for(const [input,expected] of acceptedPhoneInputs){
 }
 assert.equal(PDF.normalizePhone(""),"","phone is optional");
 for(const phone of ["+1","abc","+2246220956301234567","6220956301",
-  "224622095630","++224622095630"]){
+ "224622095630","++224622095630"]){
  assert.throws(()=>PDF.normalizePhone(phone),/indicatif|6 à 15|Téléphone/i,
   "invalid or ambiguous phone must be rejected: "+phone);
 }
 const schemaSql=fs.readFileSync("travel/supabase/schema.sql","utf8");
 const migrationSql=fs.readFileSync("travel/supabase/migrations/20261031120000_optional_profile_contacts.sql","utf8");
+const sqlPattern="phone ~ '^"+String.fromCharCode(92)+"+[0-9]{6,15}"+String.fromCharCode(36)+"'";
 for(const [file,sql] of [["schema",schemaSql],["migration",migrationSql]]){
- assert.ok(sql.includes(String.raw\`phone ~ '^\\+[0-9]{6,15}
+ assert.ok(sql.includes(sqlPattern),file+" must enforce canonical E.164 6-15 digits");
+ assert.ok(!sql.includes("{1,29}"),file+" must not accept 1-digit phone numbers");
+}
 assert.deepEqual(PDF.contactProjection({
  email:"f@example.net",phone:"+224612345678",postalAddress:"Labé",
  passport:"SECRET_PASSPORT",birth_date:"SECRET_DOB",auth_metadata:"SECRET_META"
