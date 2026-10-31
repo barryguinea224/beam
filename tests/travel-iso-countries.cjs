@@ -51,7 +51,8 @@ assert.ok(inline.includes("BEAM_COUNTRIES.valid(p.country_code)"),"Client must r
 assert.ok(inline.includes('countrySelectors.trip.reset(x.country_code)'),"Editing keeps the current ISO country");
 assert.ok(inline.includes('countrySelectors.trip.reset("")'),"New trip resets the search");
 assert.ok(inline.includes('COUNTRY_NAMES[code]||code'),"Map labels should retain the fallback for old data");
-assert.ok(inline.includes('countryCounts().get(code)'),"Map chips must work without an SVG path");
+assert.ok(inline.includes('countryCounts().has(code)'),"Map/label country selection depends on trip data, not SVG geometry");
+assert.ok(inline.includes('$("#countryList").onclick='),"Country labels remain interactive if the map fails");
 assert.ok(inline.includes('$("#countryList").innerHTML=[...counts]'),"List of chips comes from data, not map SVG paths");
 assert.ok(html.includes('id="tripCountrySearch"')&&html.includes('id="residenceSearch"'));
 assert.ok(html.indexOf('src="./country-picker.js"')<html.indexOf('src="./factual-pdf.js"'));
