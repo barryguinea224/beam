@@ -10,6 +10,8 @@ on:
       - "travel/visual-cards.js"
       - "travel/sw.js"
       - "tests/travel-printable-journal*"
+      - "tests/travel-script-load-order.cjs"
+      - "tests/travel-real-index-load.cjs"
       - "tests/travel-dashboard-*"
       - "tests/travel-visual-cards-layout.cjs"
       - ".github/workflows/travel-printable-journal.yml"
@@ -32,6 +34,7 @@ jobs:
           git fetch --no-tags origin feature/beam-travel-history-v1
           git diff --exit-code --name-only "origin/feature/beam-travel-history-v1" HEAD -- travel/factual-pdf.js travel/supabase/schema.sql travel/supabase/migrations
       - run: |
+          node tests/travel-script-load-order.cjs
           node tests/travel-printable-journal.cjs
           node tests/travel-dashboard-filters.cjs
           node tests/travel-factual-pdf.cjs
@@ -51,4 +54,6 @@ jobs:
           command -v pdfinfo || (sudo apt-get update -qq && sudo apt-get install -y -qq poppler-utils)
           command -v pdftotext
           command -v pdfimages
+      - name: Load real index.html in Android Chromium (no Supabase)
+        run: node tests/travel-real-index-load.cjs
       - run: node tests/travel-printable-journal-layout.cjs
