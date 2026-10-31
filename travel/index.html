@@ -188,7 +188,7 @@ $("#resend").onclick=async()=>{
   await sendAccess(email);
 };
 async function clearPwaSession(){
- clearPending();user=null;trips=[];profile={country_of_residence:null,display_name:null};
+ clearPending();user=null;trips=[];profile={country_of_residence:null,display_name:null};dashboardFilters=window.BEAM_DASHBOARD_FILTERS.normalize(window.BEAM_DASHBOARD_FILTERS.EMPTY);
  try{resetPhotoUI(null)}catch{}
  // Remove private content from hidden DOM as well as the visible journal.
  for(const id of ["#trips","#detailPhotos","#photoGallery","#detailFacts","#detailActivities",
@@ -727,6 +727,7 @@ $("#travelerNameForm").onsubmit=async event=>{
    if(error||!data||accountState!=="active"||user?.id!==uid)
      throw new Error("Nom non confirmé. Réessayez.");
    profile.display_name=data.display_name;
+   $("#dashboardTitle").textContent="Carnet de "+data.display_name;
    $("#travelerName").value=data.display_name;
    travelerNameNotice("Nom enregistré. Il pourra figurer sur votre PDF.");
  }catch(err){travelerNameNotice(err.message||"Impossible d’enregistrer le nom.")}
