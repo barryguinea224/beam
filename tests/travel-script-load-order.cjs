@@ -57,6 +57,6 @@ const journal=fs.readFileSync(path.join(__dirname,"..","travel","printable-journ
 assert.match(journal,/BEAM_DASHBOARD_FILTERS/, "the journal's filter dependency must remain explicitly checked");
 assert.match(journal,/BEAM_COUNTRIES/, "the journal's country dependency must remain explicitly checked");
 const sw=fs.readFileSync(path.join(__dirname,"..","travel","sw.js"),"utf8");
-assert.match(sw,/beam-travel-shell-v1-20261031-print-order-fix/);
+assert.match(sw,/beam-travel-shell-v1-20261031-visual-album/);
 assert.ok(sw.includes('"./printable-journal.js"')&&sw.includes('"./dashboard-filters.js"')&&sw.includes('"./visual-cards.js"'));
 console.log("PASS real index.html script dependency graph and PWA shell version");
