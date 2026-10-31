@@ -278,7 +278,7 @@ function setFiltersOpen(open){
  panel.setAttribute("aria-hidden",String(!next));
  panel.setAttribute("aria-modal",String(next&&matchMedia("(max-width:899px)").matches));
  trigger.setAttribute("aria-expanded",String(next));
- if(next){filterReturnFocus=document.activeElement;$("#closeFilters").focus()}
+ if(next){filterReturnFocus=document.activeElement;$("#closeFilters").focus();armOverlayBack()}
  else {disarmOverlayBack();if(filterReturnFocus&&document.contains(filterReturnFocus)){filterReturnFocus.focus();filterReturnFocus=null}}
 }
 $("#toggleFilters").onclick=()=>setFiltersOpen(!$("#filterPanel").classList.contains("filterOpen"));
@@ -376,13 +376,36 @@ $("#cancelAccountEdit").onclick=()=>cancelAccountEdit();
 
 // Browser history is used as an overlay sentinel; Android Back closes the top layer first.
 let overlayHistoryArmed=false;
-function armOverlayBack(){if(!overlayHistoryArmed){history.pushState({beamOverlay:true},"",location.href);overlayHistoryArmed=true;}}
-function disarmOverlayBack(){if(overlayHistoryArmed){overlayHistoryArmed=false;if(history.state?.beamOverlay)history.back();}}
+let overlayHistoryDisarming=false;
+let overlayHistoryPendingArm=false;
+let overlayPopClosing=false;
+function armOverlayBack(){
+ if(overlayHistoryDisarming){overlayHistoryPendingArm=true;return}
+ if(!overlayHistoryArmed){history.pushState({beamOverlay:true},"",location.href);overlayHistoryArmed=true}
+}
+function disarmOverlayBack(){
+ if(overlayPopClosing){overlayHistoryArmed=false;return}
+ if(overlayHistoryArmed&&history.state?.beamOverlay){
+  overlayHistoryArmed=false;overlayHistoryDisarming=true;history.back();
+ }
+}
 window.addEventListener("popstate",()=>{
- if($("#accountOverlay").classList.contains("accountOpen")){overlayHistoryArmed=false;closeAccountPanel();return}
- if($("#filterPanel").classList.contains("filterOpen")){setFiltersOpen(false);overlayHistoryArmed=false;return}
+ if(overlayHistoryDisarming){
+  overlayHistoryDisarming=false;
+  if(overlayHistoryPendingArm){overlayHistoryPendingArm=false;armOverlayBack()}
+  return;
+ }
  overlayHistoryArmed=false;
+ overlayPopClosing=true;
+ try{
+  if($("#accountOverlay").classList.contains("accountOpen")){
+   if(!closeAccountPanel())armOverlayBack();
+   return;
+  }
+  if($("#filterPanel").classList.contains("filterOpen")){setFiltersOpen(false);return}
+ }finally{overlayPopClosing=false}
 });
+
 document.addEventListener("keydown",e=>{
  if($("#discardConfirm").classList.contains("accountOpen")&&e.key==="Tab"){
   const first=$("#discardStay"),last=$("#discardLeave");
