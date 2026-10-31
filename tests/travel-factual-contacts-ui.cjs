@@ -105,6 +105,8 @@ async function main(){
   await page.goto(url,{waitUntil:"load",timeout:20000});
   await page.waitForFunction(()=>!document.querySelector("#saveContactDetails")?.disabled,
    null,{timeout:12000});
+  await page.locator("#openAccount").click();
+  await page.locator("#editAccount").click();
   assert.equal(await page.locator("#accountEmail").inputValue(),"login@example.net");
   assert.equal(await page.locator("#accountEmail").getAttribute("readonly"),"");
   assert.equal(await page.locator("#includePdfContacts").isChecked(),false);
