@@ -1,0 +1,32 @@
+{
+  "id": "/travel/",
+  "name": "BEAM Travel History",
+  "short_name": "BEAM Voyages",
+  "description": "Votre carnet de voyages personnel et privé.",
+  "lang": "fr",
+  "start_url": "/travel/",
+  "scope": "/travel/",
+  "display": "standalone",
+  "background_color": "#f7f5ef",
+  "theme_color": "#174d3a",
+  "icons": [
+    {
+      "src": "/travel/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/travel/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/travel/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

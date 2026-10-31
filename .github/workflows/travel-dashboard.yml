@@ -1,0 +1,47 @@
+name: BEAM Travel — écran principal et filtres (PR review)
+
+on:
+  pull_request:
+    branches: [feature/beam-travel-history-v1]
+    paths:
+      - "travel/index.html"
+      - "travel/dashboard-filters.js"
+      - "travel/dashboard-filters.css"
+      - "travel/sw.js"
+      - "travel/factual-pdf.js"
+      - "tests/travel-dashboard-*"
+      - ".github/workflows/travel-dashboard.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  dashboard-contract:
+    name: Filtres combinés et PDF non filtré
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: "22"}
+      - name: Check dashboard filters and independent factual PDF query
+        run: |
+          node tests/travel-dashboard-filters.cjs
+          node tests/travel-factual-pdf.cjs
+
+  dashboard-android:
+    name: Contraste, contours et tactile Android 320–390 px
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: "22"}
+      - name: Install Chromium
+        run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Verify actual controls, country outline and no horizontal overflow
+        run: node tests/travel-dashboard-layout.cjs

@@ -1,0 +1,23 @@
+/* BEAM Travel History · local, lazy, privacy-first travel cards. */
+.journeyTrip{border:0;padding:0;margin:0 0 12px;min-width:0}
+.journeyTrip .tripOpen{position:relative;display:block;isolation:isolate;overflow:hidden;
+  border-radius:18px;min-height:190px;padding:0;background:linear-gradient(130deg,#254c43,#365e65 56%,#b1b4a7);
+  color:#fff;text-align:left;box-shadow:0 5px 16px #122a2240}
+.journeyTrip .tripOpen:hover,.journeyTrip .tripOpen:focus-visible{background:#28544a;outline:3px solid #baae86;outline-offset:2px}
+.journeyBackdrop{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;z-index:0}
+.journeyShade{position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:linear-gradient(90deg,rgba(7,24,24,.91) 0%,rgba(7,24,24,.76) 45%,rgba(7,24,24,.38) 100%)}
+.journeyContent{position:relative;z-index:2;display:flex;flex-direction:column;align-items:flex-start;
+  padding:19px;min-width:0;min-height:190px;gap:5px}
+.journeyFlagLine{display:flex;align-items:center;gap:9px;flex-wrap:wrap;min-width:0}
+.journeyFlag{width:26px;height:19px;object-fit:cover;border:1px solid #ffffff66;border-radius:2px;background:#f0f0f0;box-shadow:0 1px 3px #11201c5c}
+.journeyCode{font:700 12px system-ui,sans-serif;letter-spacing:.16em;color:#f0eee9}
+.journeyDomestic{font:700 10px system-ui,sans-serif;border:1px solid #fff9;border-radius:999px;padding:3px 8px;color:#fff}
+.journeyCountry{display:block;font:500 clamp(24px,5vw,31px)/1.13 Georgia,serif;overflow-wrap:anywhere;margin-top:7px;text-shadow:0 1px 6px #0007}
+.journeyCities{font:600 14px/1.25 system-ui,sans-serif;overflow-wrap:anywhere;color:#fbfaf7}
+.journeyFooter{font:500 12px/1.45 system-ui,sans-serif;color:#f7f4ec;margin-top:8px;overflow-wrap:anywhere}
+.journeyLink{font:700 12px/1.2 system-ui,sans-serif;color:#f0dfb6;margin-top:auto;padding-top:8px}
+.photoTile .setCoverPhoto{font-size:12px;padding:7px 10px}
+.photoTile .setCoverPhoto[aria-pressed="true"]{background:#174d3a;color:#fff;border-color:#174d3a}
+@media(max-width:720px){.journeyContent{padding:15px}.journeyTrip .tripOpen,.journeyContent{min-height:176px}}
+@media(prefers-reduced-motion:no-preference){.journeyTrip .tripOpen{transition:transform .15s ease,box-shadow .15s ease}.journeyTrip .tripOpen:hover{transform:translateY(-1px);box-shadow:0 7px 18px #122a224a}}

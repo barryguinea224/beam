@@ -1,0 +1,64 @@
+name: BEAM Travel — activités 50 par voyage (base jetable)
+
+on:
+  pull_request:
+    branches: [feature/beam-travel-history-v1]
+    paths:
+      - "travel/supabase/schema.sql"
+      - "travel/supabase/migrations/20261030182500_activities_quota_50.sql"
+      - "travel/supabase/tests/activities_*"
+      - "travel/index.html"
+      - ".github/workflows/travel-activities-quota.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  quota-50-disposable:
+    name: Quota 50, déplacement, concurrence et préflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Supabase-compatible fixture roles and auth/storage stubs (NO staging)
+        env: { PGPASSWORD: postgres }
+        run: |
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 <<'SQL'
+          create role anon; create role authenticated; create role service_role;
+          create schema auth; create schema storage;
+          create table auth.users(id uuid primary key, raw_user_meta_data jsonb default '{}'::jsonb);
+          create function auth.uid() returns uuid language sql stable as $$ select null::uuid $$;
+          create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);
+          create table storage.objects(id uuid,name text,bucket_id text,owner uuid,owner_id text);
+          create function storage.foldername(text) returns text[] language sql immutable as $$ select string_to_array($1,'/') $$;
+          SQL
+      - name: Fresh canonical schema includes quota
+        env: { PGPASSWORD: postgres }
+        run: psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f travel/supabase/schema.sql
+      - name: Run upgrade SQL against disposable database
+        env: { PGPASSWORD: postgres }
+        run: psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f travel/supabase/migrations/20261030182500_activities_quota_50.sql
+      - name: Prove 50 accepted, 51st rejected, edit allowed, move blocked, ownership
+        env: { PGPASSWORD: postgres }
+        run: psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f travel/supabase/tests/activities_quota_guards.sql
+      - name: Prove two concurrent inserts at 49 cannot reach 51
+        run: bash travel/supabase/tests/activities_concurrency.sh
+      - name: Prove preflight refuses 51 legacy activities without data deletion
+        run: bash travel/supabase/tests/activities_preflight.sh
+      - name: Static activity UI message / syntax
+        run: |
+          node --check travel/supabase/tests/activities_ui_guard.cjs
+          node travel/supabase/tests/activities_ui_guard.cjs

@@ -1,0 +1,47 @@
+name: BEAM Travel — fiche voyage V1
+
+on:
+  pull_request:
+    branches: [feature/beam-travel-history-v1]
+    paths:
+      - "travel/index.html"
+      - "travel/trip-detail.js"
+      - "tests/travel-trip-detail.cjs"
+      - "tests/travel-trip-detail-layout.cjs"
+      - ".github/workflows/travel-trip-detail.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  detail-contract:
+    name: Fiche privée et activités légères
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Verify facts, privacy, activity validation and navigation
+        run: node tests/travel-trip-detail.cjs
+
+  detail-mobile:
+    name: Fiche et galerie responsive
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install browser
+        run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Test 320, 360, 390 and 720 pixels
+        run: node tests/travel-trip-detail-layout.cjs

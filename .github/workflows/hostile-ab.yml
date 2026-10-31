@@ -1,0 +1,183 @@
+name: Hostile A/B — Staging
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main, feature/beam-travel-history-v1]
+    paths:
+      - "travel/**"
+      - "supabase/functions/travel-delete/**"
+      - "supabase/functions/travel-deletion-retry/**"
+      - "supabase/functions/travel-deletion-monitor/**"
+      - "supabase/functions/_shared/travel-deletion.ts"
+      - "supabase/config.toml"
+      - ".github/workflows/hostile-ab.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  schema-parse:
+    name: Canonical schema parses on clean Postgres
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Guard SQL dollar quoting
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import re, sys
+
+          bad = []
+          for path in Path(".").rglob("*.sql"):
+              if ".git" in path.parts:
+                  continue
+              text = path.read_text(encoding="utf-8")
+              reasons = []
+              # A lone dollar used where PostgreSQL dollar quoting should be $$.
+              if re.search(r"\bas\s+\$\s", text, flags=re.I):
+                  reasons.append("lone '$' after AS")
+              if re.search(r"\s\$\s*;", text):
+                  reasons.append("lone '$' before semicolon")
+              if text.count("$$") % 2:
+                  reasons.append("odd number of $$ delimiters")
+              if reasons:
+                  bad.append((str(path), reasons))
+
+          if bad:
+              for path, reasons in bad:
+                  print(f"::error file={path}::{'; '.join(reasons)}")
+              sys.exit(1)
+          print("SQL dollar-quoting guard: PASS")
+          PY
+
+      - name: Bootstrap Supabase-compatible parser fixtures
+        env: { PGPASSWORD: postgres }
+        run: |
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 <<'SQL'
+          create role anon; create role authenticated; create role service_role;
+          create schema auth; create schema storage;
+          create table auth.users(id uuid primary key, raw_user_meta_data jsonb default '{}'::jsonb);
+          create function auth.uid() returns uuid language sql stable as $$ select null::uuid $$;
+          create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);
+          create table storage.objects(id uuid,name text,bucket_id text,owner uuid,owner_id text);
+          create function storage.foldername(text) returns text[] language sql immutable as $$ select string_to_array($1,'/') $$;
+          SQL
+      - name: Execute canonical schema from scratch
+        env: { PGPASSWORD: postgres }
+        run: psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f travel/supabase/schema.sql
+      - name: Exercise idempotent SQL/Storage hardening migration (disposable Postgres only)
+        env: { PGPASSWORD: postgres }
+        run: |
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f travel/supabase/migrations/20261031080000_sql_storage_hardening.sql
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f travel/supabase/migrations/20261031080000_sql_storage_hardening.sql
+      - name: Review-only contact migration on disposable Postgres (NEVER staging)
+        env: { PGPASSWORD: postgres }
+        run: |
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f travel/supabase/migrations/20261031120000_optional_profile_contacts.sql
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f travel/supabase/migrations/20261031120000_optional_profile_contacts.sql
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f travel/supabase/tests/profile_contacts_security.sql
+      - name: Parse contacts migration twice on DISPOSABLE PostgreSQL ONLY (never staging)
+        env: { PGPASSWORD: postgres }
+        run: |
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f travel/supabase/migrations/20261031120000_optional_profile_contacts.sql
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f travel/supabase/migrations/20261031120000_optional_profile_contacts.sql
+      - name: Test owner-only contacts, format constraints and deletion write barrier
+        env: { PGPASSWORD: postgres }
+        run: psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f travel/supabase/tests/optional_profile_contacts.sql
+      - name: Reject exposed definer RPCs and cross-user helper calls
+        env: { PGPASSWORD: postgres }
+        run: psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f travel/supabase/tests/sql_storage_hardening.sql
+      - name: Exercise deletion retry lease state machine
+        env: { PGPASSWORD: postgres }
+        run: psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f travel/supabase/tests/deletion_retry_worker.sql
+      - name: Test WebP-only media paths and per-trip quota
+        env: { PGPASSWORD: postgres }
+        run: psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f travel/supabase/tests/media_server_guards.sql
+      - name: Prove two concurrent uploads cannot exceed ten
+        run: bash travel/supabase/tests/media_concurrency.sh
+      # The canonical schema already contains the reserved Storage INSERT policy.
+      # Do not replay the older 20261030145000 migration after the new hardening
+      # removes public.trip_accepts_writes(); the legacy script belongs to history.
+      - name: Hostile Storage RLS — reject unreserved and cross-owner uploads
+        env: { PGPASSWORD: postgres }
+        run: psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f travel/supabase/tests/media_storage_reserved_upload.sql
+
+  hostile-ab:
+    name: Real JWT / RLS hostile bench
+    concurrency:
+      group: hostile-ab-staging
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: staging
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Preflight hostile bench and deletion functions
+        run: |
+          node tests/travel-victim-bench-neutral-error.cjs
+          deno check travel/supabase/tests/hostile_ab.ts
+          # Type-check the destructive bench here, before its separate approval gate.
+          deno check travel/supabase/tests/victim_bench.ts
+          deno check supabase/functions/travel-delete/index.ts
+          deno test supabase/functions/_shared/travel-public-errors_test.ts
+          deno check supabase/functions/travel-deletion-retry/index.ts
+          deno check supabase/functions/travel-deletion-monitor/index.ts
+
+      - name: Validate required secrets
+        shell: bash
+        env:
+          STAGING_URL: ${{ secrets.STAGING_URL }}
+          STAGING_ANON_KEY: ${{ secrets.STAGING_ANON_KEY }}
+          TEST_A_EMAIL: ${{ secrets.TEST_A_EMAIL }}
+          TEST_A_PASSWORD: ${{ secrets.TEST_A_PASSWORD }}
+          TEST_B_EMAIL: ${{ secrets.TEST_B_EMAIL }}
+          TEST_B_PASSWORD: ${{ secrets.TEST_B_PASSWORD }}
+        run: |
+          set -euo pipefail
+          missing=0
+          for name in STAGING_URL STAGING_ANON_KEY TEST_A_EMAIL TEST_A_PASSWORD TEST_B_EMAIL TEST_B_PASSWORD; do
+            value="${!name:-}"
+            if [ -z "$value" ]; then
+              echo "$name: MISSING (length 0)"
+              missing=1
+            else
+              echo "$name: SET (length ${#value})"
+            fi
+          done
+          if [ "$missing" -ne 0 ]; then
+            echo "::error::One or more required staging secrets are missing or empty."
+            exit 1
+          fi
+          echo "Required staging secrets are configured."
+
+      - name: Run hostile A/B bench against staging
+        env:
+          SUPABASE_URL: ${{ secrets.STAGING_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.STAGING_ANON_KEY }}
+          TEST_A_EMAIL: ${{ secrets.TEST_A_EMAIL }}
+          TEST_A_PASSWORD: ${{ secrets.TEST_A_PASSWORD }}
+          TEST_B_EMAIL: ${{ secrets.TEST_B_EMAIL }}
+          TEST_B_PASSWORD: ${{ secrets.TEST_B_PASSWORD }}
+        run: deno run --allow-env --allow-net travel/supabase/tests/hostile_ab.ts

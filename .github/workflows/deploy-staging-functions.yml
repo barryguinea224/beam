@@ -1,0 +1,149 @@
+name: Deploy BEAM Travel functions — STAGING ONLY
+
+# Déploiement de sécurité PR #28 : uniquement travel-delete, APRÈS migration
+# SQL sur staging et validation des contrôles RLS. Rien n'est exécuté sans label
+# explicite et approbation du mainteneur dans l'environnement protégé.
+# REVIEW BEFORE FIRST EXECUTION. Does not run on push or synchronize.
+# Require explicit PR label AND approval of protected environment staging-functions-deploy.
+# Do not give this workflow production secrets or service-role credentials.
+# STAGING_SUPABASE_ACCESS_TOKEN must be a PROJECT-SCOPED Supabase access token.
+# Scope it to BEAM Travel History Staging ONLY (project coigbvhxywbmqgacmhzf):
+#   - Edge Functions: Read-write
+#   - Project Settings: Read
+# No other projects or permissions; do NOT use a legacy full-account token.
+# Confirmed staging practice (30 Oct 2026): two deploy tokens with exactly
+# these permissions and a 24-hour expiration, both revoked after use.
+# For each deployment, create a NEW token with the same staging-only scope,
+# permissions and 24-hour expiration just before the reviewed, approved run.
+# Store it ONLY as an environment secret in staging-functions-deploy;
+# revoke it in Supabase IMMEDIATELY after deployment/verification, including
+# failure/cancellation. Never reuse it. Remove the GitHub environment secret
+# after revoking the token.
+# Do not start while another staging bench is running.
+# Does not apply migrations, configure secrets, run deletions, or enable cron.
+
+on:
+  pull_request:
+    types: [labeled]
+    branches: [feature/beam-travel-history-v1]
+
+permissions:
+  contents: read
+
+jobs:
+  preflight:
+    name: Preflight staging functions (no credentials)
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.action == 'labeled' &&
+      github.event.label.name == 'staging-functions-deploy-approved' &&
+      github.event.pull_request.number == 28 &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.head.ref == 'security/travel-sql-storage-errors-hardening'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact reviewed PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Assert function configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import pathlib
+          import tomllib
+          config = tomllib.loads(pathlib.Path("supabase/config.toml").read_text())
+          expected = {"travel-delete": True}
+          for name, jwt in expected.items():
+              assert config["functions"][name]["verify_jwt"] is jwt, f"Unexpected JWT setting for {name}"
+              assert pathlib.Path(f"supabase/functions/{name}/index.ts").is_file()
+          assert pathlib.Path("supabase/functions/_shared/travel-deletion.ts").is_file()
+          assert pathlib.Path("supabase/functions/_shared/travel-public-errors.ts").is_file()
+          print("Function source and JWT configuration verified.")
+          PY
+      - name: Install Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Typecheck reviewed functions
+        run: |
+          set -euo pipefail
+          deno check supabase/functions/travel-delete/index.ts
+          deno test supabase/functions/_shared/travel-public-errors_test.ts
+
+  deploy:
+    name: Deploy travel-delete only to staging
+    needs: [preflight]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Create this environment with required reviewers before adding the label.
+    environment: staging-functions-deploy
+    concurrency:
+      group: beam-travel-functions-staging-deploy
+      cancel-in-progress: false
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.STAGING_SUPABASE_ACCESS_TOKEN }}
+    steps:
+      - name: Checkout same reviewed PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Fail closed if deployment token is absent
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${SUPABASE_ACCESS_TOKEN:-}" ]; then
+            echo "::error::Missing environment-only STAGING_SUPABASE_ACCESS_TOKEN"
+            exit 1
+          fi
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: 2.122.0
+      - name: Deploy only the reviewed travel-delete function
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Hardcoded known staging project; never derive target from inputs.
+          project_ref="coigbvhxywbmqgacmhzf"
+          supabase functions deploy travel-delete --project-ref "$project_ref"
+          supabase functions list --project-ref "$project_ref"
+      - name: Verify unchanged worker auth and travel-delete gateway protection
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="https://coigbvhxywbmqgacmhzf.supabase.co/functions/v1"
+          body_file="$(mktemp)"
+          trap 'rm -f "$body_file"' EXIT
+
+          # An HTTP 401 alone is insufficient: JWT gateway rejection can also
+          # return 401. Our verify_jwt=false handlers must return exact bytes.
+          for path in travel-deletion-retry travel-deletion-monitor; do
+            if [ "$path" = "travel-deletion-retry" ]; then method=POST; else method=GET; fi
+            status="$(curl --silent --show-error --max-time 25 \
+              --output "$body_file" --write-out '%{http_code}' \
+              --request "$method" "$base/$path")"
+            if [ "$status" != "401" ] || ! cmp -s "$body_file" <(printf 'UNAUTHORIZED'); then
+              echo "::error::$path did not return the function's exact UNAUTHORIZED response (HTTP $status)"
+              exit 1
+            fi
+          done
+
+          # This request has no Authorization header and no deletion action.
+          # The JWT-protected travel-delete endpoint must reject it.
+          status="$(curl --silent --show-error --max-time 25 \
+            --output "$body_file" --write-out '%{http_code}' \
+            --header 'Content-Type: application/json' \
+            --request POST --data '{}' "$base/travel-delete")"
+          if [ "$status" != "401" ]; then
+            echo "::error::travel-delete accepted an unauthenticated request (HTTP $status)"
+            exit 1
+          fi
+          echo "Worker and monitor returned function-origin 401; travel-delete rejected anonymous POST."
+
+# Deliberately no workflow_dispatch or automatic push trigger. PR #28 review,
+# staging SQL migration, scoped deployment token, label and human approval first.

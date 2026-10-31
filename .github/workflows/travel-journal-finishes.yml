@@ -1,0 +1,44 @@
+name: BEAM Travel — finitions carnet V1
+
+on:
+  pull_request:
+    branches: [feature/beam-travel-history-v1]
+    paths:
+      - "travel/index.html"
+      - "travel/journal-stats.js"
+      - "travel/factual-pdf.js"
+      - "tests/travel-journal-finishes.cjs"
+      - "tests/travel-journal-finishes-layout.cjs"
+      - ".github/workflows/travel-journal-finishes.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  journal-contract:
+    name: Statistiques étrangères et libellés
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: node tests/travel-journal-finishes.cjs
+  mobile-layout:
+    name: Lisibilité mobile et absence de débordement
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - run: node tests/travel-journal-finishes-layout.cjs

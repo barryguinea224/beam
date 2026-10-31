@@ -1,0 +1,83 @@
+name: BEAM Travel — carnet imprimable personnel (PR review)
+
+on:
+  pull_request:
+    branches: [feature/beam-travel-history-v1]
+    paths:
+      - "travel/index.html"
+      - "travel/printable-journal.js"
+      - "travel/dashboard-filters.js"
+      - "travel/visual-cards.js"
+      - "travel/sw.js"
+      - "tests/travel-printable-journal*"
+      - "tests/travel-album-compact-a4.cjs"
+      - "tests/travel-script-load-order.cjs"
+      - "tests/travel-real-index-load.cjs"
+      - "tests/travel-optional-journal-fallback.cjs"
+      - "tests/travel-dashboard-*"
+      - "tests/travel-visual-cards-layout.cjs"
+      - ".github/workflows/travel-printable-journal.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    name: Carnet privé, filtres, PDF factuel inchangé et cache neutre
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false,fetch-depth: 0}
+      - uses: actions/setup-node@v4
+        with: {node-version: "22"}
+      - name: Protect factual PDF and SQL from printable-only changes
+        run: |
+          git fetch --no-tags origin feature/beam-travel-history-v1
+          # Factual-PDF/contact PRs intentionally edit SQL and factual-pdf.js.
+          # Only guard against that scope creep when the PRINTABLE module itself
+          # changed; the separate factual-PDF workflow covers intentional edits.
+          if git diff --quiet "origin/feature/beam-travel-history-v1" HEAD -- travel/printable-journal.js; then
+            echo "Printable journal module untouched; factual PDF/SQL changes belong to their own review."
+          else
+            git diff --exit-code --name-only "origin/feature/beam-travel-history-v1" HEAD -- travel/factual-pdf.js travel/supabase/schema.sql travel/supabase/migrations
+          fi
+      - run: |
+          node tests/travel-script-load-order.cjs
+          node tests/travel-printable-journal.cjs
+          node tests/travel-dashboard-filters.cjs
+          node tests/travel-factual-pdf.cjs
+
+  print-a4:
+    name: A4 multipage, mention à chaque page et photo privée
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: "22"}
+      - run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+          command -v pdfinfo || (sudo apt-get update -qq && sudo apt-get install -y -qq poppler-utils)
+          command -v pdftotext
+          command -v pdfimages
+      - name: Load real index.html in Android Chromium (no Supabase)
+        run: node tests/travel-real-index-load.cjs
+      - name: Verify dashboard still works without optional printable journal
+        run: node tests/travel-optional-journal-fallback.cjs
+      - name: Vérifier l’album A4 et générer les captures de démonstration
+        run: node tests/travel-printable-journal-layout.cjs
+      - name: Valider les deux voyages compacts (5 pages A4) et leurs captures
+        run: node tests/travel-album-compact-a4.cjs
+      - name: Publier les captures A4 (données de test uniquement)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: beam-album-a4-preview
+          path: |
+            test-artifacts/travel-journal/
+            test-artifacts/travel-album-retouches/
+          retention-days: 14
+          if-no-files-found: warn

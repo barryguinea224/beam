@@ -1,0 +1,16 @@
+# Local Supabase CLI parity only. This does NOT configure hosted staging/production.
+# Hosted projects: Auth > General > disable "Allow new users to sign up".
+[auth]
+enable_signup = false
+
+[auth.email]
+enable_signup = false
+
+[functions.travel-delete]
+verify_jwt = true
+
+[functions.travel-deletion-retry]
+verify_jwt = false
+
+[functions.travel-deletion-monitor]
+verify_jwt = false

@@ -1,0 +1,45 @@
+name: Travel deletion health — Staging
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 6 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  stuck-deletions:
+    name: No stuck/failed Travel History deletions
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    environment: staging
+    steps:
+      - name: Check protected deletion health endpoint
+        shell: bash
+        env:
+          STAGING_URL: ${{ secrets.STAGING_URL }}
+          TRAVEL_MONITOR_SECRET: ${{ secrets.TRAVEL_MONITOR_SECRET }}
+        run: |
+          set -euo pipefail
+          test -n "${STAGING_URL:-}" || { echo "::error::STAGING_URL missing"; exit 1; }
+          test -n "${TRAVEL_MONITOR_SECRET:-}" || { echo "::error::TRAVEL_MONITOR_SECRET missing"; exit 1; }
+          code="$(curl --silent --show-error --output /tmp/health.json --write-out '%{http_code}'             --header "x-travel-monitor-secret: ${TRAVEL_MONITOR_SECRET}"             "${STAGING_URL%/}/functions/v1/travel-deletion-monitor")"
+          cat /tmp/health.json
+          if [ "$code" != "200" ]; then
+            echo "::error::Travel deletion health check failed (HTTP $code)"
+            exit 1
+          fi
+          # A stale monitor deployment could incorrectly respond 200 with no
+          # failed_runs_24h field. Reject it instead of reporting false health.
+          python3 - <<'PY'
+          import json
+          with open("/tmp/health.json", encoding="utf-8") as f:
+              health = json.load(f)
+          keys = ("stuck", "stale_runs", "failed_runs_24h")
+          assert health.get("ok") is True, "Monitor returned unhealthy"
+          assert all(type(health.get(k)) is int and health[k] == 0 for k in keys), (
+              "Missing or non-zero monitor counter"
+          )
+          print("Staging deletion monitor: 0 stuck, 0 stale, 0 failed (last 24h)")
+          PY
