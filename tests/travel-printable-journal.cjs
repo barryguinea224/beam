@@ -73,7 +73,7 @@ assert.match(album,/trip\.photos\.length>=2\|\|trip\.memory\.length>500\|\|trip\
  "short trips must be compact, rich trips may span two pages");
 assert.match(album,/height:35mm/, "travel without photographs must have a short ribbon");
 assert.match(album,/trip\.cities\.split\(","\)\[0\]/, "timeline needs the first city");
-assert.match(album,/jour"+\(summaryDays===1\?"":"s"\)/,
+assert.ok(album.includes('"jour"+(summaryDays===1?"":"s")'),
  "number of days must be singular when value is one");
 const source=fs.readFileSync("travel/printable-journal.js","utf8");
 assert.match(source,/img\.naturalWidth>0/, "complete=true is not proof of successful photo loading");
