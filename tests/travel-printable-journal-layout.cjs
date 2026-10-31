@@ -60,7 +60,7 @@ async function main(){
     const audit=await page.evaluate(()=>({
      text:document.body.textContent, title:document.title,
      width:document.documentElement.scrollWidth,innerWidth,
-     photos:[...document.querySelectorAll("img")].map(x=>({ref:x.getAttribute("referrerpolicy"),complete:x.complete})),
+     photos:[...document.querySelectorAll('img[src^="https://"]')].map(x=>({ref:x.getAttribute("referrerpolicy"),complete:x.complete})),
      noticeHead:document.querySelector(".screen-head")?.textContent,
      noticeFoot:document.querySelector(".screen-foot")?.textContent,
       mapVisited:[...document.querySelectorAll(".atlas path.atlas-visited")].map(p=>p.getAttribute("data-country")),
