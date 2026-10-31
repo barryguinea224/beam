@@ -1,0 +1,25 @@
+/* Dashboard controls: color AND outline communicate selection, never color alone. */
+.dashboardFilters{margin:0 0 18px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.dashboardFilters .field{margin:0;min-width:0}
+.dashboardFilters .field label{font-size:13px;font-weight:750;color:#243c32}
+.dashboardFilters select{width:100%;min-height:46px;background:#fff;color:#17231f;border:1.5px solid #577165;border-radius:12px;padding:10px;font-size:15px}
+.dashboardFilters select:focus-visible,.countryChip:focus-visible,#resetFilters:focus-visible,
+#logout:focus-visible{outline:3px solid #a56805;outline-offset:3px}
+.dashboardFiltersActions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:12px 0 18px}
+#resetFilters{min-height:44px}
+#filterStatus{font-size:14px;color:#344c40;margin:0;min-width:0;overflow-wrap:anywhere}
+#travelHero h1{overflow-wrap:anywhere}
+#map path.selectedCountry{fill:#f0bc53!important;stroke:#173c2c!important;stroke-width:3!important;paint-order:stroke fill}
+#map path.visited:not(.selectedCountry){fill:#08774c}
+#map path:focus-visible{stroke:#9d6300;stroke-width:3;outline:none}
+#map path[aria-disabled="true"]{cursor:default}
+.countryChip{min-height:44px}
+.countryChip[aria-pressed="true"]{background:#174d3a;color:#fff;border:3px solid #c58a15;box-shadow:0 0 0 2px #174d3a}
+.countryChip[aria-pressed="true"] b{color:#fff}
+.countryChip:not([aria-pressed="true"]):hover{border-color:#174d3a;background:#eef5ee}
+#dashboardFooter{margin:20px 0 12px;padding:22px 0 10px;border-top:1px solid #c7d4cc;display:flex;justify-content:flex-end}
+#dashboardFooter #logout{min-height:46px;border:1.5px solid #415c50}
+@media(max-width:720px){.dashboardFilters{grid-template-columns:repeat(2,minmax(0,1fr))}#dashboardFooter{justify-content:stretch}#dashboardFooter #logout{width:100%}}
+@media(max-width:390px){.dashboardFilters{gap:10px}.dashboardFilters select{padding:10px 7px;font-size:14px}.dashboardFiltersActions{align-items:stretch;flex-direction:column}.dashboardFiltersActions>*{width:100%;text-align:left}#travelHero h1{font-size:clamp(32px,9vw,48px);line-height:1.1}}
+@media(max-width:339px){.dashboardFilters{grid-template-columns:1fr}.dashboardFilters select{font-size:16px}}
+@media(prefers-reduced-motion:reduce){.countryChip{transition:none!important}}
