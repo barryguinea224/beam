@@ -10,6 +10,7 @@ on:
       - "travel/sw.js"
       - "travel/factual-pdf.js"
       - "tests/travel-dashboard-*"
+      - "tests/travel-responsive-final.cjs"
       - ".github/workflows/travel-dashboard.yml"
 
 permissions:
@@ -44,4 +45,13 @@ jobs:
           npm install --no-save --no-package-lock playwright@1.56.1
           npx playwright install --with-deps chromium
       - name: Verify actual controls, country outline and no horizontal overflow
-        run: node tests/travel-dashboard-layout.cjs
+        run: |
+          node tests/travel-dashboard-layout.cjs
+          node tests/travel-responsive-final.cjs
+      - name: Upload five fictitious responsive screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: travel-responsive-five-widths
+          path: test-artifacts/travel-responsive/*.png
+          if-no-files-found: warn
