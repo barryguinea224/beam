@@ -26,6 +26,21 @@
     if(!name||name.length>80)throw new Error("Le nom du voyageur est requis (80 caractères maximum).");
     return name;
   }
+  // Explicit opt-in contact projection: never read extra keys or Auth metadata.
+  // These values come from the signed-in Auth user and their own profiles row.
+  const CONTACT_FIELDS=Object.freeze(["email","phone","postalAddress"]);
+  function contactProjection(input){
+    if(!input||typeof input!=="object")throw new Error("Coordonnées indisponibles.");
+    const email=typeof input.email==="string"?input.email.trim():"";
+    const phone=typeof input.phone==="string"?input.phone.trim():"";
+    const postalAddress=typeof input.postalAddress==="string"?input.postalAddress.trim():"";
+    if(email.length>254||!email||!email.includes("@")||/[\r\n<>]/.test(email))
+      throw new Error("E-mail du compte indisponible.");
+    if(phone&&(!/^\+[0-9]{1,29}$/.test(phone)||phone.length>30))
+      throw new Error("Téléphone déclaré invalide.");
+    if(postalAddress.length>300)throw new Error("Adresse déclarée trop longue.");
+    return Object.freeze({email,phone,postalAddress});
+  }
   function generatedDate(value){
     if(!(value instanceof Date)||Number.isNaN(value.getTime()))
       throw new Error("Date de génération indisponible.");
@@ -83,6 +98,12 @@
     ".toolbar{margin:0 0 12mm;display:flex;gap:12px;align-items:center}",
     ".print-button{border:0;border-radius:25px;background:#174d3a;color:white;padding:11px 19px;font-weight:700;cursor:pointer;font-size:11pt}",
     ".toolbar-note{font-size:10pt;color:#5b6960}",
+    ".share-button{border:1px solid #174d3a;border-radius:25px;background:white;color:#174d3a;padding:11px 19px;font-weight:700;font-size:11pt;cursor:pointer}",
+    ".share-button:disabled{opacity:.6;cursor:not-allowed}",
+    ".share-status{font-size:9pt;color:#486450}",
+    ".declared-contacts{border:1px solid #c4d5c8;background:#fbfdfb;padding:10px 12px;margin:0 0 8mm;break-inside:avoid;overflow-wrap:anywhere}",
+    ".declared-contacts h2{font:700 11pt Arial,sans-serif;color:#174d3a;margin:0 0 5px}",
+    ".declared-contacts p{margin:3px 0;font-size:9.5pt;white-space:pre-wrap}",
     "@media print{.toolbar{display:none!important}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}a{display:none!important}}",
     "@media screen{body{padding:24px 18px;background:#edf1ed}main{background:white;padding:28px;box-shadow:0 4px 25px #17231f20}.page-notice{position:static;margin-top:14mm}}",
     "@media(max-width:620px){body{padding:8px}main{padding:16px;overflow-x:auto}table{min-width:530px}.toolbar{flex-direction:column;align-items:stretch}}"
@@ -99,6 +120,8 @@
     const name=displayName(metadata?.displayName);
     const date=generatedDate(metadata?.generatedAt);
     const rows=factualRows(rawRows);
+    const includeContacts=metadata?.includeContacts===true;
+    const contacts=includeContacts?contactProjection(metadata?.contacts):null;
     doc.documentElement.lang="fr";
     const meta=doc.createElement("meta");meta.setAttribute("charset","utf-8");
     const title=doc.createElement("title");title.textContent="BEAM - Travel History PDF";
@@ -111,12 +134,74 @@
     button.type="button";button.disabled=rows.length===0;
     button.addEventListener("click",()=>doc.defaultView?.print());
     add(toolbar,"span","Choisissez « Enregistrer au format PDF » dans l’impression.","toolbar-note");
+    const share=add(toolbar,"button","Partager","share-button");
+    share.type="button";share.disabled=true;
+    const shareStatus=add(toolbar,"span","","share-status");
+    shareStatus.setAttribute("role","status");shareStatus.setAttribute("aria-live","polite");
+    // Generate the file while rendering, before the next user click, so the
+    // Android navigator.share(files) call retains transient user activation.
+    // The tab holds this Blob in RAM only; it is never sent to a server/cache.
+    const win=doc.defaultView;
+    let exportBlob=null,exportFile=null;
+    try{
+      const writer=root?.BEAM_FACTUAL_PDF_FILE;
+      if(rows.length&&writer?.make&&win?.Blob){
+        const bytes=writer.make({...metadata,includeContacts,contacts},rawRows);
+        exportBlob=new win.Blob([bytes],{type:"application/pdf"});
+        exportFile=typeof win.File==="function"?
+          new win.File([bytes],"BEAM-Travel-History.pdf",{type:"application/pdf"}):null;
+        share.disabled=false;
+      }
+    }catch{
+      shareStatus.textContent="Partage indisponible ; utilisez l'impression PDF.";
+    }
+    function downloadFile(){
+      if(!exportBlob||!win?.URL?.createObjectURL){
+        shareStatus.textContent="Utilisez « Imprimer » puis « Enregistrer en PDF ».";
+        return;
+      }
+      const temporary=win.URL.createObjectURL(exportBlob);
+      const anchor=doc.createElement("a");
+      anchor.href=temporary;anchor.download="BEAM-Travel-History.pdf";
+      anchor.rel="noopener noreferrer";anchor.hidden=true;
+      doc.body.appendChild(anchor);
+      anchor.click();anchor.remove();
+      // Do not cache or persist a document URL: revoke after the browser
+      // has had enough time to start the user-requested file download.
+      win.setTimeout(()=>win.URL.revokeObjectURL(temporary),30000);
+      shareStatus.textContent="PDF téléchargé. Vous pouvez le partager depuis vos fichiers.";
+    }
+    share.addEventListener("click",()=>{
+      if(!exportBlob)return;
+      // SHARE MUST BE CALLED SYNCHRONOUSLY inside this click handler.
+      // Sharing the preview's about:blank URL would expose no PDF at all.
+      let supportsFiles=false;
+      try{
+        supportsFiles=!!exportFile&&!!win?.navigator?.share&&
+          !!win.navigator.canShare?.({files:[exportFile]});
+      }catch{}
+      if(!supportsFiles){downloadFile();return}
+      try{
+        Promise.resolve(win.navigator.share({
+          files:[exportFile],title:"BEAM Travel History",text:"Historique de voyages déclaré"
+        })).catch(err=>{
+          if(err?.name!=="AbortError")downloadFile();
+        });
+      }catch{downloadFile()}
+    });
     const header=add(main,"header");
     add(header,"div","BEAM · TRAVEL HISTORY","brand");
     add(header,"h1","Historique de voyages");
     add(header,"p","Voyages internationaux déclarés par le voyageur","subtitle");
     add(header,"p","Voyageur : "+name,"meta");
     add(header,"p","Document généré le "+date,"meta");
+    if(contacts){
+      const box=add(main,"section",null,"declared-contacts");
+      add(box,"h2","Coordonnées déclarées");
+      for(const [label,key] of [["E-mail","email"],["Téléphone","phone"],["Adresse","postalAddress"]]){
+        if(contacts[key])add(box,"p",label+" : "+contacts[key]);
+      }
+    }
     add(main,"p",DECLARATION,"declaration");
     add(main,"p",rows.length+" voyage"+(rows.length===1?"":"s")+" déclaré"+(rows.length===1?"":"s"),"count");
     if(!rows.length){
@@ -139,7 +224,8 @@
     add(doc.body,"footer",DECLARATION,"page-notice");
     return rows.length;
   }
-  const api=Object.freeze({VIEW,FIELDS,DECLARATION,fetchRows,factualRows,render,displayName,generatedDate,purposeName});
+  const api=Object.freeze({VIEW,FIELDS,DECLARATION,CONTACT_FIELDS,contactProjection,
+    fetchRows,factualRows,render,displayName,generatedDate,purposeName});
   if(root)root.BEAM_TRAVEL_PDF=api;
   if(typeof module!=="undefined"&&module.exports)module.exports=api;
 })(typeof window!=="undefined"?window:undefined);
