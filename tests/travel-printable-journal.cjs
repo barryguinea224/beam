@@ -6,7 +6,8 @@ const journal=require("../travel/printable-journal.js");
 const FILTERS=require("../travel/dashboard-filters.js");
 const PDF=require("../travel/factual-pdf.js");
 const NOTICE="Document personnel, non destiné aux démarches administratives";
-assert.equal(journal.NOTICE,NOTICE);
+assert.equal(journal.NOTICE,"");
+assert.ok(!fs.readFileSync("travel/printable-journal.js","utf8").includes(NOTICE));
 assert.equal(journal.MAX_PHOTOS_PER_TRIP,4);
 assert.equal(journal.SIGNED_SECONDS,300,"slow mobile connections need five-minute photo signatures");
 const calls=[],query={
@@ -55,12 +56,11 @@ for(const name of ["Elhadj","Aminata","Ousmane"])
 assert.equal(journal.titleForName(""),"Mon carnet de voyage");
 const album=fs.readFileSync("travel/printable-journal.js","utf8");
 for(const marker of ["Mon année en voyages","photo-mosaic","activity-timeline",
- "ink-saver","Économie d’encre","atlas-visited","counter(page)","Carnet généré le"]){
+ "ink-saver","Économie d’encre","atlas-visited","Carnet généré le"]){
  assert.ok(album.includes(marker),"visual album element missing: "+marker);
 }
 assert.match(album,/@page\{size:A4/, "A4 must be explicitly forced");
-assert.match(album,/@top-center/);
-assert.match(album,/@bottom-center/);
+assert.ok(!album.includes("@top-center")&&!album.includes("@bottom-center"));
 assert.ok(!/\.innerHTML\s*=|document\.write\s*\(/.test(album),
  "journal must insert only DOM text and controlled local SVG paths");
 assert.match(album,/doc\.createElementNS/);

@@ -6,7 +6,6 @@
  "use strict";
  const PDF=root?.BEAM_TRAVEL_PDF||(typeof require==="function"?require("./factual-pdf.js"):null);
  if(!PDF)throw new Error("PDF factuel indisponible.");
- const DECLARATION=PDF.DECLARATION;
  const A4=[595.28,841.89];
  const MAX_ROWS=10000;
  const cp1252=Object.freeze({
@@ -74,10 +73,9 @@
    operations=[];pages.push(operations);
    color(0.09,0.302,0.227);textAt("Historique de voyages",42,809,18,true);
    color(0.18,0.24,0.2);
-   textAt("Voyages internationaux déclarés par le voyageur",42,764,9);
-   textAt("Voyageur : "+name,42,742,9);
-   textAt("Document généré le "+generation,42,727,9);
-   y=702;
+   textAt(name,42,765,11);
+   textAt(generation,42,744,9);
+   y=711;
    if(pages.length===1&&contacts){
     color(0.09,0.302,0.227);textAt("Coordonnées déclarées",42,y,11,true);
     y-=15;
@@ -90,25 +88,13 @@
     y-=8;
    }
    color(0.12,0.25,0.17);
-   for(const line of wrap(DECLARATION,99)){textAt(line,42,y,8,true);y-=12}
-   y-=13;
-   textAt(rows.length+" voyage"+(rows.length===1?"":"s")+" déclaré"+(rows.length===1?"":"s"),42,y,9);
-   y-=22;
+   y-=6;
    horizontal(y+8);
    let start=x;
    for(let i=0;i<titles.length;i++){color(0.09,0.302,0.227);textAt(titles[i],start+3,y,8,true);start+=widths[i]}
    y-=13;horizontal(y);
-   // Footer is emitted on every A4 page, never an official endorsement.
-  }
-  function endPage(){
-   color(0.29,0.38,0.32);
-   horizontal(52);
-   for(const line of wrap(DECLARATION,105)){
-    textAt(line,42,39,7);
-    break;
    }
-   textAt("Page "+pages.length,509,39,7,true);
-  }
+  function endPage(){ /* No repeated footer in personal documents. */ }
   beginPage();
   for(const trip of rows){
    const values=[trip.country+" ("+trip.code+")",trip.cities,trip.entry,trip.exit,trip.duration,trip.purpose];

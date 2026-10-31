@@ -47,7 +47,8 @@ try{
   assert.match(text,/Dakar/);
   assert.match(text,/Sénégal/);
   assert.match(text,/Paris/);
-  assert.match(text,/Historique déclaré/);
+  assert.ok(!text.includes("Historique déclaré")&&!text.includes("Voyages internationaux déclarés")&&
+ !text.includes("Ce document présente uniquement"),"No retired prose in shared PDF");
   assert.ok(!text.includes(secret)&&!text.includes(personal));
   assert.ok(!text.includes("SECRET_PHONE_ON_TRIP"));
   if(tag==="ordinary"){

@@ -81,7 +81,7 @@ async function main(){
     assert.ok(audit.timeline[0].includes("Labé")&&audit.timeline[0].includes("3 jours"));
     assert.ok(audit.timeline[1].includes("Dakar")&&audit.timeline[1].includes("1 jour"));
     assert.ok(audit.width<=width+1,"no horizontal overflow at "+width+"px");
-    assert.equal(audit.noticeTop,NOTICE);assert.equal(audit.noticeBottom,NOTICE);
+    assert.equal(audit.noticeTop,undefined);assert.equal(audit.noticeBottom,undefined);
     assert.equal(audit.pageTitle,"Mon carnet de voyage");
     assert.equal(audit.hasBrand,false,"client journal must not contain brand");
     const pdf=await page.pdf({preferCSSPageSize:true,printBackground:true});
@@ -95,7 +95,7 @@ async function main(){
     const texts=[];
     for(let i=1;i<=pages;i++){
      const text=execFileSync("pdftotext",["-f",String(i),"-l",String(i),"-layout",file,"-"],{encoding:"utf8"});
-     assert.ok(text.includes(NOTICE),"missing legal notice on page "+i);
+     assert.ok(!text.includes(NOTICE),"Removed notice must not appear on page "+i);
      assert.ok(!text.includes("BEAM"),"brand leaked on journal page "+i);
      texts.push(text);
     }

@@ -17,8 +17,7 @@ assert.deepEqual(PDF.FIELDS,[
  "country_code","cities","entry_date","exit_date","duration_days","purpose"
 ]);
 assert.equal(PDF.filenameForName("Élodie D’Été"),"Historique-de-voyages-Elodie-D-Ete.pdf");
-assert.equal(PDF.DECLARATION,
- "Historique déclaré par l'utilisateur, non délivré par une autorité officielle");
+assert.equal(PDF.DECLARATION,"","Retired legal notice absent");
 assert.deepEqual(PDF.CONTACT_FIELDS,["email","phone","postalAddress"]);
 
 const acceptedPhoneInputs=[
@@ -184,7 +183,7 @@ const generatedAt=new Date(2026,9,30,12,0,0);
 const travelerName="  Fatou  <img src=x onerror=alert(1)>   Diallo  ";
 const cleanName=PDF.displayName(travelerName);
 assert.equal(cleanName,"Fatou <img src=x onerror=alert(1)> Diallo");
-assert.equal(PDF.generatedDate(generatedAt),"30/10/2026");
+assert.equal(PDF.generatedDate(generatedAt),"30 octobre 2026");
 assert.throws(()=>PDF.displayName("   "),/nom du voyageur/);
 assert.throws(()=>PDF.displayName("x".repeat(81)),/80 caractères/);
 assert.throws(()=>PDF.generatedDate(new Date("invalid")) ,/Date de génération/);
@@ -228,8 +227,8 @@ const printedText=document.body.textContent;
 for(const token of [secret,activitySecret,mediaSecret,"SECRET_", "owner-id"]){
  assert.ok(!printedText.includes(token),"PDF leaked "+token);
 }
-assert.match(printedText,/Voyageur : Fatou <img src=x onerror=alert\(1\)> Diallo/);
-assert.match(printedText,/Document généré le 30\/10\/2026/);
+assert.match(printedText,/Fatou <img src=x onerror=alert\(1\)> Diallo/);
+assert.match(printedText,/30 octobre 2026/);
 assert.equal(all.filter(x=>x.tagName==="IMG").length,0,"Traveler name must stay text, never markup");
 assert.match(printedText,/Paris/);
 assert.match(printedText,/Tourisme/);
@@ -238,11 +237,12 @@ assert.match(printedText,/11 jours/);
 assert.match(printedText,/<img src=x onerror="alert\(1\)">/,
  "User text must remain text, not an element");
 assert.equal(all.filter(x=>x.tagName==="IMG").length,0,"Untrusted city must not create an image");
-const declarations=all.filter(x=>x._text===PDF.DECLARATION);
-assert.equal(declarations.length,2,"Visible banner and repeating print footer required");
+assert.ok(!printedText.includes("Historique déclaré")&&!printedText.includes("Voyages internationaux déclarés")&&
+ !printedText.includes("Ce document présente uniquement"),"No retired legal/subtitle/footer prose");
+assert.equal(all.filter(x=>x.tagName==="FOOTER").length,0,"No PDF footer");
 const css=all.find(x=>x.tagName==="STYLE").textContent;
 assert.match(css,/@page\{size:A4/);
-assert.match(css,/position:fixed/);
+assert.ok(!css.includes("page-notice")&&!css.includes("declaration"),"No notice CSS");
 assert.match(css,/@media print/);
 assert.ok(!/url\s*\(/i.test(css),"PDF must not load assets from any domain");
 const button=all.find(x=>x.tagName==="BUTTON");

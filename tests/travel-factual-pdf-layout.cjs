@@ -36,7 +36,7 @@ async function main(){
    assert.equal(audit.imageCount,0);
    assert.equal(audit.externalResources,0);
    assert.ok(!audit.text.includes(SECRET));
-   assert.equal(audit.disclaimer,PDF.DECLARATION);
+   assert.equal(audit.disclaimer,undefined,"No HTML notice");
    assert.match(audit.button,/Enregistrer au format PDF/);
    const destination=path.join(dir,"sample.pdf");
    fs.writeFileSync(destination,await page.pdf({printBackground:true,preferCSSPageSize:true}));
@@ -47,16 +47,16 @@ async function main(){
    for(const unsafe of [SECRET,"note","photo_url","activities","storage_path"]){
      assert.ok(!allText.includes(unsafe),"Private data or column name in PDF: "+unsafe);
    }
-   assert.match(allText,/Voyageur\s*:\s*Fatou Diallo/);
-   assert.match(allText,/Document généré le 30\/10\/2026/);
+   assert.match(allText,/Fatou Diallo/);
+   assert.match(allText,/30 octobre 2026/);
    assert.match(allText,/France/);
    assert.match(allText,/Tourisme/);
    assert.match(allText,/05\/01\/2026/);
    assert.match(allText,/Historique de voyages/);
    for(let i=1;i<=count;i++){
      const text=execFileSync("pdftotext",["-f",String(i),"-l",String(i),"-layout",destination,"-"],{encoding:"utf8"});
-     assert.ok(text.includes(PDF.DECLARATION),
-       "Mandatory non-official notice absent on printed page "+i+" / "+count);
+     assert.ok(!text.includes("Historique déclaré")&&!text.includes("Voyages internationaux déclarés")&&
+ !text.includes("Ce document présente uniquement"),"No retired notice on printed page "+i);
    }
    const images=execFileSync("pdfimages",["-list",destination],{encoding:"utf8"}).trim().split("\n");
    assert.equal(images.length,2,"Generated PDF must contain NO images");
