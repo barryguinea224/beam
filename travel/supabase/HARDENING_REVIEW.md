@@ -73,23 +73,38 @@ arrêter les tests destructifs, conserver le staging fermé et diagnostiquer.
    l'absence de modifications concurrentes des policies, le schéma exposé
    par la Data API (le schéma `private` ne doit pas y figurer),
    les grants et les comptes jetables autorisés.
-2. Dans la même fenêtre de déploiement, sur **STAGING seulement** :
-   **appliquer la migration SQL**, puis **redéployer `travel-delete`**
-   avec son utilitaire `travel-public-errors.ts`. Ne pas appliquer
-   automatiquement la migration pendant la CI.
-3. Une fois le code et la base cohérents, vérifier l'Advisor, les tests
+2. **Avant d'appliquer la migration**, préparer le déploiement protégé :
+   créer un **nouveau jeton Supabase limité au staging** (Edge Functions :
+   Read/Write ; Project Settings : Read), expiration **24 h**, placé
+   uniquement dans le secret de l'environnement GitHub
+   `staging-functions-deploy`. L'environnement doit exiger une revue
+   humaine ; ne jamais transmettre le jeton dans le chat ou dans une PR.
+   Le workflow `deploy-staging-functions.yml` est désormais limité
+   à la **PR #28** et à la branche
+   `security/travel-sql-storage-errors-hardening` ; il ne redéploie
+   **que `travel-delete`**, pas les autres fonctions.
+3. Dans **un même cycle** sur **STAGING seulement** : appliquer
+   **`20261031080000_sql_storage_hardening.sql`**, puis ajouter à la
+   PR #28 le label **`staging-functions-deploy-approved`** et
+   approuver la tâche protégée dans GitHub Actions pour redéployer
+   `travel-delete` avec `travel-public-errors.ts`. Ne pas exécuter
+   le banc destructif entre ces deux opérations, ni laisser une
+   version mixte en service. **Révoquer le jeton** immédiatement après
+   validation (ou échec), puis retirer le secret de l'environnement.
+   Ne pas appliquer automatiquement la migration pendant la CI.
+4. Une fois le code et la base cohérents, vérifier l'Advisor, les tests
    JWT/RLS A/B et le refus de `storage.remove` depuis le client.
    Les suppressions autorisées doivent passer uniquement par `travel-delete`.
-4. Déclencher **ensuite** le banc `victim_bench.ts` via son label et
+5. Déclencher **ensuite** le banc `victim_bench.ts` via son label et
    l'approbation `staging-destructive`. Lorsqu'un objet appartenant au
    compte bloque la suppression, il doit constater **HTTP 503** et
    **`DELETE_UNAVAILABLE`**, puis confirmer via le client administrateur
    que l'utilisateur Auth existe encore, que `profiles.deleting=true`
    et que `deletion_requested_at` reste inchangé. Les codes
    `OWNED_OBJECTS_REMAIN` sont **internes seulement** (journal du worker).
-5. Retester l'UI, les messages neutres, la suppression et le nettoyage
+6. Retester l'UI, les messages neutres, la suppression et le nettoyage
    des comptes jetables. Conserver les preuves avant de lever le NO-GO staging.
-6. La mise en production reste **NO-GO** sans revue finale, secrets
+7. La mise en production reste **NO-GO** sans revue finale, secrets
    production distincts et tests équivalents sur le futur projet de production.
 
 **Hors périmètre immédiat :** l'Advisor signale aussi l'extension
