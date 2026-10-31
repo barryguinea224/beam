@@ -114,6 +114,12 @@ async function main(){
    assert.match(await page.locator("#discardTitle").textContent(),/Abandonner les modifications/);
    await page.locator("#discardStay").click();
    assert.equal(await page.locator("#contactPhone").inputValue(),"+224 622 09 56 30");
+   // Refusing Android Back must rearm the history sentinel for a second Back.
+   await page.evaluate(()=>history.back());
+   await discard.waitFor({state:"visible"});
+   assert.ok(page.url().includes("/travel/"),"second Back must stay on carnet");
+   await page.locator("#discardStay").click();
+   assert.equal(await page.locator("#contactPhone").inputValue(),"+224 622 09 56 30");
    assert.ok(await account.evaluate(n=>n.classList.contains("accountEditing")));
    await page.locator("#closeAccount").click();
    await discard.waitFor({state:"visible"});
@@ -135,7 +141,13 @@ async function main(){
    assert.equal(await page.evaluate(()=>window.__contactStore.updates.length),updatesBefore+1);
    await page.locator("#closeAccount").click();
    if(await discard.isVisible())await page.locator("#discardLeave").click();
+   // Close one overlay and immediately open another: a pending popstate must not close it.
+   await page.locator("#openAccount").click();
+   await page.locator("#closeAccount").click();
    await page.locator("#toggleFilters").click();
+   await page.waitForTimeout(150);
+   assert.ok(await page.locator("#filterPanel").evaluate(n=>n.classList.contains("filterOpen")),
+    "stale account history popstate must not close newly opened filters");
    await page.evaluate(()=>history.back());
    await page.waitForFunction(()=>!document.querySelector("#filterPanel").classList.contains("filterOpen"));
    assert.equal(await page.evaluate(()=>document.activeElement?.id),"toggleFilters");
