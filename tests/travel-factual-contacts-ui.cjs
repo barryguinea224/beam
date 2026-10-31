@@ -142,7 +142,7 @@ async function main(){
   const off=await waitPopup(page,()=>page.locator("#pdf").click());
   let text=await off.locator("body").textContent();
   assert.match(text,/Voyages internationaux déclarés/);
-  for(const value of ["verified@example.net","+224612345678","Ratoma, Conakry",
+  for(const value of ["verified@example.net","+224622095630","Ratoma, Conakry",
    "Coordonnées déclarées","SECRET_PERSONAL_MEMORY"])
    assert.ok(!text.includes(value),"unchecked PDF disclosed "+value);
   assert.equal(await page.locator("#includePdfContacts").isChecked(),false);
@@ -153,7 +153,7 @@ async function main(){
   text=await optin.locator("body").textContent();
   assert.match(text,/Coordonnées déclarées/);
   assert.match(text,/verified@example.net/);
-  assert.match(text,/\+224612345678/);
+  assert.match(text,/\+224622095630/);
   assert.match(text,/Ratoma, Conakry/);
   assert.ok(!text.includes("login@example.net"),"must use verified Auth getUser, not stale session email");
   assert.ok(!text.includes("SECRET_PERSONAL_MEMORY"));
