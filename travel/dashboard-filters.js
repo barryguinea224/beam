@@ -37,14 +37,21 @@
       .filter(y=>/^(19|20|21)[0-9]{2}$/.test(y)))].sort((a,b)=>b.localeCompare(a));
     return Object.freeze({countries,years});
   }
-  function summary(rows){
+  // Keep the original international-only headline when scope is "all".
+  // Other filters still apply first; only explicit "National" changes the
+  // headline to domestic journeys. Domestic stays a separate count otherwise.
+  function summary(rows,input){
     const active=(Array.isArray(rows)?rows:[]).filter(t=>t&&!t.deleting);
+    const state=normalize(input);
+    const domestic=active.filter(t=>t.is_domestic===true);
+    const eligible=state.scope==="domestic"
+      ? domestic : active.filter(t=>t.is_domestic!==true);
     return Object.freeze({
-      trips:active.length,
-      countries:new Set(active.map(t=>t.country_code)).size,
-      days:active.reduce((sum,t)=>sum+(Number.isFinite(Number(t.duration_days))?
+      trips:eligible.length,
+      countries:new Set(eligible.map(t=>t.country_code)).size,
+      days:eligible.reduce((sum,t)=>sum+(Number.isFinite(Number(t.duration_days))?
         Math.max(0,Number(t.duration_days)):0),0),
-      domestic:active.filter(t=>t.is_domestic===true).length
+      domestic:domestic.length
     });
   }
   const api=Object.freeze({EMPTY,normalize,toggleCountry,apply,options,summary});
