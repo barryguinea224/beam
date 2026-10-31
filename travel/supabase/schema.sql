@@ -88,7 +88,7 @@ alter table public.trips add constraint trips_cover_same_trip_owner
   foreign key (cover_media_id,id,user_id) references public.media(id,trip_id,user_id)
   on delete set null (cover_media_id);
 
-create function public.check_same_owner() returns trigger language plpgsql security invoker set search_path='' as $
+create function public.check_same_owner() returns trigger language plpgsql security invoker set search_path='' as $$
 begin
  if not exists(select 1 from public.trips t where t.id=new.trip_id and t.user_id=new.user_id and not t.deleting)
  then raise exception 'Ce voyage n''appartient pas à cet utilisateur ou est en suppression'; end if;
