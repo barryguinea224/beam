@@ -164,7 +164,7 @@
     ".declared-contacts h2{font:700 11pt Arial,sans-serif;color:#174d3a;margin:0 0 5px}",
     ".declared-contacts p{margin:3px 0;font-size:9.5pt;white-space:pre-wrap}",
     "@media print{.toolbar{display:none!important}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}a{display:none!important}}",
-    "@media screen{body{padding:24px 18px;background:#edf1ed}main{background:white;padding:28px;box-shadow:0 4px 25px #17231f20}.page-notice{position:static;margin-top:14mm}}",
+    "@media screen{body{padding:24px 18px;background:#edf1ed}main{background:white;padding:28px;box-shadow:0 4px 25px #17231f20}}",
     "@media(max-width:620px){body{padding:8px}main{padding:16px;overflow-x:auto}table{min-width:530px}.toolbar{flex-direction:column;align-items:stretch}}"
   ].join("\n");
   function add(parent,tag,content,cssClass){
