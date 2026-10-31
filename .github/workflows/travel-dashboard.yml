@@ -55,5 +55,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: travel-responsive-five-widths
-          path: test-artifacts/travel-responsive/*.png
+          path: |
+            test-artifacts/travel-responsive/*.png
+            test-artifacts/travel-responsive-real/*.png
           if-no-files-found: warn
