@@ -103,7 +103,7 @@ async function main(){
  mediaRequests[3].resolve({data:Array.from({length:10},(_,i)=>({id:"q-"+i,storage_path:"q/"+i})),error:null});
  await full;
  assert.equal(els["#photos"].disabled,true,"ten persisted photos exhaust the client-side quota");
- assert.match(els["#photoUsage"].textContent,/0 place disponible/);
+ assert.match(els["#photoUsage"].textContent,/0 places disponibles/);
  console.log("PASS photo list-first: slow signatures, exact quota before thumbnails, placeholders, error/retry, 10-photo cap");
 }
 main().catch(err=>{console.error(err);process.exitCode=1});
