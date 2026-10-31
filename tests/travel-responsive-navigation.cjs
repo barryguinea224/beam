@@ -112,6 +112,25 @@ async function main(){
    assert.ok(page.url().includes("/travel/"),"Android Back must remain on carnet");
    await page.locator("#openAccount").click();
    await page.locator("#editAccount").click();
+   const originalResidence=await page.locator("#residence").inputValue();
+   const alternativeResidence=originalResidence==="SN"?"GN":"SN";
+   const residenceUpdatesBefore=await page.evaluate(()=>window.__contactStore.updates.length);
+   await page.locator("#residence").selectOption(alternativeResidence);
+   assert.equal(await page.evaluate(()=>window.__contactStore.updates.length),residenceUpdatesBefore,
+    "changing residence in edit mode must not write to profiles");
+   await page.locator("#cancelAccountEdit").click();
+   await discard.waitFor({state:"visible"});
+   await page.locator("#discardLeave").click();
+   assert.equal(await page.locator("#residence").inputValue(),originalResidence);
+   assert.equal(await page.evaluate(()=>window.__contactStore.profile.country_of_residence),originalResidence||null);
+   assert.equal(await page.evaluate(()=>window.__contactStore.updates.length),residenceUpdatesBefore,
+    "discarded residence must not update the database");
+   await page.locator("#editAccount").click();
+   await page.locator("#residence").selectOption(alternativeResidence);
+   await page.locator("#saveContactDetails").click();
+   await page.waitForFunction(expected=>window.__contactStore.profile.country_of_residence===expected,alternativeResidence);
+   assert.equal(await page.evaluate(()=>window.__contactStore.updates.length),residenceUpdatesBefore+1,
+    "saving residence must make exactly one profile update");
    const original=await page.locator("#contactPhone").inputValue();
    await page.locator("#contactPhone").fill("+224 622 09 56 30");
    const updatesBefore=await page.evaluate(()=>window.__contactStore.updates.length);
