@@ -85,9 +85,12 @@ async function main(){
     assert.equal(audit.photos.length,2,"one authorized image reused by cover and journey");
     assert.equal(audit.inkChoice,"checkbox");
     assert.deepEqual(new Set(audit.mapVisited),new Set(["GN","SN"]));
-    const bounds=await page.locator(".atlas svg").evaluate(svg=>svg.viewBox.baseVal);
+    const bounds=await page.locator(".atlas svg").evaluate(svg=>({
+      x:svg.viewBox.baseVal.x,y:svg.viewBox.baseVal.y,
+      width:svg.viewBox.baseVal.width,height:svg.viewBox.baseVal.height
+    }));
     assert.ok(bounds.width<800&&bounds.height<400,
-      "the atlas must zoom on the two visited West African countries");
+      "the atlas must zoom on the two visited West African countries: "+JSON.stringify(bounds));
     assert.equal(audit.domesticPills,1,"one national badge per journey");
     assert.match(audit.quotaText,/Limite de 40 photos atteinte/);
     const dest=path.join(dir,"journal-"+width+".pdf");
