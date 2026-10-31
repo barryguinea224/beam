@@ -17,6 +17,8 @@ async function main(){
      document.querySelector("#app").classList.remove("hidden");
      document.querySelector("#travelHero").classList.remove("hidden");
      document.querySelector("#residencePanel").classList.remove("hidden");
+     document.querySelector("#accountOverlay").classList.add("accountOpen","accountEditing");
+     document.querySelector("#accountOverlay").setAttribute("aria-hidden","false");
      document.querySelector("#modal").classList.add("open");
      window.countryPickers={
        trip:window.BEAM_COUNTRY_PICKER.attach(document.querySelector("#tripCountrySelect"),document.querySelector("#tripCountrySearch")),
