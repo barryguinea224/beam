@@ -25,6 +25,24 @@ assert.deepEqual(api.summary(api.apply(rows,{country:"GN"}),{country:"GN"}),
 assert.deepEqual(api.summary(api.apply(rows,{scope:"foreign"}),{scope:"foreign"}),
  {trips:3,countries:2,days:20,domestic:0},
  "foreign selection excludes domestic rows from list and separate count");
+// Product example: 3 foreign journeys in 3 countries + 2 domestic stays
+// in Guinea are NOT "5 foreign journeys, 4 countries".
+const productExample=[
+ {country_code:"FR",entry_date:"2026-01-01",purpose:"tourisme",is_domestic:false,duration_days:5},
+ {country_code:"SN",entry_date:"2026-02-01",purpose:"affaires",is_domestic:false,duration_days:8},
+ {country_code:"MA",entry_date:"2025-03-01",purpose:"famille",is_domestic:false,duration_days:4},
+ {country_code:"GN",entry_date:"2026-04-01",purpose:"tourisme",is_domestic:true,duration_days:2},
+ {country_code:"GN",entry_date:"2026-05-01",purpose:"famille",is_domestic:true,duration_days:3}
+];
+assert.deepEqual(api.summary(api.apply(productExample,api.EMPTY),api.EMPTY),
+ {trips:3,countries:3,days:17,domestic:2});
+assert.deepEqual(api.summary(api.apply(productExample,{scope:"domestic"}),{scope:"domestic"}),
+ {trips:2,countries:1,days:5,domestic:2});
+assert.deepEqual(api.summary(api.apply(productExample,{country:"GN"}),{country:"GN"}),
+ {trips:0,countries:0,days:0,domestic:2});
+assert.equal(api.apply(productExample,api.EMPTY).length,5,
+ "list may show all five journeys without inflating the foreign headline");
+
 assert.deepEqual(api.options(rows).years,["2026","2025"]);
 assert.deepEqual(api.options(rows).countries,["FR","GN","SN"]);
 let state=api.toggleCountry(api.EMPTY,"FR");
