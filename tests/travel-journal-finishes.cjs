@@ -22,7 +22,11 @@ assert.deepEqual(STATS.summarize([
 assert.equal(PDF.purposeName("tourisme"),"Tourisme");
 assert.equal(PDF.purposeName("etudes"),"Études");
 assert.equal(PDF.factualRows([{country_code:"FR",cities:["Paris"],entry_date:"2026-01-01",exit_date:"2026-01-02",duration_days:2,purpose:"etudes"}])[0].purpose,PDF.purposeName("etudes"));
-assert.ok(script.includes('window.BEAM_JOURNAL_STATS.summarize(trips)'));
+// The original international-only helper remains valid for legacy consumers.
+ // The new dashboard intentionally shows all visible filtered journeys, domestic too.
+assert.ok(script.includes('const visible=api.apply(trips,dashboardFilters)'));
+assert.ok(script.includes('stats=api.summary(visible)'));
+assert.ok(script.includes('window.BEAM_TRAVEL_PDF.fetchRows(S,uid)'));
 assert.ok(script.includes('window.BEAM_TRAVEL_PDF.purposeName(x.purpose)'));
 assert.ok(script.includes('fact("Motif",window.BEAM_TRAVEL_PDF.purposeName(trip.purpose))'));
 assert.ok(script.includes('window.confirm("Retirer cette activité du voyage ?")'),"Activity confirmation must be retained");
