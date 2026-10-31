@@ -17,6 +17,11 @@ const rows=[
   duration_days:6,purpose:"affaires",identity_number:secret}
 ];
 const generatedAt=new Date("2026-10-31T12:00:00Z");
+// Unsupported scripts must not be silently transformed into question marks.
+// The original Chrome print path remains available for those characters.
+assert.throws(()=>FILE.make({
+ displayName:"اختبار",generatedAt,includeContacts:false
+},rows),/Caractères non pris en charge/);
 const dir=fs.mkdtempSync(path.join(os.tmpdir(),"beam-factual-share-"));
 try{
  const ordinary=FILE.make({displayName:"Elhadj Barry",generatedAt,
