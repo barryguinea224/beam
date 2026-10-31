@@ -351,13 +351,13 @@ document.addEventListener("keydown",e=>{
 function setAccountState(state){
  accountState=state;
  const active=state==="active";
- for(const id of ["#travelHero","#filterAnchor","#travelMapPanel","#travelPanels","#openAccount"]){
-   $(id).classList.toggle("hidden",!active);
+ for(const id of ["#travelHero","#filterAnchor","#travelMapPanel","#travelPanels","#openAccount","#residencePanel","#myAccount"]){
+   $(id).classList.toggle("hidden",!active&&(id!=="#residencePanel"&&id!=="#myAccount"));
  }
  $("#deletionPending").classList.toggle("hidden",state!=="deleting");
  $("#accountStatusUnavailable").classList.toggle("hidden",state!=="unavailable");
  $("#accountStatusChecking").classList.toggle("hidden",state!=="loading");
- if(!active){$("#accountOverlay").classList.remove("accountOpen","accountEditing");$("#accountOverlay").setAttribute("aria-hidden","true");clearContactFields();$("#modal").classList.remove("open");if($("#tripDetailModal").classList.contains("open"))closeTripDetail()}
+ if(!active){$("#accountOverlay").classList.remove("accountOpen","accountEditing");$("#accountOverlay").setAttribute?.("aria-hidden","true");clearContactFields();$("#modal").classList.remove("open");if($("#tripDetailModal").classList.contains("open"))closeTripDetail()}
 }
 async function load(){
  if(!user)return;
