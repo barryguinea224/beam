@@ -41,7 +41,7 @@
        '<span class="journeyFlagLine">'+
          (icon?'<img class="journeyFlag" src="'+icon+'" alt="" loading="lazy" width="26" height="20">':'')+
          '<span class="journeyCode">'+esc(code||"—")+'</span>'+
-         (trip.is_domestic?'<span class="journeyDomestic">Voyage intérieur</span>':'')+
+         (trip.is_domestic?'<span class="journeyDomestic">Séjour national</span>':'')+
        '</span>'+
        '<span class="journeyCountry">'+country+'</span>'+
        '<span class="journeyCities">'+cities+'</span>'+
