@@ -111,6 +111,8 @@ for(const id of ["filterCountry","filterYear","filterPurpose","filterScope","res
 assert.ok(app.includes('<script src="./dashboard-filters.js"></script>'));
 const sw=fs.readFileSync("travel/sw.js","utf8");
 assert.ok(sw.includes("./dashboard-filters.js")&&sw.includes("./dashboard-filters.css"));
-assert.ok(sw.includes("20261031-dashboard"));
+assert.match(sw,/beam-travel-shell-v1-20261031-/);
+assert.ok(!sw.includes('beam-travel-shell-v1-20261030'),
+ "PWA cache must not regress to the old static shell");
 
 console.log("PASS dashboard filter composition, country toggle, profile header, footer logout and PDF isolation");
