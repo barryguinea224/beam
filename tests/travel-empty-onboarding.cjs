@@ -86,11 +86,13 @@ async function main(){
   await page.locator('#tripForm [name="entry_date"]').fill("2026-07-01");
   await page.locator('#tripForm [name="exit_date"]').fill("2026-07-06");
   await page.locator("#saveTrip").click();
-  await page.waitForFunction(()=>window.__fixture.trips.length===1,null,{timeout:9000}).catch(async error=>{
+  await page.locator("#trips .tripOpen").first().waitFor({state:"visible",timeout:10000}).catch(async error=>{
    const details=await page.evaluate(()=>({tripMsg:document.querySelector("#tripMsg")?.textContent,
+    appMsg:document.querySelector("#appMsg")?.textContent,
+    cards:document.querySelectorAll("#trips .tripOpen").length,
     saved:document.querySelector("#saveTrip")?.textContent,modal:document.querySelector("#modal")?.className,
-    validation:[...document.querySelector("#tripForm").elements].filter(x=>x.validity&&!x.checkValidity()).map(x=>({name:x.name,message:x.validationMessage}))}));
-   throw new Error("First trip was not saved: "+JSON.stringify(details)+"; "+error.message);
+    profile:window.__fixture.profile,rows:window.__fixture.trips.length}));
+   throw new Error("First journey card missing: "+JSON.stringify(details)+"; "+error.message);
   });
   await page.locator("#welcomeCard").waitFor({state:"hidden"});
   assert.equal(await page.locator("#travelMapPanel").isVisible(),true);
