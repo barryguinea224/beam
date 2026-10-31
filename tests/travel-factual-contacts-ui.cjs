@@ -102,6 +102,29 @@ async function main(){
   assert.equal(await page.locator("#accountEmail").inputValue(),"login@example.net");
   assert.equal(await page.locator("#accountEmail").getAttribute("readonly"),"");
   assert.equal(await page.locator("#includePdfContacts").isChecked(),false);
+  // Real 360px layout: serif heading, visible divider and no horizontal scroll.
+  const design=await page.evaluate(()=>{
+   const heading=document.querySelector(".account-contacts-title");
+   const contacts=document.querySelector("#contactDetailsForm");
+   const before=document.querySelector("#travelerNameForm");
+   const style=getComputedStyle(contacts);
+   return {
+    title:heading?.textContent,
+    family:getComputedStyle(heading).fontFamily,
+    borderStyle:style.borderTopStyle,
+    borderWidth:parseFloat(style.borderTopWidth),
+    paddingTop:parseFloat(style.paddingTop),
+    gap:contacts.getBoundingClientRect().top-before.getBoundingClientRect().bottom,
+    scrollWidth:document.documentElement.scrollWidth,innerWidth
+   };
+  });
+  assert.match(design.title,/Mes coordonnées/);
+  assert.match(design.family,/Georgia|serif/i,"account title should match existing serif heading");
+  assert.equal(design.borderStyle,"solid");
+  assert.ok(design.borderWidth>=1&&design.paddingTop>=20&&design.gap>=0,
+   "a real divider and generous spacing must separate the account forms");
+  assert.ok(design.scrollWidth<=design.innerWidth+1,
+   "no horizontal overflow on a 360px account screen");
   assert.equal(await page.locator("#contactPhone").getAttribute("pattern"),null,
    "the browser must not reject formatted numbers before the normalizer");
   const accepted=[
@@ -110,20 +133,29 @@ async function main(){
   ];
   for(const [index,value] of accepted.entries()){
    await page.locator("#contactPhone").fill(value);
+   await page.locator("#contactPhone").blur();
+   assert.equal(await page.locator("#contactPhone").inputValue(),"+224 622 09 56 30",
+    "blur must group a valid phone before saving: "+value);
    await page.locator("#contactPostalAddress").fill("Ratoma, Conakry");
    await page.locator("#contactDetailsForm").evaluate(form=>form.requestSubmit());
    await page.waitForFunction(expected=>
     window.__contactStore.updates.length===expected&&
     document.querySelector("#contactDetailsStatus")?.textContent?.includes("enregistrées"),
     index+1,{timeout:10000});
-   assert.equal(await page.locator("#contactPhone").inputValue(),"+224622095630",
-    "the visible saved phone must be canonical E.164 for "+value);
+   assert.equal(await page.locator("#contactPhone").inputValue(),"+224 622 09 56 30",
+    "saved value shown to the user must be grouped for "+value);
   }
   const updated=await page.evaluate(()=>window.__contactStore.updates);
   assert.deepEqual(updated,accepted.map(()=>({
    phone:"+224622095630",postal_address:"Ratoma, Conakry"
   })),"every accepted spelling must be saved in the same canonical format");
 
+  // Server returns compact number at load; reloading must show grouped value.
+  await page.reload({waitUntil:"load"});
+  await page.waitForFunction(()=>!document.querySelector("#saveContactDetails")?.disabled,
+   null,{timeout:12000});
+  assert.equal(await page.locator("#contactPhone").inputValue(),"+224 622 09 56 30",
+   "profile reload must display the compact stored phone grouped");
   const rejected=["+1","abc","+2246220956301234567","6220956301"];
   for(const value of rejected){
    await page.locator("#contactPhone").fill(value);
@@ -137,6 +169,11 @@ async function main(){
     "error must guide the user with an international example");
   }
   await page.locator("#contactPhone").fill("+224 622 09 56 30");
+  await page.locator("#contactPhone").blur();
+  // Screenshot contains synthetic data only, not a real account.
+  const shotDir=path.resolve("test-artifacts/travel-contact-finish");
+  await fs.mkdir(shotDir,{recursive:true});
+  await page.locator("#myAccount").screenshot({path:path.join(shotDir,"account-contacts-360.png")});
 
   // Unchecked PDF must neither reread extra columns nor call getUser().
   const off=await waitPopup(page,()=>page.locator("#pdf").click());
@@ -153,7 +190,8 @@ async function main(){
   text=await optin.locator("body").textContent();
   assert.match(text,/Coordonnées déclarées/);
   assert.match(text,/verified@example.net/);
-  assert.match(text,/\+224622095630/);
+  assert.match(text,/\+224 622 09 56 30/);
+  assert.ok(!text.includes("+224622095630"),"HTML PDF must show grouped phone only");
   assert.match(text,/Ratoma, Conakry/);
   assert.ok(!text.includes("login@example.net"),"must use verified Auth getUser, not stale session email");
   assert.ok(!text.includes("SECRET_PERSONAL_MEMORY"));
