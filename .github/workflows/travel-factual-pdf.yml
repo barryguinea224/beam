@@ -10,6 +10,7 @@ on:
       - "travel/supabase/migrations/20261031120000_optional_profile_contacts.sql"
       - "tests/travel-factual-pdf-file.cjs"
       - "tests/travel-factual-pdf-share-browser.cjs"
+      - "tests/travel-factual-contacts-ui.cjs"
       - "travel/countries.js"
       - "travel/supabase/schema.sql"
       - "tests/travel-factual-pdf.cjs"
@@ -56,3 +57,5 @@ jobs:
         run: node tests/travel-factual-pdf-file.cjs
       - name: Verify Android file share and safe local download fallback
         run: node tests/travel-factual-pdf-share-browser.cjs
+      - name: Verify real mobile profile save, Auth email and one-shot consent
+        run: node tests/travel-factual-contacts-ui.cjs
