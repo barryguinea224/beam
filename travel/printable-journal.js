@@ -224,7 +224,7 @@
   const cover=el(main,"section","sheet-page cover");
   el(cover,"p","eyebrow","BEAM · TRAVEL HISTORY");
   const art=el(cover,"div","cover-art");
-  const coverPhoto=list.find(t=>t.photos.length)?.photos[0];
+  const coverPhoto=list.length?list[0].photos[0]:null;
   if(coverPhoto)makePhoto(art,coverPhoto,"Photographie de couverture du carnet","cover-image");
   else el(art,"div","cover-pattern");
   el(art,"div","cover-mark","MES VOYAGES, MES SOUVENIRS");
@@ -255,7 +255,7 @@
   for(const trip of list.slice(0,24)){
    const row=el(timeline,"div","timeline-row");
    const label=el(row,"span");
-   label.textContent=trip.country+(trip.domestic?" · Séjour national":"");
+   label.textContent=trip.country;
    el(row,"span","timeline-date",trip.entry);
   }
   if(list.length>24)el(yearbook,"p","empty","Et "+(list.length-24)+" autres voyages racontés dans ce carnet.");
