@@ -14,7 +14,7 @@ alter table public.profiles
 
 alter table public.profiles
   add constraint profiles_phone_valid
-    check (phone is null or (char_length(phone)<=30 and phone ~ '^\+[0-9]{1,29}$')),
+    check (phone is null or (char_length(phone)<=30 and phone ~ '^\+[0-9]{6,15}$')),
   add constraint profiles_postal_address_valid
     check (postal_address is null or
       (char_length(postal_address)<=300 and btrim(postal_address)<>'' ));
