@@ -90,10 +90,14 @@
   const list=model.trips.map(t=>viewTrip(t.trip,t.activities,t.photos));
   doc.documentElement.lang="fr";
   const charset=doc.createElement("meta");charset.setAttribute("charset","utf-8");
+  // window.open('') starts without a viewport meta: Android defaults to a
+  // virtual 980px page and makes the print preview horizontally scrollable.
+  const viewport=doc.createElement("meta");viewport.setAttribute("name","viewport");
+  viewport.setAttribute("content","width=device-width,initial-scale=1");
   const ref=doc.createElement("meta");ref.setAttribute("name","referrer");ref.setAttribute("content","no-referrer");
   const title=doc.createElement("title");title.textContent="BEAM · Mon carnet de voyage";
   const style=doc.createElement("style");style.textContent=CSS;
-  doc.head.replaceChildren(charset,ref,title,style);
+  doc.head.replaceChildren(charset,viewport,ref,title,style);
   doc.body.replaceChildren();
   txt(doc.body,"div",NOTICE,"page-head");
   txt(doc.body,"div",NOTICE,"page-foot");
