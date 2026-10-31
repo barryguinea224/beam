@@ -44,6 +44,15 @@ assert.equal(journal.viewTrip(trips[1]).domestic,true);
 assert.equal(journal.viewTrip(trips[1]).country,"Guinée");
 assert.equal(journal.period(trips.map(t=>journal.viewTrip(t))),"2025 – 2026");
 assert.equal(journal.period([journal.viewTrip(trips[0])]),"2026");
+assert.equal(journal.titleForName("Elhadj Barry"),"Carnet d'Elhadj Barry");
+assert.equal(journal.titleForName("Alpha Barry"),"Carnet d'Alpha Barry");
+assert.equal(journal.titleForName("Hélène"),"Carnet d'Hélène");
+assert.equal(journal.titleForName("Barry"),"Carnet de Barry");
+for(const name of ["Youssouf","Yaya","Yacouba","Yÿoussouf"])
+ assert.equal(journal.titleForName(name),"Carnet de "+name);
+for(const name of ["Elhadj","Aminata","Ousmane"])
+ assert.equal(journal.titleForName(name),"Carnet d'"+name);
+assert.equal(journal.titleForName(""),"Mon carnet de voyage");
 const album=fs.readFileSync("travel/printable-journal.js","utf8");
 for(const marker of ["Mon année en voyages","photo-mosaic","activity-timeline",
  "ink-saver","Économie d’encre","atlas-visited","counter(page)","Carnet généré le"]){
@@ -57,6 +66,19 @@ assert.ok(!/\.innerHTML\s*=|document\.write\s*\(/.test(album),
 assert.match(album,/doc\.createElementNS/);
 assert.match(album,/map\(yearbook,model\.mapSvgText/);
 assert.match(album,/limitReached/, "exhaustion of photo quota must be announced");
+assert.match(album,/fitAtlasToVisited\(svg\)/, "visited countries map must zoom");
+assert.match(album,/svg\.setAttribute\("viewBox",\[x,y,bw,bh\]/,
+ "atlas viewBox must be derived from visited bounds");
+assert.match(album,/model\.trips\.find\(t=>typeof t\.favoritePhoto/,
+ "album cover must prefer a favorite from any selected trip");
+assert.match(album,/list\.find\(t=>t\.photos\.length\)/,
+ "album cover must fall back to any available signed photo");
+assert.match(album,/trip\.photos\.length>=2\|\|trip\.memory\.length>500\|\|trip\.activities\.length>8/,
+ "short trips must be compact, rich trips may span two pages");
+assert.match(album,/height:35mm/, "travel without photographs must have a short ribbon");
+assert.match(album,/trip\.cities\.split\(","\)\[0\]/, "timeline needs the first city");
+assert.ok(album.includes('"jour"+(summaryDays===1?"":"s")'),
+ "number of days must be singular when value is one");
 const source=fs.readFileSync("travel/printable-journal.js","utf8");
 assert.match(source,/img\.naturalWidth>0/, "complete=true is not proof of successful photo loading");
 assert.match(source,/photos n'ont pas pu être chargées/, "missing photo count must be visible");
@@ -75,9 +97,18 @@ assert.match(inline,/\.createSignedUrl\(row\.storage_path,window\.BEAM_PERSONAL_
 assert.match(inline,/BEAM_VISUAL_CARDS\.trustedSignedUrl/);
 assert.match(inline,/\.eq\("user_id",uid\)\.eq\("deleting",false\)/);
 assert.match(inline,/\.from\("activities"\)\.select\("title,place,happened_on"\)/);
-assert.match(inline,/\.from\("media"\)\.select\("id,storage_path"\)/);
+assert.match(inline,/\.from\("media"\)\.select\("id,storage_path,is_favorite"\)/);
+assert.match(inline,/if\(row\.is_favorite&&!favoritePhoto\)favoritePhoto=safe/);
+assert.match(inline,/BEAM_PERSONAL_JOURNAL\?\.titleForName\?\.\(name\)/,
+ "dashboard may consult album but cannot require it");
+assert.match(inline,/function travelDashboardTitle\(input\)/,
+ "dashboard title fallback must exist independently");
+assert.match(inline,/travelDashboardTitle\(name\)/);
+assert.match(inline,/travelDashboardTitle\(data\.display_name\)/);
+assert.match(inline,/window\.BEAM_PERSONAL_JOURNAL\?\.render/,
+ "missing optional album must disable printing without crashing the dashboard");
 assert.match(inline,/BEAM_PERSONAL_JOURNAL\.preferredMediaQuery\(/);
-assert.match(inline,/pack\[position\]=\{trip,activities:activityResult\.data\|\|\[\],photos,missingPhotos\}/,
+assert.match(inline,/pack\[position\]=\{trip,activities:activityResult\.data\|\|\[\],photos,favoritePhoto,missingPhotos\}/,
  "failed photo signatures must reach the private print status");
 assert.match(inline,/window\.BEAM_TRAVEL_PDF\.fetchRows\(S,uid\)/);
 const printHandler=inline.slice(inline.indexOf('$("#printJournal").onclick'),inline.indexOf('$("#pdf").onclick'));

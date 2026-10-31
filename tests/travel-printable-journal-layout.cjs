@@ -72,7 +72,7 @@ async function main(){
     }));
     assert.ok(audit.width<=width+1,"journal horizontal overflow on "+width+": "+JSON.stringify(audit));
     assert.equal(audit.noticeHead,NOTICE);assert.equal(audit.noticeFoot,NOTICE);
-    assert.match(audit.text,/Carnet de Aminata Diallo/);
+    assert.match(audit.text,/Carnet d'Aminata Diallo/);
     assert.match(audit.text,/Sénégal · 2026/);
     assert.match(audit.text,/Séjour national/);
     assert.match(audit.text,/Souvenir privé de Dakar/);
@@ -85,6 +85,12 @@ async function main(){
     assert.equal(audit.photos.length,2,"one authorized image reused by cover and journey");
     assert.equal(audit.inkChoice,"checkbox");
     assert.deepEqual(new Set(audit.mapVisited),new Set(["GN","SN"]));
+    const bounds=await page.locator(".atlas svg").evaluate(svg=>({
+      x:svg.viewBox.baseVal.x,y:svg.viewBox.baseVal.y,
+      width:svg.viewBox.baseVal.width,height:svg.viewBox.baseVal.height
+    }));
+    assert.ok(bounds.width<800&&bounds.height<400,
+      "the atlas must zoom on the two visited West African countries: "+JSON.stringify(bounds));
     assert.equal(audit.domesticPills,1,"one national badge per journey");
     assert.match(audit.quotaText,/Limite de 40 photos atteinte/);
     const dest=path.join(dir,"journal-"+width+".pdf");
@@ -97,7 +103,7 @@ async function main(){
     assert.ok(pages>=5,"Expected visual cover, yearbook and two spreads, got "+pages);
     const first=execFileSync("pdftotext",["-f","1","-l","1","-layout",dest,"-"],{encoding:"utf8"});
     const second=execFileSync("pdftotext",["-f","2","-l","2","-layout",dest,"-"],{encoding:"utf8"});
-    assert.match(first,/Carnet de Aminata Diallo/);
+    assert.match(first,/Carnet d'Aminata Diallo/);
     assert.match(second,/Mon année en voyages/);
     for(let p=1;p<=pages;p++){
      const txt=execFileSync("pdftotext",["-f",String(p),"-l",String(p),"-layout",dest,"-"],{encoding:"utf8"});

@@ -11,6 +11,15 @@
  const PURPOSES=Object.freeze({tourisme:"Tourisme",affaires:"Affaires",etudes:"Études",famille:"Famille",sante:"Santé",transit:"Transit",autre:"Autre"});
  const FLAGS=new Set("ae be bh ca cd cg ci cn de dz es fr gb gf gh gn gp it ma ml mq mt pt re sa sg sl sn tr us".split(" "));
  const clean=s=>typeof s==="string"?s.trim():"";
+ // H muet requires lexical knowledge: use a small list of known given names
+ // rather than eliding every H (including aspirated H).
+ const H_MUET=/^(?:hélène|hélèna|henri|henry|hugo|hugues|hadrien|habib|hamid|hicham|hassan|hiba|houda)(?:\b|$)/i;
+ function titleForName(input){
+  const name=clean(input).replace(/\s+/g," ").slice(0,80);
+  if(!name)return "Mon carnet de voyage";
+  const elide=/^[aàâäeéèêëiîïoôöuùûüœæ]/i.test(name)||H_MUET.test(name);
+  return "Carnet "+(elide?"d'":"de ")+name;
+ }
  const el=(parent,tag,klass,text)=>{
   const item=parent.ownerDocument.createElement(tag);
   if(klass)item.className=klass;
@@ -90,17 +99,49 @@
      const d=original.getAttribute("d")||"";
      if(!/^[A-Z]{2}$/.test(code)||!COUNTRIES.valid(code)||d.length>25000||
       !/^[a-zA-Z0-9,.\s+\-]+$/.test(d))continue;
-     const path=svgEl(doc,"path");
-     path.setAttribute("d",d);
-     path.setAttribute("data-country",code);
-     if(visited.has(code))path.setAttribute("class","atlas-visited");
-     svg.appendChild(path);count++;
+     const shape=svgEl(doc,"path");
+     shape.setAttribute("d",d);shape.setAttribute("data-country",code);
+     if(visited.has(code))shape.setAttribute("class","atlas-visited");
+     svg.appendChild(shape);count++;
     }
-    if(count)container.appendChild(svg);
+    if(count){
+     container.appendChild(svg);
+     fitAtlasToVisited(svg);
+    }
    }
   }
   if(!count)el(container,"p","atlas-fallback","Mes destinations à travers le monde");
   return container;
+ }
+ // The same visited-path bounds strategy as fitMapToVisited in the app.
+ // Use a stable landscape aspect ratio so Guinea + Senegal stay legible on A4.
+ function fitAtlasToVisited(svg){
+  const paths=[...svg.querySelectorAll("path.atlas-visited")];
+  if(!paths.length)return;
+  const bounds=[];
+  for(const path of paths){
+   try{
+    const b=path.getBBox();
+    if([b.x,b.y,b.width,b.height].every(Number.isFinite)&&b.width>0&&b.height>0)
+     bounds.push(b);
+   }catch{} // disconnected SVG / old browser: retain full-map fallback
+  }
+  if(!bounds.length)return;
+  const left=Math.min(...bounds.map(b=>b.x));
+  const top=Math.min(...bounds.map(b=>b.y));
+  const right=Math.max(...bounds.map(b=>b.x+b.width));
+  const bottom=Math.max(...bounds.map(b=>b.y+b.height));
+  const w=Math.max(right-left,35),h=Math.max(bottom-top,20);
+  const pad=Math.max(w,h)*0.45;
+  const aspect=1000/445;
+  let bw=Math.max(90,w+2*pad),bh=Math.max(55,h+2*pad);
+  if(bw/bh<aspect)bw=bh*aspect;
+  else bh=bw/aspect;
+  // Don't crop the visited bounding box, even when a region reaches a border.
+  bw=Math.min(1000,bw);bh=Math.min(445,bh);
+  const x=Math.max(0,Math.min(1000-bw,(left+right-bw)/2));
+  const y=Math.max(0,Math.min(445-bh,(top+bottom-bh)/2));
+  svg.setAttribute("viewBox",[x,y,bw,bh].map(v=>Number(v.toFixed(2))).join(" "));
  }
  const CSS=[
   "@page{size:A4;margin:27mm 14mm 26mm;@top-center{content:'Document personnel, non destiné aux démarches administratives';font:600 8pt Arial,sans-serif;color:#254e3c;border-bottom:1px solid #bdcfc1;padding-bottom:2mm}@bottom-center{content:'Document personnel, non destiné aux démarches administratives';font:600 8pt Arial,sans-serif;color:#254e3c;border-top:1px solid #bdcfc1;padding-top:2mm}@bottom-right{content:counter(page);font:700 8pt Arial,sans-serif;color:#254e3c}}",
@@ -148,7 +189,12 @@
   ".metric span{display:block;font-size:8pt;line-height:1.3}",
   ".domestic-summary{font:600 10pt system-ui;color:#3e6a50;margin:2mm 0 5mm}",
   ".timeline{display:grid;gap:2.5mm;margin:5mm 0}",
-  ".timeline-row{border-left:2px solid #8cb29d;padding:1mm 0 1mm 4mm;display:flex;align-items:center;justify-content:space-between;gap:3mm;break-inside:avoid}",
+  ".timeline-row{border-left:2px solid #8cb29d;padding:2mm 1mm 2mm 3mm;display:flex;align-items:center;gap:3mm;break-inside:avoid}",
+  ".timeline-row .album-flag{flex-shrink:0}",
+  ".timeline-detail{min-width:0;flex:1;display:flex;flex-direction:column}",
+  ".timeline-country{font-weight:800;font-size:9.5pt}",
+  ".timeline-city{font-size:8pt;color:#526e5c;overflow-wrap:anywhere}",
+  ".timeline-meta{font-size:8pt;color:#4e6859;text-align:right;white-space:normal;flex:0 1 37%}",
   ".timeline-row span{min-width:0;font-size:9pt}.timeline-date{color:#5e7567;white-space:nowrap;font-size:8pt}",
   ".trip-hero{min-height:197mm;padding:0 0 5mm}",
   ".trip-banner{display:flex;align-items:center;justify-content:space-between;gap:6mm;background:#e5f0e7;border-radius:5mm;padding:6mm;margin-bottom:4mm}",
@@ -162,8 +208,16 @@
   ".photo-mosaic img{display:block;width:100%;height:46mm;object-fit:cover}",
   ".photo-mosaic figure:first-child img{height:99mm}",
   ".photo-mosaic .photo-missing{margin:0}",
-  ".photo-placeholder{height:125mm;border-radius:5mm;background:radial-gradient(circle at 75% 30%,#cbdbc4,transparent 40%),linear-gradient(135deg,#1b5843,#8db6a0);display:flex;align-items:flex-end;padding:8mm;color:#fff;font:500 22pt Georgia,serif}",
-  ".trip-story{min-height:180mm;padding:4mm 0 7mm}",
+  ".photo-placeholder{height:35mm;border-radius:4mm;background:linear-gradient(120deg,#e4efe5,#f1f6ed);display:flex;align-items:center;gap:5mm;padding:5mm;color:#1c563d;font:500 19pt Georgia,serif}",
+  ".photo-placeholder .album-flag{width:44px;height:33px;flex-shrink:0}",
+  ".photo-placeholder .album-flag img{width:42px;height:28px}",
+  ".trip-story{padding:4mm 0 7mm}",
+  ".trip-story-inline{min-height:0;padding-top:5mm}",
+  ".trip-compact{min-height:0}",
+  ".trip-compact .photo-mosaic figure:first-child img{height:78mm}",
+  ".trip-compact .photo-placeholder{height:35mm}",
+  ".trip-compact .quote{font-size:12pt;line-height:1.45;margin:3mm 0 5mm}",
+  ".trip-compact .quote::before{font-size:24pt;padding-top:3mm}",
   ".story-heading{display:flex;align-items:center;gap:3mm;padding-bottom:3mm;border-bottom:1px solid #d5e3d7}",
   ".quote{font:italic 14pt/1.65 Georgia,serif;white-space:pre-wrap;overflow-wrap:anywhere;border-left:3px solid #3c8160;padding:3mm 0 3mm 7mm;margin:5mm 0 7mm;background:#f5f8f3}",
   ".quote::before{content:'“';font-size:31pt;line-height:0.6;color:#609377;display:block;padding-top:5mm}",
@@ -176,12 +230,12 @@
   ".photo-missing{color:#86582d;font-size:9pt;padding:2mm;border:1px dashed #bca68d}",
   ".closing{min-height:180mm;display:flex;flex-direction:column;justify-content:center;text-align:center;border-top:4mm solid #174d3a}",
   ".closing p{font:12pt/1.6 Georgia,serif;color:#4a6a55}",
-  "@media screen{body{background:#e7eee8;padding:38px 12px 55px}main{max-width:740px}.sheet-page{background:#fff;margin:0 auto 18px;padding:22px 24px;box-shadow:0 7px 30px #28433324;border-radius:8px;min-height:0;break-before:auto}.cover{min-height:700px}.summary{min-height:660px}.trip-hero{min-height:660px}.trip-story{min-height:600px}.toolbar{max-width:740px}}",
-  "@media print{body{background:#fff!important;padding:0!important}.screen-head,.screen-foot,.toolbar{display:none!important}main{max-width:100%}.sheet-page{box-shadow:none!important;border-radius:0!important;margin:0!important;padding:0!important;break-before:page}.cover{min-height:196mm}.summary{min-height:190mm}.trip-hero{min-height:190mm}.trip-story{min-height:184mm}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}",
+  "@media screen{body{background:#e7eee8;padding:38px 12px 55px}main{max-width:740px}.sheet-page{background:#fff;margin:0 auto 18px;padding:22px 24px;box-shadow:0 7px 30px #28433324;border-radius:8px;min-height:0;break-before:auto}.cover{min-height:700px}.summary{min-height:660px}.trip-hero{min-height:0}.trip-story{min-height:0}.toolbar{max-width:740px}}",
+  "@media print{body{background:#fff!important;padding:0!important}.screen-head,.screen-foot,.toolbar{display:none!important}main{max-width:100%}.sheet-page{box-shadow:none!important;border-radius:0!important;margin:0!important;padding:0!important;break-before:page}.cover{min-height:196mm}.summary{min-height:190mm}.trip-hero{min-height:0}.trip-story{min-height:0}.trip-story-inline{break-before:auto!important;page-break-before:auto!important}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}",
   ".ink-saver .cover-art,.ink-saver .photo-placeholder,.ink-saver .trip-banner,.ink-saver .metric,.ink-saver .quote,.ink-saver .pill,.ink-saver .atlas{background:#fff!important}",
   ".ink-saver .cover-art,.ink-saver .trip-banner,.ink-saver .metric,.ink-saver .atlas{border:1px solid #b8c8bc}",
   ".ink-saver .atlas path.atlas-visited{fill:#5d7568}",
-  "@media(max-width:420px){body{padding-left:5px;padding-right:5px}.sheet-page{padding:14px}.cover{min-height:570px}.summary,.trip-hero,.trip-story{min-height:0}.cover-art,.cover-art img{min-height:0;height:210px}.cover-art{min-height:210px}h1{font-size:28pt}.trip-banner h2{font-size:23pt}.trip-banner{padding:4mm}.metric strong{font-size:19pt}.metric span{font-size:7pt}.timeline-row{flex-wrap:wrap}.photo-mosaic img{height:24mm}.photo-mosaic figure:first-child img{height:60mm}}"
+  "@media(max-width:420px){body{padding-left:5px;padding-right:5px}.sheet-page{padding:14px}.cover{min-height:570px}.summary,.trip-hero,.trip-story{min-height:0}.cover-art,.cover-art img{min-height:0;height:210px}.cover-art{min-height:210px}h1{font-size:28pt}.trip-banner h2{font-size:23pt}.trip-banner{padding:4mm}.metric strong{font-size:19pt}.metric span{font-size:7pt}.timeline-row{flex-wrap:wrap}.timeline-meta{flex-basis:100%;text-align:left;padding-left:40px}.photo-mosaic img{height:24mm}.photo-mosaic figure:first-child img{height:60mm}.trip-compact .photo-mosaic figure:first-child img{height:60mm}}"
  ].join("\n");
  function render(doc,model){
   if(!doc?.createElement||!model||!Array.isArray(model.trips))throw new Error("Carnet indisponible.");
@@ -224,12 +278,16 @@
   const cover=el(main,"section","sheet-page cover");
   el(cover,"p","eyebrow","BEAM · TRAVEL HISTORY");
   const art=el(cover,"div","cover-art");
-  const coverPhoto=list.length?list[0].photos[0]:null;
+  // Favorited photographs win across ALL filtered trips, not just the newest.
+  // Fall back to any signed photograph; only then use the illustrated cover.
+  const favored=model.trips.find(t=>typeof t.favoritePhoto==="string"&&
+    t.photos?.includes(t.favoritePhoto))?.favoritePhoto;
+  const coverPhoto=favored||list.find(t=>t.photos.length)?.photos[0]||null;
   if(coverPhoto)makePhoto(art,coverPhoto,"Photographie de couverture du carnet","cover-image");
   else el(art,"div","cover-pattern");
   el(art,"div","cover-mark","MES VOYAGES, MES SOUVENIRS");
   const coverDetails=el(cover,"div","cover-label");
-  el(coverDetails,"h1",null,name?"Carnet de "+name:"Mon carnet de voyage");
+  el(coverDetails,"h1",null,titleForName(name));
   el(coverDetails,"p","cover-period",period(list));
   el(coverDetails,"p","cover-caption",filterLabel(model.filters));
   const flags=el(coverDetails,"div","flag-strip");
@@ -243,7 +301,9 @@
   el(yearbook,"h2",null,"Mon année en voyages");
   map(yearbook,model.mapSvgText,new Set(countries));
   const nums=el(yearbook,"div","metric-grid");
-  for(const [value,label] of [[summary.length,"voyages à l’étranger"],[summaryCountries,"pays à l’étranger"],[summaryDays,"jours à l’étranger"]]){
+  for(const [value,label] of [[summary.length,"voyage"+(summary.length===1?"":"s")+" à l’étranger"],
+    [summaryCountries,"pays à l’étranger"],
+    [summaryDays,"jour"+(summaryDays===1?"":"s")+" à l’étranger"]]){
    const block=el(nums,"div","metric");
    el(block,"strong",null,String(value));el(block,"span",null,label);
   }
@@ -254,14 +314,20 @@
   const timeline=el(yearbook,"div","timeline");
   for(const trip of list.slice(0,24)){
    const row=el(timeline,"div","timeline-row");
-   const label=el(row,"span");
-   label.textContent=trip.country;
-   el(row,"span","timeline-date",trip.entry);
+   flag(row,trip.code);
+   const detail=el(row,"div","timeline-detail");
+   el(detail,"span","timeline-country",trip.country);
+   if(trip.cities)el(detail,"span","timeline-city",trip.cities.split(",")[0]);
+   const dates=[trip.entry,trip.exit].filter((v,i)=>i===0||v!=="—").join(" – ");
+   el(row,"span","timeline-meta",dates+" · "+trip.duration);
   }
   if(list.length>24)el(yearbook,"p","empty","Et "+(list.length-24)+" autres voyages racontés dans ce carnet.");
   if(!list.length)el(yearbook,"p","empty","Aucun voyage ne correspond aux filtres sélectionnés.");
   for(const [index,trip] of list.entries()){
-   const hero=el(main,"section","sheet-page trip-hero");
+   // Compact trips stay on ONE page; photo-rich/long memories get a spread.
+   // More than 8 activities also requires space; never truncate user content.
+   const spread=trip.photos.length>=2||trip.memory.length>500||trip.activities.length>8;
+   const hero=el(main,"section","sheet-page trip-hero "+(spread?"trip-spread":"trip-compact"));
    const banner=el(hero,"header","trip-banner");
    const header=el(banner,"div");
    el(header,"p","eyebrow","VOYAGE "+String(index+1).padStart(2,"0"));
@@ -278,11 +344,14 @@
      makePhoto(figure,url,"Photo privée de "+trip.country);
     }
    }else{
-    el(hero,"div","photo-placeholder",trip.country);
+    const ribbon=el(hero,"div","photo-placeholder");
+    flag(ribbon,trip.code);
+    el(ribbon,"span",null,trip.country);
    }
    if(failed[index])el(hero,"p","photo-missing",failed[index]+" photo"+
     (failed[index]===1?"":"s")+" indisponible"+(failed[index]===1?"":"s")+" lors de la préparation.");
-   const story=el(main,"section","sheet-page trip-story");
+   const story=spread?el(main,"section","sheet-page trip-story"):
+    el(hero,"div","trip-story trip-story-inline");
    el(story,"p","eyebrow","MES SOUVENIRS · "+trip.country.toUpperCase());
    el(story,"h2",null,"Ce que je garde de ce voyage");
    if(trip.memory)el(story,"blockquote","quote",trip.memory);
@@ -368,7 +437,7 @@
   return img;
  }
  const api=Object.freeze({NOTICE,MAX_PHOTOS_PER_TRIP,MAX_TOTAL_PHOTOS,SIGNED_SECONDS,
-  preferredMediaQuery,filterLabel,viewTrip,period,render});
+  preferredMediaQuery,filterLabel,viewTrip,period,titleForName,fitAtlasToVisited,render});
  if(root)root.BEAM_PERSONAL_JOURNAL=api;
  if(typeof module!=="undefined"&&module.exports)module.exports=api;
 })(typeof window!=="undefined"?window:undefined);
