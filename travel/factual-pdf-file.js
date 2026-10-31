@@ -84,7 +84,8 @@
     y-=15;
     for(const [label,key] of [["E-mail","email"],["Téléphone","phone"],["Adresse","postalAddress"]]){
      if(!contacts[key])continue;
-     const wrapped=wrap(label+" : "+contacts[key],100);
+     const value=key==="phone"?PDF.formatPhone(contacts[key]):contacts[key];
+     const wrapped=wrap(label+" : "+value,100);
      for(const line of wrapped){color(0.18,0.24,0.2);textAt(line,42,y,8.5);y-=12}
     }
     y-=8;
