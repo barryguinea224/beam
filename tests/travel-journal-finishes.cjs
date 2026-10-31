@@ -25,7 +25,19 @@ assert.equal(PDF.factualRows([{country_code:"FR",cities:["Paris"],entry_date:"20
 // The original international-only helper remains valid for legacy consumers.
  // The new dashboard intentionally shows all visible filtered journeys, domestic too.
 assert.ok(script.includes('const visible=api.apply(trips,dashboardFilters)'));
-assert.ok(script.includes('stats=api.summary(visible)'));
+assert.ok(script.includes('stats=api.summary(visible,dashboardFilters)'));
+const FILTERS=require("../travel/dashboard-filters.js");
+const sample=[
+ {country_code:"FR",duration_days:11,is_domestic:false},
+ {country_code:"MA",duration_days:6,is_domestic:false},
+ {country_code:"GN",duration_days:1269,is_domestic:true}
+];
+assert.deepEqual(FILTERS.summary(sample,FILTERS.EMPTY),
+ {trips:2,countries:2,days:17,domestic:1},
+ "foreign-only headline is preserved by default");
+assert.deepEqual(FILTERS.summary(FILTERS.apply(sample,{scope:"domestic"}),{scope:"domestic"}),
+ {trips:1,countries:1,days:1269,domestic:1},
+ "national filter switches displayed headline");
 assert.ok(script.includes('window.BEAM_TRAVEL_PDF.fetchRows(S,uid)'));
 assert.ok(script.includes('window.BEAM_TRAVEL_PDF.purposeName(x.purpose)'));
 assert.ok(script.includes('fact("Motif",window.BEAM_TRAVEL_PDF.purposeName(trip.purpose))'));
