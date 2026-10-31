@@ -17,7 +17,9 @@ for(const [i,src] of inline.entries())new vm.Script(src,{filename:"travel/index.
 assert.match(app, /rel="manifest" href="\/travel\/manifest.webmanifest"/);
 assert.match(app, /id="offline"/);
 assert.match(app, /Connexion nécessaire pour consulter votre carnet/);
-assert.match(app, /window\.BEAM_TRAVEL_PWA\?\.installed\(\)/);
+// Installed and browser modes must show the SAME neutral access message.
+assert.match(app, /const ACCESS_NOTICE="Si cette adresse est autorisée/);
+assert.match(app, /shouldCreateUser:false/);
 assert.match(app, /await clearPwaSession\(\)/);
 assert.match(app, /forgetLocalAuth\(C\.supabaseUrl\)/);
 
