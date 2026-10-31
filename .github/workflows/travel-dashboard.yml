@@ -11,6 +11,7 @@ on:
       - "travel/factual-pdf.js"
       - "tests/travel-dashboard-*"
       - "tests/travel-responsive-final.cjs"
+      - "tests/travel-responsive-navigation.cjs"
       - ".github/workflows/travel-dashboard.yml"
 
 permissions:
@@ -48,6 +49,7 @@ jobs:
         run: |
           node tests/travel-dashboard-layout.cjs
           node tests/travel-responsive-final.cjs
+          node tests/travel-responsive-navigation.cjs
       - name: Upload five fictitious responsive screenshots
         if: always()
         uses: actions/upload-artifact@v4
