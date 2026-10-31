@@ -307,11 +307,15 @@ for(const [id,field] of [["#filterCountry","country"],["#filterYear","year"],["#
 }
 $("#resetFilters").onclick=()=>{dashboardFilters=window.BEAM_DASHBOARD_FILTERS.normalize(window.BEAM_DASHBOARD_FILTERS.EMPTY);render()};
 let accountReturnFocus=null;
-function accountDirty(){
- return $("#travelerName").value.trim()!==(profile.display_name||"").trim()||
- $("#contactPhone").value.replace(/\s/g,"")!==($("#contactPhone").dataset.saved||"").replace(/\s/g,"")||
- $("#contactPostalAddress").value!==($("#contactPostalAddress").dataset.saved||"");
-}
+let accountBaseline=null;
+function captureAccountBaseline(){accountBaseline={name:$("#travelerName").value.trim(),phone:$("#contactPhone").value,postal:$("#contactPostalAddress").value,residence:$("#residence").value};}
+function restoreAccountBaseline(){if(!accountBaseline)return;$("#travelerName").value=accountBaseline.name;$("#contactPhone").value=accountBaseline.phone;$("#contactPostalAddress").value=accountBaseline.postal;countrySelectors.residence.reset(accountBaseline.residence);}
+function accountDirty(){return !!accountBaseline&&(
+ $("#travelerName").value.trim()!==accountBaseline.name||
+ $("#contactPhone").value!==accountBaseline.phone||
+ $("#contactPostalAddress").value!==accountBaseline.postal||
+ $("#residence").value!==accountBaseline.residence
+);}
 function accountSummary(){
  $("#accountReadSummary").textContent=[
   "Nom : "+(profile.display_name||"Non renseigné"),
@@ -319,17 +323,18 @@ function accountSummary(){
   "Téléphone : "+($("#contactPhone").value||"Non renseigné"),
   "Adresse : "+($("#contactPostalAddress").value||"Non renseignée"),
   "Résidence : "+(profile.country_of_residence?countryName(profile.country_of_residence):"Non renseignée")
- ].join("\\n");
+ ].join("\n");
 }
 function openAccountPanel(){
  if(accountState!=="active")return;
  setFiltersOpen(false);accountReturnFocus=document.activeElement;
  accountSummary();$("#accountOverlay").classList.add("accountOpen");
  $("#accountOverlay").setAttribute("aria-hidden","false");$("#openAccount").setAttribute("aria-expanded","true");
- $("#closeAccount").focus();
+ $("#closeAccount").focus();armOverlayBack();
 }
 function closeAccountPanel(){
  if($("#accountOverlay").classList.contains("accountEditing")&&accountDirty()&&!confirm("Abandonner les modifications non enregistrées ?"))return false;
+ if($("#accountOverlay").classList.contains("accountEditing"))restoreAccountBaseline();
  $("#accountOverlay").classList.remove("accountOpen","accountEditing");
  $("#accountOverlay").setAttribute("aria-hidden","true");$("#openAccount").setAttribute("aria-expanded","false");
  if(accountReturnFocus?.isConnected)accountReturnFocus.focus();return true;
@@ -337,16 +342,23 @@ function closeAccountPanel(){
 $("#openAccount").onclick=openAccountPanel;
 $("#closeAccount").onclick=closeAccountPanel;
 $("#editAccount").onclick=()=>{
- $("#contactPhone").dataset.saved=$("#contactPhone").value;
- $("#contactPostalAddress").dataset.saved=$("#contactPostalAddress").value;
+ captureAccountBaseline();
  $("#accountOverlay").classList.add("accountEditing");$("#travelerName").focus();
 };
 $("#cancelAccountEdit").onclick=()=>{
  if(accountDirty()&&!confirm("Abandonner les modifications non enregistrées ?"))return;
- $("#accountOverlay").classList.remove("accountEditing");accountSummary();$("#editAccount").focus();
+ restoreAccountBaseline();$("#accountOverlay").classList.remove("accountEditing");accountSummary();$("#editAccount").focus();
 };
+// Browser history is used as an overlay sentinel; Android Back closes the top layer first.
+let overlayHistoryArmed=false;
+function armOverlayBack(){if(!overlayHistoryArmed){history.pushState({beamOverlay:true},"",location.href);overlayHistoryArmed=true;}}
+window.addEventListener("popstate",()=>{
+ if($("#accountOverlay").classList.contains("accountOpen")){if(!closeAccountPanel()){armOverlayBack();return}overlayHistoryArmed=false;return}
+ if($("#filterPanel").classList.contains("filterOpen")){setFiltersOpen(false);overlayHistoryArmed=false;return}
+ overlayHistoryArmed=false;
+});
 document.addEventListener("keydown",e=>{
- if(e.key==="Escape"&&$("#accountOverlay").classList.contains("accountOpen")){e.preventDefault();closeAccountPanel()}
+ if(e.key==="Escape"&&$("#accountOverlay").classList.contains("accountOpen")){e.preventDefault();e.stopImmediatePropagation();closeAccountPanel()}
 });
 function setAccountState(state){
  accountState=state;
@@ -462,7 +474,7 @@ $("#logout").onclick=async()=>{
  await clearPwaSession();
  // A fresh page cannot re-display previously loaded private trips.
  location.replace(location.pathname);
-};$("#residence").onchange=async e=>{if(accountState!=="active")return;let value=e.target.value||null,{error}=await S.from("profiles").update({country_of_residence:value}).eq("id",user.id);if(error){$("#appMsg").textContent="Impossible d’enregistrer la résidence.";$("#appMsg").classList.remove("hidden");e.target.value=profile.country_of_residence||"";return}profile.country_of_residence=value;$("#appMsg").textContent="Résidence actuelle enregistrée. Vos anciens voyages restent inchangés.";$("#appMsg").classList.remove("hidden");setTimeout(()=>$("#appMsg").classList.add("hidden"),4000)};let editingTripId=null,editingOriginalCountry=null;function proposeDomestic(code){if(!profile.country_of_residence||!code)return false;return code===profile.country_of_residence}function setDomesticProposal(code){$("#isDomestic").value=String(proposeDomestic(code));$("#domesticHint").textContent=profile.country_of_residence?"Proposition selon votre résidence actuelle. Vous pouvez la corriger.":"Aucune résidence enregistrée : vérifiez ce choix."}function openNewTrip(){if(accountState!=="active")return;editingTripId=null;editingOriginalCountry=null;$("#tripForm").reset();countrySelectors.trip.reset("");setDomesticProposal("");$("#tripTitle").textContent="Ajouter un voyage";$("#saveTrip").textContent="Enregistrer";resetPhotoUI(null);$("#tripMsg").classList.add("hidden");$("#modal").classList.add("open")}function openEditTrip(id){if(accountState!=="active")return;let x=trips.find(t=>t.id===id);if(!x)return;editingTripId=id;editingOriginalCountry=x.country_code;let f=$("#tripForm");countrySelectors.trip.reset(x.country_code);f.country_code.value=x.country_code;f.cities.value=x.cities.join(", ");f.entry_date.value=x.entry_date;f.exit_date.value=x.exit_date;f.purpose.value=x.purpose;f.note.value=x.note||"";f.is_domestic.value=String(!!x.is_domestic);$("#domesticHint").textContent="Classification enregistrée pour ce voyage. Elle reste stable tant que le pays ne change pas.";$("#tripTitle").textContent="Modifier le voyage";$("#saveTrip").textContent="Enregistrer les modifications";resetPhotoUI(id);$("#tripMsg").classList.add("hidden");$("#modal").classList.add("open");refreshMedia(id).catch(()=>showPhotoMessage("Impossible de charger les photos. Réessayez en rouvrant le voyage."))}$("#tripForm").country_code.onchange=e=>{let code=e.target.value;if(!editingTripId||code!==editingOriginalCountry)setDomesticProposal(code)};$("#add").onclick=openNewTrip;// Signed URLs are never embedded in saved HTML or handed to decorative CDNs.
+};$("#residence").onchange=async e=>{if(accountState!=="active")return;let value=e.target.value||null,{error}=await S.from("profiles").update({country_of_residence:value}).eq("id",user.id);if(error){$("#appMsg").textContent="Impossible d’enregistrer la résidence.";$("#appMsg").classList.remove("hidden");e.target.value=profile.country_of_residence||"";return}profile.country_of_residence=value;if(accountBaseline)accountBaseline.residence=value;$("#appMsg").textContent="Résidence actuelle enregistrée. Vos anciens voyages restent inchangés.";$("#appMsg").classList.remove("hidden");setTimeout(()=>$("#appMsg").classList.add("hidden"),4000)};let editingTripId=null,editingOriginalCountry=null;function proposeDomestic(code){if(!profile.country_of_residence||!code)return false;return code===profile.country_of_residence}function setDomesticProposal(code){$("#isDomestic").value=String(proposeDomestic(code));$("#domesticHint").textContent=profile.country_of_residence?"Proposition selon votre résidence actuelle. Vous pouvez la corriger.":"Aucune résidence enregistrée : vérifiez ce choix."}function openNewTrip(){if(accountState!=="active")return;editingTripId=null;editingOriginalCountry=null;$("#tripForm").reset();countrySelectors.trip.reset("");setDomesticProposal("");$("#tripTitle").textContent="Ajouter un voyage";$("#saveTrip").textContent="Enregistrer";resetPhotoUI(null);$("#tripMsg").classList.add("hidden");$("#modal").classList.add("open")}function openEditTrip(id){if(accountState!=="active")return;let x=trips.find(t=>t.id===id);if(!x)return;editingTripId=id;editingOriginalCountry=x.country_code;let f=$("#tripForm");countrySelectors.trip.reset(x.country_code);f.country_code.value=x.country_code;f.cities.value=x.cities.join(", ");f.entry_date.value=x.entry_date;f.exit_date.value=x.exit_date;f.purpose.value=x.purpose;f.note.value=x.note||"";f.is_domestic.value=String(!!x.is_domestic);$("#domesticHint").textContent="Classification enregistrée pour ce voyage. Elle reste stable tant que le pays ne change pas.";$("#tripTitle").textContent="Modifier le voyage";$("#saveTrip").textContent="Enregistrer les modifications";resetPhotoUI(id);$("#tripMsg").classList.add("hidden");$("#modal").classList.add("open");refreshMedia(id).catch(()=>showPhotoMessage("Impossible de charger les photos. Réessayez en rouvrant le voyage."))}$("#tripForm").country_code.onchange=e=>{let code=e.target.value;if(!editingTripId||code!==editingOriginalCountry)setDomesticProposal(code)};$("#add").onclick=openNewTrip;// Signed URLs are never embedded in saved HTML or handed to decorative CDNs.
 // Only visible cards are signed, and only after owner-scoped media verification.
 let coverLoadEpoch=0,coverObserver=null;
 function scheduleCoverImages(){
@@ -977,6 +989,7 @@ $("#contactDetailsForm").onsubmit=async event=>{
    throw new Error("Coordonnées non enregistrées.");
   $("#contactPhone").value=window.BEAM_TRAVEL_PDF.formatPhone(data.phone||"");
   $("#contactPostalAddress").value=data.postal_address||"";
+  if(accountBaseline){accountBaseline.phone=$("#contactPhone").value;accountBaseline.postal=$("#contactPostalAddress").value;}
   notice.textContent="Coordonnées enregistrées. Leur inclusion dans le PDF reste facultative.";
  }catch{notice.textContent="Impossible d'enregistrer ces coordonnées. Vérifiez votre connexion."}
  finally{
@@ -1011,6 +1024,7 @@ $("#travelerNameForm").onsubmit=async event=>{
    profile.display_name=data.display_name;
    $("#dashboardTitle").textContent=travelDashboardTitle(data.display_name);
    $("#travelerName").value=data.display_name;
+   if(accountBaseline)accountBaseline.name=data.display_name;
    travelerNameNotice("Nom enregistré. Il pourra figurer sur votre PDF.");
  }catch(err){travelerNameNotice(err.message||"Impossible d’enregistrer le nom.")}
  finally{savingTravelerName=false;btn.disabled=false;btn.textContent="Enregistrer le nom"}
