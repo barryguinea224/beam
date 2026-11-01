@@ -14,7 +14,11 @@ new vm.Script(worker, {filename:"travel/sw.js"});
 new vm.Script(helper, {filename:"travel/pwa.js"});
 const inline = [...app.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)].map(m=>m[1]);
 for(const [i,src] of inline.entries())new vm.Script(src,{filename:"travel/index.html#inline-"+i});
-assert.match(app, /rel="manifest" href="\/travel\/manifest.webmanifest"/);
+const manifestLinks=[...app.matchAll(/<link\s+rel="manifest"[^>]*>/g)].map(m=>m[0]);
+assert.equal(manifestLinks.length,1,"exactly one manifest must be loaded from the private or public page");
+assert.equal(manifestLinks[0],
+ '<link rel="manifest" href="/travel/manifest.webmanifest" crossorigin="use-credentials">',
+ "Chrome must send same-origin preview authentication cookies when requesting the PWA manifest");
 assert.match(app, /id="offline"/);
 assert.match(app, /Connexion nécessaire pour consulter votre carnet/);
 // Installed and browser modes must show the SAME neutral access message.
