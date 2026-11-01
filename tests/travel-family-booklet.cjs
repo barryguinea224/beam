@@ -29,7 +29,9 @@ assert.match(source,/size:A4 portrait/);
 assert.doesNotMatch(source,/transform:rotate\(180deg\)/);
 assert.doesNotMatch(source,/Noto Color Emoji|Apple Color Emoji/,"Emoji font must not capture ASCII spaces or numerals in printed PDF");
 assert.doesNotMatch(source,/size:A4 landscape/);
-assert.match(source,/transform:translateX\(210mm\) rotate\(90deg\)/);
+assert.match(source,/transform:rotate\(90deg\) translateY\(-100%\)/);
+assert.match(source,/@page\{size:A4 portrait;margin:0\}/);
+assert.doesNotMatch(source,/@media print and \(orientation:landscape\)/);
 assert.ok(!source.includes("localStorage")&&!source.includes("caches.open"));
 const album=fs.readFileSync("travel/index.html","utf8");
 assert.ok(album.includes('src="./family-booklet.js"')&&album.includes("BEAM_FAMILY_BOOKLET.render(tab.document"));
@@ -104,6 +106,8 @@ async function main(){
      rotatedSpreads:[...document.querySelectorAll(".spread")].filter(e=>getComputedStyle(e).transform!=="none").length,
      mapGuinea:[...document.querySelectorAll('.world path[data-country="GN"]')].map(e=>e.classList.contains("visited")),
      mapViewport:[...document.querySelectorAll(".world svg")].map(e=>e.getAttribute("viewBox")),
+     eastMapPathCount:(()=>{const east=[...document.querySelectorAll(".world-leaf")].find(e=>e.textContent.includes("2/2"));return east?.querySelectorAll("svg path").length||0})(),
+     bookletHelp:document.querySelector(".toolbar .help")?.textContent,
      justifiedText:[...document.querySelectorAll("h1,h2,h3,blockquote,.natural")].filter(e=>getComputedStyle(e).textAlign==="justify"||getComputedStyle(e).textAlignLast==="justify").length,
      coverTitle:document.querySelector(".cover h1")?.textContent,
      tabTitle:document.title
@@ -117,6 +121,8 @@ async function main(){
    assert.equal(audit.rotatedSpreads,0,"Portrait layout must not rotate oversized spreads");
    assert.deepEqual(audit.mapGuinea,[true,true],"Domestic Guinea must be highlighted on both map halves");
    assert.deepEqual(audit.mapViewport,["0 0 522 445","478 0 522 445"],"Map halves overlap");
+   assert.ok(audit.eastMapPathCount>10,"World map 2/2 must contain actual country paths");
+   assert.match(audit.bookletHelp,/Portrait, recto verso bord court/);
    assert.ok(audit.leafRect.height>audit.leafRect.width,"A5 must be portrait");
    assert.equal(audit.rotatedPages,8,"Rotate the eight A5 leaves inside their portrait sheet halves");
    assert.equal(audit.justifiedText,0,"No justified titles or prose");
@@ -137,6 +143,40 @@ async function main(){
    assert.ok(audit.text.includes("Nos prochains voyages…"));
    assert.ok(audit.text.includes("31 octobre 2026"));
    assert.deepEqual(audit.order.map(x=>x.side),["recto","verso","recto","verso"]);
+   // Confirm that five logical markers for EACH of the eight A5 leaves fit
+   // inside BOTH their half-sheet clipping rectangle and physical A4 sheet.
+   // A raster 90%-ink test by itself cannot catch clipped content.
+   await page.emulateMedia({media:"print"});
+   const landmarks=await page.evaluate(()=>{
+    const corners=[
+     ["haut-gauche",{top:"2mm",left:"2mm"}],
+     ["haut-droite",{top:"2mm",right:"2mm"}],
+     ["bas-gauche",{bottom:"2mm",left:"2mm"}],
+     ["bas-droite",{bottom:"2mm",right:"2mm"}],
+     ["centre",{top:"calc(50% - 1mm)",left:"calc(50% - 1mm)"}]
+    ];
+    const results=[];
+    for(const [i,half] of [...document.querySelectorAll(".sheet .half")].entries()){
+     const leaf=half.querySelector(".leaf"),sheet=half.closest(".sheet");
+     if(!leaf)throw Error("A5 leaf missing at printed half "+i);
+     const bounds=[half.getBoundingClientRect(),sheet.getBoundingClientRect()];
+     for(const [name,css] of corners){
+      const marker=document.createElement("span");
+      marker.className="test-print-landmark";
+      Object.assign(marker.style,{position:"absolute",width:"2mm",height:"2mm",
+       background:"#111",pointerEvents:"none",...css});
+      leaf.appendChild(marker);
+      const m=marker.getBoundingClientRect();
+      const fits=bounds.every(b=>m.left>=b.left-.5&&m.top>=b.top-.5&&
+        m.right<=b.right+.5&&m.bottom<=b.bottom+.5);
+      results.push({half:i,corner:name,fits});
+     }
+    }
+    return results;
+   });
+   assert.equal(landmarks.length,40,"Five markers for each of eight A5 sides");
+   for(const mark of landmarks)assert.ok(mark.fits,"Cropped A5 marker: "+JSON.stringify(mark));
+   await page.evaluate(()=>document.querySelectorAll(".test-print-landmark").forEach(e=>e.remove()));
    const print=path.join(dir,"demo-livret-a5-sur-a4-portrait.pdf");
    fs.writeFileSync(print,await page.pdf({format:"A4",landscape:false,preferCSSPageSize:false,printBackground:true}));
    assert.doesNotMatch(execFileSync("pdffonts",[print],{encoding:"utf8"}),/NotoColorEmoji|AppleColorEmoji/,"Unexpected emoji-font fallback; Type 3 alone is not an emoji");
@@ -180,21 +220,11 @@ async function main(){
     assert.ok(extent.width>=.90&&extent.height>=.90,
       "Portrait side "+n+" covers less than 90%: "+JSON.stringify(extent));
    }
-   // Landscape override must also fill the chosen physical page, rather than shrink.
-   const landscape=path.join(dir,"demo-livret-a5-sur-a4-paysage.pdf");
-   fs.writeFileSync(landscape,await page.pdf({format:"A4",landscape:true,preferCSSPageSize:false,printBackground:true}));
-   const landscapeInfo=execFileSync("pdfinfo",[landscape],{encoding:"utf8"});
-   const landDims=landscapeInfo.match(/Page size:\s+([\d.]+) x ([\d.]+) pts/);
-   assert.ok(landDims&&Number(landDims[1])>Number(landDims[2]),"Landscape override must remain landscape");
-   assert.match(landscapeInfo,/Pages:\s+4\b/);
-   for(let n=1;n<=4;n++){
-    const extent=inkExtent(landscape,n);
-    assert.ok(extent.width>=.90&&extent.height>=.90,
-      "Landscape side "+n+" covers less than 90%: "+JSON.stringify(extent));
-   }
    const text=execFileSync("pdftotext",["-raw",print,"-"],{encoding:"utf8"}).replace(/\s+/g," ");
-   for(const token of ["Carnet d\u0027Aminata Camara".replace("\\u0027","\u0027"),"Dalaba","Dakar","Nos prochains voyages"]){
-    assert.ok(text.includes(token),"Missing fictional content "+token);
+   const visibleText=text.replace(/[·•]/g,"").replace(/\s+/g," ");
+   for(const token of ["Carnet d'Aminata Camara","Notre monde 1/2","Notre monde 2/2",
+    "Guinée","Sénégal","Dalaba","Dakar","Nos prochains voyages"]){
+    assert.ok(visibleText.includes(token),"Missing or clipped PDF text "+token);
    }
    assert.ok(!text.includes("Document personnel, non destiné"));
    // Switch formats without a fresh Supabase query or requesting another signed URL.
@@ -227,7 +257,7 @@ async function main(){
     return [document.title,document.querySelector(".cover h1")?.textContent];
    },{...model,generatedAt:model.generatedAt.toISOString()});
    assert.deepEqual(youssouf,["Carnet de Youssouf","Carnet de Youssouf"]);
-   console.log("PASS family booklet: portrait A4 raster >=90%, rotated spreads, map overlap/Guinea, varied fillers, 8 simple pages");
+   console.log("PASS family booklet: A4 portrait, 40 A5 landmarks, 1/2+2/2 maps, all PDF titles/countries, short-edge help, varied fillers");
   }finally{await page.close()}
  }finally{await browser.close()}
 }
