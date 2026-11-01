@@ -20,9 +20,19 @@ assert.ok(photoCode.includes('BEAM_PHOTO_UPLOAD.uploadOne'),
   'The live queue must use the row-first upload helper');
 
 const jpeg = new Uint8Array([255,216,255,225,0,16,69,120,105,102,0,0]);
-function fake(name) {
+function fake(name, mode=null) {
   const blob = new Blob([jpeg], {type:'image/jpeg'});
-  return {name, size:blob.size, type:blob.type, slice:(a,b)=>blob.slice(a,b)};
+  let readable=true;
+  const file={name, size:blob.size, type:blob.type, slice:(a,b)=>{
+    if(!readable||mode==='NotFoundError'||mode==='NotReadableError'){
+      const error=new Error('A requested file or directory could not be found at the time an operation was processed');
+      error.name=mode||'NotFoundError';
+      throw error;
+    }
+    return blob.slice(a,b);
+  }};
+  file.revoke=()=>{readable=false};
+  return file;
 }
 function element(id) {
   const classes = new Set(id === '#modal' ? ['open'] : []);
@@ -43,7 +53,7 @@ function harness() {
     '#modal','#tripForm','#tripMsg','#tripTitle','#appMsg','#close'];
   const els=Object.fromEntries(ids.map(id=>[id,element(id)]));
   const records=[],uploads=[],revoked=[],calls=[];
-  let created=0,uploadCount=0,failAt=0,serial=0,confirmAnswer=true;
+  let created=0,uploadCount=0,failAt=0,serial=0,confirmAnswer=true,failConversionName=null;
   const confirmMessages=[];
   const storage={
     upload:async (path,blob,options)=>{
@@ -85,9 +95,13 @@ function harness() {
       throw new Error('Unknown table '+table);
     }
   };
-  const convertedPhoto={convert:async()=>({
-    blob:new Blob(['reencoded pixels'],{type:'image/webp'}),width:800,height:1200
-  })};
+  const convertedPhoto={convert:async file=>{
+    if(file.name===failConversionName){
+      const error=new Error('A requested file or directory could not be found at the time an operation was processed');
+      error.name='NotReadableError';throw error;
+    }
+    return {blob:new Blob(['reencoded pixels'],{type:'image/webp'}),width:800,height:1200};
+  }};
   const context=vm.createContext({
     window:{BEAM_COUNTRIES:COUNTRIES,BEAM_PHOTO:{...PHOTO,...convertedPhoto},
       BEAM_PHOTO_UPLOAD:{uploadOne:params=>uploadOne({...params,idProvider:()=>('photo-'+(++serial))})},
@@ -130,7 +144,7 @@ function harness() {
     });
   }
   return {els,records,uploads,revoked,calls,context,select,save,queued,remove,close,setConfirm,confirmMessages,
-    failAt:n=>{failAt=n},uploadCount:()=>uploadCount};
+    failAt:n=>{failAt=n},failConvert:name=>{failConversionName=name},uploadCount:()=>uploadCount};
 }
 async function main() {
   // The actual browser onchange handler is invoked twice, never as one multi-file selection.
@@ -206,13 +220,71 @@ async function main() {
   assert.equal(partial.records.length,1,'Failed reservation must be cleaned by travel-delete');
   assert.deepEqual(partial.calls.map(x=>x[0]),['reserve','upload','reserve','upload','cleanup']);
   assert.deepEqual(Array.from(partial.queued()),['retry.jpg']);
-  assert.match(partial.els['#tripMsg'].textContent,/1 photo reste en attente/);
+  assert.match(partial.els['#tripMsg'].textContent,/Voyage enregistré/);
+  assert.match(partial.els['#tripMsg'].textContent,/retry\.jpg/);
+  assert.doesNotMatch(partial.els['#tripMsg'].textContent,/A requested file or directory/);
   assert.equal(partial.els['#modal'].classList.contains('open'),true);
   await partial.save();
   assert.equal(partial.records.length,2);
   assert.deepEqual(partial.calls.slice(-2).map(x=>x[0]),['reserve','upload']);
   assert.equal(partial.uploads.length,3,'One failed upload was retried, not the successful photo');
   assert.deepEqual(Array.from(partial.queued()),[]);
-  console.log('BEAM photo queue PASS: successive pickers, thumbnails, remove, cap, partial failure and retry');
+  // The Android provider can revoke a File BEFORE its first read. It must
+  // become a French error tile, not block the other selected photos.
+  const vanished=harness();
+  await vanished.select([fake('ok.jpg'),fake('lost.jpg','NotFoundError'),
+    fake('locked.jpg','NotReadableError'),fake('next.jpg')]);
+  assert.deepEqual(Array.from(vanished.queued()),['ok.jpg','next.jpg']);
+  assert.match(vanished.els['#photoGallery'].innerHTML,/lost\.jpg/);
+  assert.match(vanished.els['#photoGallery'].innerHTML,/locked\.jpg/);
+  assert.equal((vanished.els['#photoGallery'].innerHTML.match(/Cette photo n'est plus accessible/g)||[]).length,2);
+  assert.doesNotMatch(vanished.els['#photoGallery'].innerHTML,/A requested file or directory/);
+  assert.match(vanished.els['#photoUsage'].textContent,/2 en attente \/ 10/);
+  await vanished.save();
+  assert.equal(vanished.uploads.length,2);
+  assert.equal(vanished.records.length,2);
+  assert.match(vanished.els['#appMsg'].textContent,/lost\.jpg/);
+  assert.match(vanished.els['#appMsg'].textContent,/locked\.jpg/);
+
+  // This source is readable during selection, then goes away. The stable
+  // in-memory snapshot must still be uploaded; no second provider read.
+  const revokedSource=harness(),original=fake('snapshot.jpg');
+  await revokedSource.select([original]);
+  original.revoke();
+  await revokedSource.save();
+  assert.equal(revokedSource.uploads.length,1);
+  assert.equal(revokedSource.records.length,1);
+
+  // A file can even fail DURING conversion/upload. Save the voyage and
+  // both surrounding images; the failed file gets its own named error.
+  const during=harness();
+  during.failConvert('failed-at-send.jpg');
+  await during.select([fake('first.jpg'),fake('failed-at-send.jpg'),fake('third.jpg')]);
+  await during.save();
+  assert.equal(during.records.length,2);
+  assert.equal(during.uploads.length,2);
+  assert.deepEqual(Array.from(during.queued()),[]);
+  assert.equal(during.els['#modal'].classList.contains('open'),true);
+  assert.match(during.els['#tripMsg'].textContent,/Voyage enregistré/);
+  assert.match(during.els['#tripMsg'].textContent,/failed-at-send\.jpg/);
+  assert.match(during.els['#tripMsg'].textContent,/Cette photo n'est plus accessible/);
+  assert.doesNotMatch(during.els['#tripMsg'].textContent,/A requested file or directory/);
+  assert.match(during.els['#photoGallery'].innerHTML,/failed-at-send\.jpg/);
+
+  // Upload network failure at the second of THREE files must not prevent the
+  // third from being stored; retry only sends the failed second item.
+  const continuing=harness();
+  continuing.failAt(2);
+  await continuing.select([fake('one.jpg'),fake('two.jpg'),fake('three.jpg')]);
+  await continuing.save();
+  assert.equal(continuing.uploads.length,3);
+  assert.equal(continuing.records.length,2);
+  assert.deepEqual(Array.from(continuing.queued()),['two.jpg']);
+  assert.match(continuing.els['#tripMsg'].textContent,/two\.jpg/);
+  await continuing.save();
+  assert.equal(continuing.uploads.length,4);
+  assert.equal(continuing.records.length,3);
+
+  console.log('BEAM photo queue PASS: successive selections, durable snapshots, unreadable sources, partial upload and retry');
 }
 main().catch(err=>{console.error(err);process.exitCode=1});
