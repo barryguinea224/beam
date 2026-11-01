@@ -75,14 +75,10 @@
   let deferredInstall=null,installBusy=false,installDone=false,installNotice="";
   function installHelpText(ua) {
     const agent=String(ua||"");
-    if (/iPhone|iPad|iPod/i.test(agent)) return
-      "iPhone ou iPad : ouvrez ce carnet dans Safari. Touchez Partager, puis « Sur l’écran d’accueil ». Activez « Ouvrir comme app web » si l’option apparaît, puis touchez Ajouter. L’installation depuis cette page ne peut pas être lancée automatiquement.";
-    if (/SamsungBrowser/i.test(agent)) return
-      "Samsung Internet : touchez l’icône d’installation (+) si elle apparaît, ou ouvrez le menu ☰, puis « Ajouter la page à » > « Écran d’accueil ». Confirmez l’ajout ou l’installation lorsque le navigateur le propose.";
-    if (/Android/i.test(agent)) return
-      "Chrome sur Android : ouvrez le menu ⋮, puis « Installer l’application » ou « Ajouter à l’écran d’accueil » si cette option apparaît. Depuis WhatsApp ou un navigateur intégré, ouvrez d’abord la page directement dans Chrome.";
-    if (/Macintosh/i.test(agent)) return
-      "Sur Mac : dans Safari, ouvrez Fichier > « Ajouter au Dock », si proposé. Dans Chrome, utilisez l’option d’installation du menu si elle est disponible.";
+    if (/iPhone|iPad|iPod/i.test(agent)) return "iPhone ou iPad : ouvrez ce carnet dans Safari. Touchez Partager, puis « Sur l’écran d’accueil ». Activez « Ouvrir comme app web » si l’option apparaît, puis touchez Ajouter. L’installation depuis cette page ne peut pas être lancée automatiquement.";
+    if (/SamsungBrowser/i.test(agent)) return "Samsung Internet : touchez l’icône d’installation (+) si elle apparaît, ou ouvrez le menu ☰, puis « Ajouter la page à » > « Écran d’accueil ». Confirmez l’ajout ou l’installation lorsque le navigateur le propose.";
+    if (/Android/i.test(agent)) return "Chrome sur Android : ouvrez le menu ⋮, puis « Installer l’application » ou « Ajouter à l’écran d’accueil » si cette option apparaît. Depuis WhatsApp ou un navigateur intégré, ouvrez d’abord la page directement dans Chrome.";
+    if (/Macintosh/i.test(agent)) return "Sur Mac : dans Safari, ouvrez Fichier > « Ajouter au Dock », si proposé. Dans Chrome, utilisez l’option d’installation du menu si elle est disponible.";
     return "Sur ordinateur : dans Chrome ou Edge, ouvrez le menu et choisissez « Installer » lorsque cette option apparaît. Sinon, un raccourci peut simplement ouvrir la page dans le navigateur : ce n’est pas nécessairement une application installée.";
   }
   function installAreas(){
