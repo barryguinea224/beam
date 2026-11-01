@@ -12,11 +12,20 @@ type Action =
   | { action: "delete_trip"; trip_id: string }
   | { action: "delete_account"; confirmation: "SUPPRIMER" };
 
-const ALLOWED_ORIGINS = new Set([
-  "https://beamguinee.com",
-  "https://www.beamguinee.com",
-  "https://deploy-preview-3--inquisitive-boba-e06b58.netlify.app",
-]);
+// Production CORS excludes Netlify previews; staging retains them.
+const projectHost = (() => {
+  try { return new URL(Deno.env.get("SUPABASE_URL") || "").hostname; }
+  catch { return ""; }
+})();
+const PROJECT_ORIGINS: Record<string,string[]> = {
+  "aojxeujjluhmnkwscndc.supabase.co": ["https://beamguinee.com"],
+  "coigbvhxywbmqgacmhzf.supabase.co": [
+    "https://beamguinee.com",
+    "https://www.beamguinee.com",
+    "https://deploy-preview-3--inquisitive-boba-e06b58.netlify.app"
+  ]
+};
+const ALLOWED_ORIGINS = new Set(PROJECT_ORIGINS[projectHost] || []);
 
 function cors(req: Request): Record<string, string> {
   const origin = req.headers.get("origin") || "";

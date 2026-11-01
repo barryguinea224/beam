@@ -1,5 +1,6 @@
 [build]
   publish = "."
+  command = "node scripts/build-travel-config.cjs"
 
 [[headers]]
   for = "/*"
@@ -7,3 +8,8 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
     X-Frame-Options = "SAMEORIGIN"
+
+[[headers]]
+  for = "/travel/config.js"
+  [headers.values]
+    Cache-Control = "no-cache, must-revalidate"
