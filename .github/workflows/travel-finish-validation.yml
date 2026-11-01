@@ -35,11 +35,14 @@ jobs:
             sleep .2
           done
           curl --fail --silent http://127.0.0.1:8765/ >/dev/null
+          failures=0
           for test in tests/*.cjs; do
             echo "::group::$test"
-            node "$test"
+            if node "$test"; then echo "PASS $test"; else failures=$((failures + 1)); echo "::error::FAIL $test"; fi
             echo "::endgroup::"
           done
+          echo "Total failing test files: $failures"
+          test "$failures" -eq 0
       - name: Upload captures from REAL application at 360 and 1280 px
         if: always()
         uses: actions/upload-artifact@v4
