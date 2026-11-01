@@ -104,7 +104,12 @@
         throw new Error("WEBP_UNAVAILABLE");
       }
       return { blob, width, height };
-    } catch {
+    } catch (error) {
+      if (lostFile(error)) {
+        const problem = new Error(UNAVAILABLE);
+        problem.code = "PHOTO_FILE_INACCESSIBLE";
+        throw problem;
+      }
       throw new Error("Impossible de préparer cette photo. Essayez une image JPEG ou PNG.");
     } finally {
       bitmap?.close?.();
