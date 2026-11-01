@@ -1021,7 +1021,7 @@ function wirePhotoThumbs(container){
   const ready=()=>img.classList.add("loaded");
   const failed=()=>{
    const pendingId=img.closest(".photoTile")?.dataset.pendingId;
-   if(pendingId){
+   if(pendingId&&!savingTrip){
     const index=pendingPhotos.findIndex(entry=>entry.id===pendingId);
     if(index>=0){
      const [entry]=pendingPhotos.splice(index,1);
