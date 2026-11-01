@@ -243,7 +243,7 @@ html.beamOffline #auth,html.beamOffline #app,html.beamOffline #modal,html.beamOf
     </section>
   </div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./config.js"></script><script src="./pwa.js"></script><script src="./photo-utils.js"></script><script src="./photo-upload.js"></script><script src="./trip-detail.js"></script><script src="./countries.js"></script><script src="./country-picker.js"></script><script src="./factual-pdf.js"></script><script src="./factual-pdf-file.js"></script><script src="./journal-stats.js"></script><script src="./dashboard-filters.js"></script><script src="./visual-cards.js"></script><script src="./printable-journal.js"></script><script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./config.js"></script><script src="./pwa.js"></script><script src="./photo-utils.js"></script><script src="./photo-upload.js"></script><script src="./trip-detail.js"></script><script src="./countries.js"></script><script src="./country-picker.js"></script><script src="./factual-pdf.js"></script><script src="./factual-pdf-file.js"></script><script src="./journal-stats.js"></script><script src="./dashboard-filters.js"></script><script src="./visual-cards.js"></script><script src="./printable-journal.js"></script><script src="./family-booklet.js"></script><script>
 const C=window.BEAM_TRAVEL_CONFIG||{},ok=C.supabaseUrl&&!C.supabaseUrl.includes("YOUR_")&&C.supabaseAnonKey&&!C.supabaseAnonKey.includes("YOUR_"),S=ok&&typeof supabase!=="undefined"?supabase.createClient(C.supabaseUrl,C.supabaseAnonKey):null,$=s=>document.querySelector(s);let user,trips=[],accountState="loading";
 function view(id){$("#auth").classList.add("hidden");$("#app").classList.add("hidden");$(id).classList.remove("hidden");document.title=id==="#app"?"Mon carnet de voyage":"BEAM Travel History"}
 let profile={country_of_residence:null,display_name:null};
@@ -1274,13 +1274,13 @@ $("#travelerNameForm").onsubmit=event=>{event.preventDefault();$("#contactDetail
 // Snapshot filters on click and verify account ownership again before rendering.
 let journalPrintBusy=false;
 const journalButton=$("#printJournal");
-if(typeof window.BEAM_PERSONAL_JOURNAL?.render!=="function"){
+if(typeof window.BEAM_FAMILY_BOOKLET?.render!=="function"){
  journalButton.disabled=true;
  journalButton.textContent="Carnet imprimable indisponible";
  journalButton.title="Le carnet imprimable est temporairement indisponible ; vos voyages restent accessibles.";
 }
 $("#printJournal").onclick=async()=>{
- if(typeof window.BEAM_PERSONAL_JOURNAL?.render!=="function")return;
+ if(typeof window.BEAM_FAMILY_BOOKLET?.render!=="function")return;
  if(journalPrintBusy||accountState!=="active"||!S||!user)return;
  const uid=user.id,filters=window.BEAM_DASHBOARD_FILTERS.normalize(dashboardFilters);
  // Must open on the original tap to avoid popup blocking on Android.
@@ -1345,7 +1345,7 @@ $("#printJournal").onclick=async()=>{
    if(response.ok)mapSvgText=await response.text();
   }catch{}
   if(accountState!=="active"||user?.id!==uid||tab.closed)throw new Error("Session expirée");
-  window.BEAM_PERSONAL_JOURNAL.render(tab.document,{
+  window.BEAM_FAMILY_BOOKLET.render(tab.document,{
    name:current.display_name,filters,trips:pack,mapSvgText,
    limitReached:remaining===0,generatedAt:new Date()
   });

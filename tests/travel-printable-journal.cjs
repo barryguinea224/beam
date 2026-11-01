@@ -91,7 +91,8 @@ const inline=main.match(/<script>([\s\S]*?)<\/script>/)?.[1];
 assert.ok(inline);new vm.Script(inline);
 assert.match(main,/id="printJournal"/);
 assert.match(main,/src="\.\/printable-journal\.js"/);
-assert.match(inline,/BEAM_PERSONAL_JOURNAL\.render\(tab\.document/);
+assert.match(main,/src="\.\/family-booklet\.js"/);
+assert.match(inline,/BEAM_FAMILY_BOOKLET\.render\(tab\.document/);
 assert.match(inline,/BEAM_DASHBOARD_FILTERS\.apply\(rows,filters\)/);
 assert.match(inline,/\.createSignedUrl\(row\.storage_path,window\.BEAM_PERSONAL_JOURNAL\.SIGNED_SECONDS\)/);
 assert.match(inline,/BEAM_VISUAL_CARDS\.trustedSignedUrl/);
@@ -106,7 +107,7 @@ assert.match(inline,/function travelDashboardTitle\(input\)/,
 assert.match(inline,/travelDashboardTitle\(name\)/);
 assert.match(inline,/setDashboardTitle\(data\.display_name\)/,"saved full name must update the responsive dashboard title");
 assert.match(inline,/function setDashboardTitle\(name\)/,"name rendering must use the shared no-truncation helper");
-assert.match(inline,/window\.BEAM_PERSONAL_JOURNAL\?\.render/,
+assert.match(inline,/window\.BEAM_FAMILY_BOOKLET\?\.render/,
  "missing optional album must disable printing without crashing the dashboard");
 assert.match(inline,/BEAM_PERSONAL_JOURNAL\.preferredMediaQuery\(/);
 assert.match(inline,/pack\[position\]=\{trip,activities:activityResult\.data\|\|\[\],photos,favoritePhoto,missingPhotos\}/,
@@ -121,8 +122,8 @@ assert.ok(!/printJournal|BEAM_PERSONAL_JOURNAL|dashboardFilters/.test(factualHan
 assert.equal(PDF.VIEW,"travel_history_pdf");
 assert.deepEqual(PDF.FIELDS,["country_code","cities","entry_date","exit_date","duration_days","purpose"]);
 const sw=fs.readFileSync("travel/sw.js","utf8");
-assert.ok(sw.includes('"./printable-journal.js"'));
-assert.match(sw,/beam-travel-shell-v1-20261031-/,"cache revision must remain explicit");
+assert.ok(sw.includes('"./printable-journal.js"')&&sw.includes('"./family-booklet.js"'));
+assert.match(sw,/beam-travel-shell-v1-20261101-family-a5-portrait-typography/,"cache revision must match the rebased booklet release");
 assert.ok(!sw.includes("storage/v1/object/sign")&&!sw.includes("signedUrl"));
 assert.match(sw,/url\.origin === self\.location\.origin/);
 assert.match(sw,/url\.search === ""/);
