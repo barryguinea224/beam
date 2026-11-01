@@ -184,6 +184,17 @@ html.beamOffline #auth,html.beamOffline #app,html.beamOffline #modal,html.beamOf
 .welcomeStep.done{background:#eaf6eb;border-color:#85b494}
 .welcomeStep .check{font-size:22px;color:#176346;min-width:24px}
 .emptyTrips{padding:12px 0 4px}.emptyTrips .btn{margin-top:10px}
+
+/* Desktop map containment: the fitted SVG must never escape the left grid track. */
+#travelMapPanel .map{min-width:0;width:100%;max-width:100%;overflow:hidden;grid-template-columns:minmax(0,1fr)}
+#travelMapPanel .map svg{display:block;min-width:0;width:100%;max-width:100%;height:100%;overflow:hidden}
+@media(min-width:900px){
+ #app .w{grid-template-columns:minmax(0,.94fr) minmax(0,1.06fr)}
+ #app .w>#travelMapPanel,#app .w>#travelPanels,#travelTripsPanel{min-width:0;max-width:100%}
+ #travelMapPanel{isolation:isolate;z-index:0;overflow:hidden}
+ #travelPanels{position:relative;z-index:1}
+ #travelTripsPanel h2{position:relative;z-index:1}
+}
 </style><link rel="stylesheet" href="./visual-cards.css"><link rel="stylesheet" href="./dashboard-filters.css">
 <script src="/travel/offline-bootstrap.js"></script></head><body>
 <section id="offline" role="status" aria-live="polite"><div class="ey">BEAM · Travel History</div><h1>Connexion nécessaire pour consulter votre carnet</h1><p>Vos voyages et photos sont privés et indisponibles hors ligne. Reconnectez-vous à Internet pour continuer.</p></section>
