@@ -25,10 +25,11 @@ assert.equal(BOOK.splitMemory("abc").join(""),"abc");
 const source=fs.readFileSync("travel/family-booklet.js","utf8");
 assert.ok(!/\.innerHTML\s*=|document\.write\s*\(/.test(source),"Untrusted text must be inserted as DOM text only");
 assert.match(source,/referrerpolicy/);
-assert.doesNotMatch(source,/size:A4 portrait/);
+assert.match(source,/size:A4 portrait/);
 assert.doesNotMatch(source,/transform:rotate\(180deg\)/);
 assert.doesNotMatch(source,/Noto Color Emoji|Apple Color Emoji/,"Emoji font must not capture ASCII spaces or numerals in printed PDF");
-assert.match(source,/size:A4 landscape/);
+assert.doesNotMatch(source,/size:A4 landscape/);
+assert.match(source,/transform:translateX\(210mm\) rotate\(90deg\)/);
 assert.ok(!source.includes("localStorage")&&!source.includes("caches.open"));
 const album=fs.readFileSync("travel/index.html","utf8");
 assert.ok(album.includes('src="./family-booklet.js"')&&album.includes("BEAM_FAMILY_BOOKLET.render(tab.document"));
@@ -100,6 +101,9 @@ async function main(){
      paperRect:(()=>{const r=document.querySelector(".sheet").getBoundingClientRect();return {width:r.width,height:r.height}})(),
      leafRect:(()=>{const r=document.querySelector(".leaf").getBoundingClientRect();return {width:r.width,height:r.height}})(),
      rotatedPages:[...document.querySelectorAll(".leaf")].filter(e=>getComputedStyle(e).transform!=="none").length,
+     rotatedSpreads:[...document.querySelectorAll(".spread")].filter(e=>getComputedStyle(e).transform!=="none").length,
+     mapGuinea:[...document.querySelectorAll('.world path[data-country="GN"]')].map(e=>e.classList.contains("visited")),
+     mapViewport:[...document.querySelectorAll(".world svg")].map(e=>e.getAttribute("viewBox")),
      justifiedText:[...document.querySelectorAll("h1,h2,h3,blockquote,.natural")].filter(e=>getComputedStyle(e).textAlign==="justify"||getComputedStyle(e).textAlignLast==="justify").length,
      coverTitle:document.querySelector(".cover h1")?.textContent,
      tabTitle:document.title
@@ -109,7 +113,10 @@ async function main(){
    assert.equal(audit.format,"booklet");
    assert.equal(audit.coverTitle,"Carnet d\u0027Aminata Camara".replace("\\u0027","\u0027"));
    assert.equal(audit.tabTitle,"Carnet d\u0027Aminata Camara".replace("\\u0027","\u0027"));
-   assert.ok(audit.paperRect.width>audit.paperRect.height,"A4 must be landscape");
+   assert.ok(audit.paperRect.height>audit.paperRect.width,"Physical A4 must be portrait");
+   assert.equal(audit.rotatedSpreads,4,"The four spreads must rotate on portrait sheets");
+   assert.deepEqual(audit.mapGuinea,[true,true],"Domestic Guinea must be highlighted on both map halves");
+   assert.deepEqual(audit.mapViewport,["0 0 522 445","478 0 522 445"],"Map halves overlap");
    assert.ok(audit.leafRect.height>audit.leafRect.width,"A5 must be portrait");
    assert.equal(audit.rotatedPages,0,"No A5 leaf may be rotated");
    assert.equal(audit.justifiedText,0,"No justified titles or prose");
@@ -130,14 +137,46 @@ async function main(){
    assert.ok(audit.text.includes("Nos prochains voyages…"));
    assert.ok(audit.text.includes("31 octobre 2026"));
    assert.deepEqual(audit.order.map(x=>x.side),["recto","verso","recto","verso"]);
-   const print=path.join(dir,"demo-livret-a5-portrait-impose.pdf");
-   fs.writeFileSync(print,await page.pdf({preferCSSPageSize:true,printBackground:true}));
-   assert.doesNotMatch(execFileSync("pdffonts",[print],{encoding:"utf8"}),/NotoColorEmoji|Type 3/,"ASCII letters, spaces and digits must not fall back to emoji fonts");
+   const print=path.join(dir,"demo-livret-a5-sur-a4-portrait.pdf");
+   fs.writeFileSync(print,await page.pdf({format:"A4",landscape:false,preferCSSPageSize:false,printBackground:true}));
+   assert.doesNotMatch(execFileSync("pdffonts",[print],{encoding:"utf8"}),/NotoColorEmoji|AppleColorEmoji/,"Unexpected emoji-font fallback; Type 3 alone is not an emoji");
    const info=execFileSync("pdfinfo",[print],{encoding:"utf8"});
    assert.match(info,/Page size:\s+[\d.]+ x [\d.]+ pts \(A4\)/);
    const dims=info.match(/Page size:\s+([\d.]+) x ([\d.]+) pts/);
-   assert.ok(dims&&Number(dims[1])>Number(dims[2]),"Printed A4 must be landscape");
+   assert.ok(dims&&Number(dims[1])<Number(dims[2]),"Android-forced A4 must be portrait");
    assert.match(info,/Pages:\s+4\b/,"Eight A5 leaves must occupy four A4 printed sides");
+   // Check the nonwhite raster extent of every physical side (Poppler grayscale PGM).
+   // Unlike pdfinfo this catches tiny spreads that occupy only the top third.
+   function inkExtent(pdf,n){
+    const buf=execFileSync("pdftoppm",["-f",String(n),"-l",String(n),"-r","36","-singlefile","-gray",pdf,"-"],{maxBuffer:3000000});
+    let pos=0;
+    function token(){
+     while(pos<buf.length){
+      if(buf[pos]===35){while(pos<buf.length&&buf[pos]!==10)pos++}
+      else if(buf[pos]<=32)pos++;
+      else break;
+     }
+     const a=pos;while(pos<buf.length&&buf[pos]>32)pos++;
+     return buf.toString("ascii",a,pos);
+    }
+    assert.equal(token(),"P5");
+    const width=+token(),height=+token(),max=+token();
+    assert.equal(max,255);assert.ok(width>0&&height>0);pos++;
+    let minX=width,minY=height,maxX=-1,maxY=-1;
+    for(let y=0;y<height;y++)for(let x=0;x<width;x++){
+     if(buf[pos+y*width+x]<254){
+      minX=Math.min(minX,x);maxX=Math.max(maxX,x);
+      minY=Math.min(minY,y);maxY=Math.max(maxY,y);
+     }
+    }
+    assert.ok(maxX>=0,"Page "+n+" is blank");
+    return {width:(maxX-minX+1)/width,height:(maxY-minY+1)/height};
+   }
+   for(let n=1;n<=4;n++){
+    const extent=inkExtent(print,n);
+    assert.ok(extent.width>=.90&&extent.height>=.90,
+      "Portrait side "+n+" covers less than 90%: "+JSON.stringify(extent));
+   }
    const text=execFileSync("pdftotext",["-raw",print,"-"],{encoding:"utf8"}).replace(/\s+/g," ");
    for(const token of ["Carnet d\u0027Aminata Camara".replace("\\u0027","\u0027"),"Dalaba","Dakar","Nos prochains voyages"]){
     assert.ok(text.includes(token),"Missing fictional content "+token);
@@ -148,19 +187,32 @@ async function main(){
    assert.equal(await page.locator(".sheet").count(),8);
    assert.equal(await page.locator(".half.left").count(),0);
    const plain=path.join(dir,"demo-pages-simples-a4.pdf");
-   fs.writeFileSync(plain,await page.pdf({preferCSSPageSize:true,printBackground:true}));
-   assert.doesNotMatch(execFileSync("pdffonts",[plain],{encoding:"utf8"}),/NotoColorEmoji|Type 3/,"Simple A4 PDF must not substitute emoji font for spacing");
+   fs.writeFileSync(plain,await page.pdf({format:"A4",landscape:false,preferCSSPageSize:false,printBackground:true}));
+   assert.doesNotMatch(execFileSync("pdffonts",[plain],{encoding:"utf8"}),/NotoColorEmoji|AppleColorEmoji/,"Unexpected emoji font in simple PDF");
    const singleInfo=execFileSync("pdfinfo",[plain],{encoding:"utf8"});
    assert.match(singleInfo,/Page size:\s+[\d.]+ x [\d.]+ pts \(A4\)/);
    assert.match(singleInfo,/Pages:\s+8\b/);
    const simpleDims=singleInfo.match(/Page size:\s+([\d.]+) x ([\d.]+) pts/);
-   assert.ok(simpleDims&&Number(simpleDims[1])>Number(simpleDims[2]),"Simple A4 stays landscape");
+   assert.ok(simpleDims&&Number(simpleDims[1])<Number(simpleDims[2]),"Simple A4 physical pages must be portrait");
+   const fillers=await page.evaluate(data=>{
+    const trips=[{...data.trips[0],photos:Array(4).fill(data.trips[0].photos[0])}];
+    const count=window.BEAM_FAMILY_BOOKLET.render(document,{...data,trips,generatedAt:new Date(data.generatedAt)});
+    return {count,notes:document.querySelectorAll(".notes-leaf").length,
+     mosaic:document.querySelectorAll(".mosaic-leaf").length,
+     photos:document.querySelectorAll(".mosaic-grid img").length,
+     titles:[...document.querySelectorAll(".notes-leaf h2,.mosaic-leaf h2,.closing h2")].map(x=>x.textContent)};
+   },{...model,generatedAt:model.generatedAt.toISOString()});
+   assert.equal(fillers.count,8);
+   assert.equal(fillers.notes,1);
+   assert.equal(fillers.mosaic,1);
+   assert.equal(fillers.photos,1);
+   assert.deepEqual(fillers.titles,["Notes","Quelques images de plus","Nos prochains voyages…"]);
    const youssouf=await page.evaluate(data=>{
     window.BEAM_FAMILY_BOOKLET.render(document,{...data,name:"Youssouf",generatedAt:new Date(data.generatedAt)});
     return [document.title,document.querySelector(".cover h1")?.textContent];
    },{...model,generatedAt:model.generatedAt.toISOString()});
    assert.deepEqual(youssouf,["Carnet de Youssouf","Carnet de Youssouf"]);
-   console.log("PASS family booklet: 4/8/12 imposition, A5 portrait left binding on A4 landscape, elision, upright pages, left-aligned headings, 8 A4 simple pages");
+   console.log("PASS family booklet: portrait A4 raster >=90%, rotated spreads, map overlap/Guinea, varied fillers, 8 simple pages");
   }finally{await page.close()}
  }finally{await browser.close()}
 }
