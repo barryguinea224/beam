@@ -1,8 +1,11 @@
 // BEAM Travel History — hostile A/B staging test
 // Secrets stay in local environment variables. Never commit credentials.
 // Required: SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, TEST_A_EMAIL,
-// TEST_A_PASSWORD, TEST_B_EMAIL, TEST_B_PASSWORD
+// TEST_A_PASSWORD, TEST_B_EMAIL, TEST_B_PASSWORD, STAGING_SERVICE_ROLE_KEY
 // CI identities only: never reuse accounts used for manual/product testing.
+// A/B are PRE-PROVISIONED CI logins; the expired account is newly created.
+// This privileged Deno bench is dispatched manually after STAGING migration
+// and uses the server key only in the protected staging-destructive environment.
 
 import { createClient } from "npm:@supabase/supabase-js@2.75.0";
 import { ACTIVITY_KINDS } from "../../constants.js";
@@ -11,9 +14,20 @@ const TEST_ACTIVITY_KIND = ACTIVITY_KINDS[0];
 if (!TEST_ACTIVITY_KIND) throw new Error("No allowed activity kind configured");
 
 const env = Deno.env.toObject();
-const required = ["SUPABASE_URL","SUPABASE_PUBLISHABLE_KEY","TEST_A_EMAIL","TEST_A_PASSWORD","TEST_B_EMAIL","TEST_B_PASSWORD"];
+const required = ["SUPABASE_URL","SUPABASE_PUBLISHABLE_KEY","TEST_A_EMAIL","TEST_A_PASSWORD","TEST_B_EMAIL","TEST_B_PASSWORD","STAGING_SERVICE_ROLE_KEY"];
 for (const k of required) if (!env[k]) throw new Error(`Missing ${k}`);
 for (const k of ["TEST_A_EMAIL","TEST_B_EMAIL"]) if (!/\+ci-[ab]@/i.test(env[k])) throw new Error(`${k} must be a dedicated CI identity (+ci-a / +ci-b)`);
+if (new URL(env.SUPABASE_URL).hostname !== "coigbvhxywbmqgacmhzf.supabase.co")
+  throw new Error("REFUSING_NON_STAGING_PROJECT");
+if (env.STAGING_SERVICE_ROLE_KEY === env.SUPABASE_PUBLISHABLE_KEY)
+  throw new Error("STAGING_SERVER_KEY_MUST_DIFFER_FROM_PUBLIC_KEY");
+const admin = createClient(env.SUPABASE_URL,env.STAGING_SERVICE_ROLE_KEY,{
+  auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}
+});
+// Refuse to provision ANY account if the dated schema migration is missing.
+// The SELECT is service-only; the browser clients never receive the server key.
+const {error:expirySchemaError}=await admin.from("profiles").select("access_until").limit(1);
+if(expirySchemaError) throw new Error("STAGING_ACCESS_UNTIL_MIGRATION_NOT_APPLIED");
 
 const client = () => createClient(env.SUPABASE_URL, env.SUPABASE_PUBLISHABLE_KEY, {
   auth: { persistSession:false, autoRefreshToken:false }
@@ -32,9 +46,27 @@ const expectDenied=(label: string,error: { status?: number; code?: string; name?
   console.log("PASS denied:", label, "| status:", error.status ?? "n/a", "| code:", error.code ?? error.name ?? "n/a", "| message:", error.message ?? String(error));
 };
 
+const twoYearsOut=()=>{
+  const value=new Date();
+  value.setUTCFullYear(value.getUTCFullYear()+2);
+  return value.toISOString().slice(0,10);
+};
+const setFixtureAccess=async(uid:string,email:string,date:string)=>{
+  const {data:identity,error:identityError}=await admin.auth.admin.getUserById(uid);
+  if(identityError||identity?.user?.email?.toLowerCase()!==email.toLowerCase())
+    throw new Error("REFUSING_NON_CI_IDENTITY_ACCESS_UPDATE");
+  const {data,error}=await admin.from("profiles")
+    .update({access_until:date}).eq("id",uid).select("id,access_until").single();
+  if(error||data?.id!==uid||data.access_until!==date)
+    throw new Error("CI_ACCESS_DATE_SETUP_FAILED");
+};
 const sa=await login("A",A,env.TEST_A_EMAIL,env.TEST_A_PASSWORD);
 const sb=await login("B",B,env.TEST_B_EMAIL,env.TEST_B_PASSWORD);
-console.log("Authenticated A/B with real JWTs",sa.user.id,sb.user.id);
+// These two accounts already exist in Auth: grant a future end date right
+// after authenticating them and BEFORE any normal client RLS write.
+await setFixtureAccess(sa.user.id,env.TEST_A_EMAIL,twoYearsOut());
+await setFixtureAccess(sb.user.id,env.TEST_B_EMAIL,twoYearsOut());
+console.log("PASS server-only access_until activated for dedicated A/B identities");
 
 const original={user_id:sa.user.id,country_code:"GN",cities:["Conakry"],entry_date:"2026-01-01",exit_date:"2026-01-02",purpose:"autre",note:"A-original-note"};
 let ta,tb,domesticTrip;
