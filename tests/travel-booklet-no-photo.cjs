@@ -48,6 +48,13 @@ async function audit(page,mode){
     f.querySelector(".cover-photo,.photo-hero,.flag-big")),
    coverHasPhoto:!!cover.querySelector(".cover-photo"),
    coverContentHeight:coverInner?.getBoundingClientRect().height,
+   coverFillsPage:(()=>{
+     const a=cover.getBoundingClientRect(),b=coverInner.getBoundingClientRect();
+     // In booklet mode the face is rotated 90deg; compare the actual
+     // transformed rectangles, not portrait CSS height against a screen threshold.
+     return Math.abs(a.width-b.width)<=2&&Math.abs(a.height-b.height)<=2&&
+       Math.abs(a.left-b.left)<=2&&Math.abs(a.top-b.top)<=2;
+   })(),
    photoLeafCount:leaves.length,
    imposition:document.querySelectorAll(".sheet").length,
    ready:!document.querySelector(".toolbar button")?.disabled,
@@ -112,7 +119,7 @@ async function main(){
    assert.equal(none.coverHasPhoto,false);
    assert.equal(none.coverNoPhoto,true,"cover must render polished typography-only fallback");
    assert.match(none.coverStyle,/gradient/);
-   assert.ok(none.coverContentHeight>600,"typographic cover must fill the page");
+   assert.ok(none.coverFillsPage,"typographic cover must occupy the whole rotated A5 face: "+JSON.stringify(none));
    assert.ok(none.coverText.includes("Carnet d'Aminata Camara"));
    assert.equal(none.frameCount,1);
    assert.equal(none.frameFallback,true);
