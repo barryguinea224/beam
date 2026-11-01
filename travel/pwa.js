@@ -113,8 +113,10 @@
         renderInstallUi();
         let accepted=false;
         try{
-          const answer=event.prompt();
-          const result=await (answer&&typeof answer.then==="function"?answer:event.userChoice);
+          // On Chromium the prompt() promise normally resolves to void.
+          // The acceptance decision is reported separately in userChoice.
+          await event.prompt();
+          const result=await event.userChoice;
           accepted=result?.outcome==="accepted";
           installNotice=accepted?
             "Demande d’installation acceptée. Vérifiez l’icône BTH sur votre écran d’accueil.":
