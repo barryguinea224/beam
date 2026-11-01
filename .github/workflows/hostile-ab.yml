@@ -2,6 +2,12 @@ name: Hostile A/B — Staging
 
 on:
   workflow_dispatch:
+    inputs:
+      staging_migration_applied:
+        description: "I have applied the access_until SQL migration to STAGING and verified it"
+        required: true
+        type: boolean
+        default: false
   pull_request:
     branches: [main, feature/beam-travel-history-v1]
     paths:
@@ -117,16 +123,18 @@ jobs:
         run: psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f travel/supabase/tests/media_storage_reserved_upload.sql
 
   hostile-ab:
-    # Fresh-schema replay PRs must NEVER acquire staging environment credentials.
-    # Other Travel PRs keep the existing staging hostile bench unchanged.
-    if: github.event_name != 'pull_request' || !startsWith(github.head_ref, 'ci/travel-fresh-supabase-schema-replay-')
-    name: Real JWT / RLS hostile bench
+    # This bench now requires a server key to provision disposable access dates.
+    # NEVER run on pull_request, synchronize or push: the owner must migrate
+    # STAGING first, explicitly dispatch this workflow, and approve the
+    # protected environment staging-destructive (reviewed exact commit).
+    if: github.event_name == 'workflow_dispatch' && inputs.staging_migration_applied == true
+    name: Real JWT / RLS hostile bench — MANUAL AFTER STAGING SQL
     concurrency:
       group: hostile-ab-staging
       cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    environment: staging
+    environment: staging-destructive
 
     steps:
       - name: Checkout
@@ -157,10 +165,11 @@ jobs:
           TEST_A_PASSWORD: ${{ secrets.TEST_A_PASSWORD }}
           TEST_B_EMAIL: ${{ secrets.TEST_B_EMAIL }}
           TEST_B_PASSWORD: ${{ secrets.TEST_B_PASSWORD }}
+          STAGING_SERVICE_ROLE_KEY: ${{ secrets.STAGING_SERVICE_ROLE_KEY }}
         run: |
           set -euo pipefail
           missing=0
-          for name in STAGING_URL STAGING_ANON_KEY TEST_A_EMAIL TEST_A_PASSWORD TEST_B_EMAIL TEST_B_PASSWORD; do
+          for name in STAGING_URL STAGING_ANON_KEY TEST_A_EMAIL TEST_A_PASSWORD TEST_B_EMAIL TEST_B_PASSWORD STAGING_SERVICE_ROLE_KEY; do
             value="${!name:-}"
             if [ -z "$value" ]; then
               echo "$name: MISSING (length 0)"
@@ -183,4 +192,5 @@ jobs:
           TEST_A_PASSWORD: ${{ secrets.TEST_A_PASSWORD }}
           TEST_B_EMAIL: ${{ secrets.TEST_B_EMAIL }}
           TEST_B_PASSWORD: ${{ secrets.TEST_B_PASSWORD }}
+          STAGING_SERVICE_ROLE_KEY: ${{ secrets.STAGING_SERVICE_ROLE_KEY }}
         run: deno run --allow-env --allow-net travel/supabase/tests/hostile_ab.ts
