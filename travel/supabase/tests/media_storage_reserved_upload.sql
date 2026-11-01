@@ -11,7 +11,8 @@ begin
     where oid=to_regprocedure('auth.uid()')
       and pg_get_userbyid(proowner)=current_user
  ) then
-   execute 'create function auth.uid() returns uuid language sql stable as $ select nullif(current_setting(''request.jwt.claim.sub'',true),'''')::uuid $';
+   execute format('CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS %L',
+     $body$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$body$);
  end if;
 end $auth_fixture$;
 alter table storage.objects enable row level security;
