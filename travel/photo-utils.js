@@ -12,7 +12,11 @@
   const INACCESSIBLE = "Cette photo n'est plus accessible. Choisissez-la à nouveau depuis votre Galerie.";
   function message(error) {
     if (error?.name==="NotFoundError" || error?.name==="NotReadableError" || error?.code==="PHOTO_INACCESSIBLE") return INACCESSIBLE;
-    if ([UNSUPPORTED,TOO_LARGE,INACCESSIBLE].includes(error?.message)) return error.message;
+    if ([UNSUPPORTED,TOO_LARGE,INACCESSIBLE].includes(error?.message) ||
+        (typeof error?.message==="string" && (
+          error.message.startsWith("10 photos maximum par voyage.") ||
+          error.message==="Attendez que les photos du voyage soient chargées."
+        ))) return error.message;
     return "Impossible de lire cette photo. Réessayez depuis votre Galerie.";
   }
   async function snapshot(file) {
