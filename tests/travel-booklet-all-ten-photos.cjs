@@ -102,7 +102,8 @@ async function main(){
    assert.equal(result.mosaicLeaves,2);
    assert.equal(result.mosaicCount,9);
    assert.deepEqual(result.tripMosaic,["fixture-ten","fixture-ten"]);
-   assert.deepEqual(result.mosaicIndexes,["2","3","4","5","6","7","8","9","10"]);
+   assert.deepEqual([...result.mosaicIndexes].sort((a,b)=>Number(a)-Number(b)),["2","3","4","5","6","7","8","9","10"],
+    "imposition changes DOM order, but all nine additional pictures must occur exactly once");
    assert.deepEqual(result.resized.map(x=>Math.max(x.width,x.height)),[1500,1500]);
    for(const d of result.resized)assert.ok(d.width>0&&d.height>0);
    assert.match(result.closeText,/bord court/);
