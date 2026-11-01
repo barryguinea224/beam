@@ -44,7 +44,7 @@ async function main(){
      canvas.width=canvas.height=1;
     }
     const requests=[];
-    const env={document,createImageBitmap:window.createImageBitmap,
+    const env={document,createImageBitmap:blob=>window.createImageBitmap(blob),
      fetch:async(url,opts)=>{
       requests.push({url,cache:opts.cache,mode:opts.mode,credentials:opts.credentials});
       return new Response(originals.get(url),{status:200,headers:{"content-type":"image/jpeg"}});
