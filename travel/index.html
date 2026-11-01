@@ -1305,9 +1305,10 @@ $("#tripForm").onsubmit=async e=>{
        return;
      }
    }
+   const ignoredNames=failedPhotoSelections.map(entry=>entry.name);
    form.reset();resetPhotoUI(null);$("#modal").classList.remove("open");
    $("#appMsg").textContent=(wasEditing?"Voyage modifié":"Voyage ajouté")+(selected.length?" avec ses photos.":".")+
-     (failedPhotoSelections.length?" Photos ignorées : "+failedPhotoSelections.map(x=>"« "+x.name+" »").join(", ")+
+     (ignoredNames.length?" Photos ignorées : "+ignoredNames.map(name=>"« "+name+" »").join(", ")+
        ". Choisissez-les à nouveau depuis votre Galerie.":"");
    $("#appMsg").classList.remove("hidden");editingTripId=null;
    try{await load()}catch{}
