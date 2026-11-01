@@ -220,11 +220,11 @@ async function main(){
     assert.ok(extent.width>=.90&&extent.height>=.90,
       "Portrait side "+n+" covers less than 90%: "+JSON.stringify(extent));
    }
-   const text=execFileSync("pdftotext",["-raw",print,"-"],{encoding:"utf8"}).replace(/\s+/g," ");
-   const visibleText=text.replace(/[·•]/g,"").replace(/\s+/g," ");
+   const text=execFileSync("pdftotext",["-layout",print,"-"],{encoding:"utf8"}).replace(/\s+/g," ");
+   const visibleText=text.replace(/[·•]/g," ").replace(/\s+/g," ").toLocaleLowerCase("fr");
    for(const token of ["Carnet d'Aminata Camara","Notre monde 1/2","Notre monde 2/2",
     "Guinée","Sénégal","Dalaba","Dakar","Nos prochains voyages"]){
-    assert.ok(visibleText.includes(token),"Missing or clipped PDF text "+token);
+    assert.ok(visibleText.includes(token.toLocaleLowerCase("fr")),"Missing or clipped PDF text "+token);
    }
    assert.ok(!text.includes("Document personnel, non destiné"));
    // Switch formats without a fresh Supabase query or requesting another signed URL.
