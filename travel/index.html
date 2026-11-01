@@ -1223,14 +1223,35 @@ $("#photoGallery").onclick=async e=>{
  }
 };
 async function uploadPhotos(tripId,entries){
+ const failures=[];
  for(const entry of entries){
    if(accountState!=="active")throw new Error("Votre compte n’autorise plus l’ajout de photos.");
-   await window.BEAM_PHOTO_UPLOAD.uploadOne({
-     client:S,photoApi:PHOTO,userId:user.id,tripId,file:entry.file
-   });
-   // Only a fully confirmed upload is removed; failed and later entries remain.
-   removePendingPhoto(entry.id);
+   if(!pendingPhotos.some(photo=>photo.id===entry.id))continue;
+   try{
+     await window.BEAM_PHOTO_UPLOAD.uploadOne({
+       client:S,photoApi:PHOTO,userId:user.id,tripId,file:entry.file
+     });
+     // Successfully uploaded photos are never re-sent with failed ones.
+     removePendingPhoto(entry.id);
+   }catch(error){
+     const inaccessible=PHOTO.lostFile(error),cleanupUnconfirmed=error?.code==="PHOTO_CLEANUP_UNCONFIRMED";
+     const explanation=inaccessible?PHOTO.UNAVAILABLE:cleanupUnconfirmed?
+       "Nettoyage non confirmé. Vérifiez les photos enregistrées avant de réessayer.":
+       "Envoi échoué. Vérifiez votre connexion puis réessayez.";
+     failures.push({name:entry.file.name,explanation,cleanupUnconfirmed,inaccessible});
+     if(inaccessible){
+       const index=pendingPhotos.findIndex(photo=>photo.id===entry.id);
+       if(index>=0){
+         pendingPhotos.splice(index,1);
+         URL.revokeObjectURL(entry.url);
+       }
+       failedPhotoSelections.push({id:entry.id,name:entry.file.name,message:PHOTO.UNAVAILABLE});
+     }else entry.uploadError=explanation;
+     renderPhotoGallery();updatePhotoUsage();
+     // Keep going: a single failure must not block any later photo.
+   }
  }
+ return failures;
 }
 let savingTrip=false;
 $("#tripForm").onsubmit=async e=>{
@@ -1242,7 +1263,9 @@ $("#tripForm").onsubmit=async e=>{
    const selected=pendingPhotos.slice();
    if(selected.length){
      if(!mediaReady)throw new Error("Attendez que les photos du voyage soient chargées.");
-     await PHOTO.validateSelection(selected.map(entry=>entry.file),existingMedia.length);
+     // Every pending photo is a fully validated in-memory snapshot.
+     if(existingMedia.length+selected.length>PHOTO.MAX_PHOTOS)
+       throw new Error("10 photos maximum par voyage. Supprimez une photo ou sélectionnez-en moins.");
    }
    const f=new FormData(form),p={
      country_code:String(f.get("country_code")).toUpperCase(),
@@ -1266,25 +1289,33 @@ $("#tripForm").onsubmit=async e=>{
    // The trip is now safely persisted; never reinsert it after a photo failure.
    editingTripId=data.id;editingOriginalCountry=data.country_code;
    if(selected.length){
-     try{await uploadPhotos(data.id,selected)}
-     catch(err){
+     const failures=await uploadPhotos(data.id,selected);
+     if(failures.length){
        $("#tripTitle").textContent="Modifier le voyage";
        $("#saveTrip").textContent="Enregistrer les modifications";
-       const cleanupUnconfirmed=err.code==="PHOTO_CLEANUP_UNCONFIRMED";
-       msg.textContent="Voyage enregistré, mais "+pendingPhotos.length+" photo"+(pendingPhotos.length===1?" reste":"s restent")+" en attente. "+(err.message||"Réessayez.")+
-         (cleanupUnconfirmed?" Ne relancez pas l’envoi avant d’avoir supprimé la réservation non aboutie.":" Appuyez à nouveau sur Enregistrer pour reprendre l’envoi.");
+       const names=failures.map(item=>"« "+item.name+" » : "+item.explanation).join(" ; ");
+       const sent=selected.length-failures.length;
+       msg.textContent="Voyage enregistré. "+sent+" photo"+(sent===1?" envoyée.":"s envoyées.")+
+         " Échec pour "+failures.length+" photo"+(failures.length===1?"":"s")+" : "+names+
+         (failures.some(item=>item.cleanupUnconfirmed)?
+           " Ne réessayez pas les photos concernées avant vérification des réservations.":
+           pendingPhotos.length?" Les autres photos restent en attente : appuyez sur Enregistrer pour réessayer.":"");
        msg.classList.remove("hidden");
        try{await refreshMedia(data.id)}catch{showPhotoMessage("Impossible de rafraîchir les photos. Réessayez en rouvrant le voyage.")}
        return;
      }
    }
    form.reset();resetPhotoUI(null);$("#modal").classList.remove("open");
-   $("#appMsg").textContent=wasEditing?"Voyage modifié"+(selected.length?" avec ses photos.":"."):"Voyage ajouté"+(selected.length?" avec ses photos.":".");
+   $("#appMsg").textContent=(wasEditing?"Voyage modifié":"Voyage ajouté")+(selected.length?" avec ses photos.":".")+
+     (failedPhotoSelections.length?" Photos ignorées : "+failedPhotoSelections.map(x=>"« "+x.name+" »").join(", ")+
+       ". Choisissez-les à nouveau depuis votre Galerie.":"");
    $("#appMsg").classList.remove("hidden");editingTripId=null;
    try{await load()}catch{}
    setTimeout(()=>$("#appMsg").classList.add("hidden"),5000);
- }catch(err){
-   msg.textContent=err.message||"Impossible de préparer cette photo. Réessayez.";
+ }catch(error){
+   const known=error?.message==="Attendez que les photos du voyage soient chargées."||
+     error?.message==="10 photos maximum par voyage. Supprimez une photo ou sélectionnez-en moins.";
+   msg.textContent=known?error.message:PHOTO.friendlyError(error);
    msg.classList.remove("hidden");
  }finally{
    savingTrip=false;btn.disabled=false;
