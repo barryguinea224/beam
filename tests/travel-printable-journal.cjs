@@ -104,7 +104,10 @@ assert.match(inline,/BEAM_PERSONAL_JOURNAL\?\.titleForName\?\.\(name\)/,
  "dashboard may consult album but cannot require it");
 assert.match(inline,/function travelDashboardTitle\(input\)/,
  "dashboard title fallback must exist independently");
-assert.match(inline,/travelDashboardTitle\(name\)/);
+assert.match(inline,/heading\.textContent=clean\|\|"Voyageur"/,
+ "the profile heading now shows the actual declared name with no booklet prefix");
+assert.match(inline,/\$\("#travelerAvatar"\)\.textContent=travelerInitials\(clean\)/,
+ "initials-only avatar must use the already-loaded profile; not a photo");
 assert.match(inline,/setDashboardTitle\(data\.display_name\)/,"saved full name must update the responsive dashboard title");
 assert.match(inline,/function setDashboardTitle\(name\)/,"name rendering must use the shared no-truncation helper");
 assert.match(inline,/window\.BEAM_FAMILY_BOOKLET\?\.render/,
