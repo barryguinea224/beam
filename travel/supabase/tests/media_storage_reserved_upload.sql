@@ -15,7 +15,14 @@ begin
      $body$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$body$);
  end if;
 end $auth_fixture$;
-alter table storage.objects enable row level security;
+-- The Supabase local stack owns and already protects storage.objects.
+-- Only a minimal postgres-owned fixture needs to enable RLS itself.
+do $storage_rls_fixture$
+begin
+ if not (select relrowsecurity from pg_class where oid='storage.objects'::regclass) then
+   execute 'alter table storage.objects enable row level security';
+ end if;
+end $storage_rls_fixture$;
 -- Full Supabase manages Auth/Storage schema grants; their owners differ
 -- from postgres. Only grant missing rights in minimal standalone fixtures.
 grant usage on schema public to authenticated;
