@@ -211,7 +211,8 @@ jobs:
               echo "$name: MISSING (length 0)"
               missing=1
             else
-              echo "$name: SET (length ${#value})"
+              # Do not reveal even the key length in Actions logs.
+              echo "$name: SET (masked)"
             fi
           done
           if [ "$missing" -ne 0 ]; then
