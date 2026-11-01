@@ -52,6 +52,7 @@ jobs:
             test-artifacts/travel-responsive-real/carnet-real-360.png
             test-artifacts/travel-responsive-real/carnet-real-1280.png
             test-artifacts/travel-desktop-map-column/carnet-real-950.png
+            test-artifacts/travel-overlay-stacking/ajouter-voyage-950.png
             test-artifacts/travel-desktop-map-column/layout-950.json
             test-artifacts/travel-responsive-real/compte-real-360.png
             test-artifacts/travel-responsive-real/compte-real-1280.png
