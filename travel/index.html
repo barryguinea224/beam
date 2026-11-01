@@ -195,6 +195,20 @@ html.beamOffline #auth,html.beamOffline #app,html.beamOffline #modal,html.beamOf
  #travelPanels{position:relative;z-index:1;grid-template-columns:minmax(0,1fr)}
  #travelTripsPanel h2{position:relative;z-index:1}
 }
+
+/* Overlay stack (document-level, never under a dashboard grid track):
+   dashboard/map/trips 0–5 < open filter sheet 40–45 < account 65
+   < edit modal 75 < trip details 80 < discard confirmation 90.
+   #modal and #tripDetailModal are direct children of <body>. */
+#travelMapPanel{z-index:0}
+#travelPanels{z-index:1}
+#filterAnchor{z-index:5}
+#filterAnchor:has(#filterPanel.filterOpen){z-index:40}
+#filterPanel.filterOpen{z-index:45}
+#accountOverlay{z-index:65}
+#modal{z-index:75}
+#tripDetailModal{z-index:80}
+#discardConfirm{z-index:90}
 </style><link rel="stylesheet" href="./visual-cards.css"><link rel="stylesheet" href="./dashboard-filters.css">
 <script src="/travel/offline-bootstrap.js"></script></head><body>
 <section id="offline" role="status" aria-live="polite"><div class="ey">BEAM · Travel History</div><h1>Connexion nécessaire pour consulter votre carnet</h1><p>Vos voyages et photos sont privés et indisponibles hors ligne. Reconnectez-vous à Internet pour continuer.</p></section>
