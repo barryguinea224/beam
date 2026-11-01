@@ -65,3 +65,12 @@ Les lignes métier sont en `ON DELETE CASCADE`. Les objets du bucket Storage doi
 - HTML imprimé et fichier partagé : seulement titre « Historique de voyages », nom complet, date, tableau des voyages étrangers, coordonnées si opt-in explicite.
 - Sans mention administrative, sous-titre déclaratif, conclusion ni marque. Vue `travel_history_pdf` : six champs fermés, séjours nationaux exclus, aucune donnée d'identité, souvenir, photo ou activité.
 - Coordonnées projetées depuis Auth/profil uniquement avec consentement décoché par défaut ; carnet personnel sans mention, ni identité, ni marque.
+
+## Livret familial — A5 portrait, reliure à gauche
+- « Mon carnet » : pages **A5 portrait (148,5 × 210 mm)**, **2 côte à côte sur chaque A4 paysage**, recto verso **bord court**, sans rotation ni page à l'envers. Imprimer à taille réelle ; plier chaque A4 verticalement au centre, le carnet s'ouvre comme un livre.
+- L'imposition se fait en couples gauche/droite, recto puis verso : 4 pages [4,1] puis [2,3], 8 et 12 pages vérifiées de même. Une double page intérieure occupe toute la largeur d'une feuille A4.
+- « Pages simples A4 » : une page paysage par feuille, sans imposition. Le changement de format garde les mêmes photographies signées déjà chargées.
+- Titre de couverture et de l'onglet avec élision naturelle par `titleForName` (« Carnet d'Aminata », « Carnet de Youssouf »). Titres et paragraphes alignés à gauche ; pas de justification.
+- Couverture, carte du monde sur double page, chaque voyage sur une double page photo/souvenirs, puis « Nos prochains voyages… ». Séjours du plus ancien au plus récent ; pages décoratives avant la dernière pour obtenir un multiple de quatre.
+- Texte et activités longs sur pages supplémentaires, sans suppression. Aucune identité, coordonnée, marque ou mention administrative. Photos privées signées temporairement, sans stockage dans le cache du service worker.
+- Démonstrations fictives Chromium : `test-artifacts/family-booklet/demo-livret-a5-portrait-impose.pdf` (livret) et `demo-pages-simples-a4.pdf` (A4 simple) ; artefacts GitHub Actions.
