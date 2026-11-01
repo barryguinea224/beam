@@ -30,6 +30,7 @@ assert.doesNotMatch(source,/transform:rotate\(180deg\)/);
 assert.doesNotMatch(source,/Noto Color Emoji|Apple Color Emoji/,"Emoji font must not capture ASCII spaces or numerals in printed PDF");
 assert.doesNotMatch(source,/size:A4 landscape/);
 assert.match(source,/transform:rotate\(90deg\) translateY\(-100%\)/);
+assert.match(source,/\.half\.right \.leaf\{transform:translateY\(148\.5mm\) rotate\(90deg\) translateY\(-100%\)/);
 assert.match(source,/@page\{size:A4 portrait;margin:0\}/);
 assert.doesNotMatch(source,/@media print and \(orientation:landscape\)/);
 assert.ok(!source.includes("localStorage")&&!source.includes("caches.open"));
@@ -159,7 +160,14 @@ async function main(){
     for(const [i,half] of [...document.querySelectorAll(".sheet .half")].entries()){
      const leaf=half.querySelector(".leaf"),sheet=half.closest(".sheet");
      if(!leaf)throw Error("A5 leaf missing at printed half "+i);
-     const bounds=[half.getBoundingClientRect(),sheet.getBoundingClientRect()];
+     const paper=sheet.getBoundingClientRect();
+     // Each HTML half intentionally shares a top anchor so Chrome does not
+     // clip transformed content before moving it to the lower physical half.
+     // Measure against the PHYSICAL top/bottom half of the sheet instead.
+     const bottom=half.classList.contains("right");
+     const start=paper.top+(bottom?paper.height/2:0);
+     const halfPaper={left:paper.left,right:paper.right,top:start,bottom:start+paper.height/2};
+     const bounds=[halfPaper,paper];
      for(const [name,css] of corners){
       const marker=document.createElement("span");
       marker.className="test-print-landmark";
