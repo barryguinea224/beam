@@ -1,8 +1,15 @@
 -- Regression tests for the canonical schema and the reviewed migration.
 -- Disposable PostgreSQL only; the fixture deliberately changes auth.uid().
 begin;
-create or replace function auth.uid() returns uuid language sql stable
-as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;
+-- On the real Supabase local stack auth.uid() already exists and belongs to
+-- Supabase Auth. Never replace a protected built-in in this disposable fixture.
+-- A minimal standalone PostgreSQL fixture may still create it when absent.
+do $auth_fixture$
+begin
+ if to_regprocedure('auth.uid()') is null then
+   execute 'create function auth.uid() returns uuid language sql stable as $ select nullif(current_setting(''request.jwt.claim.sub'',true),'''')::uuid $';
+ end if;
+end $auth_fixture$;
 
 do $$
 declare f record;
