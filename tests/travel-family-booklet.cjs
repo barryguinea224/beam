@@ -27,6 +27,7 @@ assert.ok(!/\.innerHTML\s*=|document\.write\s*\(/.test(source),"Untrusted text m
 assert.match(source,/referrerpolicy/);
 assert.doesNotMatch(source,/size:A4 portrait/);
 assert.doesNotMatch(source,/transform:rotate\(180deg\)/);
+assert.doesNotMatch(source,/Noto Color Emoji|Apple Color Emoji/,"Emoji font must not capture ASCII spaces or numerals in printed PDF");
 assert.match(source,/size:A4 landscape/);
 assert.ok(!source.includes("localStorage")&&!source.includes("caches.open"));
 const album=fs.readFileSync("travel/index.html","utf8");
@@ -131,6 +132,7 @@ async function main(){
    assert.deepEqual(audit.order.map(x=>x.side),["recto","verso","recto","verso"]);
    const print=path.join(dir,"demo-livret-a5-portrait-impose.pdf");
    fs.writeFileSync(print,await page.pdf({preferCSSPageSize:true,printBackground:true}));
+   assert.doesNotMatch(execFileSync("pdffonts",[print],{encoding:"utf8"}),/NotoColorEmoji|Type 3/,"ASCII letters, spaces and digits must not fall back to emoji fonts");
    const info=execFileSync("pdfinfo",[print],{encoding:"utf8"});
    assert.match(info,/Page size:\s+[\d.]+ x [\d.]+ pts \(A4\)/);
    const dims=info.match(/Page size:\s+([\d.]+) x ([\d.]+) pts/);
@@ -147,6 +149,7 @@ async function main(){
    assert.equal(await page.locator(".half.left").count(),0);
    const plain=path.join(dir,"demo-pages-simples-a4.pdf");
    fs.writeFileSync(plain,await page.pdf({preferCSSPageSize:true,printBackground:true}));
+   assert.doesNotMatch(execFileSync("pdffonts",[plain],{encoding:"utf8"}),/NotoColorEmoji|Type 3/,"Simple A4 PDF must not substitute emoji font for spacing");
    const singleInfo=execFileSync("pdfinfo",[plain],{encoding:"utf8"});
    assert.match(singleInfo,/Page size:\s+[\d.]+ x [\d.]+ pts \(A4\)/);
    assert.match(singleInfo,/Pages:\s+8\b/);
