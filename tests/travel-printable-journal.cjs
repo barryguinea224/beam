@@ -104,7 +104,10 @@ assert.match(inline,/BEAM_PERSONAL_JOURNAL\?\.titleForName\?\.\(name\)/,
  "dashboard may consult album but cannot require it");
 assert.match(inline,/function travelDashboardTitle\(input\)/,
  "dashboard title fallback must exist independently");
-assert.match(inline,/travelDashboardTitle\(name\)/);
+assert.match(inline,/heading\.textContent=clean\|\|"Voyageur"/,
+ "the profile heading now shows the actual declared name with no booklet prefix");
+assert.match(inline,/\$\("#travelerAvatar"\)\.textContent=travelerInitials\(clean\)/,
+ "initials-only avatar must use the already-loaded profile; not a photo");
 assert.match(inline,/setDashboardTitle\(data\.display_name\)/,"saved full name must update the responsive dashboard title");
 assert.match(inline,/function setDashboardTitle\(name\)/,"name rendering must use the shared no-truncation helper");
 assert.match(inline,/window\.BEAM_FAMILY_BOOKLET\?\.render/,
@@ -123,7 +126,7 @@ assert.equal(PDF.VIEW,"travel_history_pdf");
 assert.deepEqual(PDF.FIELDS,["country_code","cities","entry_date","exit_date","duration_days","purpose"]);
 const sw=fs.readFileSync("travel/sw.js","utf8");
 assert.ok(sw.includes('"./printable-journal.js"')&&sw.includes('"./family-booklet.js"'));
-assert.match(sw,/beam-travel-shell-v1-20261101-family-a5-portrait-corners-v2-desktop-map-950-overlay-v4/,"cache revision must match the rebased booklet release");
+assert.match(sw,/beam-travel-shell-v1-20261101-family-a5-portrait-corners-v2-desktop-map-950-overlay-v4-traveler-identity-v5/,"cache revision must match the rebased booklet release");
 assert.ok(!sw.includes("storage/v1/object/sign")&&!sw.includes("signedUrl"));
 assert.match(sw,/url\.origin === self\.location\.origin/);
 assert.match(sw,/url\.search === ""/);

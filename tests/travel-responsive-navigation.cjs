@@ -228,7 +228,8 @@ async function main(){
    if(width===360){
     // Use the actual dashboard title renderer; no fake text-only DOM substitute.
     const declaredName="Mariama Djouldé Doumbouya Diallo Barry";
-    const expectedTitle="Carnet de "+declaredName;
+    const expectedTitle=declaredName;
+    // Booklet PDF keeps its own separate “Carnet de…” naming rule.
     const shortFont=await page.evaluate(()=>{
       setDashboardTitle("Mariama");
       return parseFloat(getComputedStyle(document.querySelector("#dashboardTitle")).fontSize);

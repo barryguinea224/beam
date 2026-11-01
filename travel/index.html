@@ -209,13 +209,62 @@ html.beamOffline #auth,html.beamOffline #app,html.beamOffline #modal,html.beamOf
 #modal{z-index:75}
 #tripDetailModal{z-index:80}
 #discardConfirm{z-index:90}
+
+/* Traveler identity — avatar is TEXT INITIALS ONLY; no new storage or photo. */
+/* Keep the identity in the LEFT desktop column; place PDF actions on the right. */
+@media(min-width:900px){
+ #app .w{grid-template-areas:"hero header" "hero filters" "map trips" ". trips"}
+ #app>.w>header{grid-area:header;align-self:start}
+ #travelHero{grid-area:hero;align-self:start}
+}
+
+#app>.w>header{min-height:0;justify-content:flex-end;padding:0}
+#travelHero{min-width:0}
+#travelHero .travelerHeader{min-width:0;max-width:100%}
+#travelHero .travelerTopBar{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0;margin-bottom:12px}
+#travelHero .travelerEy{font:800 11px/1.25 system-ui,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--g)}
+#openAccount.travelerAccountLink{flex:none;display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:8px 4px;min-height:40px;border:0;background:transparent;color:var(--g);font:700 12px/1.2 system-ui,sans-serif;cursor:pointer}
+#openAccount.travelerAccountLink:hover{text-decoration:underline;text-underline-offset:3px}
+#openAccount.travelerAccountLink:focus-visible{outline:2px solid var(--g);outline-offset:3px;border-radius:7px}
+#travelHero .travelerIdentity{display:flex;align-items:center;gap:12px;min-width:0}
+#travelerAvatar{width:60px;height:60px;min-width:60px;border-radius:50%;display:grid;place-items:center;background:#e3eee7;border:1px solid #c6d9ce;color:#174d3a;font:700 21px/1 system-ui,sans-serif;letter-spacing:.02em;user-select:none}
+#travelHero .travelerNameBlock{flex:1;min-width:0}
+#dashboardTitle,#dashboardTitle.longTitle,#dashboardTitle.extraLongTitle{font-family:Georgia,serif;font-weight:500;font-size:clamp(22px,3.2vw,36px);line-height:1.08;margin:0;max-width:100%;white-space:normal;overflow-wrap:anywhere;word-break:normal;text-overflow:clip;overflow:visible}
+#dashboardTitle.longTitle{font-size:clamp(20px,2.8vw,31px)}
+#dashboardTitle.extraLongTitle{font-size:clamp(18px,2.4vw,26px)}
+#travelHero .travelerSubtitle{font:400 12px/1.3 system-ui,sans-serif;color:var(--muted);margin:4px 0 0}
+#travelHero .statsWrap{margin-top:10px}
+#travelHero .stats{gap:7px}
+#travelHero .stat{min-width:0;border-radius:16px;padding:9px 10px}
+#travelHero .stat b{font-size:clamp(20px,2.6vw,26px);line-height:1.05}
+#travelHero .stat small{font-size:11px;line-height:1.2;margin-top:3px}
+#travelHero .travelerScopeLine{color:var(--muted);margin:6px 0 0;font:500 11px/1.35 system-ui,sans-serif;overflow-wrap:anywhere}
+#domesticCount{font:inherit;margin:0;min-height:0}
+@media(max-width:899px){
+ #app>.w>header{display:none}
+ #travelHero{padding:4px 0 3px;gap:7px}
+ #travelHero>div:first-child{display:block;order:0}
+ #travelHero .travelerTopBar{margin-bottom:8px}
+ #travelHero .travelerIdentity{gap:10px}
+ #travelerAvatar{width:56px;height:56px;min-width:56px;font-size:19px}
+ #dashboardTitle,#dashboardTitle.longTitle,#dashboardTitle.extraLongTitle{font-size:clamp(22px,6.6vw,26px);line-height:1.08;margin:0}
+ #dashboardTitle.longTitle{font-size:clamp(19px,5.7vw,23px)}
+ #dashboardTitle.extraLongTitle{font-size:clamp(17px,5vw,21px)}
+ #travelHero .travelerSubtitle{font-size:11px}
+ #travelHero .actions{order:2;margin-top:1px}
+ #travelHero .statsWrap{order:1;margin:1px 0}
+ #travelHero .stat{padding:6px 8px;border-radius:15px}
+ #travelHero .stat b{font-size:21px}
+ #travelHero .stat small{font-size:10.5px}
+ #travelHero .travelerScopeLine{margin-top:4px}
+}
 </style><link rel="stylesheet" href="./visual-cards.css"><link rel="stylesheet" href="./dashboard-filters.css">
 <script src="/travel/offline-bootstrap.js"></script></head><body>
 <section id="offline" role="status" aria-live="polite"><div class="ey">BEAM · Travel History</div><h1>Connexion nécessaire pour consulter votre carnet</h1><p>Vos voyages et photos sont privés et indisponibles hors ligne. Reconnectez-vous à Internet pour continuer.</p></section>
 <section id="auth" class="auth hidden"><div class="ey">BEAM · Travel History</div><h1>Gardez vos voyages.<br>Retrouvez votre histoire.</h1><p class="sub">Un espace personnel pour vos destinations, dates, activités, souvenirs et photos.</p><form id="login"><div class="field"><label for="email">E-mail</label><input id="email" type="email" autocomplete="email" required></div><button class="btn">Recevoir un code</button></form><div id="otpBox" class="hidden"><p class="sub">Si cette adresse est autorisée, vous recevrez un code à 6 chiffres par e-mail.</p><form id="otpForm"><div class="field"><label for="otp">Code à 6 chiffres</label><input id="otp" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" aria-describedby="otpHelp" required><small id="otpHelp">Pas de code après 2 minutes ? Vérifiez vos spams, ou <a href="https://wa.me/224622095630" target="_blank" rel="noopener noreferrer">écrivez-nous sur WhatsApp</a>.</small></div><button class="btn">Continuer avec le code</button></form><div class="actions"><button id="resend" type="button" class="btn ghost" disabled>Renvoyer un code · 60 s</button></div></div><p id="loginMsg" class="notice hidden" role="status" aria-live="polite"></p><p class="sub" id="accessHelp">Ce carnet est réservé aux clients BEAM. <a href="https://wa.me/224622095630" target="_blank" rel="noopener noreferrer">Contactez-nous sur WhatsApp</a>.</p><aside class="authContact" aria-label="Contact"><strong>Contact</strong><p>WhatsApp : <a href="https://wa.me/224622095630" target="_blank" rel="noopener noreferrer">+224 622 09 56 30</a></p></aside></section>
-<main id="app" class="hidden"><div class="w"><header class="top"><div id="headerActions" class="headerActions"></div><button type="button" id="openAccount" class="btn ghost" aria-controls="accountOverlay" aria-expanded="false">Mon compte</button></header>
+<main id="app" class="hidden"><div class="w"><header class="top" aria-label="Actions du carnet"><div id="headerActions" class="headerActions"></div></header>
 <section id="welcomeCard" class="hidden" aria-labelledby="welcomeTitle"><h2 id="welcomeTitle">Bienvenue dans votre carnet</h2><p>Trois étapes pour raconter vos voyages et retrouver votre historique personnel.</p><div class="welcomeSteps"><button id="welcomeName" class="welcomeStep" type="button"><span class="check" aria-hidden="true">○</span><span>1. Ajoutez votre nom</span></button><button id="welcomeTrip" class="welcomeStep" type="button"><span class="check" aria-hidden="true">○</span><span>2. Ajoutez votre premier voyage</span></button><button id="welcomePdf" class="welcomeStep" type="button"><span class="check" aria-hidden="true">○</span><span>3. Générez votre PDF ambassade</span></button></div><p id="welcomeHint" role="status" aria-live="polite"></p></section>
-<section id="travelHero" class="hero"><div><div class="ey">Mon espace de voyage</div><h1 id="dashboardTitle">Mon carnet de voyage</h1><p class="sub">L'espace raconte le voyage. Le PDF restitue les faits.</p><div class="actions"><button id="add" class="btn">+ Ajouter un voyage</button><div id="pdfActionGroup" class="pdfActionGroup"><button id="pdf" class="btn ghost">PDF ambassade</button><label class="pdfContactChoice" for="includePdfContacts"><input id="includePdfContacts" type="checkbox" autocomplete="off" disabled> Inclure mes coordonnées dans ce PDF</label></div><button id="printJournal" class="btn ghost" type="button">Mon carnet</button></div></div><div class="statsWrap"><div class="stats"><div class="stat"><b id="nt">0</b><small id="ntl">voyages à l’étranger</small></div><div class="stat"><b id="nc">0</b><small id="ncl">pays à l’étranger</small></div><div class="stat"><b id="nd">0</b><small id="ndl">jours à l’étranger</small></div></div><p id="domesticCount" class="mapInfo" role="status" aria-live="polite"></p></div></section>
+<section id="travelHero" class="hero"><div class="travelerHeader"><div class="travelerTopBar"><span class="travelerEy">Mon carnet de voyage</span><button type="button" id="openAccount" class="travelerAccountLink" aria-controls="accountOverlay" aria-expanded="false"><span aria-hidden="true">⚙</span> Mon compte</button></div><div class="travelerIdentity"><span id="travelerAvatar" class="travelerAvatar" aria-hidden="true">V</span><div class="travelerNameBlock"><h1 id="dashboardTitle">Voyageur</h1><p class="travelerSubtitle">Mon histoire à travers le monde</p></div></div></div><div class="actions"><button id="add" class="btn">+ Ajouter un voyage</button><div id="pdfActionGroup" class="pdfActionGroup"><button id="pdf" class="btn ghost">PDF ambassade</button><label class="pdfContactChoice" for="includePdfContacts"><input id="includePdfContacts" type="checkbox" autocomplete="off" disabled> Inclure mes coordonnées dans ce PDF</label></div><button id="printJournal" class="btn ghost" type="button">Mon carnet</button></div><div class="statsWrap"><div class="stats"><div class="stat"><b id="nt">0</b><small id="ntl">Voyages</small></div><div class="stat"><b id="nc">0</b><small id="ncl">Pays</small></div><div class="stat"><b id="nd">0</b><small id="ndl">Jours</small></div></div><p class="travelerScopeLine" role="status" aria-live="polite"><span id="statsScopeLabel">Voyages à l’étranger</span><span id="domesticCount"></span></p></div></section>
 <section id="accountStatusChecking" class="panel" role="status" aria-live="polite"><p>Vérification de votre compte…</p></section>
 <section id="deletionPending" class="panel hidden" role="status" aria-live="polite">
 <h2>Suppression de votre compte en cours</h2>
@@ -327,12 +376,21 @@ function travelDashboardTitle(input){
  const vowel=/^[aàâäeéèêëiîïoôöuùûüœæ]/i.test(name)||hMuet.test(name);
  return "Carnet "+(vowel?"d'":"de ")+name;
 }
+function travelerInitials(name){
+ const parts=String(name||"").trim().split(/\s+/u).filter(Boolean);
+ if(!parts.length)return "V";
+ // Initials are computed in memory from the already loaded profile name;
+ // no photo, storage, external URL or additional query is involved.
+ const first=Array.from(parts[0])[0]||"V",last=parts.length>1?Array.from(parts.at(-1))[0]:"";
+ return (first+last).toLocaleUpperCase("fr-FR");
+}
 function setDashboardTitle(name){
- const heading=$("#dashboardTitle"),fullTitle=travelDashboardTitle(name);
- heading.textContent=fullTitle;
- // Never truncate the declared name; use a smaller fluid font for longer titles.
- heading.classList.toggle("longTitle",fullTitle.length>34);
- heading.classList.toggle("extraLongTitle",fullTitle.length>70);
+ const heading=$("#dashboardTitle"),clean=String(name||"").trim().replace(/\s+/gu," ");
+ heading.textContent=clean||"Voyageur";
+ $("#travelerAvatar").textContent=travelerInitials(clean);
+ // Never truncate names; allow natural wrapping on narrow screens.
+ heading.classList.toggle("longTitle",clean.length>28);
+ heading.classList.toggle("extraLongTitle",clean.length>55);
 }
 function tripDates(a,b){let A=new Date(a+"T12:00:00"),B=new Date(b+"T12:00:00"),sameMonth=A.getMonth()===B.getMonth()&&A.getFullYear()===B.getFullYear(),sameYear=A.getFullYear()===B.getFullYear();if(sameMonth)return A.getDate()+" → "+B.toLocaleDateString("fr-FR",{day:"numeric",month:"long",year:"numeric"});if(sameYear)return A.toLocaleDateString("fr-FR",{day:"numeric",month:"short"})+" → "+B.toLocaleDateString("fr-FR",{day:"numeric",month:"short",year:"numeric"});return A.toLocaleDateString("fr-FR",{day:"numeric",month:"short",year:"numeric"})+" → "+B.toLocaleDateString("fr-FR",{day:"numeric",month:"short",year:"numeric"})}
 function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
@@ -395,12 +453,13 @@ function render(){
  setDashboardTitle(name);updateWelcome(name);
  const national=dashboardFilters.scope==="domestic";
  $("#nt").textContent=stats.trips;
- $("#ntl").textContent=national?(stats.trips===1?"séjour national":"séjours nationaux"):(stats.trips===1?"voyage à l’étranger":"voyages à l’étranger");
+ $("#ntl").textContent="Voyages";
  $("#nc").textContent=stats.countries;
- $("#ncl").textContent=national?"pays de séjour national":"pays à l’étranger";
+ $("#ncl").textContent="Pays";
  $("#nd").textContent=stats.days;
- $("#ndl").textContent=national?"jours de séjour national":"jours à l’étranger";
- $("#domesticCount").textContent=!national&&stats.domestic?"+ "+stats.domestic+" séjour"+(stats.domestic===1?" national":"s nationaux"):"";
+ $("#ndl").textContent="Jours";
+ $("#statsScopeLabel").textContent=national?"Séjours nationaux":"Voyages à l’étranger";
+ $("#domesticCount").textContent=!national&&stats.domestic?" · + "+stats.domestic+" séjour"+(stats.domestic===1?" national":"s nationaux"):"";
  $("#filterStatus").textContent=active?visible.length+" voyage"+(visible.length===1?"":"s")+" correspondant"+(visible.length===1?"":"s")+" aux filtres.":"Tous les voyages sont affichés.";
  $("#resetFilters").disabled=!active;
  $("#mapInfo").textContent=dashboardFilters.country?countryName(dashboardFilters.country)+" sélectionné · appuyez à nouveau pour tout afficher.":"Choisissez un pays sur la carte ou dans les étiquettes.";

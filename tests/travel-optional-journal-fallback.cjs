@@ -85,7 +85,7 @@ async function main(){
   const url="http://127.0.0.1:"+server.address().port+"/travel/";
   const response=await page.goto(url,{waitUntil:"load",timeout:25000});
   assert.equal(response.status(),200);
-  await page.waitForFunction(()=>document.querySelector("#dashboardTitle")?.textContent==="Carnet de Youssouf",
+  await page.waitForFunction(()=>document.querySelector("#dashboardTitle")?.textContent==="Youssouf",
    null,{timeout:10000});
   const initial=await page.evaluate(()=>({
    journal:typeof window.BEAM_PERSONAL_JOURNAL,
@@ -100,7 +100,9 @@ async function main(){
    mapModule:typeof window.BEAM_VISUAL_CARDS
   }));
   assert.equal(initial.journal,"undefined","the optional module must actually be missing");
-  assert.equal(initial.title,"Carnet de Youssouf");
+  assert.equal(initial.title,"Youssouf");
+  assert.equal(await page.locator("#travelerAvatar").textContent(),"Y",
+    "the initials-only avatar works without the optional printable journal");
   assert.equal(initial.appVisible,true,"signed-in dashboard must stay visible");
   assert.equal(initial.heroVisible,true,"dashboard hero must render");
   assert.match(initial.trips,/Sénégal|Dakar/,"travel cards must still render");
@@ -112,10 +114,10 @@ async function main(){
   await page.locator("#openAccount").click();
    await page.locator("#editAccount").click();
    for(const [name,expected] of [
-   ["Aminata","Carnet d'Aminata"],
-   ["Yacouba","Carnet de Yacouba"],
-   ["Elhadj","Carnet d'Elhadj"],
-   ["Yaya","Carnet de Yaya"]
+   ["Aminata","Aminata"],
+   ["Yacouba","Yacouba"],
+   ["Elhadj","Elhadj"],
+   ["Yaya","Yaya"]
   ]){
    if(name!=="Aminata")await page.locator("#editAccount").click();
    await page.locator("#travelerName").fill(name);
