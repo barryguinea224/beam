@@ -89,6 +89,7 @@ function harness() {
     blob:new Blob(['reencoded pixels'],{type:'image/webp'}),width:800,height:1200
   })};
   const context=vm.createContext({
+    Blob,
     window:{BEAM_COUNTRIES:COUNTRIES,BEAM_PHOTO:{...PHOTO,...convertedPhoto},
       BEAM_PHOTO_UPLOAD:{uploadOne:params=>uploadOne({...params,idProvider:()=>('photo-'+(++serial))})},
       confirm:message=>{confirmMessages.push(message);return confirmAnswer}},
@@ -206,13 +207,30 @@ async function main() {
   assert.equal(partial.records.length,1,'Failed reservation must be cleaned by travel-delete');
   assert.deepEqual(partial.calls.map(x=>x[0]),['reserve','upload','reserve','upload','cleanup']);
   assert.deepEqual(Array.from(partial.queued()),['retry.jpg']);
-  assert.match(partial.els['#tripMsg'].textContent,/1 photo reste en attente/);
+  assert.match(partial.els['#tripMsg'].textContent,/« retry.jpg »/);
   assert.equal(partial.els['#modal'].classList.contains('open'),true);
   await partial.save();
   assert.equal(partial.records.length,2);
   assert.deepEqual(partial.calls.slice(-2).map(x=>x[0]),['reserve','upload']);
   assert.equal(partial.uploads.length,3,'One failed upload was retried, not the successful photo');
   assert.deepEqual(Array.from(partial.queued()),[]);
-  console.log('BEAM photo queue PASS: successive pickers, thumbnails, remove, cap, partial failure and retry');
+  const android=harness();
+  const unreadable=fake('telegram-broken.jpg');
+  unreadable.slice=()=>({arrayBuffer:async()=>{const e=new Error('A requested file or directory could not be found at the time an operation was processed');e.name='NotFoundError';throw e}});
+  await android.select([unreadable,fake('gallery-good.jpg')]);
+  assert.deepEqual(Array.from(android.queued()),['gallery-good.jpg']);
+  assert.match(android.els['#photoGallery'].innerHTML,/telegram-broken.jpg/);
+  assert.match(android.els['#photoGallery'].innerHTML,/Cette photo n&#39;est plus accessible/);
+  assert.doesNotMatch(android.els['#photoGallery'].innerHTML,/A requested file/);
+  await android.save();
+  assert.equal(android.uploads.length,1);
+  const three=harness();three.failAt(2);
+  await three.select([fake('first.jpg'),fake('failed.jpg'),fake('last.jpg')]);
+  await three.save();
+  assert.equal(three.records.length,2);
+  assert.deepEqual(Array.from(three.queued()),['failed.jpg']);
+  assert.match(three.els['#tripMsg'].textContent,/« failed.jpg »/);
+  assert.equal(three.uploads.length,3);
+  console.log('BEAM photo queue PASS: Android unreadable file, snapshot, partial upload continuation and retry');
 }
 main().catch(err=>{console.error(err);process.exitCode=1});
