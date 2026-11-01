@@ -133,7 +133,7 @@ async function run(){
     if(width===950)await page.screenshot({
      path:path.join(out,"ajouter-voyage-950.png"),fullPage:false,animations:"disabled"});
     await page.locator("#close").click();
-    await page.locator("#modal:not(.open)").waitFor();
+    await page.locator("#modal:not(.open)").waitFor({state:"hidden"});
     // Consultation of an existing fictitious trip; then editing that same trip.
     await page.locator("#trips .tripOpen").first().click();
     await page.locator("#tripDetailModal.open").waitFor();
@@ -145,18 +145,18 @@ async function run(){
     await assertControl(page,'#tripForm input[name="cities"]',width);
     await assertControl(page,'#tripForm input[name="exit_date"]',width);
     await page.locator("#close").click();
-    await page.locator("#modal:not(.open)").waitFor();
+    await page.locator("#modal:not(.open)").waitFor({state:"hidden"});
     // Account drawer and contextual filter sheet must also cover page content.
     await page.locator("#openAccount").click();
     await page.locator("#accountOverlay.accountOpen").waitFor();
     await assertTopmost(page,"#myAccount",width,"Compte");
     await page.locator("#closeAccount").click();
-    await page.locator("#accountOverlay:not(.accountOpen)").waitFor();
+    await page.locator("#accountOverlay:not(.accountOpen)").waitFor({state:"hidden"});
     await page.locator("#toggleFilters").click();
     await page.locator("#filterPanel.filterOpen").waitFor();
     await assertTopmost(page,"#filterPanel",width,"Filtres");
     await page.locator("#closeFilters").click();
-    await page.locator("#filterPanel:not(.filterOpen)").waitFor();
+    await page.locator("#filterPanel:not(.filterOpen)").waitFor({state:"hidden"});
     console.log("PASS real app overlay stacking + five hit tests x five panels at "+width+"px");
    }finally{await context.close()}
   }
