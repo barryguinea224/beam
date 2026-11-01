@@ -71,7 +71,13 @@ values('73333333-3333-4333-8333-333333333333',
        '71111111-1111-4111-8111-111111111111',
        'GN','2020-01-01','2020-01-02','autre');
 
-grant usage on schema auth,public,private to authenticated;
+grant usage on schema public,private to authenticated;
+do $auth_usage_fixture$
+begin
+ if not has_schema_privilege('authenticated','auth','USAGE') then
+   execute 'grant usage on schema auth to authenticated';
+ end if;
+end $auth_usage_fixture$;
 grant execute on function auth.uid() to authenticated;
 set local role authenticated;
 select set_config('request.jwt.claim.sub','71111111-1111-4111-8111-111111111111',true);
