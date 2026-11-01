@@ -109,6 +109,7 @@ async function main(){
      mapViewport:[...document.querySelectorAll(".world svg")].map(e=>e.getAttribute("viewBox")),
      eastMapPathCount:(()=>{const east=[...document.querySelectorAll(".world-leaf")].find(e=>e.textContent.includes("2/2"));return east?.querySelectorAll("svg path").length||0})(),
      bookletHelp:document.querySelector(".toolbar .help")?.textContent,
+     cssSelectors:[...document.styleSheets].flatMap(x=>[...x.cssRules].map(rule=>rule.selectorText).filter(Boolean)),
      justifiedText:[...document.querySelectorAll("h1,h2,h3,blockquote,.natural")].filter(e=>getComputedStyle(e).textAlign==="justify"||getComputedStyle(e).textAlignLast==="justify").length,
      coverTitle:document.querySelector(".cover h1")?.textContent,
      tabTitle:document.title
@@ -124,6 +125,8 @@ async function main(){
    assert.deepEqual(audit.mapViewport,["0 0 522 445","478 0 522 445"],"Map halves overlap");
    assert.ok(audit.eastMapPathCount>10,"World map 2/2 must contain actual country paths");
    assert.match(audit.bookletHelp,/Portrait, recto verso bord court/);
+   for(const selector of [".inner",".half.right .leaf",".story-leaf .story-main .flag-small",".closing"])
+    assert.ok(audit.cssSelectors.includes(selector),"Missing parsed print CSS rule: "+selector);
    assert.ok(audit.leafRect.height>audit.leafRect.width,"A5 must be portrait");
    assert.equal(audit.rotatedPages,8,"Rotate the eight A5 leaves inside their portrait sheet halves");
    assert.equal(audit.justifiedText,0,"No justified titles or prose");
