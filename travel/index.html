@@ -1384,7 +1384,7 @@ $("#printJournal").onclick=async()=>{
   if(tripError||!rows)throw new Error("Voyages indisponibles");
   const selected=window.BEAM_DASHBOARD_FILTERS.apply(rows,filters);
   const pack=new Array(selected.length);
-  let remaining=window.BEAM_PERSONAL_JOURNAL.MAX_TOTAL_PHOTOS;
+  let remaining=window.BEAM_FAMILY_BOOKLET.MAX_TOTAL_PHOTOS;
   // Bounded request concurrency avoids overloading mobile connections or Supabase.
   let cursor=0;
   async function worker(){
@@ -1393,12 +1393,12 @@ $("#printJournal").onclick=async()=>{
     const [activityResult,photoResult]=await Promise.all([
      S.from("activities").select("title,place,happened_on").eq("trip_id",trip.id).eq("user_id",uid)
       .order("created_at",{ascending:true}).limit(50),
-     window.BEAM_PERSONAL_JOURNAL.preferredMediaQuery(
+     window.BEAM_FAMILY_BOOKLET.preferredMediaQuery(
       S.from("media").select("id,storage_path,is_favorite").eq("trip_id",trip.id).eq("user_id",uid)
      )
     ]);
     if(activityResult.error||photoResult.error)throw new Error("Contenu indisponible");
-    const media=(photoResult.data||[]).slice(0,Math.min(remaining,window.BEAM_PERSONAL_JOURNAL.MAX_PHOTOS_PER_TRIP));
+    const media=(photoResult.data||[]).slice(0,Math.min(remaining,window.BEAM_FAMILY_BOOKLET.MAX_PHOTOS_PER_TRIP));
     remaining-=media.length;
     const photos=[];
     let favoritePhoto="";
@@ -1429,9 +1429,13 @@ $("#printJournal").onclick=async()=>{
    if(response.ok)mapSvgText=await response.text();
   }catch{}
   if(accountState!=="active"||user?.id!==uid||tab.closed)throw new Error("Session expirée");
+  // Only previously validated temporary signatures enter the RAM-only resizer.
+  // JPEG canvases discard EXIF/GPS and keep each long edge <= 1500 px.
+  const prepared=await window.BEAM_FAMILY_BOOKLET.preparePhotos(pack,window);
+  if(accountState!=="active"||user?.id!==uid||tab.closed)throw new Error("Session expirée");
   window.BEAM_FAMILY_BOOKLET.render(tab.document,{
-   name:current.display_name,filters,trips:pack,mapSvgText,
-   limitReached:remaining===0,generatedAt:new Date()
+   name:current.display_name,filters,trips:prepared.trips,mapSvgText,
+   unoptimized:prepared.unoptimized,limitReached:remaining===0,generatedAt:new Date()
   });
  }catch{fail();$("#appMsg").textContent="Impossible de préparer le carnet imprimable. Vérifiez votre connexion et réessayez.";$("#appMsg").classList.remove("hidden")}
  finally{journalPrintBusy=false;button.disabled=false;button.textContent="Mon carnet"}

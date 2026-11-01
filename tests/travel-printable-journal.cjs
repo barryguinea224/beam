@@ -112,7 +112,10 @@ assert.match(inline,/setDashboardTitle\(data\.display_name\)/,"saved full name m
 assert.match(inline,/function setDashboardTitle\(name\)/,"name rendering must use the shared no-truncation helper");
 assert.match(inline,/window\.BEAM_FAMILY_BOOKLET\?\.render/,
  "missing optional album must disable printing without crashing the dashboard");
-assert.match(inline,/BEAM_PERSONAL_JOURNAL\.preferredMediaQuery\(/);
+assert.match(inline,/BEAM_FAMILY_BOOKLET\.preferredMediaQuery\(/,
+ "family booklet must query ten ordered private photos independently of journal four-photo quota");
+assert.match(inline,/BEAM_FAMILY_BOOKLET\.preparePhotos\(pack,window\)/,
+ "family booklet must resample trusted signed images only in browser RAM before print");
 assert.match(inline,/pack\[position\]=\{trip,activities:activityResult\.data\|\|\[\],photos,favoritePhoto,missingPhotos\}/,
  "failed photo signatures must reach the private print status");
 assert.match(inline,/window\.BEAM_TRAVEL_PDF\.fetchRows\(S,uid\)/);
@@ -126,7 +129,7 @@ assert.equal(PDF.VIEW,"travel_history_pdf");
 assert.deepEqual(PDF.FIELDS,["country_code","cities","entry_date","exit_date","duration_days","purpose"]);
 const sw=fs.readFileSync("travel/sw.js","utf8");
 assert.ok(sw.includes('"./printable-journal.js"')&&sw.includes('"./family-booklet.js"'));
-assert.match(sw,/beam-travel-shell-v1-20261101-family-a5-portrait-corners-v2-desktop-map-950-overlay-v4-traveler-identity-v5/,"cache revision must match the rebased booklet release");
+assert.match(sw,/beam-travel-shell-v1-20261101-family-a5-portrait-ten-photos-1500px-no-photo-fallback-v8/,"cache revision must match the rebased booklet release");
 assert.ok(!sw.includes("storage/v1/object/sign")&&!sw.includes("signedUrl"));
 assert.match(sw,/url\.origin === self\.location\.origin/);
 assert.match(sw,/url\.search === ""/);
