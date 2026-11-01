@@ -115,7 +115,7 @@ for(const id of ["filterCountry","filterYear","filterPurpose","filterScope","res
 assert.ok(app.includes('<script src="./dashboard-filters.js"></script>'));
 const sw=fs.readFileSync("travel/sw.js","utf8");
 assert.ok(sw.includes("./dashboard-filters.js")&&sw.includes("./dashboard-filters.css"));
-assert.match(sw,/beam-travel-shell-v1-20261101-prod-config-isolation-v11/);
+assert.match(sw,/beam-travel-shell-v1-20261101-empty-account-install-v12/);
 assert.ok(!sw.includes('beam-travel-shell-v1-20261030'),
  "PWA cache must not regress to the old static shell");
 
