@@ -146,9 +146,21 @@ async function main(){
        "National must switch to 1 stay, 1 country, 3 days");
     assert.equal(national.context,"Séjours nationaux");
     assert.equal(national.domestic,"");
+    await page.locator("#filterScope").selectOption("");
+    const reset=await readStats(page);
+    assert.deepEqual([reset.voyages,reset.pays,reset.jours],["2","2","12"],
+      "the foreign-only default counters must be restored after removing National");
+    assert.equal(reset.context,"Voyages à l’étranger");
+    assert.equal(reset.domestic,"· + 1 séjour national");
     console.log("PASS traveler identity real dashboard at "+width+"px",
-     JSON.stringify({before:stats,after:national,mapTop:head.mapTop}));
+     JSON.stringify({before:stats,after:national,reset,mapTop:head.mapTop}));
     await page.locator("#closeFilters").click();
+    if(width===1280){
+      const desktop=await page.evaluate(()=>({top:document.querySelector("#travelHero").getBoundingClientRect().top,
+        grid:getComputedStyle(document.querySelector("#app .w")).gridTemplateAreas}));
+      assert.ok(desktop.top<115,
+        "desktop traveler identity should begin near top of left column: "+JSON.stringify(desktop));
+    }
     await page.screenshot({path:path.join(out,"identity-real-"+width+".png"),fullPage:true,animations:"disabled"});
    }finally{await context.close()}
   }
