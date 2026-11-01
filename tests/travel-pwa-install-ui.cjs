@@ -49,7 +49,8 @@ async function main(){
     // Browser offers installation only after its own eligibility check.
     const caught=await page.evaluate(()=>{
      const e=new Event("beforeinstallprompt",{cancelable:true});
-     e.prompt=()=>Promise.resolve({outcome:"accepted"});
+     e.prompt=()=>Promise.resolve();
+     e.userChoice=Promise.resolve({outcome:"accepted",platform:"web"});
      window.__nativePrompts=0;
      const original=e.prompt;
      e.prompt=()=>{window.__nativePrompts++;return original()};
@@ -78,7 +79,8 @@ async function main(){
    try{
     await page.evaluate(()=>{
      const e=new Event("beforeinstallprompt",{cancelable:true});
-     e.prompt=()=>Promise.resolve({outcome:"dismissed"});
+     e.prompt=()=>Promise.resolve();
+     e.userChoice=Promise.resolve({outcome:"dismissed",platform:"web"});
      window.dispatchEvent(e);
     });
     await page.locator("#auth [data-beam-install-action]").click();
@@ -118,7 +120,8 @@ async function main(){
     assert.equal(await page.locator('[data-beam-install-area]:visible').count(),0);
     const status=await page.evaluate(()=>{
      let calls=0;const e=new Event("beforeinstallprompt",{cancelable:true});
-     e.prompt=()=>{calls++;return Promise.resolve({outcome:"accepted"})};
+     e.prompt=()=>{calls++;return Promise.resolve()};
+     e.userChoice=Promise.resolve({outcome:"accepted",platform:"web"});
      window.dispatchEvent(e);
      return {calls,defaultPrevented:e.defaultPrevented};
     });
