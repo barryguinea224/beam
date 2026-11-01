@@ -114,11 +114,11 @@ async function main(){
    assert.equal(audit.coverTitle,"Carnet d\u0027Aminata Camara".replace("\\u0027","\u0027"));
    assert.equal(audit.tabTitle,"Carnet d\u0027Aminata Camara".replace("\\u0027","\u0027"));
    assert.ok(audit.paperRect.height>audit.paperRect.width,"Physical A4 must be portrait");
-   assert.equal(audit.rotatedSpreads,4,"The four spreads must rotate on portrait sheets");
+   assert.equal(audit.rotatedSpreads,0,"Portrait layout must not rotate oversized spreads");
    assert.deepEqual(audit.mapGuinea,[true,true],"Domestic Guinea must be highlighted on both map halves");
    assert.deepEqual(audit.mapViewport,["0 0 522 445","478 0 522 445"],"Map halves overlap");
    assert.ok(audit.leafRect.height>audit.leafRect.width,"A5 must be portrait");
-   assert.equal(audit.rotatedPages,0,"No A5 leaf may be rotated");
+   assert.equal(audit.rotatedPages,8,"Rotate the eight A5 leaves inside their portrait sheet halves");
    assert.equal(audit.justifiedText,0,"No justified titles or prose");
    assert.ok(audit.photoCount>=2,"A private signed photo appears on cover and spread");
    assert.ok(audit.oldestIndex>=0&&audit.newestIndex>=0);
