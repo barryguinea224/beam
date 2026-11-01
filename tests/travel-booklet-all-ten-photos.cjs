@@ -11,6 +11,101 @@ const map=fs.readFileSync("travel/assets/world-map.svg","utf8");
 const trip={id:"fixture-ten",country_code:"GN",cities:["Kindia"],entry_date:"2026-07-01",
  exit_date:"2026-07-10",duration_days:10,purpose:"tourisme",note:"Dix photographies.",
  is_domestic:true};
+
+const edgeColors={
+ wide:{top:[255,16,16],right:[16,255,16],bottom:[16,16,255],left:[255,16,255]},
+ tall:{top:[255,156,16],right:[16,255,255],bottom:[255,255,16],left:[255,16,136]}
+};
+async function printedPhotoBoxes(page,mode){
+ return page.evaluate(mode=>{
+  const all=[...document.querySelectorAll(".sheet")],urls=window.__bookletFixture.urls;
+  const wanted=mode==="wide"?
+   [["cover",".cover .cover-photo",5],["hero",".photo-leaf .photo-hero",5],
+    ["story",".story-leaf .media img",0]]:
+   [["cover",".cover .cover-photo",0],["hero",".photo-leaf .photo-hero",0],
+    ["story",".story-leaf .media img",5]];
+  return wanted.map(([place,selector,index])=>{
+   const image=place==="story"?
+    [...document.querySelectorAll(selector)].find(img=>img.src===urls[index]):
+    document.querySelector(selector);
+   if(!image||image.src!==urls[index]||!image.naturalWidth||!image.naturalHeight)
+    throw Error("Target source missing from printed "+place+": PHOTO "+(index+1));
+   const sheet=image.closest(".sheet"),sheetIndex=all.indexOf(sheet);
+   if(sheetIndex<0)throw Error("No printed A4 sheet for "+place);
+   const frame=image.getBoundingClientRect(),paper=sheet.getBoundingClientRect(),
+     cssWidth=image.clientWidth,cssHeight=image.clientHeight;
+   // Imposed A5 leaves are rotated 90 degrees within a portrait A4 sheet.
+   // The contained source's physical rectangle is therefore width=contentHeight,
+   // height=contentWidth. Keep it centered in the transformed element frame.
+   const scale=Math.min(cssWidth/image.naturalWidth,cssHeight/image.naturalHeight);
+   const contentW=image.naturalWidth*scale,contentH=image.naturalHeight*scale;
+   const printable={left:frame.left+(frame.width-contentH)/2,
+    top:frame.top+(frame.height-contentW)/2,width:contentH,height:contentW};
+   if(printable.width<=1||printable.height<=1)throw Error("Empty printed photo");
+   return {place,index,sheetIndex,sheetWidth:paper.width,sheetHeight:paper.height,
+    bounds:{x:printable.left-paper.left,y:printable.top-paper.top,
+     width:printable.width,height:printable.height},
+    fit:getComputedStyle(image).objectFit,
+    source:{width:image.naturalWidth,height:image.naturalHeight}};
+  });
+ },mode);
+}
+function readPPM(file){
+ const buffer=fs.readFileSync(file);let i=0;
+ function token(){
+  for(;;){
+   while(i<buffer.length&&buffer[i]<=32)i++;
+   if(buffer[i]!==35)break;
+   while(i<buffer.length&&buffer[i]!==10)i++;
+  }
+  const begin=i;while(i<buffer.length&&buffer[i]>32)i++;
+  return buffer.toString("ascii",begin,i);
+ }
+ assert.equal(token(),"P6");const width=+token(),height=+token(),max=+token();
+ assert.equal(max,255);assert.ok(width>0&&height>0);
+ if(buffer[i]===13&&buffer[i+1]===10)i+=2;else i++;
+ assert.ok(buffer.length-i>=width*height*3,"Incomplete PPM PDF raster");
+ return {buffer,width,height,start:i};
+}
+function hasEdgeColor(ppm,rect,rgb){
+ const x0=Math.max(0,Math.floor(rect.x)),x1=Math.min(ppm.width,Math.ceil(rect.x+rect.width));
+ const y0=Math.max(0,Math.floor(rect.y)),y1=Math.min(ppm.height,Math.ceil(rect.y+rect.height));
+ let matches=0;
+ for(let y=y0;y<y1;y++)for(let x=x0;x<x1;x++){
+  const offset=ppm.start+(y*ppm.width+x)*3;
+  if(Math.abs(ppm.buffer[offset]-rgb[0])<=65&&
+     Math.abs(ppm.buffer[offset+1]-rgb[1])<=65&&
+     Math.abs(ppm.buffer[offset+2]-rgb[2])<=65){
+    if(++matches>=2)return true;
+  }
+ }
+ return false;
+}
+function assertPdfPhotoEdges(pdf,boxes,mode){
+ const existing=new Map(),dpi=120;
+ for(const box of boxes){
+  assert.equal(box.fit,"contain",box.place+" must preserve full source without cover");
+  if(!existing.has(box.sheetIndex)){
+   const out=path.join(dir,"pdf-edges-"+mode+"-sheet-"+box.sheetIndex);
+   execFileSync("pdftoppm",["-f",String(box.sheetIndex+1),"-l",String(box.sheetIndex+1),
+    "-r",String(dpi),"-singlefile","-ppm",pdf,out]);
+   existing.set(box.sheetIndex,readPPM(out+".ppm"));
+   fs.unlinkSync(out+".ppm");
+  }
+  const ppm=existing.get(box.sheetIndex),scale=ppm.width/box.sheetWidth;
+  const rect={x:box.bounds.x*scale,y:box.bounds.y*scale,
+   width:box.bounds.width*scale,height:box.bounds.height*scale};
+  assert.ok(rect.x>=-2&&rect.y>=-2&&rect.x+rect.width<=ppm.width+2&&
+   rect.y+rect.height<=ppm.height+2,
+   "Contained image must lie completely within its physical A4 sheet: "+JSON.stringify(box));
+  const palette=edgeColors[box.index===5?"wide":"tall"];
+  for(const [edge,color] of Object.entries(palette))
+   assert.ok(hasEdgeColor(ppm,rect,color),
+    "Cropped/overlaid "+edge+" edge of PHOTO "+(box.index+1)+" in "+mode+" "+box.place+
+    " (PDF page "+(box.sheetIndex+1)+") "+JSON.stringify({rect,box}));
+ }
+}
+
 async function main(){
  const browser=await chromium.launch({headless:true,args:["--no-sandbox","--disable-dev-shm-usage"]});
  try{
@@ -160,9 +255,34 @@ async function main(){
    });
    assert.equal(corners.length,40);
    assert.ok(corners.every(p=>p.okay));
+   const wideBoxes=await printedPhotoBoxes(page,"wide");
    const filename=path.join(dir,"ten-photos-a5-portrait.pdf");
    fs.writeFileSync(filename,await page.pdf({format:"A4",landscape:false,preferCSSPageSize:false,
     printBackground:true}));
+   assertPdfPhotoEdges(filename,wideBoxes,"wide");
+   // Second scenario: PHOTO 1 (tall) is favorite on cover+hero, while
+   // PHOTO 6 (wide) appears first in the story strip. Both use the exact
+   // same resized, EXIF-free in-memory images.
+   await page.emulateMedia({media:"screen"});
+   const alternate=await page.evaluate(()=>{
+    const fixture=window.__bookletFixture,urls=fixture.urls;
+    const photos=[urls[5],urls[0],...urls.filter((_,i)=>i!==0&&i!==5)];
+    return window.BEAM_FAMILY_BOOKLET.render(document,{
+     trips:[{...fixture.pack[0],photos,favoritePhoto:urls[0]}],
+     name:"Aminata Camara",mapSvgText:fixture.map,limitReached:false,
+     generatedAt:new Date("2026-11-01T12:00:00Z")
+    });
+   });
+   assert.equal(alternate,8,"portrait favorite must preserve booklet imposition");
+   await page.waitForFunction(()=>!document.querySelector(".toolbar button").disabled,null,{timeout:20000});
+   await page.emulateMedia({media:"print"});
+   const tallBoxes=await printedPhotoBoxes(page,"tall");
+   const portraitPdf=path.join(dir,"ten-photos-favorite-portrait-a5.pdf");
+   fs.writeFileSync(portraitPdf,await page.pdf({format:"A4",landscape:false,
+    preferCSSPageSize:false,printBackground:true}));
+   assertPdfPhotoEdges(portraitPdf,tallBoxes,"tall");
+   const portraitBytes=fs.statSync(portraitPdf).size;
+   assert.ok(portraitBytes<12*1024*1024,"portrait favorite PDF must be WhatsApp-shareable");
    const bytes=fs.statSync(filename).size;
    assert.ok(bytes<12*1024*1024,"WhatsApp-shareable 10 photo booklet must stay under 12 MiB, got "+bytes);
    const info=execFileSync("pdfinfo",[filename],{encoding:"utf8"});
