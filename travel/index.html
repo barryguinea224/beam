@@ -1135,18 +1135,36 @@ $("#photos").onchange=async()=>{
  const seq=mediaRequest;
  try{
    if(!mediaReady||accountState!=="active")throw new Error("Attendez que les photos du voyage soient chargées.");
-   await PHOTO.validateSelection(files,existingMedia.length+pendingPhotos.length);
-   if(seq!==mediaRequest||!$("#modal").classList.contains("open")||accountState!=="active")return;
+   // Reserve quota before any reads; a failed file never enters the queue.
+   if(existingMedia.length+pendingPhotos.length+files.length>PHOTO.MAX_PHOTOS)
+     throw new Error("10 photos maximum par voyage. Supprimez une photo ou sélectionnez-en moins.");
    const added=[];
-   try{
-     for(const file of files)added.push({id:String(++pendingPhotoId),file,url:URL.createObjectURL(file)});
-   }catch{
+   let rejected=0;
+   for(const file of files){
+     try{
+       // Materialize the original bytes now, before Android revokes its handle.
+       const snapshot=await PHOTO.snapshotFile(file);
+       if(seq!==mediaRequest||!$("#modal").classList.contains("open")||accountState!=="active")break;
+       added.push({id:String(++pendingPhotoId),file:snapshot,url:URL.createObjectURL(snapshot)});
+     }catch(error){
+       rejected++;
+       failedPhotoSelections.push({id:String(++pendingPhotoId),name:String(file?.name||"photo"),
+         message:PHOTO.friendlyError(error)});
+     }
+   }
+   if(seq!==mediaRequest||!$("#modal").classList.contains("open")||accountState!=="active"){
      for(const entry of added)URL.revokeObjectURL(entry.url);
-     throw new Error("Impossible de prévisualiser ces photos. Réessayez.");
+     return;
    }
    pendingPhotos.push(...added);
    renderPhotoGallery();
- }catch(e){showPhotoMessage(e.message||PHOTO.UNSUPPORTED)}
+   if(rejected)showPhotoMessage(rejected+" photo"+(rejected===1?" a été ignorée.":"s ont été ignorées.")+
+     " Consultez le message en français sur chaque vignette.");
+ }catch(error){
+   const allowed=error?.message==="10 photos maximum par voyage. Supprimez une photo ou sélectionnez-en moins."||
+     error?.message==="Attendez que les photos du voyage soient chargées.";
+   showPhotoMessage(allowed?error.message:PHOTO.friendlyError(error));
+ }
  finally{photoSelecting=false;updatePhotoUsage()}
 };
 $("#photoGallery").onclick=async e=>{
