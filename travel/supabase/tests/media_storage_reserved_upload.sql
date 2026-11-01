@@ -101,8 +101,8 @@ begin
     where bucket_id='media'
       and name='30000000-0000-4000-8000-000000000021/40000000-0000-4000-8000-000000000021/50000000-0000-4000-8000-000000000021.webp';
     get diagnostics removed = row_count;
-  exception when raise_exception then
-    if SQLERRM like 'Direct deletion from storage tables is not allowed%' then
+  exception when others then
+    if position('Direct deletion from storage tables is not allowed' in SQLERRM)=1 then
       denied_by_storage_guard := true;
     else
       raise;
