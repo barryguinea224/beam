@@ -117,6 +117,9 @@ jobs:
         run: psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f travel/supabase/tests/media_storage_reserved_upload.sql
 
   hostile-ab:
+    # Fresh-schema replay PRs must NEVER acquire staging environment credentials.
+    # Other Travel PRs keep the existing staging hostile bench unchanged.
+    if: github.event_name != 'pull_request' || !startsWith(github.head_ref, 'ci/travel-fresh-supabase-schema-replay-')
     name: Real JWT / RLS hostile bench
     concurrency:
       group: hostile-ab-staging
