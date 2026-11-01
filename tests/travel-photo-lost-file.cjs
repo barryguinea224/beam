@@ -43,6 +43,21 @@ async function main(){
  assert.deepEqual([...new Uint8Array(await snapshot.arrayBuffer())],[...jpeg]);
  assert.equal(await PHOTO.validateFile(snapshot),"jpeg");
  assert.notEqual(snapshot,original.file,"queue holds copied pixels, not the Android File");
+ // Even a decode-time NotFoundError must be translated, never propagated raw.
+ const previousBitmap=global.createImageBitmap;
+ global.createImageBitmap=async()=>{
+   const error=new Error(ENGLISH);error.name="NotFoundError";throw error;
+ };
+ try{
+   await assert.rejects(PHOTO.convert(snapshot),error=>{
+     assert.equal(error.code,"PHOTO_FILE_INACCESSIBLE");
+     assert.equal(error.message,PHOTO.UNAVAILABLE);
+     return true;
+   });
+ }finally{
+   if(previousBitmap===undefined)delete global.createImageBitmap;
+   else global.createImageBitmap=previousBitmap;
+ }
  const unsupported=source("video.heic");
  await assert.rejects(PHOTO.snapshotFile(unsupported.file),error=>error.message===PHOTO.UNSUPPORTED);
  console.log("PASS Android revoked File: NotFoundError, NotReadableError, byte truncation, stable snapshot, safe French errors");
