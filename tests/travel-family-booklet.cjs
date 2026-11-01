@@ -148,7 +148,10 @@ async function main(){
    // Check the nonwhite raster extent of every physical side (Poppler grayscale PGM).
    // Unlike pdfinfo this catches tiny spreads that occupy only the top third.
    function inkExtent(pdf,n){
-    const buf=execFileSync("pdftoppm",["-f",String(n),"-l",String(n),"-r","36","-singlefile","-gray",pdf,"-"],{maxBuffer:3000000});
+    const pgmRoot=path.join(dir,"raster-page-"+n);
+    execFileSync("pdftoppm",["-f",String(n),"-l",String(n),"-r","36","-singlefile","-gray",pdf,pgmRoot]);
+    const buf=fs.readFileSync(pgmRoot+".pgm");
+    fs.unlinkSync(pgmRoot+".pgm");
     let pos=0;
     function token(){
      while(pos<buf.length){
@@ -176,6 +179,18 @@ async function main(){
     const extent=inkExtent(print,n);
     assert.ok(extent.width>=.90&&extent.height>=.90,
       "Portrait side "+n+" covers less than 90%: "+JSON.stringify(extent));
+   }
+   // Landscape override must also fill the chosen physical page, rather than shrink.
+   const landscape=path.join(dir,"demo-livret-a5-sur-a4-paysage.pdf");
+   fs.writeFileSync(landscape,await page.pdf({format:"A4",landscape:true,preferCSSPageSize:false,printBackground:true}));
+   const landscapeInfo=execFileSync("pdfinfo",[landscape],{encoding:"utf8"});
+   const landDims=landscapeInfo.match(/Page size:\s+([\d.]+) x ([\d.]+) pts/);
+   assert.ok(landDims&&Number(landDims[1])>Number(landDims[2]),"Landscape override must remain landscape");
+   assert.match(landscapeInfo,/Pages:\s+4\b/);
+   for(let n=1;n<=4;n++){
+    const extent=inkExtent(landscape,n);
+    assert.ok(extent.width>=.90&&extent.height>=.90,
+      "Landscape side "+n+" covers less than 90%: "+JSON.stringify(extent));
    }
    const text=execFileSync("pdftotext",["-raw",print,"-"],{encoding:"utf8"}).replace(/\s+/g," ");
    for(const token of ["Carnet d\u0027Aminata Camara".replace("\\u0027","\u0027"),"Dalaba","Dakar","Nos prochains voyages"]){
