@@ -7,7 +7,11 @@ begin;
 -- A minimal standalone PostgreSQL fixture may still create it when absent.
 do $auth_fixture$
 begin
- if to_regprocedure('auth.uid()') is null then
+ if to_regprocedure('auth.uid()') is null or exists (
+   select 1 from pg_proc
+    where oid=to_regprocedure('auth.uid()')
+      and pg_get_userbyid(proowner)=current_user
+ ) then
    execute 'create function auth.uid() returns uuid language sql stable as $ select nullif(current_setting(''request.jwt.claim.sub'',true),'''')::uuid $';
  end if;
 end $auth_fixture$;
