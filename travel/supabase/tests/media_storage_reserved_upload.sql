@@ -6,15 +6,41 @@ begin;
 -- A minimal standalone PostgreSQL fixture may still create it when absent.
 do $auth_fixture$
 begin
- if to_regprocedure('auth.uid()') is null then
+ if to_regprocedure('auth.uid()') is null or exists (
+   select 1 from pg_proc
+    where oid=to_regprocedure('auth.uid()')
+      and pg_get_userbyid(proowner)=current_user
+ ) then
    execute 'create function auth.uid() returns uuid language sql stable as $ select nullif(current_setting(''request.jwt.claim.sub'',true),'''')::uuid $';
  end if;
 end $auth_fixture$;
 alter table storage.objects enable row level security;
-grant usage on schema auth,storage,public to authenticated;
-grant execute on function auth.uid() to authenticated;
--- Grant DELETE in the fixture to prove the RLS policy, not table grants, blocks it.
-grant select,insert,delete on storage.objects to authenticated;
+-- Full Supabase manages Auth/Storage schema grants; their owners differ
+-- from postgres. Only grant missing rights in minimal standalone fixtures.
+grant usage on schema public to authenticated;
+do $local_grants$
+declare target text;
+begin
+ foreach target in array array['auth','storage'] loop
+  if not has_schema_privilege('authenticated',target,'USAGE') then
+    execute format('grant usage on schema %I to authenticated',target);
+  end if;
+ end loop;
+ if not has_function_privilege('authenticated','auth.uid()','EXECUTE') then
+   grant execute on function auth.uid() to authenticated;
+ end if;
+end $local_grants$;
+-- Grant DELETE in a minimal fixture to prove RLS (not grants) blocks it.
+-- In real Supabase this permission is already managed by the Storage owner.
+do $storage_grants$
+declare action text;
+begin
+ foreach action in array array['SELECT','INSERT','DELETE'] loop
+  if not has_table_privilege('authenticated','storage.objects',action) then
+   execute format('grant %s on storage.objects to authenticated',action);
+  end if;
+ end loop;
+end $storage_grants$;
 grant select on public.media to authenticated;
 -- The real client can read its own trips; the disposable PostgreSQL
 -- harness must explicitly grant SELECT to exercise the invoker trigger.
