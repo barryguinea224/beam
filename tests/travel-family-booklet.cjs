@@ -266,7 +266,7 @@ async function main(){
    assert.equal(fillers.notes,1);
    assert.equal(fillers.mosaic,1);
    assert.equal(fillers.photos,1);
-   assert.deepEqual(fillers.titles,["Notes","Quelques images de plus","Nos prochains voyages…"]);
+   assert.deepEqual([...fillers.titles].sort(),["Notes","Quelques images de plus","Nos prochains voyages…"].sort(),"All filler titles must appear exactly once regardless of physical imposition");
    const youssouf=await page.evaluate(data=>{
     window.BEAM_FAMILY_BOOKLET.render(document,{...data,name:"Youssouf",generatedAt:new Date(data.generatedAt)});
     return [document.title,document.querySelector(".cover h1")?.textContent];
