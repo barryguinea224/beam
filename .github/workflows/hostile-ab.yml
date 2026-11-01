@@ -134,6 +134,9 @@ jobs:
           update public.profiles set access_until = null
            where id in ('ad000000-0000-4000-8000-000000000001',
                         'ad000000-0000-4000-8000-000000000002');
+          -- Minimal parser DB lacks Supabase-managed SELECT default grants.
+          -- This LOCAL grant simulates the real Supabase authenticated role.
+          grant select on public.profiles to authenticated;
           SQL
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f travel/supabase/STAGING_ACCESS_EXPIRY_SETUP.sql
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 <<'SQL'
