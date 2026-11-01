@@ -27,13 +27,13 @@ function fakeSupabase(){
   is_domestic:false,note:"",cover_media_id:null,deleting:false,user_id:uid};
  const media={id:"33333333-3333-4333-8333-333333333333",storage_path:uid+"/"+trip.id+"/33333333-3333-4333-8333-333333333333.webp"};
  window.__expiryCalls={deleted:false,signed:0};
- let signedOut=false;
+ const loggedIn=()=>sessionStorage.getItem("bth-expiry-test-signed-out")!=="1";
  window.supabase={createClient(){return{
   auth:{
-   async getSession(){return {data:{session:signedOut?null:{access_token:"fixture-session",user:{id:uid,email}}}}},
-   async getUser(){return {data:{user:signedOut?null:{id:uid,email}},error:null}},
+   async getSession(){return {data:{session:!loggedIn()?null:{access_token:"fixture-session",user:{id:uid,email}}}}},
+   async getUser(){return {data:{user:!loggedIn()?null:{id:uid,email}},error:null}},
    onAuthStateChange(){return {data:{subscription:{unsubscribe(){}}}}},
-   async signOut(){signedOut=true;return{error:null}}
+   async signOut(){sessionStorage.setItem("bth-expiry-test-signed-out","1");return{error:null}}
   },
   from(table){
    const query={select(){return query},eq(){return query},limit(){return query},

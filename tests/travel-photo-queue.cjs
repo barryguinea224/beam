@@ -107,7 +107,7 @@ function harness() {
       }[name];
     }},
     render:()=>{},load:async()=>{},trips:[],
-    setTimeout:()=>{},console
+    setTimeout:()=>{},console,canWrite:()=>true
   });
   vm.runInContext(photoCode,context);
   vm.runInContext('mediaReady=true;',context);
