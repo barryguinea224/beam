@@ -88,7 +88,7 @@ function assertPdfPhotoEdges(pdf,boxes,mode){
   if(!existing.has(box.sheetIndex)){
    const out=path.join(dir,"pdf-edges-"+mode+"-sheet-"+box.sheetIndex);
    execFileSync("pdftoppm",["-f",String(box.sheetIndex+1),"-l",String(box.sheetIndex+1),
-    "-r",String(dpi),"-singlefile","-ppm",pdf,out]);
+    "-r",String(dpi),"-singlefile",pdf,out]);
    existing.set(box.sheetIndex,readPPM(out+".ppm"));
    fs.unlinkSync(out+".ppm");
   }
