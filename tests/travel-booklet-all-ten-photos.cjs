@@ -22,7 +22,7 @@ async function main(){
    const result=await page.evaluate(async data=>{
     const originals=new Map(),signed=[];
     for(let i=0;i<10;i++){
-     const wide=i===0,tall=i===7;
+     const wide=i===5,tall=i===0;
      const canvas=document.createElement("canvas");
      canvas.width=wide?4200:tall?1000:2000;
      canvas.height=wide?1050:tall?4200:1500;
@@ -36,6 +36,17 @@ async function main(){
       ctx.fillStyle="hsla("+((i*36+j*9)%360)+",72%,57%,.30)";
       ctx.beginPath();ctx.arc((j*173+i*37)%canvas.width,(j*191+i*61)%canvas.height,
        10+(j*37)%140,0,2*Math.PI);ctx.fill();
+     }
+     // Four distinct printed edge-marker colors per source; an actual cropped
+     // image cannot pass all four checks after rasterizing the finished PDF.
+     if(wide||tall){
+      const colors=wide?["#ff1010","#10ff10","#1010ff","#ff10ff"]:
+       ["#ff9c10","#10ffff","#ffff10","#ff1088"];
+      const thick=Math.max(35,Math.round(Math.min(canvas.width,canvas.height)*.08));
+      ctx.fillStyle=colors[0];ctx.fillRect(0,0,canvas.width,thick);
+      ctx.fillStyle=colors[1];ctx.fillRect(canvas.width-thick,0,thick,canvas.height);
+      ctx.fillStyle=colors[2];ctx.fillRect(0,canvas.height-thick,canvas.width,thick);
+      ctx.fillStyle=colors[3];ctx.fillRect(0,0,thick,canvas.height);
      }
      ctx.font="bold 180px sans-serif";ctx.fillStyle="white";ctx.fillText("PHOTO "+(i+1),30,220);
      const blob=await new Promise(resolve=>canvas.toBlob(resolve,"image/jpeg",.9));
@@ -53,13 +64,13 @@ async function main(){
       trip:data.trip,activities:[],photos:signed,favoritePhoto:signed[5],missingPhotos:0
     }],env);
     const item=prepared.trips[0];
-    const originalDimensions=[[4200,1050],[1000,4200]];
     const resized=[];
-    for(const n of [0,7]){
+    for(const n of [0,5]){
      const bitmap=await createImageBitmap(await (await fetch(item.photos[n])).blob());
      resized.push({index:n,width:bitmap.width,height:bitmap.height});
      bitmap.close();
     }
+    window.__bookletFixture={pack:prepared.trips,urls:item.photos,map:data.map};
     const count=window.BEAM_FAMILY_BOOKLET.render(document,{
       trips:prepared.trips,name:"Aminata Camara",generatedAt:new Date("2026-11-01T12:00:00Z"),
       mapSvgText:data.map,limitReached:true,unoptimized:prepared.unoptimized});
@@ -73,6 +84,21 @@ async function main(){
       photos:item.photos.map(x=>({prefix:x.slice(0,25),length:x.length})),
       unique:new Set(item.photos).size,
       heroSrc:document.querySelector(".photo-leaf .photo-hero")?.src,
+      coverSrc:document.querySelector(".cover .cover-photo")?.src,
+      coverFit:getComputedStyle(document.querySelector(".cover .cover-photo")).objectFit,
+      coverBackdrop:getComputedStyle(document.querySelector(".cover .cover-backdrop")).filter,
+      heroBackdropSrc:document.querySelector(".photo-leaf .photo-backdrop")?.src,
+      coverBackdropSrc:document.querySelector(".cover .cover-backdrop")?.src,
+      mediaFit:getComputedStyle(document.querySelector(".story-leaf .media img")).objectFit,
+      captionDoesNotOverlap:(()=>{
+       const pairs=[[".cover .feature-frame",".cover .feature-caption"],
+        [".photo-leaf .feature-frame",".photo-leaf .feature-caption"]];
+       return pairs.every(([photo,caption])=>{
+        const a=document.querySelector(photo).getBoundingClientRect(),
+         b=document.querySelector(caption).getBoundingClientRect();
+        return a.bottom<=b.top+1||a.top>=b.bottom-1;
+       });
+      })(),
       favorite:item.favoritePhoto,
       heroFit:getComputedStyle(document.querySelector(".photo-hero")).objectFit,
       blur:getComputedStyle(document.querySelector(".photo-backdrop")).filter,
@@ -95,7 +121,14 @@ async function main(){
    assert.equal(result.unique,10,"all 10 distinct photos must survive");
    assert.ok(result.photos.every(x=>x.prefix.startsWith("data:image/jpeg;base64,")&&x.length<2200000),
     "no signed URL may remain in prepared print HTML; bounded JPEG payloads");
-   assert.equal(result.heroSrc,result.favorite,"favorite wins as full hero, not merely first");
+   assert.equal(result.heroSrc,result.favorite,"PHOTO 6 favorite wins as full hero");
+   assert.equal(result.coverSrc,result.favorite,"PHOTO 6 favorite wins as full cover");
+   assert.equal(result.coverBackdropSrc,result.favorite);
+   assert.equal(result.heroBackdropSrc,result.favorite);
+   assert.equal(result.coverFit,"contain","full cover photograph must never be cropped");
+   assert.match(result.coverBackdrop,/blur/);
+   assert.equal(result.mediaFit,"contain","tall PHOTO 1 must never be cropped in story strip");
+   assert.ok(result.captionDoesNotOverlap,"photo pixels and text bands must be disjoint");
    assert.equal(result.heroFit,"contain","wide/tall hero must show the whole photograph");
    assert.match(result.blur,/blur/,"background must be from the same image and blurred");
    assert.equal(result.mosaicFit,"contain","very tall thumbnail must remain legible");
