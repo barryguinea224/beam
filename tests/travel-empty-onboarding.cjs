@@ -2,6 +2,7 @@
 const assert=require("node:assert/strict"),http=require("node:http"),fs=require("node:fs/promises"),path=require("node:path");
 const {chromium}=require("playwright");
 const root=path.resolve(__dirname,"../travel");
+const {intercept:syntheticTravelConfig}=require("./helpers/synthetic-travel-config.cjs");
 function fakeSupabase(){
  const uid="22222222-2222-4222-8222-222222222222";
  const profile={display_name:null,country_of_residence:"GN",deleting:false,phone:null,postal_address:null};
@@ -39,6 +40,7 @@ function fakeSupabase(){
 const mime={".html":"text/html; charset=utf-8",".js":"application/javascript",".css":"text/css",".svg":"image/svg+xml",".webmanifest":"application/manifest+json",".png":"image/png"};
 async function main(){
  const server=http.createServer(async(req,res)=>{
+  if(syntheticTravelConfig(req,res))return;
   const pathname=new URL(req.url,"http://local").pathname;
   if(!pathname.startsWith("/travel/")){res.writeHead(404);res.end();return}
   const rel=pathname.slice(8)||"index.html",target=path.resolve(root,rel);

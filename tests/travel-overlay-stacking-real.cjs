@@ -7,12 +7,14 @@ const fsp=require("node:fs/promises");
 const path=require("node:path");
 const {chromium}=require("playwright");
 const root=path.resolve(__dirname,"../travel");
+const {intercept:syntheticTravelConfig}=require("./helpers/synthetic-travel-config.cjs");
 const out=path.resolve("test-artifacts/travel-overlay-stacking");
 const mime={".html":"text/html; charset=utf-8",".js":"application/javascript; charset=utf-8",
  ".css":"text/css",".svg":"image/svg+xml",".webp":"image/webp",".png":"image/png",
  ".json":"application/json",".webmanifest":"application/manifest+json"};
 function server(){
  return http.createServer(async(req,res)=>{
+  if(syntheticTravelConfig(req,res))return;
   const pathname=new URL(req.url,"http://localhost").pathname;
   if(!pathname.startsWith("/travel/")){res.writeHead(404);return res.end()}
   const target=path.resolve(root,pathname.slice("/travel/".length)||"index.html");
