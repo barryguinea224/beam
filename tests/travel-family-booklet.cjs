@@ -239,6 +239,9 @@ async function main(){
    }
    assert.ok(!text.includes("Document personnel, non destiné"));
    // Switch formats without a fresh Supabase query or requesting another signed URL.
+   // The native print CSS intentionally hides the toolbar; restore screen media
+   // before exercising its visible selector via Playwright.
+   await page.emulateMedia({media:"screen"});
    await page.selectOption("#bookletFormat","simple");
    assert.equal(await page.locator(".sheet").count(),8);
    assert.equal(await page.locator(".half.left").count(),0);
