@@ -98,7 +98,7 @@ async function main(){
      newestIndex:pages.findIndex(p=>p.textContent.includes("Dakar")),
      text:document.body.textContent,
      hasEmptyMemoryPage:pages.some(x=>x.classList.contains("story-leaf")&&!x.textContent.trim()),
-     smallFlags:[...document.querySelectorAll(".story-main .flag-small,.media .placeholder .flag-small")].map(x=>({width:x.getBoundingClientRect().width,height:x.getBoundingClientRect().height})),
+     smallFlags:[...document.querySelectorAll(".story-main .flag-small,.media .placeholder .flag-small")].map(x=>({width:parseFloat(getComputedStyle(x).width),height:parseFloat(getComputedStyle(x).height)})),
      consentCount:document.querySelectorAll("input[type=checkbox]").length,
      format:document.querySelector("#bookletFormat").value,
      paperRect:(()=>{const r=document.querySelector(".sheet").getBoundingClientRect();return {width:r.width,height:r.height}})(),
