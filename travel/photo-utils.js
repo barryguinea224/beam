@@ -8,6 +8,46 @@
   const MAX_SIDE = 1800;
   const UNSUPPORTED = "Format non pris en charge. Choisissez une photo JPEG ou PNG, ou faites une capture d’écran de la photo.";
   const TOO_LARGE = "Cette photo dépasse 8 Mo. Choisissez une image plus petite ou une capture d’écran.";
+  const UNAVAILABLE = "Cette photo n'est plus accessible. Choisissez-la à nouveau depuis votre Galerie.";
+  const PREPARE_ERROR = "Impossible de lire ou de préparer cette photo. Choisissez-la à nouveau depuis votre Galerie.";
+  function lostFile(error) {
+    return error?.name === "NotFoundError" || error?.name === "NotReadableError" ||
+      error?.code === "PHOTO_FILE_INACCESSIBLE";
+  }
+  function friendlyError(error) {
+    if (lostFile(error)) return UNAVAILABLE;
+    // Browser errors contain platform messages in English; never display them.
+    if ([UNSUPPORTED, TOO_LARGE, UNAVAILABLE, PREPARE_ERROR].includes(error?.message)) return error.message;
+    return PREPARE_ERROR;
+  }
+  // Read the ENTIRE photo immediately; the Android document provider can make
+  // the original File unreadable after the picker closes.
+  async function snapshotFile(file) {
+    const name = String(file?.name || "").toLowerCase();
+    const type = String(file?.type || "").toLowerCase();
+    if (/\.(heic|heif|mov|mp4|m4v|avi|webm|mkv)$/i.test(name) ||
+      type.startsWith("video/") || /heic|heif|quicktime/.test(type)) throw new Error(UNSUPPORTED);
+    if (!file || !Number.isFinite(file.size) || file.size <= 0) throw new Error(UNSUPPORTED);
+    if (file.size > MAX_SOURCE_BYTES) throw new Error(TOO_LARGE);
+    let bytes;
+    try {
+      bytes = await file.slice(0, file.size).arrayBuffer();
+    } catch {
+      const error = new Error(UNAVAILABLE);
+      error.code = "PHOTO_FILE_INACCESSIBLE";
+      throw error;
+    }
+    if (bytes.byteLength !== file.size) {
+      const error = new Error(UNAVAILABLE);
+      error.code = "PHOTO_FILE_INACCESSIBLE";
+      throw error;
+    }
+    // Both preview and upload now use a memory-owned Blob, never the provider File.
+    const stable = new Blob([bytes], {type:file.type || ""});
+    Object.defineProperty(stable, "name", {value:String(file.name || "photo"), enumerable:true});
+    await validateFile(stable);
+    return stable;
+  }
 
   function kind(bytes) {
     if (bytes.length >= 3 && bytes[0] === 255 && bytes[1] === 216 && bytes[2] === 255) return "jpeg";
@@ -70,7 +110,7 @@
       bitmap?.close?.();
     }
   }
-  const api = Object.freeze({MAX_PHOTOS, MAX_SOURCE_BYTES, UNSUPPORTED, TOO_LARGE, kind, validateFile, validateSelection, convert});
+  const api = Object.freeze({MAX_PHOTOS, MAX_SOURCE_BYTES, UNSUPPORTED, TOO_LARGE, UNAVAILABLE, PREPARE_ERROR, lostFile, friendlyError, snapshotFile, kind, validateFile, validateSelection, convert});
   if (root) root.BEAM_PHOTO = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })(typeof window !== "undefined" ? window : undefined);
