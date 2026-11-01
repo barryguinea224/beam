@@ -1,0 +1,146 @@
+name: BEAM Travel — fresh schema replay (local Docker only)
+
+# Builds an EMPTY Supabase CLI stack inside the GitHub-hosted ephemeral runner.
+# No staging/production Supabase project, token, database URL, secret or API call.
+# Nothing is automatically deployed from this workflow.
+on:
+  pull_request:
+    branches: [feature/beam-travel-history-v1]
+    paths:
+      - "travel/supabase/schema.sql"
+      - "travel/supabase/tests/*.sql"
+      - ".github/workflows/travel-schema-fresh-replay.yml"
+      - "PRODUCTION_SETUP.md"
+  push:
+    branches: [feature/beam-travel-history-v1]
+    paths:
+      - "travel/supabase/schema.sql"
+      - "travel/supabase/tests/*.sql"
+      - ".github/workflows/travel-schema-fresh-replay.yml"
+      - "PRODUCTION_SETUP.md"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: travel-schema-fresh-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fresh-schema:
+    name: Canonical schema on disposable Supabase (no credentials)
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    # Deliberately no 'environment' (staging/production), 'secrets' or
+    # Supabase project refs. This is Docker + loopback PostgreSQL only.
+    env:
+      SUPABASE_ACCESS_TOKEN: ""
+      PGHOST: "127.0.0.1"
+      PGPORT: "54322"
+      PGDATABASE: "postgres"
+      PGUSER: "postgres"
+      PGPASSWORD: "postgres" # Supabase CLI's documented LOCAL-only default
+      PGSSLMODE: "disable"
+    steps:
+      - name: Checkout isolated reviewed source
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Assert no remote project credentials and expected source layout
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "${SUPABASE_ACCESS_TOKEN:-}"
+          test -f supabase/config.toml
+          test -f travel/supabase/schema.sql
+          test -f travel/supabase/tests/fresh_install_invariants.sql
+          ! test -d supabase/migrations || test -z "$(find supabase/migrations -type f -name '*.sql' -print -quit)"
+          echo 'Using only disposable local Supabase and Docker; no hosted migration history.'
+
+      - name: Install pinned Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: 2.122.0
+
+      - name: Ensure local PostgreSQL client
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! command -v psql >/dev/null 2>&1; then
+            sudo apt-get update -qq
+            sudo apt-get install -y postgresql-client
+          fi
+          psql --version
+          docker info --format '{{.ServerVersion}}'
+
+      - name: Start an isolated local Supabase stack via Docker
+        shell: bash
+        run: |
+          set -euo pipefail
+          supabase start
+          pg_isready -h "$PGHOST" -p "$PGPORT" -U "$PGUSER"
+
+      - name: Enable LOCAL pg_net and pg_cron without scheduling anything
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql -X -v ON_ERROR_STOP=1 <<'SQL'
+          create schema if not exists extensions;
+          create extension if not exists pg_net with schema extensions;
+          create extension if not exists pg_cron with schema pg_catalog;
+          do $$
+          begin
+            if not exists (select 1 from pg_extension where extname='pg_net')
+              or not exists (select 1 from pg_extension where extname='pg_cron')
+              then raise exception 'LOCAL_CRON_NET_EXTENSION_MISSING'; end if;
+            if (select count(*) from cron.job) <> 0
+              then raise exception 'CRON_MUST_HAVE_ZERO_JOBS_BEFORE_SCHEMA'; end if;
+          end $$;
+          SQL
+
+      - name: Replay canonical schema.sql ONLY, fail at the first SQL error
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql -X -v ON_ERROR_STOP=1 -f travel/supabase/schema.sql
+          echo 'PASS canonical schema.sql replay on an empty local Supabase database'
+
+      - name: Validate RLS, grants, private Storage and unscheduled worker
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql -X -v ON_ERROR_STOP=1 -f travel/supabase/tests/fresh_install_invariants.sql
+
+      - name: Run reviewed self-contained SQL regression tests (no HTTP or SMTP)
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Allowlist only: these tests use SQL fixtures and transactions in the
+          # disposable local database. No network benches, hosted connections,
+          # cron dispatch, migrations, or non-transactional fixtures.
+          tests=(
+            security_privileges.sql
+            activities_quota_guards.sql
+            media_server_guards.sql
+            cover_media_integrity.sql
+            deletion_retry_worker.sql
+            media_storage_reserved_upload.sql
+            profile_contacts_security.sql
+            sql_storage_hardening.sql
+          )
+          for test in "${tests[@]}"; do
+            echo "::group::Travel SQL test: $test"
+            psql -X -v ON_ERROR_STOP=1 -f "travel/supabase/tests/$test"
+            echo "PASS $test"
+            echo "::endgroup::"
+          done
+          echo "PASS ${#tests[@]} reviewed local SQL regression test files"
+
+      - name: Recheck no scheduled cron jobs after all tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql -X -v ON_ERROR_STOP=1 -Atc \
+            "DO \$\$ BEGIN IF (SELECT count(*) FROM cron.job) <> 0 THEN RAISE EXCEPTION 'UNEXPECTED_CRON_JOB'; END IF; END \$\$;"
+          echo 'PASS no worker was ever scheduled or invoked'

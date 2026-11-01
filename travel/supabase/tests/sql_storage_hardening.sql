@@ -1,8 +1,20 @@
 -- Regression tests for the canonical schema and the reviewed migration.
 -- Disposable PostgreSQL only; the fixture deliberately changes auth.uid().
 begin;
-create or replace function auth.uid() returns uuid language sql stable
-as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;
+-- On the real Supabase local stack auth.uid() already exists and belongs to
+-- Supabase Auth. Never replace a protected built-in in this disposable fixture.
+-- A minimal standalone PostgreSQL fixture may still create it when absent.
+do $auth_fixture$
+begin
+ if to_regprocedure('auth.uid()') is null or exists (
+   select 1 from pg_proc
+    where oid=to_regprocedure('auth.uid()')
+      and pg_get_userbyid(proowner)=current_user
+ ) then
+   execute format('CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS %L',
+     $body$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$body$);
+ end if;
+end $auth_fixture$;
 
 do $$
 declare f record;
@@ -59,7 +71,13 @@ values('73333333-3333-4333-8333-333333333333',
        '71111111-1111-4111-8111-111111111111',
        'GN','2020-01-01','2020-01-02','autre');
 
-grant usage on schema auth,public,private to authenticated;
+grant usage on schema public,private to authenticated;
+do $auth_usage_fixture$
+begin
+ if not has_schema_privilege('authenticated','auth','USAGE') then
+   execute 'grant usage on schema auth to authenticated';
+ end if;
+end $auth_usage_fixture$;
 grant execute on function auth.uid() to authenticated;
 set local role authenticated;
 select set_config('request.jwt.claim.sub','71111111-1111-4111-8111-111111111111',true);

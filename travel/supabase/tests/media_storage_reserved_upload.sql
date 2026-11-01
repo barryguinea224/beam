@@ -1,13 +1,54 @@
 -- PostgreSQL-only hostile Storage INSERT tests. Transaction is rolled back.
 -- Supabase deployment still requires explicit review before staging application.
 begin;
-create or replace function auth.uid() returns uuid language sql stable
-as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;
-alter table storage.objects enable row level security;
-grant usage on schema auth,storage,public to authenticated;
-grant execute on function auth.uid() to authenticated;
--- Grant DELETE in the fixture to prove the RLS policy, not table grants, blocks it.
-grant select,insert,delete on storage.objects to authenticated;
+-- On the real Supabase local stack auth.uid() already exists and belongs to
+-- Supabase Auth. Never replace a protected built-in in this disposable fixture.
+-- A minimal standalone PostgreSQL fixture may still create it when absent.
+do $auth_fixture$
+begin
+ if to_regprocedure('auth.uid()') is null or exists (
+   select 1 from pg_proc
+    where oid=to_regprocedure('auth.uid()')
+      and pg_get_userbyid(proowner)=current_user
+ ) then
+   execute format('CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS %L',
+     $body$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$body$);
+ end if;
+end $auth_fixture$;
+-- The Supabase local stack owns and already protects storage.objects.
+-- Only a minimal postgres-owned fixture needs to enable RLS itself.
+do $storage_rls_fixture$
+begin
+ if not (select relrowsecurity from pg_class where oid='storage.objects'::regclass) then
+   execute 'alter table storage.objects enable row level security';
+ end if;
+end $storage_rls_fixture$;
+-- Full Supabase manages Auth/Storage schema grants; their owners differ
+-- from postgres. Only grant missing rights in minimal standalone fixtures.
+grant usage on schema public to authenticated;
+do $local_grants$
+declare target text;
+begin
+ foreach target in array array['auth','storage'] loop
+  if not has_schema_privilege('authenticated',target,'USAGE') then
+    execute format('grant usage on schema %I to authenticated',target);
+  end if;
+ end loop;
+ if not has_function_privilege('authenticated','auth.uid()','EXECUTE') then
+   grant execute on function auth.uid() to authenticated;
+ end if;
+end $local_grants$;
+-- Grant DELETE in a minimal fixture to prove RLS (not grants) blocks it.
+-- In real Supabase this permission is already managed by the Storage owner.
+do $storage_grants$
+declare action text;
+begin
+ foreach action in array array['SELECT','INSERT','DELETE'] loop
+  if not has_table_privilege('authenticated','storage.objects',action) then
+   execute format('grant %s on storage.objects to authenticated',action);
+  end if;
+ end loop;
+end $storage_grants$;
 grant select on public.media to authenticated;
 -- The real client can read its own trips; the disposable PostgreSQL
 -- harness must explicitly grant SELECT to exercise the invoker trigger.
@@ -50,15 +91,27 @@ end $$;
 
 -- An authenticated client must NEVER directly delete a Storage object, even
 -- if it is the owner and has SQL DELETE table privilege in the fixture.
-do $$
-declare removed bigint;
+do $deny_storage$
+declare removed bigint := 0; denied_by_storage_guard boolean := false;
 begin
-  delete from storage.objects
-  where bucket_id='media'
-    and name='30000000-0000-4000-8000-000000000021/40000000-0000-4000-8000-000000000021/50000000-0000-4000-8000-000000000021.webp';
-  get diagnostics removed = row_count;
-  if removed <> 0 then raise exception 'AUTHENTICATED_DIRECT_STORAGE_DELETE_ACCEPTED'; end if;
-end $$;
+  -- Minimal Postgres denies through RLS (zero affected rows); the real
+  -- Supabase Storage schema also has a DELETE-blocking trigger which raises.
+  begin
+    delete from storage.objects
+    where bucket_id='media'
+      and name='30000000-0000-4000-8000-000000000021/40000000-0000-4000-8000-000000000021/50000000-0000-4000-8000-000000000021.webp';
+    get diagnostics removed = row_count;
+  exception when others then
+    if position('Direct deletion from storage tables is not allowed' in SQLERRM)=1 then
+      denied_by_storage_guard := true;
+    else
+      raise;
+    end if;
+  end;
+  if not denied_by_storage_guard and removed <> 0 then
+    raise exception 'AUTHENTICATED_DIRECT_STORAGE_DELETE_ACCEPTED';
+  end if;
+end $deny_storage$;
 
 -- The browser must not recycle a reserved media row into a new Storage path.
 -- Run as the same authenticated owner, not as a database administrator.

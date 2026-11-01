@@ -2,9 +2,20 @@
 -- Run after canonical schema and the review-only optional contacts migration.
 \set ON_ERROR_STOP on
 begin;
-create or replace function auth.uid() returns uuid language sql stable as $$
- select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid
-$$;
+-- On the real Supabase local stack auth.uid() already exists and belongs to
+-- Supabase Auth. Never replace a protected built-in in this disposable fixture.
+-- A minimal standalone PostgreSQL fixture may still create it when absent.
+do $auth_fixture$
+begin
+ if to_regprocedure('auth.uid()') is null or exists (
+   select 1 from pg_proc
+    where oid=to_regprocedure('auth.uid()')
+      and pg_get_userbyid(proowner)=current_user
+ ) then
+   execute format('CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS %L',
+     $body$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$body$);
+ end if;
+end $auth_fixture$;
 
 -- Fixtures can be inserted only as postgres. The trigger creates each profile.
 insert into auth.users(id,raw_user_meta_data) values
