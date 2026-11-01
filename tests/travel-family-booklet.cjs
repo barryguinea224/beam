@@ -99,7 +99,7 @@ async function main(){
      consentCount:document.querySelectorAll("input[type=checkbox]").length,
      format:document.querySelector("#bookletFormat").value,
      paperRect:(()=>{const r=document.querySelector(".sheet").getBoundingClientRect();return {width:r.width,height:r.height}})(),
-     leafRect:(()=>{const r=document.querySelector(".leaf").getBoundingClientRect();return {width:r.width,height:r.height}})(),
+     leafRect:(()=>{const e=document.querySelector(".leaf"),r=getComputedStyle(e);return {width:parseFloat(r.width),height:parseFloat(r.height)}})(),
      rotatedPages:[...document.querySelectorAll(".leaf")].filter(e=>getComputedStyle(e).transform!=="none").length,
      rotatedSpreads:[...document.querySelectorAll(".spread")].filter(e=>getComputedStyle(e).transform!=="none").length,
      mapGuinea:[...document.querySelectorAll('.world path[data-country="GN"]')].map(e=>e.classList.contains("visited")),
