@@ -145,7 +145,8 @@
     ".brand{font-weight:800;letter-spacing:.12em;color:#174d3a;font-size:10pt}",
     "h1{font-size:23pt;font-weight:700;line-height:1.15;margin:8mm 0 2mm}",
     ".subtitle{color:#66736e;margin:0}",
-    ".meta{font-size:10pt;margin:6px 0;color:#33443a;overflow-wrap:anywhere}",
+    ".meta{font-size:9pt;margin:4px 0;color:#526257;overflow-wrap:anywhere}",
+    ".traveler-name{font-size:14pt;font-weight:700;line-height:1.25;color:#1d3228;margin:3mm 0 1mm;overflow-wrap:anywhere}",
     "table{border-collapse:collapse;width:100%;table-layout:fixed}",
     "th{background:#eaf0ec;color:#174d3a;font-size:8.6pt;text-align:left;padding:9px 6px;border-bottom:2px solid #174d3a}",
     "td{padding:9px 6px;border-bottom:1px solid #dfe5e0;overflow-wrap:anywhere;vertical-align:top}",
@@ -250,7 +251,7 @@
     });
     const header=add(main,"header");
     add(header,"h1","Historique de voyages");
-    add(header,"p",name,"meta");
+    add(header,"p",name,"traveler-name");
     add(header,"p",date,"meta");
     if(contacts){
       const box=add(main,"section",null,"declared-contacts");

@@ -42,6 +42,7 @@ try{
   assert.match(info,/Page size:\s+[\d.]+ x [\d.]+ pts \(A4\)/);
   const text=execFileSync("pdftotext",["-layout",file,"-"],{encoding:"utf8"});
   assert.match(text,/Historique de voyages/);
+  assert.match(Buffer.from(buffer).toString("latin1"),/\/F2 14 Tf/, "The traveler name must be bold 14pt in shared PDF bytes");
   assert.ok(!text.includes("BEAM"),"PDF file must be unbranded");
   assert.ok(!Buffer.from(buffer).toString("latin1").includes("BEAM"),"PDF bytes must be unbranded");
   assert.match(text,/Dakar/);

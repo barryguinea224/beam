@@ -73,7 +73,7 @@
    operations=[];pages.push(operations);
    color(0.09,0.302,0.227);textAt("Historique de voyages",42,809,18,true);
    color(0.18,0.24,0.2);
-   textAt(name,42,765,11);
+   textAt(name,42,765,14,true);
    textAt(generation,42,744,9);
    y=711;
    if(pages.length===1&&contacts){
