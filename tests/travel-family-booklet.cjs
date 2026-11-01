@@ -263,7 +263,7 @@ async function main(){
    const simpleDims=singleInfo.match(/Page size:\s+([\d.]+) x ([\d.]+) pts/);
    assert.ok(simpleDims&&Number(simpleDims[1])<Number(simpleDims[2]),"Simple A4 physical pages must be portrait");
    const fillers=await page.evaluate(data=>{
-    const trips=[{...data.trips[0],photos:Array(4).fill(data.trips[0].photos[0])}];
+    const trips=[{...data.trips[0],photos:Array.from({length:4},(_,i)=>data.trips[0].photos[0]+"&copy="+i)}];
     const count=window.BEAM_FAMILY_BOOKLET.render(document,{...data,trips,generatedAt:new Date(data.generatedAt)});
     return {count,notes:document.querySelectorAll(".notes-leaf").length,
      mosaic:document.querySelectorAll(".mosaic-leaf").length,
