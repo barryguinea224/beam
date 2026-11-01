@@ -12,7 +12,8 @@ assert.match(html,/id="photoLoadStatus"[^>]*[\s\S]*?photoSpinner/);
 assert.match(html,/id="photoRetry"[^>]*>Réessayer<\/button>/);
 const source=script.slice(start,end);
 assert.match(source,/\.eq\("user_id",user\.id\)\.eq\("trip_id",tripId\)/);
-assert.match(source,/PHOTO\.validateSelection\(files,existingMedia\.length\+pendingPhotos\.length\)/);
+assert.match(source,/PHOTO\.snapshotFile\(file\)/,"picker must read the complete file immediately");
+assert.match(source,/existingMedia\.length\+pendingPhotos\.length\+files\.length>PHOTO\.MAX_PHOTOS/,"quota includes saved, pending and newly selected files");
 function deferred(){
  let resolve,reject;const promise=new Promise((a,b)=>{resolve=a;reject=b});
  return {promise,resolve,reject};

@@ -174,6 +174,9 @@ html.beamOffline #auth,html.beamOffline #app,html.beamOffline #modal,html.beamOf
 .photoTile .photoThumbSlot img.loaded{opacity:1}
 .photoThumbPlaceholder{position:absolute;inset:0;display:flex;justify-content:center;align-items:center;padding:12px;font-size:12px;color:#455a4e;text-align:center}
 .photoThumbSlot img.loaded+.photoThumbPlaceholder{display:none}
+.photoTile.photoRejected .photoThumbSlot{border:1px solid #ddb9a8;background:#fff4ee}
+.photoTile.photoRejected .photoThumbPlaceholder{position:static;min-height:145px;color:#803522;font-weight:700;line-height:1.5}
+.photoTile.photoRejected .photoPendingLabel{color:#803522}
 
 #welcomeCard{margin:16px 0;padding:clamp(18px,4vw,30px);border:1px solid #c8d9cf;border-radius:20px;background:linear-gradient(130deg,#fff,#f1f7ef)}
 #welcomeCard h2{font-size:clamp(25px,5.5vw,36px);margin:0 0 7px}
@@ -996,7 +999,7 @@ $("#detailActivities").onclick=async e=>{
 };
 
 const PHOTO=window.BEAM_PHOTO;
-let existingMedia=[],pendingPhotos=[],pendingPhotoId=0,photoSelecting=false,mediaReady=false,mediaError=false,mediaRequest=0,mediaBusy=false;
+let existingMedia=[],pendingPhotos=[],failedPhotoSelections=[],pendingPhotoId=0,photoSelecting=false,mediaReady=false,mediaError=false,mediaRequest=0,mediaBusy=false;
 function showPhotoMessage(text){const el=$("#photoMessage");el.textContent=text;el.classList.remove("hidden")}
 function updatePhotoUsage(){
  const saved=existingMedia.length,waiting=pendingPhotos.length,remaining=Math.max(0,PHOTO.MAX_PHOTOS-saved-waiting);
@@ -1017,6 +1020,18 @@ function wirePhotoThumbs(container){
  for(const img of container.querySelectorAll?.(".photoThumbSlot img")||[]){
   const ready=()=>img.classList.add("loaded");
   const failed=()=>{
+   const pendingId=img.closest(".photoTile")?.dataset.pendingId;
+   if(pendingId&&!savingTrip){
+    const index=pendingPhotos.findIndex(entry=>entry.id===pendingId);
+    if(index>=0){
+     const [entry]=pendingPhotos.splice(index,1);
+     URL.revokeObjectURL(entry.url);
+     failedPhotoSelections.push({id:entry.id,name:entry.file.name,message:PHOTO.UNAVAILABLE});
+     renderPhotoGallery();updatePhotoUsage();
+     showPhotoMessage("Une photo a été écartée. Son image ne peut pas être affichée.");
+     return;
+    }
+   }
    const slot=img.closest(".photoThumbSlot");img.remove();
    const label=slot?.querySelector(".photoThumbPlaceholder");
    if(label)label.textContent="Prévisualisation indisponible";
@@ -1033,11 +1048,19 @@ function renderPhotoGallery(){
     (trips.find(t=>t.id===editingTripId)?.cover_media_id===row.id?'Retirer la couverture':'Choisir comme couverture')+
    '</button><button type="button" class="btn ghost downloadPhoto" data-id="'+esc(row.id)+'">Télécharger</button>'+
    '<button type="button" class="btn ghost removePhoto" data-id="'+esc(row.id)+'">Supprimer</button></div></div>');
- const waiting=pendingPhotos.map(entry=>'<div class="photoTile"><img alt="Photo en attente d’envoi" src="'+esc(entry.url)+'">'+
-   '<p class="photoPendingLabel">En attente · '+esc(entry.file.name)+'</p><div class="actions">'+
-   '<button type="button" class="btn ghost removePendingPhoto" data-pending-id="'+esc(entry.id)+
+ const waiting=pendingPhotos.map(entry=>'<div class="photoTile" data-pending-id="'+esc(entry.id)+'"><div class="photoThumbSlot">'+
+   '<img alt="Photo en attente d’envoi" src="'+esc(entry.url)+'">'+
+   '<span class="photoThumbPlaceholder">Préparation de la miniature…</span></div>'+
+   '<p class="photoPendingLabel">'+(entry.uploadError?"Échec de l’envoi · ":"En attente · ")+esc(entry.file.name)+'</p>'+
+   (entry.uploadError?'<p class="photoPendingLabel">'+esc(entry.uploadError)+'</p>':"")+
+   '<div class="actions"><button type="button" class="btn ghost removePendingPhoto" data-pending-id="'+esc(entry.id)+
    '" aria-label="Retirer '+esc(entry.file.name)+'">Retirer</button></div></div>');
- $("#photoGallery").innerHTML=saved.concat(waiting).join("");
+ const rejected=failedPhotoSelections.map(entry=>'<div class="photoTile photoRejected"><div class="photoThumbSlot">'+
+   '<span class="photoThumbPlaceholder" role="status">'+esc(entry.message)+'</span></div>'+
+   '<p class="photoPendingLabel">Photo ignorée · '+esc(entry.name)+'</p>'+
+   '<div class="actions"><button type="button" class="btn ghost removeRejectedPhoto" data-rejected-id="'+esc(entry.id)+
+   '">Retirer ce message</button></div></div>');
+ $("#photoGallery").innerHTML=saved.concat(waiting,rejected).join("");
  wirePhotoThumbs($("#photoGallery"));
 }
 function updateSignedThumbnail(row){
@@ -1060,7 +1083,7 @@ function removePendingPhoto(id){
 function resetPhotoUI(tripId){
  mediaRequest++;
  for(const entry of pendingPhotos)URL.revokeObjectURL(entry.url);
- pendingPhotos=[];existingMedia=[];mediaReady=!tripId;mediaError=false;
+ pendingPhotos=[];failedPhotoSelections=[];existingMedia=[];mediaReady=!tripId;mediaError=false;
  $("#photos").value="";$("#photoGallery").replaceChildren();$("#photoMessage").classList.add("hidden");
  updatePhotoUsage();
 }
@@ -1112,24 +1135,46 @@ $("#photos").onchange=async()=>{
  const seq=mediaRequest;
  try{
    if(!mediaReady||accountState!=="active")throw new Error("Attendez que les photos du voyage soient chargées.");
-   await PHOTO.validateSelection(files,existingMedia.length+pendingPhotos.length);
-   if(seq!==mediaRequest||!$("#modal").classList.contains("open")||accountState!=="active")return;
+   // Reserve quota before any reads; a failed file never enters the queue.
+   if(existingMedia.length+pendingPhotos.length+files.length>PHOTO.MAX_PHOTOS)
+     throw new Error("10 photos maximum par voyage. Supprimez une photo ou sélectionnez-en moins.");
    const added=[];
-   try{
-     for(const file of files)added.push({id:String(++pendingPhotoId),file,url:URL.createObjectURL(file)});
-   }catch{
+   let rejected=0;
+   for(const file of files){
+     try{
+       // Materialize the original bytes now, before Android revokes its handle.
+       const snapshot=await PHOTO.snapshotFile(file);
+       if(seq!==mediaRequest||!$("#modal").classList.contains("open")||accountState!=="active")break;
+       added.push({id:String(++pendingPhotoId),file:snapshot,url:URL.createObjectURL(snapshot)});
+     }catch(error){
+       rejected++;
+       failedPhotoSelections.push({id:String(++pendingPhotoId),name:String(file?.name||"photo"),
+         message:PHOTO.friendlyError(error)});
+     }
+   }
+   if(seq!==mediaRequest||!$("#modal").classList.contains("open")||accountState!=="active"){
      for(const entry of added)URL.revokeObjectURL(entry.url);
-     throw new Error("Impossible de prévisualiser ces photos. Réessayez.");
+     return;
    }
    pendingPhotos.push(...added);
    renderPhotoGallery();
- }catch(e){showPhotoMessage(e.message||PHOTO.UNSUPPORTED)}
+   if(rejected)showPhotoMessage(rejected+" photo"+(rejected===1?" a été ignorée.":"s ont été ignorées.")+
+     " Consultez le message en français sur chaque vignette.");
+ }catch(error){
+   const allowed=error?.message==="10 photos maximum par voyage. Supprimez une photo ou sélectionnez-en moins."||
+     error?.message==="Attendez que les photos du voyage soient chargées.";
+   showPhotoMessage(allowed?error.message:PHOTO.friendlyError(error));
+ }
  finally{photoSelecting=false;updatePhotoUsage()}
 };
 $("#photoGallery").onclick=async e=>{
- const b=e.target.closest("button[data-id],button[data-pending-id]");
+ const b=e.target.closest("button[data-id],button[data-pending-id],button[data-rejected-id]");
  if(!b||mediaBusy||photoSelecting||savingTrip||accountState!=="active")return;
  if(b.dataset.pendingId){removePendingPhoto(b.dataset.pendingId);return}
+ if(b.dataset.rejectedId){
+   failedPhotoSelections=failedPhotoSelections.filter(entry=>entry.id!==b.dataset.rejectedId);
+   renderPhotoGallery();return;
+ }
  if(!editingTripId)return;
  const row=existingMedia.find(x=>x.id===b.dataset.id);
  if(!row)return;
@@ -1147,7 +1192,7 @@ $("#photoGallery").onclick=async e=>{
      trip.cover_media_id=data.cover_media_id;
      render();renderPhotoGallery();
      showPhotoMessage(selected?"Photo choisie pour la couverture.":"Couverture retirée.");
-   }catch(error){showPhotoMessage(error.message||"Couverture indisponible.")}
+   }catch{showPhotoMessage("Impossible de changer la couverture. Réessayez.")}
    finally{mediaBusy=false;updatePhotoUsage()}
    return;
  }
@@ -1170,7 +1215,7 @@ $("#photoGallery").onclick=async e=>{
      document.body.appendChild(link);link.click();link.remove();
      setTimeout(()=>URL.revokeObjectURL(url),60000);
    }
- }catch(err){showPhotoMessage(err.message||"Impossible de terminer cette opération. Réessayez.")}
+ }catch{showPhotoMessage("Impossible de terminer cette opération. Réessayez.")}
  finally{
    mediaBusy=false;
    if(removing)await refreshMedia(editingTripId);
@@ -1178,14 +1223,44 @@ $("#photoGallery").onclick=async e=>{
  }
 };
 async function uploadPhotos(tripId,entries){
+ const failures=[];
  for(const entry of entries){
    if(accountState!=="active")throw new Error("Votre compte n’autorise plus l’ajout de photos.");
-   await window.BEAM_PHOTO_UPLOAD.uploadOne({
-     client:S,photoApi:PHOTO,userId:user.id,tripId,file:entry.file
-   });
-   // Only a fully confirmed upload is removed; failed and later entries remain.
-   removePendingPhoto(entry.id);
+   if(!pendingPhotos.some(photo=>photo.id===entry.id))continue;
+   if(entry.blockRetry){
+     failures.push({name:entry.file.name,
+       explanation:"Nettoyage non confirmé. Vérifiez les photos enregistrées avant de réessayer.",
+       cleanupUnconfirmed:true,inaccessible:false});
+     continue;
+   }
+   try{
+     await window.BEAM_PHOTO_UPLOAD.uploadOne({
+       client:S,photoApi:PHOTO,userId:user.id,tripId,file:entry.file
+     });
+     // Successfully uploaded photos are never re-sent with failed ones.
+     removePendingPhoto(entry.id);
+   }catch(error){
+     const inaccessible=PHOTO.lostFile(error),cleanupUnconfirmed=error?.code==="PHOTO_CLEANUP_UNCONFIRMED";
+     const explanation=inaccessible?PHOTO.UNAVAILABLE:cleanupUnconfirmed?
+       "Nettoyage non confirmé. Vérifiez les photos enregistrées avant de réessayer.":
+       "Envoi échoué. Vérifiez votre connexion puis réessayez.";
+     failures.push({name:entry.file.name,explanation,cleanupUnconfirmed,inaccessible});
+     if(inaccessible){
+       const index=pendingPhotos.findIndex(photo=>photo.id===entry.id);
+       if(index>=0){
+         pendingPhotos.splice(index,1);
+         URL.revokeObjectURL(entry.url);
+       }
+       failedPhotoSelections.push({id:entry.id,name:entry.file.name,message:PHOTO.UNAVAILABLE});
+     }else {
+       entry.uploadError=explanation;
+       if(cleanupUnconfirmed)entry.blockRetry=true;
+     }
+     renderPhotoGallery();updatePhotoUsage();
+     // Keep going: a single failure must not block any later photo.
+   }
  }
+ return failures;
 }
 let savingTrip=false;
 $("#tripForm").onsubmit=async e=>{
@@ -1197,7 +1272,9 @@ $("#tripForm").onsubmit=async e=>{
    const selected=pendingPhotos.slice();
    if(selected.length){
      if(!mediaReady)throw new Error("Attendez que les photos du voyage soient chargées.");
-     await PHOTO.validateSelection(selected.map(entry=>entry.file),existingMedia.length);
+     // Every pending photo is a fully validated in-memory snapshot.
+     if(existingMedia.length+selected.length>PHOTO.MAX_PHOTOS)
+       throw new Error("10 photos maximum par voyage. Supprimez une photo ou sélectionnez-en moins.");
    }
    const f=new FormData(form),p={
      country_code:String(f.get("country_code")).toUpperCase(),
@@ -1221,25 +1298,34 @@ $("#tripForm").onsubmit=async e=>{
    // The trip is now safely persisted; never reinsert it after a photo failure.
    editingTripId=data.id;editingOriginalCountry=data.country_code;
    if(selected.length){
-     try{await uploadPhotos(data.id,selected)}
-     catch(err){
+     const failures=await uploadPhotos(data.id,selected);
+     if(failures.length){
        $("#tripTitle").textContent="Modifier le voyage";
        $("#saveTrip").textContent="Enregistrer les modifications";
-       const cleanupUnconfirmed=err.code==="PHOTO_CLEANUP_UNCONFIRMED";
-       msg.textContent="Voyage enregistré, mais "+pendingPhotos.length+" photo"+(pendingPhotos.length===1?" reste":"s restent")+" en attente. "+(err.message||"Réessayez.")+
-         (cleanupUnconfirmed?" Ne relancez pas l’envoi avant d’avoir supprimé la réservation non aboutie.":" Appuyez à nouveau sur Enregistrer pour reprendre l’envoi.");
+       const names=failures.map(item=>"« "+item.name+" » : "+item.explanation).join(" ; ");
+       const sent=selected.length-failures.length;
+       msg.textContent="Voyage enregistré. "+sent+" photo"+(sent===1?" envoyée.":"s envoyées.")+
+         " Échec pour "+failures.length+" photo"+(failures.length===1?"":"s")+" : "+names+
+         (failures.some(item=>item.cleanupUnconfirmed)?
+           " Ne réessayez pas les photos concernées avant vérification des réservations.":
+           pendingPhotos.length?" Les autres photos restent en attente : appuyez sur Enregistrer pour réessayer.":"");
        msg.classList.remove("hidden");
        try{await refreshMedia(data.id)}catch{showPhotoMessage("Impossible de rafraîchir les photos. Réessayez en rouvrant le voyage.")}
        return;
      }
    }
+   const ignoredNames=failedPhotoSelections.map(entry=>entry.name);
    form.reset();resetPhotoUI(null);$("#modal").classList.remove("open");
-   $("#appMsg").textContent=wasEditing?"Voyage modifié"+(selected.length?" avec ses photos.":"."):"Voyage ajouté"+(selected.length?" avec ses photos.":".");
+   $("#appMsg").textContent=(wasEditing?"Voyage modifié":"Voyage ajouté")+(selected.length?" avec ses photos.":".")+
+     (ignoredNames.length?" Photos ignorées : "+ignoredNames.map(name=>"« "+name+" »").join(", ")+
+       ". Choisissez-les à nouveau depuis votre Galerie.":"");
    $("#appMsg").classList.remove("hidden");editingTripId=null;
    try{await load()}catch{}
    setTimeout(()=>$("#appMsg").classList.add("hidden"),5000);
- }catch(err){
-   msg.textContent=err.message||"Impossible de préparer cette photo. Réessayez.";
+ }catch(error){
+   const known=error?.message==="Attendez que les photos du voyage soient chargées."||
+     error?.message==="10 photos maximum par voyage. Supprimez une photo ou sélectionnez-en moins.";
+   msg.textContent=known?error.message:PHOTO.friendlyError(error);
    msg.classList.remove("hidden");
  }finally{
    savingTrip=false;btn.disabled=false;
