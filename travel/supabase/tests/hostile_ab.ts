@@ -505,3 +505,171 @@ console.log("Next phase: server deletion operations + retained-JWT deletion repl
   await A.auth.signOut();
   await B.auth.signOut();
 }
+
+
+// This destructive case uses a FRESH +ci-expired-* identity created in Auth.
+// Unlike A/B (pre-provisioned CI logins), it is never shared or reused.
+// The ADMIN server key only runs in this Deno process and never enters C.
+async function testExpiredDisposable(){
+  const parts=/^([^+@\\s]+)\\+ci-a@([^@\\s]+)$/i.exec(env.TEST_A_EMAIL.trim());
+  if(!parts)throw new Error("REFUSING_UNSAFE_EXPIRED_TEST_EMAIL_PATTERN");
+  const email=`${parts[1]}+ci-expired-${crypto.randomUUID().slice(0,12)}@${parts[2]}`.toLowerCase();
+  const password=crypto.randomUUID()+crypto.randomUUID();
+  const publicClient=client();
+  let uid:string|null=null;
+  let tripId:string|null=null;
+  let uploadedPath:string|null=null;
+  let removedByTravelDelete=false;
+  const bytes=Uint8Array.from(
+    atob("UklGRiIAAABXRUJQVlA4IBYAAAAwAQCdASoBAAEAAUAmJaQAA3AA/v89WAAAAA=="),
+    letter=>letter.charCodeAt(0)
+  );
+  const webp=()=>new Blob([bytes.slice().buffer],{type:"image/webp"});
+  const requireUnchanged=async<T>(label:string,operation:PromiseLike<{data:T[]|null;error:unknown}>)=>{
+    const {data,error}=await operation;
+    // RLS UPDATE/DELETE may return no rows without throwing.
+    if(!error && (data?.length??0)>0)throw new Error("EXPIRY_SECURITY_REGRESSION: "+label);
+    console.log("PASS expired denied: "+label);
+  };
+  try{
+    // Server-only Auth creation, then immediately assign active access BEFORE
+    // signing in or inserting a trip. Failed creation/setup is fully cleaned.
+    const {data:created,error:createError}=await admin.auth.admin.createUser({
+      email,password,email_confirm:true
+    });
+    if(createError||!created.user)throw new Error("EXPIRED_FIXTURE_AUTH_CREATION_FAILED");
+    uid=created.user.id;
+    await setFixtureAccess(uid,email,twoYearsOut());
+    console.log("PASS expired fixture created with initial active date (server only)");
+
+    const {data:signed,error:loginError}=await publicClient.auth.signInWithPassword({email,password});
+    if(loginError||!signed.session||signed.user.id!==uid)
+      throw new Error("EXPIRED_FIXTURE_LOGIN_FAILED");
+    // Reserve and upload one real private photo while the account is active.
+    const {data:trip,error:tripErr}=await publicClient.from("trips").insert({
+      country_code:"FR",cities:["Paris"],entry_date:"2024-05-01",exit_date:"2024-05-05",
+      purpose:"tourisme",note:"expiring-ci-fixture"
+    }).select("id").single();
+    if(tripErr||!trip)throw new Error("EXPIRED_FIXTURE_ACTIVE_TRIP_CREATE_FAILED");
+    tripId=trip.id;
+    const {error:activityErr}=await publicClient.from("activities").insert({
+      trip_id:tripId,title:"Test d'accès expiré",kind:TEST_ACTIVITY_KIND
+    });
+    if(activityErr)throw new Error("EXPIRED_FIXTURE_ACTIVE_ACTIVITY_CREATE_FAILED");
+    const originalPhotoId=crypto.randomUUID();
+    uploadedPath=`${uid}/${tripId}/${originalPhotoId}.webp`;
+    const {error:mediaError}=await publicClient.from("media").insert({
+      id:originalPhotoId,trip_id:tripId,storage_path:uploadedPath,kind:"photo",bytes:bytes.length
+    });
+    if(mediaError)throw new Error("EXPIRED_FIXTURE_ACTIVE_MEDIA_RESERVE_FAILED");
+    const {error:uploadError}=await publicClient.storage.from("media").upload(
+      uploadedPath,webp(),{contentType:"image/webp",upsert:false,cacheControl:"60"});
+    if(uploadError)throw new Error("EXPIRED_FIXTURE_ACTIVE_STORAGE_UPLOAD_FAILED");
+
+    // Second valid media reservation (created while active) ensures the
+    // later Storage denial tests access expiry, NOT missing row reservation.
+    const candidateId=crypto.randomUUID();
+    const candidatePath=`${uid}/${tripId}/${candidateId}.webp`;
+    const {error:candidateError}=await publicClient.from("media").insert({
+      id:candidateId,trip_id:tripId,storage_path:candidatePath,kind:"photo",bytes:bytes.length
+    });
+    if(candidateError)throw new Error("EXPIRED_FIXTURE_RESERVED_UPLOAD_SETUP_FAILED");
+
+    const yesterday=new Date();
+    yesterday.setUTCDate(yesterday.getUTCDate()-1);
+    const expiredDate=yesterday.toISOString().slice(0,10);
+    const {data:expiredRow,error:expireError}=await admin.from("profiles")
+      .update({access_until:expiredDate}).eq("id",uid).select("id,access_until").single();
+    if(expireError||expiredRow?.access_until!==expiredDate)
+      throw new Error("EXPIRED_FIXTURE_SERVER_EXPIRY_UPDATE_FAILED");
+
+    const {data:ownProfile,error:profileReadErr}=await publicClient.from("profiles")
+      .select("access_until").eq("id",uid).single();
+    if(profileReadErr||ownProfile?.access_until!==expiredDate)
+      throw new Error("EXPIRED_CANNOT_READ_OWN_PROFILE");
+    for(const [table,field,expected] of [
+      ["trips","id",tripId],["activities","trip_id",tripId],["media","id",originalPhotoId]
+    ] as const){
+      const {data,error}=await publicClient.from(table).select(field).eq(field,expected);
+      if(error||data?.length!==1)throw new Error("EXPIRED_CANNOT_READ_OWN_"+table.toUpperCase());
+    }
+    const {data:pdfRows,error:pdfError}=await publicClient.from("travel_history_pdf")
+      .select("country_code,entry_date").eq("user_id",uid);
+    if(pdfError||!pdfRows?.some(x=>x.country_code==="FR"))
+      throw new Error("EXPIRED_CANNOT_READ_FACTUAL_PDF_VIEW");
+    const storage=publicClient.storage.from("media");
+    const {data:photoBlob,error:downloadError}=await storage.download(uploadedPath);
+    if(downloadError||!photoBlob)throw new Error("EXPIRED_PRIVATE_PHOTO_DOWNLOAD_DENIED");
+    const {data:signedPhoto,error:signedError}=await storage.createSignedUrl(uploadedPath,60);
+    if(signedError||!signedPhoto?.signedUrl)
+      throw new Error("EXPIRED_PRIVATE_PHOTO_SIGNING_DENIED");
+    console.log("PASS expired account reads trips, activities, photos, signed URLs and factual PDF");
+
+    const {error:tripInsertError}=await publicClient.from("trips").insert({
+      country_code:"SN",cities:["Dakar"],entry_date:"2025-01-01",exit_date:"2025-01-02",
+      purpose:"autre"
+    });
+    expectDenied("expired trip INSERT via API",tripInsertError);
+    await requireUnchanged("trip UPDATE via API",publicClient.from("trips")
+      .update({note:"blocked"}).eq("id",tripId).select("id"));
+    const {error:activityInsertError}=await publicClient.from("activities").insert({
+      trip_id:tripId,title:"blocked",kind:TEST_ACTIVITY_KIND
+    });
+    expectDenied("expired activity INSERT via API",activityInsertError);
+    await requireUnchanged("activity UPDATE via API",publicClient.from("activities")
+      .update({title:"blocked"}).eq("trip_id",tripId).select("id"));
+    await requireUnchanged("activity DELETE via API",publicClient.from("activities")
+      .delete().eq("trip_id",tripId).select("id"));
+    const newMediaId=crypto.randomUUID();
+    const {error:mediaInsertError}=await publicClient.from("media").insert({
+      id:newMediaId,trip_id:tripId,
+      storage_path:`${uid}/${tripId}/${newMediaId}.webp`,kind:"photo",bytes:bytes.length
+    });
+    expectDenied("expired media INSERT via API",mediaInsertError);
+    await requireUnchanged("media UPDATE via API",publicClient.from("media")
+      .update({caption:"blocked"}).eq("id",originalPhotoId).select("id"));
+    const {error:uploadExpiredError}=await storage.upload(candidatePath,webp(),{
+      contentType:"image/webp",upsert:false,cacheControl:"60"
+    });
+    expectDenied("expired reserved Storage upload via API",uploadExpiredError);
+    await requireUnchanged("profile UPDATE via API",publicClient.from("profiles")
+      .update({display_name:"blocked"}).eq("id",uid).select("id"));
+    const {error:extendError}=await publicClient.from("profiles")
+      .update({access_until:twoYearsOut()}).eq("id",uid);
+    expectDenied("client attempts to extend access_until",extendError);
+
+    // Crucial erasure guarantee: expiry MUST NOT block travel-delete. The
+    // account signed in moments ago, satisfying RECENT_AUTH_REQUIRED.
+    const {data:deleted,error:deleteError}=await publicClient.functions.invoke("travel-delete",{
+      body:{action:"delete_account",confirmation:"SUPPRIMER"}
+    });
+    if(deleteError||deleted?.ok!==true||deleted?.account_deleted!==true)
+      throw new Error("EXPIRED_TRAVEL_DELETE_ACCOUNT_FAILED");
+    const {data:profileAfter,error:verifyError}=await admin.from("profiles")
+      .select("id").eq("id",uid).maybeSingle();
+    if(verifyError||profileAfter)throw new Error("EXPIRED_ACCOUNT_PROFILE_REMAINS");
+    const {data:authAfter,error:authAfterError}=await admin.auth.admin.getUserById(uid);
+    if(!authAfterError&&authAfter?.user)
+      throw new Error("EXPIRED_ACCOUNT_AUTH_USER_REMAINS");
+    removedByTravelDelete=true;
+    console.log("PASS expired account securely deletes itself via travel-delete");
+  }finally{
+    // Any failed scenario still cleans ONLY the UUID of its freshly created
+    // +ci-expired-* identity; never touch A/B or actual customer accounts.
+    if(uid&&!removedByTravelDelete){
+      const {data:who,error:whoError}=await admin.auth.admin.getUserById(uid);
+      if(!whoError&&who?.user){
+        if(who.user.email?.toLowerCase()!==email)
+          throw new Error("REFUSING_NON_DISPOSABLE_CLEANUP");
+        if(uploadedPath){
+          const {error:removeError}=await admin.storage.from("media").remove([uploadedPath]);
+          if(removeError)throw new Error("EXPIRED_FIXTURE_PHOTO_CLEANUP_FAILED");
+        }
+        const {error:deleteError}=await admin.auth.admin.deleteUser(uid);
+        if(deleteError)throw new Error("EXPIRED_FIXTURE_USER_CLEANUP_FAILED");
+      }
+    }
+    await publicClient.auth.signOut().catch(()=>{});
+  }
+}
+await testExpiredDisposable();
