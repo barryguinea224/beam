@@ -112,7 +112,10 @@ assert.match(inline,/setDashboardTitle\(data\.display_name\)/,"saved full name m
 assert.match(inline,/function setDashboardTitle\(name\)/,"name rendering must use the shared no-truncation helper");
 assert.match(inline,/window\.BEAM_FAMILY_BOOKLET\?\.render/,
  "missing optional album must disable printing without crashing the dashboard");
-assert.match(inline,/BEAM_PERSONAL_JOURNAL\.preferredMediaQuery\(/);
+assert.match(inline,/BEAM_FAMILY_BOOKLET\.preferredMediaQuery\(/,
+ "family booklet must query ten ordered private photos independently of journal four-photo quota");
+assert.match(inline,/BEAM_FAMILY_BOOKLET\.preparePhotos\(pack,window\)/,
+ "family booklet must resample trusted signed images only in browser RAM before print");
 assert.match(inline,/pack\[position\]=\{trip,activities:activityResult\.data\|\|\[\],photos,favoritePhoto,missingPhotos\}/,
  "failed photo signatures must reach the private print status");
 assert.match(inline,/window\.BEAM_TRAVEL_PDF\.fetchRows\(S,uid\)/);
