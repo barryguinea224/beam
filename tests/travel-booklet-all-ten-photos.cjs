@@ -191,7 +191,7 @@ async function main(){
        return pairs.every(([photo,caption])=>{
         const a=document.querySelector(photo).getBoundingClientRect(),
          b=document.querySelector(caption).getBoundingClientRect();
-        return a.bottom<=b.top+1||a.top>=b.bottom-1;
+        return a.bottom<=b.top+1||b.bottom<=a.top+1||a.right<=b.left+1||b.right<=a.left+1;
        });
       })(),
       favorite:item.favoritePhoto,
