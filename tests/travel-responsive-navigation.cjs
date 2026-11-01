@@ -8,12 +8,14 @@ const fs=require("node:fs/promises");
 const path=require("node:path");
 const {chromium}=require("playwright");
 const root=path.resolve(__dirname,"../travel");
+const {intercept:syntheticTravelConfig}=require("./helpers/synthetic-travel-config.cjs");
 const mime={".html":"text/html; charset=utf-8",".js":"application/javascript; charset=utf-8",
  ".css":"text/css; charset=utf-8",".svg":"image/svg+xml",
  ".json":"application/json",".webmanifest":"application/manifest+json",
  ".png":"image/png",".webp":"image/webp"};
 function serve(){
  return http.createServer(async(req,res)=>{
+  if(syntheticTravelConfig(req,res))return;
   const u=new URL(req.url,"http://localhost");
   if(!u.pathname.startsWith("/travel/")){res.writeHead(404);res.end();return}
   const relative=u.pathname.slice("/travel/".length)||"index.html";

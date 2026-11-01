@@ -10,6 +10,9 @@ Statut déclaré par le propriétaire le 01/11/2026 (non vérifié ici) : Supaba
 - Le build Netlify génère travel/config.js. Le fichier suivi dans Git est volontairement vide. Le build refuse un contexte inconnu, une clé absente/non publique ou deux clés identiques ; il ne journalise pas les clés. Une clé publishable/anon est publique par conception : les accès restent protégés par RLS et Storage.
 - Après un déploiement explicitement approuvé, vérifier que beamguinee.com/travel/config.js pointe sur production et que le config.js des aperçus Netlify privés pointe sur staging. Ne pas rendre publics les aperçus.
 
+
+**Avant fusion :** définir les deux variables Netlify de build avant de fusionner cette PR. Ne pas les marquer « Secret » dans Netlify : ces clés publishable/anon sont publiques et seront volontairement écrites dans `travel/config.js`. Sinon la détection des secrets Netlify peut bloquer le build. Ne pas désactiver globalement la détection des secrets ; ne jamais utiliser une clé `service_role` ou `sb_secret` ici.
+
 ## GitHub : environnement production à créer par le propriétaire
 
 - Workflow .github/workflows/deploy-production-functions.yml : workflow_dispatch uniquement, refus d'un autre dépôt et de toute branche différente de main, environnement GitHub production requis.

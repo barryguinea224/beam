@@ -18,4 +18,14 @@ a.ok(!publicKey(b({alg:"HS256"})+"."+b({role:"service_role"})+".sig"));
 const w=fs.readFileSync(".github/workflows/deploy-production-functions.yml","utf8");
 a.match(w,/workflow_dispatch:/);a.doesNotMatch(w,/^\s+(push|pull_request|schedule):/m);
 a.match(w,/environment: production/);a.match(w,/refs\/heads\/main/);
+
+a.throws(()=>result({CONTEXT:"production",BEAM_TRAVEL_PRODUCTION_PUBLIC_KEY:""}),/Missing or non-public/);
+a.throws(()=>result({CONTEXT:"production",BEAM_TRAVEL_PRODUCTION_PUBLIC_KEY:undefined}),/Missing or non-public/);
+const serviceRole=b({alg:"HS256"})+"."+b({role:"service_role"})+".sig";
+a.throws(()=>result({CONTEXT:"production",BEAM_TRAVEL_PRODUCTION_PUBLIC_KEY:serviceRole}),/Missing or non-public/);
+const {BODY,CONFIG_PATH}=require("./helpers/synthetic-travel-config.cjs");
+a.equal(CONFIG_PATH,"/travel/config.js");
+a.match(BODY,/fixture\.invalid/);
+a.doesNotMatch(BODY,/aojxeujjluhmnkwscndc|coigbvhxywbmqgacmhzf/);
+
 console.log("PASS static production/staging config separation");
