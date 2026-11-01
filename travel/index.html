@@ -1227,6 +1227,12 @@ async function uploadPhotos(tripId,entries){
  for(const entry of entries){
    if(accountState!=="active")throw new Error("Votre compte n’autorise plus l’ajout de photos.");
    if(!pendingPhotos.some(photo=>photo.id===entry.id))continue;
+   if(entry.blockRetry){
+     failures.push({name:entry.file.name,
+       explanation:"Nettoyage non confirmé. Vérifiez les photos enregistrées avant de réessayer.",
+       cleanupUnconfirmed:true,inaccessible:false});
+     continue;
+   }
    try{
      await window.BEAM_PHOTO_UPLOAD.uploadOne({
        client:S,photoApi:PHOTO,userId:user.id,tripId,file:entry.file
@@ -1246,7 +1252,10 @@ async function uploadPhotos(tripId,entries){
          URL.revokeObjectURL(entry.url);
        }
        failedPhotoSelections.push({id:entry.id,name:entry.file.name,message:PHOTO.UNAVAILABLE});
-     }else entry.uploadError=explanation;
+     }else {
+       entry.uploadError=explanation;
+       if(cleanupUnconfirmed)entry.blockRetry=true;
+     }
      renderPhotoGallery();updatePhotoUsage();
      // Keep going: a single failure must not block any later photo.
    }
