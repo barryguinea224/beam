@@ -200,7 +200,7 @@ function render(doc,model){
   // the journey spread (hero + story), never opportunistic global filler.
   for(let offset=0;offset<others.length;offset+=6){
    const mosaic=leaf("mosaic-leaf");
-   mosaic.dataset.trip=String(data.trip?.id||"");
+   mosaic.page.dataset.trip=String(data.trip?.id||"");
    node(mosaic.inside,"p","ey","Souvenirs · "+trip.country);
    node(mosaic.inside,"h2",null,"Nos photos · "+(Math.floor(offset/6)+1)+"/"+Math.ceil(others.length/6));
    const grid=node(mosaic.inside,"div","mosaic-grid");
