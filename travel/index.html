@@ -370,7 +370,7 @@ function travelDashboardTitle(input){
  return "Carnet "+(vowel?"d'":"de ")+name;
 }
 function travelerInitials(name){
- const parts=String(name||"").trim().split(/\\s+/u).filter(Boolean);
+ const parts=String(name||"").trim().split(/\s+/u).filter(Boolean);
  if(!parts.length)return "V";
  // Initials are computed in memory from the already loaded profile name;
  // no photo, storage, external URL or additional query is involved.
@@ -378,7 +378,7 @@ function travelerInitials(name){
  return (first+last).toLocaleUpperCase("fr-FR");
 }
 function setDashboardTitle(name){
- const heading=$("#dashboardTitle"),clean=String(name||"").trim().replace(/\\s+/gu," ");
+ const heading=$("#dashboardTitle"),clean=String(name||"").trim().replace(/\s+/gu," ");
  heading.textContent=clean||"Voyageur";
  $("#travelerAvatar").textContent=travelerInitials(clean);
  // Never truncate names; allow natural wrapping on narrow screens.
