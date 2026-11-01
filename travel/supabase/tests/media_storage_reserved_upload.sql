@@ -91,7 +91,7 @@ end $$;
 
 -- An authenticated client must NEVER directly delete a Storage object, even
 -- if it is the owner and has SQL DELETE table privilege in the fixture.
-do $
+do $deny_storage$
 declare removed bigint := 0; denied_by_storage_guard boolean := false;
 begin
   -- Minimal Postgres denies through RLS (zero affected rows); the real
@@ -111,7 +111,7 @@ begin
   if not denied_by_storage_guard and removed <> 0 then
     raise exception 'AUTHENTICATED_DIRECT_STORAGE_DELETE_ACCEPTED';
   end if;
-end $;
+end $deny_storage$;
 
 -- The browser must not recycle a reserved media row into a new Storage path.
 -- Run as the same authenticated owner, not as a database administrator.
