@@ -245,6 +245,7 @@ async function main(){
    await page.selectOption("#bookletFormat","simple");
    assert.equal(await page.locator(".sheet").count(),8);
    assert.equal(await page.locator(".half.left").count(),0);
+   await page.emulateMedia({media:"print"}); // Ignore Android screen preview zoom when generating A4 pages.
    const plain=path.join(dir,"demo-pages-simples-a4.pdf");
    fs.writeFileSync(plain,await page.pdf({format:"A4",landscape:false,preferCSSPageSize:false,printBackground:true}));
    assert.doesNotMatch(execFileSync("pdffonts",[plain],{encoding:"utf8"}),/NotoColorEmoji|AppleColorEmoji/,"Unexpected emoji font in simple PDF");
