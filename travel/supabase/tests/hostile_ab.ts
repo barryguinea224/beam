@@ -511,7 +511,7 @@ console.log("Next phase: server deletion operations + retained-JWT deletion repl
 // Unlike A/B (pre-provisioned CI logins), it is never shared or reused.
 // The ADMIN server key only runs in this Deno process and never enters C.
 async function testExpiredDisposable(){
-  const parts=/^([^+@\\s]+)\\+ci-a@([^@\\s]+)$/i.exec(env.TEST_A_EMAIL.trim());
+  const parts=/^([^+@\s]+)\+ci-a@([^@\s]+)$/i.exec(env.TEST_A_EMAIL.trim());
   if(!parts)throw new Error("REFUSING_UNSAFE_EXPIRED_TEST_EMAIL_PATTERN");
   const email=`${parts[1]}+ci-expired-${crypto.randomUUID().slice(0,12)}@${parts[2]}`.toLowerCase();
   const password=crypto.randomUUID()+crypto.randomUUID();
