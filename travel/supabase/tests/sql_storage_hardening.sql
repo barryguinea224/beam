@@ -71,6 +71,8 @@ values('73333333-3333-4333-8333-333333333333',
        '71111111-1111-4111-8111-111111111111',
        'GN','2020-01-01','2020-01-02','autre');
 
+update public.profiles set access_until=(current_date+interval '2 years')::date
+ where id in ('71111111-1111-4111-8111-111111111111','72222222-2222-4222-8222-222222222222');
 grant usage on schema public,private to authenticated;
 do $auth_usage_fixture$
 begin
