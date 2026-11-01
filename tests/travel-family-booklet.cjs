@@ -20,6 +20,14 @@ for(const [count,stacks] of Object.entries(expected)){
   Array.from({length:Number(count)},(_,i)=>i+1));
  assert.equal(result.length,Number(count)/2,"Two printed A5 leaves per A4 side");
 }
+assert.equal(BOOK.MAX_PHOTOS_PER_TRIP,10);
+assert.equal(BOOK.MAX_TOTAL_PHOTOS,60);
+assert.equal(BOOK.PRINT_EDGE,1500);
+const calls=[];
+const query={order(field,{ascending}){calls.push([field,ascending]);return this},
+ limit(value){calls.push(["limit",value]);return this}};
+assert.equal(BOOK.preferredMediaQuery(query),query);
+assert.deepEqual(calls,[["is_favorite",false],["position",true],["created_at",true],["limit",10]]);
 assert.throws(()=>BOOK.imposedOrder(6),/multiple|imposable/);
 assert.equal(BOOK.splitMemory("abc").join(""),"abc");
 const source=fs.readFileSync("travel/family-booklet.js","utf8");
@@ -265,8 +273,9 @@ async function main(){
    assert.equal(fillers.count,8);
    assert.equal(fillers.notes,1);
    assert.equal(fillers.mosaic,1);
-   assert.equal(fillers.photos,1);
-   assert.deepEqual([...fillers.titles].sort(),["Notes","Quelques images de plus","Nos prochains voyages…"].sort(),"All filler titles must appear exactly once regardless of physical imposition");
+   assert.equal(fillers.photos,3,"all three non-hero photos get journey-local mosaic frames");
+   assert.deepEqual([...fillers.titles].sort(),["Notes","Nos photos · 1/1","Nos prochains voyages…"].sort(),
+    "mosaic stays within its trip; only decorative notes fill remaining imposed pages");
    const youssouf=await page.evaluate(data=>{
     window.BEAM_FAMILY_BOOKLET.render(document,{...data,name:"Youssouf",generatedAt:new Date(data.generatedAt)});
     return [document.title,document.querySelector(".cover h1")?.textContent];
