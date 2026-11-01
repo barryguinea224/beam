@@ -50,7 +50,7 @@ jobs:
             test-artifacts/travel-responsive-real/carnet-real-1280.png
             test-artifacts/travel-responsive-real/compte-real-360.png
             test-artifacts/travel-responsive-real/compte-real-1280.png
-            test-artifacts/family-booklet/demo-livret-a5-portrait-impose.pdf
+            test-artifacts/family-booklet/demo-livret-a5-sur-a4-portrait.pdf
             test-artifacts/family-booklet/demo-pages-simples-a4.pdf
             test-artifacts/travel-onboarding-real/empty-360.png
             test-artifacts/travel-onboarding-real/first-trip-360.png
