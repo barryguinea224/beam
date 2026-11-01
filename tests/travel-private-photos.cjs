@@ -12,7 +12,9 @@ assert.ok(html.includes('id="photoGallery"'), "A private gallery must exist");
 assert.ok(html.includes('id="photoUsage"'), "Limits/count must be displayed");
 assert.ok(html.includes('id="photos"'), "Photo input missing");
 assert.ok(html.indexOf('id="photoField"') < html.indexOf('name="note"'), "Photos must precede souvenirs");
-assert.ok(html.includes('PHOTO.validateSelection'), "Selection must be validated before trip save");
+assert.ok(html.includes('PHOTO.snapshotFile(file)'), "Every source must be fully read and validated at selection");
+assert.ok(html.includes('existingMedia.length+pendingPhotos.length+files.length>PHOTO.MAX_PHOTOS'),
+  "Selection cap must include existing and queued photos");
 const uploadSource = fs.readFileSync("travel/photo-upload.js", "utf8");
 new vm.Script(uploadSource, {filename:"travel/photo-upload.js"});
 assert.ok(html.includes('<script src="./photo-upload.js"></script>'), "Row-first helper loaded");
