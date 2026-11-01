@@ -91,15 +91,27 @@ end $$;
 
 -- An authenticated client must NEVER directly delete a Storage object, even
 -- if it is the owner and has SQL DELETE table privilege in the fixture.
-do $$
-declare removed bigint;
+do $
+declare removed bigint := 0; denied_by_storage_guard boolean := false;
 begin
-  delete from storage.objects
-  where bucket_id='media'
-    and name='30000000-0000-4000-8000-000000000021/40000000-0000-4000-8000-000000000021/50000000-0000-4000-8000-000000000021.webp';
-  get diagnostics removed = row_count;
-  if removed <> 0 then raise exception 'AUTHENTICATED_DIRECT_STORAGE_DELETE_ACCEPTED'; end if;
-end $$;
+  -- Minimal Postgres denies through RLS (zero affected rows); the real
+  -- Supabase Storage schema also has a DELETE-blocking trigger which raises.
+  begin
+    delete from storage.objects
+    where bucket_id='media'
+      and name='30000000-0000-4000-8000-000000000021/40000000-0000-4000-8000-000000000021/50000000-0000-4000-8000-000000000021.webp';
+    get diagnostics removed = row_count;
+  exception when raise_exception then
+    if SQLERRM like 'Direct deletion from storage tables is not allowed%' then
+      denied_by_storage_guard := true;
+    else
+      raise;
+    end if;
+  end;
+  if not denied_by_storage_guard and removed <> 0 then
+    raise exception 'AUTHENTICATED_DIRECT_STORAGE_DELETE_ACCEPTED';
+  end if;
+end $;
 
 -- The browser must not recycle a reserved media row into a new Storage path.
 -- Run as the same authenticated owner, not as a database administrator.
