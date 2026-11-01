@@ -117,7 +117,7 @@ begin
   insert into storage.objects(id,bucket_id,name,owner,owner_id) values
    ('ac400000-0000-4000-8000-000000000003','media',
     'ac000000-0000-4000-8000-000000000002/ac100000-0000-4000-8000-000000000002/ac300000-0000-4000-8000-000000000003.webp',
-    auth.uid()::text,auth.uid()::text);
+    auth.uid(),auth.uid()::text);
  exception when insufficient_privilege then rejected:=true; end;
  if not rejected then raise exception 'EXPIRED_STORAGE_UPLOAD_SUCCEEDED'; end if;
 
