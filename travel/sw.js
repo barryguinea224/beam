@@ -5,7 +5,7 @@ const CACHE_NAME = "beam-travel-shell-v1-20261101-access-expiry-readonly-v14";
 const SCOPE_PATH = "/travel/";
 const PUBLIC_SHELL = [
   "./index.html", "./config.js", "./offline-bootstrap.js", "./pwa.js",
-  "./photo-utils.js", "./photo-upload.js", "./trip-detail.js",
+  "./access.js", "./photo-utils.js", "./photo-upload.js", "./trip-detail.js",
   "./countries.js", "./country-picker.js", "./factual-pdf.js", "./factual-pdf-file.js",
   "./journal-stats.js", "./dashboard-filters.js", "./dashboard-filters.css", "./printable-journal.js", "./family-booklet.js",
   "./visual-cards.js", "./visual-cards.css",
