@@ -9,6 +9,20 @@
   const UNSUPPORTED = "Format non pris en charge. Choisissez une photo JPEG ou PNG, ou faites une capture d’écran de la photo.";
   const TOO_LARGE = "Cette photo dépasse 8 Mo. Choisissez une image plus petite ou une capture d’écran.";
 
+  const INACCESSIBLE = "Cette photo n'est plus accessible. Choisissez-la à nouveau depuis votre Galerie.";
+  function message(error) {
+    if (error?.name==="NotFoundError" || error?.name==="NotReadableError" || error?.code==="PHOTO_INACCESSIBLE") return INACCESSIBLE;
+    if ([UNSUPPORTED,TOO_LARGE,INACCESSIBLE].includes(error?.message)) return error.message;
+    return "Impossible de lire cette photo. Réessayez depuis votre Galerie.";
+  }
+  async function snapshot(file) {
+    let bytes;
+    try { bytes=await file.slice(0,file.size).arrayBuffer(); }
+    catch { const e=new Error(INACCESSIBLE);e.code="PHOTO_INACCESSIBLE";throw e; }
+    const copy=new Blob([bytes],{type:file.type});
+    Object.defineProperty(copy,"name",{value:String(file.name||"photo")});
+    return copy;
+  }
   function kind(bytes) {
     if (bytes.length >= 3 && bytes[0] === 255 && bytes[1] === 216 && bytes[2] === 255) return "jpeg";
     if (bytes.length >= 8 && [137,80,78,71,13,10,26,10].every((n,i) => bytes[i] === n)) return "png";
@@ -23,7 +37,9 @@
         type.startsWith("video/") || /heic|heif|quicktime/.test(type)) throw new Error(UNSUPPORTED);
     if (!file || !Number.isFinite(file.size) || file.size <= 0) throw new Error(UNSUPPORTED);
     if (file.size > MAX_SOURCE_BYTES) throw new Error(TOO_LARGE);
-    const header = new Uint8Array(await file.slice(0, 16).arrayBuffer());
+    let header;
+    try {header=new Uint8Array(await file.slice(0,16).arrayBuffer());}
+    catch {const e=new Error(INACCESSIBLE);e.code="PHOTO_INACCESSIBLE";throw e;}
     const format = kind(header);
     if (!format || (type && !["image/jpeg","image/png","image/webp","application/octet-stream"].includes(type))) {
       throw new Error(UNSUPPORTED);
@@ -70,7 +86,7 @@
       bitmap?.close?.();
     }
   }
-  const api = Object.freeze({MAX_PHOTOS, MAX_SOURCE_BYTES, UNSUPPORTED, TOO_LARGE, kind, validateFile, validateSelection, convert});
+  const api = Object.freeze({MAX_PHOTOS, MAX_SOURCE_BYTES, UNSUPPORTED, TOO_LARGE, INACCESSIBLE, message, snapshot, kind, validateFile, validateSelection, convert});
   if (root) root.BEAM_PHOTO = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })(typeof window !== "undefined" ? window : undefined);
