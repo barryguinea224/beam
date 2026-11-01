@@ -143,13 +143,13 @@ end $null$;
 -- An active client still has all of its original rights.
 select set_config('request.jwt.claim.sub','ac000000-0000-4000-8000-000000000001',true);
 do $active$
-declare id uuid; affected int;
+declare v_trip_id uuid; affected int;
 begin
  if not private.account_accepts_writes(auth.uid()) then raise exception 'ACTIVE_WRITE_DENIED'; end if;
  insert into public.trips(user_id,country_code,entry_date,exit_date,purpose)
-  values(auth.uid(),'ES','2025-08-01','2025-08-05','tourisme') returning id into id;
- update public.trips set note='ok' where id=id;
- insert into public.activities(trip_id,user_id,title) values(id,auth.uid(),'Nouvelle activité');
+  values(auth.uid(),'ES','2025-08-01','2025-08-05','tourisme') returning id into v_trip_id;
+ update public.trips set note='ok' where public.trips.id=v_trip_id;
+ insert into public.activities(trip_id,user_id,title) values(v_trip_id,auth.uid(),'Nouvelle activité');
  update public.profiles set display_name='Client actif' where id=auth.uid();
  get diagnostics affected=row_count;
  if affected<>1 then raise exception 'ACTIVE_PROFILE_UPDATE_DENIED'; end if;
