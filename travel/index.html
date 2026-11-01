@@ -211,6 +211,13 @@ html.beamOffline #auth,html.beamOffline #app,html.beamOffline #modal,html.beamOf
 #discardConfirm{z-index:90}
 
 /* Traveler identity — avatar is TEXT INITIALS ONLY; no new storage or photo. */
+/* Keep the identity in the LEFT desktop column; place PDF actions on the right. */
+@media(min-width:900px){
+ #app .w{grid-template-areas:"hero header" "hero filters" "map trips" ". trips"}
+ #app>.w>header{grid-area:header;align-self:start}
+ #travelHero{grid-area:hero;align-self:start}
+}
+
 #app>.w>header{min-height:0;justify-content:flex-end;padding:0}
 #travelHero{min-width:0}
 #travelHero .travelerHeader{min-width:0;max-width:100%}
