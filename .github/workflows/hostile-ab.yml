@@ -122,6 +122,39 @@ jobs:
         env: { PGPASSWORD: postgres }
         run: psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f travel/supabase/tests/media_storage_reserved_upload.sql
 
+      - name: Test the staging one-transaction SQL on DISPOSABLE PostgreSQL ONLY
+        env: { PGPASSWORD: postgres }
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 <<'SQL'
+          insert into auth.users(id) values
+            ('ad000000-0000-4000-8000-000000000001'),
+            ('ad000000-0000-4000-8000-000000000002');
+          update public.profiles set access_until = null
+           where id in ('ad000000-0000-4000-8000-000000000001',
+                        'ad000000-0000-4000-8000-000000000002');
+          SQL
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f travel/supabase/STAGING_ACCESS_EXPIRY_SETUP.sql
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 <<'SQL'
+          do $check$
+          begin
+            if (select count(*) from public.profiles
+                 where id in ('ad000000-0000-4000-8000-000000000001',
+                              'ad000000-0000-4000-8000-000000000002')
+                   and access_until = (current_date+interval '2 years')::date) <> 2
+            then raise exception 'STAGING_FIXTURE_ACCESS_ACTIVATION_FAILED'; end if;
+          end $check$;
+          SQL
+          echo 'PASS disposable PostgreSQL staging transaction and all-profile activation'
+
+      - name: Setup Deno to TYPECHECK only (NO STAGING SECRETS)
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Typecheck hostile access-expiry bench without executing it
+        run: deno check travel/supabase/tests/hostile_ab.ts
+
   hostile-ab:
     # This bench now requires a server key to provision disposable access dates.
     # NEVER run on pull_request, synchronize or push: the owner must migrate
