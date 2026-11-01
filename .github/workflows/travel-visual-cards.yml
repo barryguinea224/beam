@@ -1,0 +1,96 @@
+name: BEAM Travel — cartes privées et couverture (PR review)
+
+on:
+  pull_request:
+    branches: [feature/beam-travel-history-v1]
+    paths:
+      - "travel/index.html"
+      - "travel/visual-cards.js"
+      - "travel/visual-cards.css"
+      - "travel/assets/**"
+      - "travel/supabase/schema.sql"
+      - "travel/supabase/migrations/20261030200000_travel_cover_media_identity.sql"
+      - "travel/supabase/tests/cover_media_integrity.sql"
+      - "tests/travel-visual-cards*"
+      - "tests/travel-trip-detail.cjs"
+      - ".github/workflows/travel-visual-cards.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  cover-db:
+    name: Même voyage, même propriétaire, suppression auto NULL
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+        with: { persist-credentials: false }
+      - name: Bootstrap disposable Supabase-compatible PostgreSQL
+        env: { PGPASSWORD: postgres }
+        run: |
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 <<'SQL'
+          create role anon; create role authenticated; create role service_role;
+          create schema auth; create schema storage;
+          create table auth.users(id uuid primary key, raw_user_meta_data jsonb default '{}'::jsonb);
+          create function auth.uid() returns uuid language sql stable as $$ select null::uuid $$;
+          create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);
+          create table storage.objects(id uuid,name text,bucket_id text,owner uuid,owner_id text);
+          create function storage.foldername(text) returns text[] language sql immutable as $$ select string_to_array($1,'/') $$;
+          SQL
+      - name: Canonical schema must enforce same-trip and owner covers
+        env: { PGPASSWORD: postgres }
+        run: |
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f travel/supabase/schema.sql
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f travel/supabase/tests/cover_media_integrity.sql
+      - name: Simulate actual pre-migration staging schema (disposable only)
+        env: { PGPASSWORD: postgres }
+        run: |
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 <<'SQL'
+          alter table public.trips drop constraint trips_cover_same_trip_owner;
+          alter table public.media drop constraint media_cover_identity;
+          revoke update(cover_media_id) on public.trips from authenticated;
+          alter table public.trips drop column cover_media_id;
+          SQL
+      - name: Apply reviewed migration to disposable DB, never staging
+        env: { PGPASSWORD: postgres }
+        run: |
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f travel/supabase/migrations/20261030200000_travel_cover_media_identity.sql
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f travel/supabase/tests/cover_media_integrity.sql
+
+  visual-contract:
+    name: Drapeaux locaux, WebP légers, URLs signées limitées
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - run: node tests/travel-visual-cards.cjs
+      - run: node tests/travel-trip-detail.cjs
+
+  visual-mobile:
+    name: Cartes et contrastes sur Android 320-390px
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - run: node tests/travel-visual-cards-layout.cjs

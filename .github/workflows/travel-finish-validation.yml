@@ -1,0 +1,69 @@
+name: BEAM Travel finish — full JS tests and real-page captures
+on:
+  pull_request:
+    branches: [feature/beam-travel-history-v1]
+    paths:
+      - "travel/**"
+      - "tests/**"
+      - ".github/workflows/travel-finish-validation.yml"
+permissions:
+  contents: read
+jobs:
+  all-cjs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Install Playwright, Chromium and PDF utilities
+        run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+          sudo apt-get update -qq
+          sudo apt-get install -y poppler-utils
+      - name: Run every test including mobile-smoke with local site server
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/beam-mobile-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:8765/ >/dev/null; then break; fi
+            sleep .2
+          done
+          curl --fail --silent http://127.0.0.1:8765/ >/dev/null
+          failures=0
+          for test in tests/*.cjs; do
+            echo "::group::$test"
+            if node "$test"; then echo "PASS $test"; else failures=$((failures + 1)); echo "::error::FAIL $test"; fi
+            echo "::endgroup::"
+          done
+          echo "Total failing test files: $failures"
+          test "$failures" -eq 0
+      - name: Upload captures from REAL application at 360 and 1280 px
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: travel-finish-real-page-360-1280
+          path: |
+            test-artifacts/travel-responsive-real/carnet-real-360.png
+            test-artifacts/travel-responsive-real/carnet-real-1280.png
+            test-artifacts/travel-desktop-map-column/carnet-real-950.png
+            test-artifacts/travel-overlay-stacking/ajouter-voyage-950.png
+            test-artifacts/travel-traveler-identity/identity-real-360.png
+            test-artifacts/travel-traveler-identity/identity-real-1280.png
+            test-artifacts/travel-desktop-map-column/layout-950.json
+            test-artifacts/travel-responsive-real/compte-real-360.png
+            test-artifacts/travel-responsive-real/compte-real-1280.png
+            test-artifacts/family-booklet/demo-livret-a5-sur-a4-portrait.pdf
+            test-artifacts/family-booklet/ten-photos-a5-portrait.pdf
+            test-artifacts/family-booklet/no-photos-a5-portrait.pdf
+            test-artifacts/family-booklet/mixed-photo-and-no-photo-a5-portrait.pdf
+            test-artifacts/family-booklet/ten-photos-favorite-portrait-a5.pdf
+            test-artifacts/family-booklet/demo-pages-simples-a4.pdf
+            test-artifacts/travel-onboarding-real/empty-360.png
+            test-artifacts/travel-onboarding-real/first-trip-360.png
+          if-no-files-found: warn

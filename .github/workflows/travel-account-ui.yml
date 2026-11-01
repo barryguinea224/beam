@@ -1,0 +1,27 @@
+name: BEAM Travel account deletion UI — PR review
+
+on:
+  pull_request:
+    branches: [feature/beam-travel-history-v1]
+    paths:
+      - "travel/index.html"
+      - "tests/travel-account-deletion-ui.cjs"
+      - ".github/workflows/travel-account-ui.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  static-safety:
+    name: Safe account deletion form and JavaScript syntax
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Test form guard and syntax (no Supabase credentials)
+        run: node tests/travel-account-deletion-ui.cjs

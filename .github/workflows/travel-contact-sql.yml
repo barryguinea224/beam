@@ -1,0 +1,56 @@
+name: BEAM Travel — optional contact SQL migration review (disposable DB)
+
+on:
+  pull_request:
+    branches: [feature/beam-travel-history-v1]
+    paths:
+      - "travel/supabase/schema.sql"
+      - "travel/supabase/migrations/20261031120000_optional_profile_contacts.sql"
+      - "travel/supabase/tests/profile_contacts_security.sql"
+      - ".github/workflows/travel-contact-sql.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  disposable-postgres:
+    name: "Profile contacts: grants, RLS and constraints (NO staging writes)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - name: Bootstrap minimal Supabase-compatible schemas
+        env: {PGPASSWORD: postgres}
+        run: |
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 <<'SQL'
+          create role anon; create role authenticated; create role service_role;
+          create schema auth; create schema storage;
+          create table auth.users(id uuid primary key, raw_user_meta_data jsonb default '{}'::jsonb);
+          create function auth.uid() returns uuid language sql stable as $$ select null::uuid $$;
+          create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);
+          create table storage.objects(id uuid,name text,bucket_id text,owner uuid,owner_id text);
+          create function storage.foldername(text) returns text[] language sql immutable as $$ select string_to_array($1,'/') $$;
+          SQL
+      - name: Execute canonical schema (local ephemeral DB)
+        env: {PGPASSWORD: postgres}
+        run: psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f travel/supabase/schema.sql
+      - name: Simulate reviewed migration twice for idempotency (local ephemeral DB)
+        env: {PGPASSWORD: postgres}
+        run: |
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f travel/supabase/migrations/20261031120000_optional_profile_contacts.sql
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f travel/supabase/migrations/20261031120000_optional_profile_contacts.sql
+      - name: Hostile profile contact permission and validation checks
+        env: {PGPASSWORD: postgres}
+        run: psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f travel/supabase/tests/profile_contacts_security.sql
