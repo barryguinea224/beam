@@ -220,7 +220,7 @@ async function main() {
   await android.select([unreadable,fake('gallery-good.jpg')]);
   assert.deepEqual(Array.from(android.queued()),['gallery-good.jpg']);
   assert.match(android.els['#photoGallery'].innerHTML,/telegram-broken.jpg/);
-  assert.match(android.els['#photoGallery'].innerHTML,/Cette photo n&#39;est plus accessible/);
+  assert.match(android.els['#photoGallery'].innerHTML,/Cette photo n(?:&#39;|')est plus accessible/);
   assert.doesNotMatch(android.els['#photoGallery'].innerHTML,/A requested file/);
   await android.save();
   assert.equal(android.uploads.length,1);
