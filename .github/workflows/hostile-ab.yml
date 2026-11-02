@@ -128,9 +128,9 @@ jobs:
   hostile-ab:
     # Fresh-schema replay PRs must NEVER acquire staging environment credentials.
     # Other Travel PRs keep the existing staging hostile bench unchanged.
-    # No STAGING avatar table/function is installed yet. On this PR run only
-    # the local parser/SQL checks; do not contact staging or its credentials.
-    if: (github.event_name != 'pull_request' || !startsWith(github.head_ref, 'ci/travel-fresh-supabase-schema-replay-')) && github.head_ref != 'feature/travel-profile-avatar-20261102'
+    # Avatar SQL migration and travel-delete were applied to STAGING on 2026-11-02;
+    # the real JWT bench now covers PR #63 like every other Travel PR.
+    if: github.event_name != 'pull_request' || !startsWith(github.head_ref, 'ci/travel-fresh-supabase-schema-replay-')
     name: Real JWT / RLS hostile bench
     concurrency:
       group: hostile-ab-staging
