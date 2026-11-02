@@ -22,11 +22,52 @@ INSERT INTO public.avatar_media(id,user_id,storage_path,width,height,bytes)
 VALUES ('ab100000-0000-4000-8000-000000000001',auth.uid(),
  auth.uid()::text||'/profile/ab100000-0000-4000-8000-000000000001.webp',512,512,10000);
 -- Row-first: a valid reservation unlocks only the owner's exact path.
-INSERT INTO storage.objects(id,bucket_id,name,owner,owner_id)
+INSERT INTO storage.objects(id,bucket_id,name,owner,owner_id,metadata)
 VALUES ('ab200000-0000-4000-8000-000000000001','media',
  auth.uid()::text||'/profile/ab100000-0000-4000-8000-000000000001.webp',
- auth.uid(),auth.uid()::text);
+ auth.uid(),auth.uid()::text,'{"size":10000,"mimetype":"image/webp"}'::jsonb);
 RESET ROLE;
+-- A DB reservation can lie about bytes/MIME; only the actual Storage object
+-- may be promoted. Exercise over-limit, wrong MIME and malformed metadata.
+DO $avatar_object_metadata$
+DECLARE reason text;
+BEGIN
+ UPDATE storage.objects SET metadata='{"size":2097153,"mimetype":"image/webp"}'::jsonb
+  WHERE id='ab200000-0000-4000-8000-000000000001';
+ BEGIN
+  PERFORM public.activate_reserved_avatar('ab000000-0000-4000-8000-000000000001',
+    'ab100000-0000-4000-8000-000000000001');
+  RAISE EXCEPTION 'OVERSIZE_AVATAR_WAS_ACTIVATED';
+ EXCEPTION WHEN raise_exception THEN
+  GET STACKED DIAGNOSTICS reason=MESSAGE_TEXT;
+  IF reason<>'AVATAR_UPLOAD_INVALID' THEN RAISE; END IF;
+ END;
+ UPDATE storage.objects SET metadata='{"size":10000,"mimetype":"image/png"}'::jsonb
+  WHERE id='ab200000-0000-4000-8000-000000000001';
+ BEGIN
+  PERFORM public.activate_reserved_avatar('ab000000-0000-4000-8000-000000000001',
+    'ab100000-0000-4000-8000-000000000001');
+  RAISE EXCEPTION 'WRONG_MIME_AVATAR_WAS_ACTIVATED';
+ EXCEPTION WHEN raise_exception THEN
+  GET STACKED DIAGNOSTICS reason=MESSAGE_TEXT;
+  IF reason<>'AVATAR_UPLOAD_INVALID' THEN RAISE; END IF;
+ END;
+ UPDATE storage.objects SET metadata='{"size":"not-a-number","mimetype":"image/webp"}'::jsonb
+  WHERE id='ab200000-0000-4000-8000-000000000001';
+ BEGIN
+  PERFORM public.activate_reserved_avatar('ab000000-0000-4000-8000-000000000001',
+    'ab100000-0000-4000-8000-000000000001');
+  RAISE EXCEPTION 'MALFORMED_AVATAR_SIZE_WAS_ACTIVATED';
+ EXCEPTION WHEN raise_exception THEN
+  GET STACKED DIAGNOSTICS reason=MESSAGE_TEXT;
+  IF reason<>'AVATAR_UPLOAD_INVALID' THEN RAISE; END IF;
+ END;
+ IF (SELECT avatar_id FROM public.profiles
+     WHERE id='ab000000-0000-4000-8000-000000000001') IS NOT NULL
+   THEN RAISE EXCEPTION 'INVALID_AVATAR_CHANGED_PROFILE'; END IF;
+ UPDATE storage.objects SET metadata='{"size":10000,"mimetype":"image/webp"}'::jsonb
+  WHERE id='ab200000-0000-4000-8000-000000000001';
+END $avatar_object_metadata$;
 SELECT public.activate_reserved_avatar('ab000000-0000-4000-8000-000000000001',
  'ab100000-0000-4000-8000-000000000001');
 DO $assert_activation$

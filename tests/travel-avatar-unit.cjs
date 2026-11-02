@@ -100,6 +100,59 @@ async function run(){
  assert.deepEqual(operations.slice(0,3),["reserve","upload","delete_avatar"],
    "failed upload MUST clean server-side after reservation");
  assert.equal(rows.size,0);
+
+ // Retry both states. A failed retired removal must not prevent a fresh upload,
+ // but a failed pending cleanup must still stop to preserve the unique slot.
+ const retiredId="33333333-3333-4333-8333-333333333333";
+ const pendingId="44444444-4444-4444-8444-444444444444";
+ const retiredRows=[
+  {id:retiredId,user_id:uid,state:"retired"},
+  {id:pendingId,user_id:uid,state:"pending"},
+  {id:"55555555-5555-4555-8555-555555555555",user_id:uid,state:"active"}
+ ];
+ const cleanupLog=[];
+ const cleanupClient={
+  from(table){
+   assert.equal(table,"avatar_media");
+   const query={select(columns){assert.equal(columns,"id,state");return query},
+    eq(col,val){assert.equal(col,"user_id");assert.equal(val,uid);return query},
+    then(cb){return Promise.resolve({data:retiredRows,error:null}).then(cb)}};
+   return query;
+  },
+  functions:{async invoke(name,{body}){
+    assert.equal(name,"travel-delete");assert.equal(body.action,"delete_avatar");
+    cleanupLog.push(body.avatar_id);
+    if(body.avatar_id===retiredId)return{data:null,error:{message:"temporary removal failure"}};
+    return{data:{ok:true},error:null};
+  }}
+ };
+ const status=await Avatar.cleanupPending(cleanupClient,uid);
+ assert.deepEqual(status,{retiredCleanupFailed:true});
+ assert.deepEqual(cleanupLog,[pendingId,retiredId],
+   "pending must be cleared before best-effort retired; active must remain untouched");
+ // A pending cleanup failure must propagate and prevent a new reservation.
+ const pendingFailClient={...cleanupClient,functions:{async invoke(name,{body}){
+   throw Error("pending cleanup failed");
+ }}};
+ await assert.rejects(()=>Avatar.cleanupPending(pendingFailClient,uid),/pending cleanup failed/);
+
+ // With only a retired row and a failing server cleanup, a new upload still
+ // proceeds, reports cleanup_pending, and never directly deletes Storage.
+ rows.set(retiredId,{id:retiredId,user_id:uid,state:"retired"});
+ const previousInvoke=client.functions.invoke;
+ client.functions.invoke=async function(name,request){
+   if(request.body.action==="delete_avatar"&&request.body.avatar_id===retiredId)
+     return {data:null,error:{message:"temporary removal failure"}};
+   return previousInvoke.call(this,name,request);
+ };
+ operations.length=0;shouldFail=false;
+ const newPhoto=await Avatar.upload({client,photoApi,uid,file:sample,idProvider:()=>id,canWrite:()=>true});
+ assert.equal(newPhoto.cleanupPending,true,
+   "retired cleanup failure is reported without blocking successful upload");
+ assert.deepEqual(operations.slice(0,3),["reserve","upload","activate_avatar"]);
+ assert.equal(profileId,id);
+ rows.delete(retiredId);
+ await Avatar.removeByServer(client,id);
  console.log("PASS avatar square WebP/EXIF-safe conversion, row-first upload, server deletion, expiry and rollback");
 }
 run().catch(e=>{console.error(e);process.exitCode=1});

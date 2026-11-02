@@ -35,16 +35,27 @@ async function removeByServer(client,id){
   return data;
 }
 async function cleanupPending(client,uid){
-  const {data,error}=await client.from("avatar_media").select("id")
-    .eq("user_id",uid).eq("state","pending");
+  // Owner-scoped RLS query. Strictly clear pending uploads before reserving
+  // another (unique pending constraint); retry retired leftovers best-effort.
+  const {data,error}=await client.from("avatar_media").select("id,state")
+    .eq("user_id",uid);
   if(error)throw Error("Impossible de vérifier les anciennes photos en attente.");
-  for(const row of data||[])await removeByServer(client,row.id);
+  const rows=data||[];
+  for(const row of rows.filter(r=>r.state==="pending")){
+    await removeByServer(client,row.id);
+  }
+  let retiredCleanupFailed=false;
+  for(const row of rows.filter(r=>r.state==="retired")){
+    try{await removeByServer(client,row.id)}
+    catch{retiredCleanupFailed=true}
+  }
+  return {retiredCleanupFailed};
 }
 async function upload({client,photoApi,uid,file,idProvider=uuid,canWrite=()=>true}){
   if(!canWrite())throw Error("Accès en lecture seule : impossible de modifier la photo.");
   const converted=await convert(file,photoApi);
   if(!canWrite())throw Error("Accès en lecture seule : impossible de modifier la photo.");
-  await cleanupPending(client,uid);
+  const {retiredCleanupFailed}=await cleanupPending(client,uid);
   const id=idProvider(),path=uid+"/profile/"+id+".webp";
   const {error:reservationError}=await client.from("avatar_media").insert({
     id,user_id:uid,storage_path:path,state:"pending",
@@ -83,7 +94,7 @@ async function upload({client,photoApi,uid,file,idProvider=uuid,canWrite=()=>tru
       throw Error("Impossible d’activer la photo. L’ancienne photo est conservée.");
     }
   }
-  return {id,path,cleanupPending:cleanupPendingOnServer};
+  return {id,path,cleanupPending:cleanupPendingOnServer||retiredCleanupFailed};
 }
 async function signedUrl(client,uid,avatarId){
   if(!avatarId)return null;

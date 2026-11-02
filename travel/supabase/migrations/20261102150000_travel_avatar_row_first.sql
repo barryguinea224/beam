@@ -100,6 +100,58 @@ begin
  if not exists(select 1 from storage.objects o
       where o.bucket_id='media' and o.name=chosen.storage_path)
     then raise exception 'AVATAR_UPLOAD_NOT_FOUND'; end if;
+ -- Never trust avatar_media.bytes: the browser supplies it. Validate the
+ -- *actual* stored object metadata before atomically making it active.
+ -- Malformed/null sizes must fail as AVATAR_UPLOAD_INVALID, not cast errors.
+ if not exists(
+   select 1 from storage.objects o
+   where o.bucket_id='media' and o.name=chosen.storage_path
+     and o.metadata->>'mimetype'='image/webp'
+     and case
+       when o.metadata->>'size' ~ '^[0-9]{1,7}
+ previous:=p.avatar_id;
+ if previous is not null then
+   update public.avatar_media set state='retired' where id=previous and user_id=p_uid;
+ end if;
+ update public.avatar_media set state='active'
+   where id=chosen.id and user_id=p_uid;
+ update public.profiles set avatar_id=chosen.id where id=p_uid;
+ return previous;
+end $$;
+revoke execute on function public.activate_reserved_avatar(uuid,uuid)
+ from public,anon,authenticated;
+grant execute on function public.activate_reserved_avatar(uuid,uuid) to service_role;
+
+-- Mark avatar retired atomically BEFORE removing a private Storage object.
+-- Pending/retired cleanup remains possible after expiry to avoid orphans.
+create or replace function public.retire_reserved_avatar(p_uid uuid,p_avatar_id uuid)
+returns text language plpgsql security definer set search_path='' as $$
+declare p public.profiles%rowtype; a public.avatar_media%rowtype;
+begin
+ select * into p from public.profiles where id=p_uid for update;
+ if not found then return null; end if;
+ select * into a from public.avatar_media
+   where id=p_avatar_id and user_id=p_uid for update;
+ if not found then return null; end if;
+ if a.state='active' then
+  if p.deleting or p.access_until is null or p.access_until<current_date
+    then raise exception 'AVATAR_READ_ONLY'; end if;
+  if p.avatar_id<>a.id then raise exception 'AVATAR_POINTER_MISMATCH'; end if;
+  update public.profiles set avatar_id=null where id=p_uid;
+ end if;
+ update public.avatar_media set state='retired' where id=a.id and user_id=p_uid;
+ return a.storage_path;
+end $$;
+revoke execute on function public.retire_reserved_avatar(uuid,uuid)
+ from public,anon,authenticated;
+grant execute on function public.retire_reserved_avatar(uuid,uuid) to service_role;
+
+commit;
+
+       then (o.metadata->>'size')::bigint between 1 and 2097152
+       else false
+     end
+ ) then raise exception 'AVATAR_UPLOAD_INVALID'; end if;
  previous:=p.avatar_id;
  if previous is not null then
    update public.avatar_media set state='retired' where id=previous and user_id=p_uid;
