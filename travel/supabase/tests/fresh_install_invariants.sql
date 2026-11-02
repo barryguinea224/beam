@@ -9,7 +9,7 @@ DECLARE
 BEGIN
   -- Expected Supabase schemas and six application tables, including private logs.
   FOREACH t IN ARRAY ARRAY[
-    'public.profiles','public.trips','public.activities','public.media',
+    'public.profiles','public.trips','public.activities','public.media','public.avatar_media',
     'private.deletion_retry_log','private.deletion_retry_runs'
   ] LOOP
     IF to_regclass(t) IS NULL THEN RAISE EXCEPTION 'MISSING_APP_TABLE: %',t; END IF;
@@ -23,7 +23,7 @@ BEGIN
     AND reloptions @> ARRAY['security_invoker=true']::text[]
   ) THEN RAISE EXCEPTION 'PDF_VIEW_MUST_USE_SECURITY_INVOKER'; END IF;
 
-  FOREACH t IN ARRAY ARRAY['public.profiles','public.trips','public.activities','public.media'] LOOP
+  FOREACH t IN ARRAY ARRAY['public.profiles','public.trips','public.activities','public.media','public.avatar_media'] LOOP
     IF NOT EXISTS (SELECT 1 FROM pg_class WHERE oid=t::regclass AND relrowsecurity)
        THEN RAISE EXCEPTION 'RLS_DISABLED: %', t; END IF;
     IF has_table_privilege('anon',t,'SELECT')
@@ -42,6 +42,10 @@ BEGIN
   END LOOP;
   IF has_column_privilege('authenticated','public.media','storage_path','UPDATE')
   THEN RAISE EXCEPTION 'BROWSER_CAN_REASSIGN_STORAGE_PATH'; END IF;
+  IF has_column_privilege('authenticated','public.profiles','avatar_id','UPDATE')
+    OR has_table_privilege('authenticated','public.avatar_media','UPDATE')
+    OR has_table_privilege('authenticated','public.avatar_media','DELETE')
+  THEN RAISE EXCEPTION 'AVATAR_CLIENT_MUTATION_GRANT'; END IF;
   IF has_column_privilege('authenticated','public.profiles','access_until','UPDATE')
   THEN RAISE EXCEPTION 'CLIENT_CAN_EDIT_ACCESS_UNTIL'; END IF;
   IF NOT has_column_privilege('authenticated','public.profiles','access_until','SELECT')

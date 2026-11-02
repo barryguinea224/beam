@@ -210,7 +210,7 @@ html.beamOffline #auth,html.beamOffline #app,html.beamOffline #modal,html.beamOf
 #tripDetailModal{z-index:80}
 #discardConfirm{z-index:90}
 
-/* Traveler identity — avatar is TEXT INITIALS ONLY; no new storage or photo. */
+/* Traveler identity — server-signed optional avatar; initials remain the fallback. */
 /* Keep the identity in the LEFT desktop column; place PDF actions on the right. */
 @media(min-width:900px){
  #app .w{grid-template-areas:"hero header" "hero filters" "map trips" ". trips"}
@@ -227,7 +227,14 @@ html.beamOffline #auth,html.beamOffline #app,html.beamOffline #modal,html.beamOf
 #openAccount.travelerAccountLink:hover{text-decoration:underline;text-underline-offset:3px}
 #openAccount.travelerAccountLink:focus-visible{outline:2px solid var(--g);outline-offset:3px;border-radius:7px}
 #travelHero .travelerIdentity{display:flex;align-items:center;gap:12px;min-width:0}
-#travelerAvatar{width:60px;height:60px;min-width:60px;border-radius:50%;display:grid;place-items:center;background:#e3eee7;border:1px solid #c6d9ce;color:#174d3a;font:700 21px/1 system-ui,sans-serif;letter-spacing:.02em;user-select:none}
+#travelerAvatar{width:60px;height:60px;min-width:60px;border-radius:50%;display:grid;place-items:center;background:#e3eee7;border:1px solid #c6d9ce;color:#174d3a;font:700 21px/1 system-ui,sans-serif;letter-spacing:.02em;user-select:none;overflow:hidden}
+#travelerAvatar img,#accountAvatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block}
+#accountAvatar{width:76px;height:76px;min-width:76px;border-radius:50%;background:#e3eee7;color:#174d3a;border:1px solid #c6d9ce;display:grid;place-items:center;overflow:hidden;font:bold 25px system-ui,sans-serif}
+.accountAvatarRow{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:12px 0}
+.avatarActions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+#avatarMessage{font-size:13px;color:var(--g);margin:8px 0}
+#avatarPick{position:absolute;max-width:1px;width:1px;height:1px;opacity:0;overflow:hidden}
+html.travelAccessReadOnly #avatarChange,html.travelAccessReadOnly #avatarRemove{display:none!important}
 #travelHero .travelerNameBlock{flex:1;min-width:0}
 #dashboardTitle,#dashboardTitle.longTitle,#dashboardTitle.extraLongTitle{font-family:Georgia,serif;font-weight:500;font-size:clamp(22px,3.2vw,36px);line-height:1.08;margin:0;max-width:100%;white-space:normal;overflow-wrap:anywhere;word-break:normal;text-overflow:clip;overflow:visible}
 #dashboardTitle.longTitle{font-size:clamp(20px,2.8vw,31px)}
@@ -325,7 +332,13 @@ html.travelAccessReadOnly #photoField,html.travelAccessReadOnly #saveTrip{displa
 </section>
 <section id="accountStatusUnavailable" class="panel hidden" role="alert"><h2>État du compte indisponible</h2><p>Impossible de vérifier si votre compte est en cours de suppression. Les modifications restent désactivées. Réessayez, ou déconnectez-vous puis reconnectez-vous.</p><button id="retryAccountStatus" type="button" class="btn ghost">Réessayer</button></section>
 <p id="appMsg" class="notice hidden"></p><div id="filterAnchor" class="filterAnchor"><button id="toggleFilters" class="btn ghost" type="button" aria-expanded="false" aria-controls="filterPanel">Filtrer les voyages</button><div id="activeFilterChips" class="activeFilterChips" aria-label="Filtres actifs"></div><section id="filterPanel" class="panel" aria-labelledby="filterTitle" role="dialog" aria-modal="false" aria-hidden="true" tabindex="-1"><div class="top"><h2 id="filterTitle">Filtrer mon carnet</h2><button id="closeFilters" class="btn ghost" type="button" aria-label="Fermer les filtres">✕</button></div><div class="dashboardFilters"><div class="field"><label for="filterCountry">Pays</label><select id="filterCountry"><option value="">Tous les pays</option></select></div><div class="field"><label for="filterYear">Année d’entrée</label><select id="filterYear"><option value="">Toutes les années</option></select></div><div class="field"><label for="filterPurpose">Motif</label><select id="filterPurpose"><option value="">Tous les motifs</option><option value="tourisme">Tourisme</option><option value="affaires">Affaires</option><option value="etudes">Études</option><option value="famille">Famille</option><option value="sante">Santé</option><option value="transit">Transit</option><option value="autre">Autre</option></select></div><div class="field"><label for="filterScope">Type de voyage</label><select id="filterScope"><option value="">Tous les types</option><option value="foreign">Voyages à l’étranger</option><option value="domestic">Séjours nationaux</option></select></div></div><div class="dashboardFiltersActions"><button id="applyFilters" type="button" class="btn">Voir les voyages</button><button id="resetFilters" type="button" class="btn ghost">Tout afficher</button><p id="filterStatus" role="status" aria-live="polite">Tous les voyages sont affichés.</p></div></section></div><section id="travelMapPanel" class="panel" aria-labelledby="travelMapTitle"><h2 id="travelMapTitle">Ma carte</h2><div class="map" id="map" aria-live="polite">Chargement de la carte…</div><p id="mapInfo" class="mapInfo"></p><div id="countryList" class="countryList" aria-label="Pays visités"></div></section><div id="travelPanels" class="grid"><section class="panel" id="travelTripsPanel"><h2>Mes voyages</h2><div id="trips"></div></section></div><div id="discardConfirm" class="accountOverlay" aria-hidden="true"><section class="panel" role="alertdialog" aria-modal="true" aria-labelledby="discardTitle" aria-describedby="discardDescription" tabindex="-1"><h2 id="discardTitle">Abandonner les modifications ?</h2><p id="discardDescription">Les informations non enregistrées seront perdues.</p><div class="actions"><button type="button" id="discardStay" class="btn ghost">Continuer la modification</button><button type="button" id="discardLeave" class="btn">Abandonner</button></div></section></div>
-<div id="accountOverlay" class="accountOverlay" aria-hidden="true"><section id="myAccount" class="panel" role="dialog" aria-modal="true" aria-labelledby="myAccountTitle" tabindex="-1"><div class="top"><h2 id="myAccountTitle">Mon compte</h2><button type="button" id="closeAccount" class="btn ghost">Fermer</button></div><section id="accountProfileCard" class="panel"><h3>Mon profil</h3><p id="accountReadSummary" class="mapInfo"></p><div class="actions"><button type="button" id="editAccount" class="btn ghost">Modifier</button><button type="button" id="cancelAccountEdit" class="btn ghost">Annuler</button></div></section>
+<div id="accountOverlay" class="accountOverlay" aria-hidden="true"><section id="myAccount" class="panel" role="dialog" aria-modal="true" aria-labelledby="myAccountTitle" tabindex="-1"><div class="top"><h2 id="myAccountTitle">Mon compte</h2><button type="button" id="closeAccount" class="btn ghost">Fermer</button></div><section id="accountProfileCard" class="panel"><h3>Mon profil</h3>
+<div class="accountAvatarRow"><span id="accountAvatar" aria-label="Photo de profil ou initiales">V</span>
+<div><div class="avatarActions"><button type="button" id="avatarChange" class="btn ghost">Ajouter une photo</button>
+<button type="button" id="avatarRemove" class="btn ghost hidden">Retirer la photo</button></div>
+<input id="avatarPick" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" aria-label="Choisir une photo de profil">
+<p id="avatarMessage" role="status" aria-live="polite">Photo facultative · recadrage carré et WebP privé.</p></div></div>
+<p id="accountReadSummary" class="mapInfo"></p><div class="actions"><button type="button" id="editAccount" class="btn ghost">Modifier</button><button type="button" id="cancelAccountEdit" class="btn ghost">Annuler</button></div></section>
 <section id="residencePanel" class="panel" style="margin-bottom:16px"><div class="top"><div><h2 style="margin-bottom:4px">Pays de résidence</h2><p id="residenceReadSummary" class="mapInfo"></p><button type="button" id="changeResidence" class="btn ghost">Changer</button><p class="mapInfo" style="margin:0">Utilisée uniquement pour proposer si un nouveau voyage est intérieur. Elle ne reclassifie jamais vos anciens voyages.</p></div><div class="field" style="min-width:210px;margin:0"><label for="residenceSearch" class="ey" style="font-size:11px">Rechercher un pays de résidence</label><input id="residenceSearch" type="search" placeholder="Ex. Guinée, Sénégal" autocomplete="off" aria-controls="residence"><select id="residence" aria-label="Pays de résidence"><option value="">Choisir</option></select></div></div></section><form id="travelerNameForm" aria-label="Nom déclaré pour le PDF" style="max-width:520px;margin-bottom:22px">
  <div class="field"><label for="travelerName">Nom du voyageur (pour le PDF)</label>
  <input id="travelerName" name="display_name" type="text" maxlength="80" autocomplete="name" required placeholder="Prénom et nom">
@@ -368,10 +381,12 @@ html.travelAccessReadOnly #photoField,html.travelAccessReadOnly #saveTrip{displa
     </section>
   </div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./config.js"></script><script src="./pwa.js"></script><script src="./access.js"></script><script src="./photo-utils.js"></script><script src="./photo-upload.js"></script><script src="./trip-detail.js"></script><script src="./countries.js"></script><script src="./country-picker.js"></script><script src="./factual-pdf.js"></script><script src="./factual-pdf-file.js"></script><script src="./journal-stats.js"></script><script src="./dashboard-filters.js"></script><script src="./visual-cards.js"></script><script src="./printable-journal.js"></script><script src="./family-booklet.js"></script><script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./config.js"></script><script src="./pwa.js"></script><script src="./access.js"></script><script src="./photo-utils.js"></script><script src="./photo-upload.js"></script><script src="./avatar.js"></script><script src="./trip-detail.js"></script><script src="./countries.js"></script><script src="./country-picker.js"></script><script src="./factual-pdf.js"></script><script src="./factual-pdf-file.js"></script><script src="./journal-stats.js"></script><script src="./dashboard-filters.js"></script><script src="./visual-cards.js"></script><script src="./printable-journal.js"></script><script src="./family-booklet.js"></script><script>
 const C=window.BEAM_TRAVEL_CONFIG||{},ok=C.supabaseUrl&&!C.supabaseUrl.includes("YOUR_")&&C.supabaseAnonKey&&!C.supabaseAnonKey.includes("YOUR_"),S=ok&&typeof supabase!=="undefined"?supabase.createClient(C.supabaseUrl,C.supabaseAnonKey):null,$=s=>document.querySelector(s);let user,trips=[],accountState="loading";
 function view(id){$("#auth").classList.add("hidden");$("#app").classList.add("hidden");$(id).classList.remove("hidden");document.title=id==="#app"?"Mon carnet de voyage":"BEAM Travel History"}
-let profile={country_of_residence:null,display_name:null,access_until:null};
+let profile={country_of_residence:null,display_name:null,access_until:null,avatar_id:null};
+const AVATAR=window.BEAM_TRAVEL_AVATAR;
+let avatarSigned=null,avatarSignedUntil=0,avatarBusy=false;
 const ACCESS=window.BEAM_TRAVEL_ACCESS;
 function accessState(){return ACCESS.state(profile.access_until)}
 function canWrite(){return accountState==="active"&&accessState().canWrite}
@@ -452,19 +467,100 @@ function travelDashboardTitle(input){
 function travelerInitials(name){
  const parts=String(name||"").trim().split(/\s+/u).filter(Boolean);
  if(!parts.length)return "V";
- // Initials are computed in memory from the already loaded profile name;
- // no photo, storage, external URL or additional query is involved.
+ // Initials are computed locally and displayed whenever no usable photo exists.
  const first=Array.from(parts[0])[0]||"V",last=parts.length>1?Array.from(parts.at(-1))[0]:"";
  return (first+last).toLocaleUpperCase("fr-FR");
 }
 function setDashboardTitle(name){
  const heading=$("#dashboardTitle"),clean=String(name||"").trim().replace(/\s+/gu," ");
  heading.textContent=clean||"Voyageur";
- $("#travelerAvatar").textContent=travelerInitials(clean);
+ renderAvatar();
  // Never truncate names; allow natural wrapping on narrow screens.
  heading.classList.toggle("longTitle",clean.length>28);
  heading.classList.toggle("extraLongTitle",clean.length>55);
 }
+
+function avatarMessage(message){const el=$("#avatarMessage");if(el)el.textContent=message}
+function avatarControls(){
+ const editable=accountState==="active"&&canWrite()&&!avatarBusy;
+ $("#avatarChange").disabled=!editable;
+ $("#avatarChange").classList.toggle("hidden",!canWrite()&&accountState==="active");
+ $("#avatarChange").textContent=profile.avatar_id?"Changer la photo":"Ajouter une photo";
+ $("#avatarRemove").classList.toggle("hidden",!profile.avatar_id||!canWrite());
+ $("#avatarRemove").disabled=!editable;
+ $("#avatarPick").disabled=!editable;
+}
+function renderAvatar(){
+ const initials=travelerInitials(profile.display_name);
+ for(const id of ["#travelerAvatar","#accountAvatar"]){
+  const el=$(id);if(!el)continue;
+  // A private signed URL must not persist when the account/photo changes.
+  el.replaceChildren();
+  if(avatarSigned&&profile.avatar_id&&Date.now()<avatarSignedUntil){
+   const img=document.createElement("img");
+   img.alt="Photo de profil privée";img.dataset.isPrivate="true";img.referrerPolicy="no-referrer";
+   img.src=avatarSigned;
+   img.onerror=()=>{if(img.isConnected){img.remove();el.textContent=initials}};
+   el.appendChild(img);
+  }else el.textContent=initials;
+ }
+ avatarControls();
+}
+async function refreshAvatar(){
+ const uid=user?.id,id=profile.avatar_id;
+ avatarSigned=null;avatarSignedUntil=0;
+ renderAvatar();
+ if(!uid||!id||accountState!=="active")return;
+ try{
+  const signed=await AVATAR.signedUrl(S,uid,id);
+  if(user?.id!==uid||profile.avatar_id!==id||accountState!=="active")return;
+  avatarSigned=signed;avatarSignedUntil=Date.now()+285000;
+  renderAvatar();avatarMessage("Photo de profil privée · lien temporaire de 5 minutes.");
+ }catch{avatarMessage("Photo indisponible pour le moment. Vos initiales restent visibles.")}
+}
+async function refreshAvatarIfNeeded(){
+ if(accountState==="active"&&profile.avatar_id&&!avatarBusy&&Date.now()>avatarSignedUntil-15000)
+  await refreshAvatar();
+}
+$("#avatarChange").onclick=()=>{if(!canWrite()||avatarBusy)return;$("#avatarPick").click()};
+$("#avatarPick").onchange=async()=>{
+ const file=$("#avatarPick").files?.[0];$("#avatarPick").value="";
+ if(!file||!user||!canWrite()||avatarBusy)return;
+ const uid=user.id;
+ avatarBusy=true;avatarControls();avatarMessage("Préparation et envoi sécurisé de votre photo…");
+ try{
+  const result=await AVATAR.upload({
+   client:S,photoApi:window.BEAM_PHOTO,uid,file,canWrite:()=>!!user&&user.id===uid&&canWrite()
+  });
+  if(user?.id!==uid)return;
+  profile.avatar_id=result.id;
+  await refreshAvatar();
+  if(result.cleanupPending)avatarMessage("Photo enregistrée. Le nettoyage de l’ancienne photo sera à réessayer si nécessaire.");
+  else avatarMessage("Photo de profil enregistrée.");
+ }catch(error){
+  avatarMessage(error?.message||"Impossible de modifier la photo. Réessayez.");
+  if(user?.id===uid){
+   const {data}=await S.from("profiles").select("avatar_id").eq("id",uid).single();
+   if(data){profile.avatar_id=data.avatar_id;await refreshAvatar()}
+  }
+ }finally{avatarBusy=false;avatarControls()}
+};
+$("#avatarRemove").onclick=async()=>{
+ if(!canWrite()||!user||!profile.avatar_id||avatarBusy)return;
+ const uid=user.id,id=profile.avatar_id;
+ avatarBusy=true;avatarControls();avatarMessage("Suppression sécurisée de la photo…");
+ try{
+  await AVATAR.removeByServer(S,id);
+  if(user?.id===uid){profile.avatar_id=null;avatarSigned=null;avatarSignedUntil=0;renderAvatar();avatarMessage("Photo retirée. Vos initiales sont de nouveau visibles.")}
+ }catch{
+  avatarMessage("Suppression non confirmée. Réessayez ou contactez l’assistance.");
+  if(user?.id===uid){
+   const {data}=await S.from("profiles").select("avatar_id").eq("id",uid).single();
+   if(data){profile.avatar_id=data.avatar_id;await refreshAvatar()}
+  }
+ }finally{avatarBusy=false;avatarControls()}
+};
+
 function tripDates(a,b){let A=new Date(a+"T12:00:00"),B=new Date(b+"T12:00:00"),sameMonth=A.getMonth()===B.getMonth()&&A.getFullYear()===B.getFullYear(),sameYear=A.getFullYear()===B.getFullYear();if(sameMonth)return A.getDate()+" → "+B.toLocaleDateString("fr-FR",{day:"numeric",month:"long",year:"numeric"});if(sameYear)return A.toLocaleDateString("fr-FR",{day:"numeric",month:"short"})+" → "+B.toLocaleDateString("fr-FR",{day:"numeric",month:"short",year:"numeric"});return A.toLocaleDateString("fr-FR",{day:"numeric",month:"short",year:"numeric"})+" → "+B.toLocaleDateString("fr-FR",{day:"numeric",month:"short",year:"numeric"})}
 function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 let mapReady=false,mapLoading=false;
@@ -620,7 +716,7 @@ function accountSummary(){
 function openAccountPanel(){
  if(accountState!=="active")return;
  setFiltersOpen(false);accountReturnFocus=document.activeElement;
- accountSummary();$("#accountOverlay").classList.add("accountOpen");
+ accountSummary();renderAvatar();refreshAvatarIfNeeded().catch(()=>{});$("#accountOverlay").classList.add("accountOpen");
  $("#accountOverlay").setAttribute("aria-hidden","false");$("#openAccount").setAttribute("aria-expanded","true");
  $("#closeAccount").focus();armOverlayBack();
 }
@@ -720,7 +816,7 @@ async function load(){
  if(!user)return;
  setAccountState("loading");
  const {data:current,error:stateError}=await S.from("profiles")
-   .select("country_of_residence,display_name,deleting,access_until").eq("id",user.id).single();
+   .select("country_of_residence,display_name,deleting,access_until,avatar_id").eq("id",user.id).single();
  if(stateError||!current){setAccountState("unavailable");return}
  profile=current;
  if(current.deleting===true){
@@ -730,7 +826,7 @@ async function load(){
  }
  countrySelectors.residence.reset(profile.country_of_residence||"");
  $("#travelerName").value=profile.display_name||"";
- setAccountState("active");renderAccessUi();
+ setAccountState("active");renderAccessUi();await refreshAvatar();
  const {data,error}=await S.from("trips").select("*").eq("deleting",false).order("entry_date",{ascending:false});
  if(error){$("#appMsg").textContent="Impossible de rafraîchir vos voyages. Réessayez.";$("#appMsg").classList.remove("hidden");throw error}
  trips=data||[];render();
@@ -792,7 +888,8 @@ $("#resend").onclick=async()=>{
   await sendAccess(email);
 };
 async function clearPwaSession(){
- clearPending();user=null;trips=[];profile={country_of_residence:null,display_name:null,access_until:null};
+ clearPending();user=null;trips=[];profile={country_of_residence:null,display_name:null,access_until:null,avatar_id:null};
+ avatarSigned=null;avatarSignedUntil=0;avatarBusy=false;renderAvatar();avatarMessage("Photo facultative · recadrage carré et WebP privé.");
  clearContactFields();dashboardFilters=window.BEAM_DASHBOARD_FILTERS.normalize(window.BEAM_DASHBOARD_FILTERS.EMPTY);
  try{resetPhotoUI(null)}catch{}
  // Remove private content from hidden DOM as well as the visible journal.
@@ -1613,7 +1710,7 @@ $("#pdf").onclick=async()=>{
  if(s?.user&&!user&&navigator.onLine){clearPending();user=s.user;setAccountState("loading");view("#app");setTimeout(load,0)}
 });
 if(navigator.onLine)init();
-document.addEventListener("visibilitychange",()=>{if(!document.hidden&&accountState==="active")renderAccessUi()});
-window.addEventListener("focus",()=>{if(accountState==="active")renderAccessUi()});
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&accountState==="active"){renderAccessUi();refreshAvatarIfNeeded().catch(()=>{})}});
+window.addEventListener("focus",()=>{if(accountState==="active"){renderAccessUi();refreshAvatarIfNeeded().catch(()=>{})}});
 setInterval(()=>{if(accountState==="active")renderAccessUi()},60000);
 </script></body></html>
