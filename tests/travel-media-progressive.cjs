@@ -54,7 +54,7 @@ async function main(){
   $:selector=>{assert.ok(els[selector],"Missing selector "+selector);return els[selector]},
   URL:{createObjectURL(){return "blob:local"},revokeObjectURL(){}},
   crypto:{randomUUID(){return "id"}},render(){},load:async()=>{},
-  setTimeout(){},FormData:class{},console
+  setTimeout(){},FormData:class{},console,canWrite:()=>true
  });
  vm.runInContext(source,ctx);
  vm.runInContext('resetPhotoUI("trip-1")',ctx);

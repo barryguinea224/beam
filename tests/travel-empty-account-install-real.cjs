@@ -27,7 +27,7 @@ function serve(){
 function fakeSupabase(){
  const uid="22222222-2222-4222-8222-222222222222";
  const email="synthetic-account@example.invalid";
- const profile={display_name:"Aminata Diallo",country_of_residence:"GN",deleting:false,phone:null,postal_address:null};
+ const profile={display_name:"Aminata Diallo",country_of_residence:"GN",deleting:false,access_until:"2099-12-31",phone:null,postal_address:null};
  const loggedIn=()=>sessionStorage.getItem("bth-test-signed-out")!=="1";
  window.supabase={createClient(){return{
   auth:{

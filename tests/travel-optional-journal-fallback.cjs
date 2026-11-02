@@ -52,7 +52,7 @@ function mockedSupabase(){
      if(table!=="profiles")return Promise.resolve({data:null,error:{message:"no fake data"}});
      if(updating?.display_name)displayName=updating.display_name;
      return Promise.resolve({data:updating?{display_name:displayName}:
-       {display_name:displayName,country_of_residence:"GN",deleting:false},error:null});
+       {display_name:displayName,country_of_residence:"GN",deleting:false,access_until:"2099-12-31"},error:null});
     },
     maybeSingle(){return Promise.resolve({data:null,error:null})}
    };

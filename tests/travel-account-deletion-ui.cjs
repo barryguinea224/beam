@@ -32,7 +32,7 @@ for (const id of [
 ]) {
   assert.ok(html.includes('id="' + id + '"'), "missing account-status UI: " + id);
 }
-assert.ok(/\.select\("country_of_residence(?:,display_name)?,deleting"\)/.test(html),
+assert.ok(/\.select\("country_of_residence(?:,display_name)?,deleting(?:,access_until)?"\)/.test(html),
   "profile deleting flag must be read at load, even when extra safe profile fields are selected");
 assert.ok(html.includes('if(current.deleting===true)'), "pending accounts must be recognized");
 assert.ok(html.includes('$("#finishDeletion").onclick=()=>runAccountDeletion(true)'),
@@ -69,7 +69,7 @@ function statusNodes() {
 const fake = statusNodes();
 let clearedContacts=0;
 const context = vm.createContext({ accountState: "loading", $: fake.$,
-  clearContactFields: () => { clearedContacts++; } });
+  clearContactFields: () => { clearedContacts++; },renderAccessUi:()=>{} });
 vm.runInContext(renderer, context);
 
 vm.runInContext('setAccountState("deleting")', context);

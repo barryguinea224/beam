@@ -96,7 +96,7 @@ const context=vm.createContext({
  window:{BEAM_TRIP_DETAIL:DETAIL,BEAM_TRAVEL_PDF:PDF,confirm:()=>true},
  Option:class {constructor(label,value){this.text=label;this.value=value}},
  document:{activeElement:null},
- S,user:{id:'owner'},accountState:'active',trips:[tripRecord],
+ S,user:{id:'owner'},accountState:'active',trips:[tripRecord],canWrite:()=>true,
  $:id=>{assert.ok(els[id], 'Missing DOM stub '+id);return els[id]},
  countryName:code=>code==='FR'?'France':code,
  esc:v=>String(v).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])),

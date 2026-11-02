@@ -1,0 +1,34 @@
+"use strict";
+const assert=require("node:assert/strict");
+const fs=require("node:fs");
+const Access=require("../travel/access.js");
+const today="2026-11-01";
+assert.equal(Access.state(null,today).canWrite,false);
+assert.equal(Access.state(undefined,today).missing,true);
+assert.deepEqual([Access.state("2026-11-01",today).canWrite,Access.state("2026-11-01",today).warning],[true,true]);
+assert.equal(Access.state("2026-12-01",today).warning,true);
+assert.equal(Access.state("2026-12-02",today).warning,false);
+assert.equal(Access.state("2026-10-31",today).expired,true);
+assert.equal(Access.state("2027-11-01",today).canWrite,true);
+assert.equal(Access.state("2026-02-30",today).canWrite,false);
+assert.match(Access.formatDate("2026-11-01"),/1er novembre 2026|1 novembre 2026/);
+const schema=fs.readFileSync("travel/supabase/schema.sql","utf8");
+const migration=fs.readFileSync("travel/supabase/migrations/20261101230000_travel_access_until_readonly.sql","utf8");
+const html=fs.readFileSync("travel/index.html","utf8");
+const admin=fs.readFileSync("travel/supabase/ADMIN_EXTEND_ACCESS.sql","utf8");
+for(const sql of [schema,migration]){
+ assert.match(sql,/p\.access_until\s*>=\s*current_date/);
+ assert.match(sql,/private\.account_accepts_writes\(uid\)/);
+ assert.match(sql,/storage lire/);
+ assert.match(sql,/bucket_id='media'/);
+ assert.doesNotMatch(sql,/create policy "storage lire"[\s\S]*?private\.account_accepts_writes/);
+}
+assert.doesNotMatch(schema,/grant update\([^)]*access_until/);
+assert.match(admin,/greatest\(current_date,coalesce\(p\.access_until,current_date\)\)/);
+assert.match(admin,/v_duration not in \('1 year','2 years'\)/);
+assert.match(html,/<script src="\.\/access\.js"><\/script>/);
+assert.match(html,/#accessBanner/);
+assert.match(html,/travelAccessReadOnly/);
+assert.match(html,/select\("country_of_residence,display_name,deleting,access_until"\)/);
+assert.match(html,/Accès jusqu'au/);
+console.log("PASS expiry UTC boundaries, null guard, grant isolation, deployment SQL and UI");

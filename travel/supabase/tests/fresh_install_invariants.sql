@@ -42,6 +42,10 @@ BEGIN
   END LOOP;
   IF has_column_privilege('authenticated','public.media','storage_path','UPDATE')
   THEN RAISE EXCEPTION 'BROWSER_CAN_REASSIGN_STORAGE_PATH'; END IF;
+  IF has_column_privilege('authenticated','public.profiles','access_until','UPDATE')
+  THEN RAISE EXCEPTION 'CLIENT_CAN_EDIT_ACCESS_UNTIL'; END IF;
+  IF NOT has_column_privilege('authenticated','public.profiles','access_until','SELECT')
+  THEN RAISE EXCEPTION 'CLIENT_CANNOT_READ_ACCESS_UNTIL'; END IF;
   IF has_column_privilege('authenticated','public.profiles','deleting','UPDATE')
     OR has_column_privilege('authenticated','public.profiles','id','UPDATE')
   THEN RAISE EXCEPTION 'BROWSER_CAN_CHANGE_PROTECTED_PROFILE_FIELDS'; END IF;
@@ -83,9 +87,14 @@ BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM pg_policies WHERE schemaname='storage' AND tablename='objects'
       AND policyname='storage lire' AND cmd='SELECT' AND 'authenticated'=ANY(roles)
-      AND qual LIKE '%private.account_accepts_writes%'
+      AND qual LIKE '%auth.uid()%'
+      AND qual NOT LIKE '%private.account_accepts_writes%'
   ) THEN RAISE EXCEPTION 'STORAGE_READ_OWNER_GUARD_MISSING'; END IF;
 
+  IF NOT EXISTS(SELECT 1 FROM information_schema.columns
+      WHERE table_schema='public' AND table_name='profiles' AND column_name='access_until'
+        AND data_type='date' AND is_nullable='YES')
+  THEN RAISE EXCEPTION 'ACCESS_UNTIL_MISSING_OR_WRONG_TYPE'; END IF;
   -- A privileged helper must not become publicly callable.
   FOREACH p IN ARRAY ARRAY[
     'private.account_accepts_writes(uuid)',
