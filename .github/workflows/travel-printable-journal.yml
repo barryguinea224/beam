@@ -34,7 +34,18 @@ jobs:
       - name: Protect SQL; independently validate the intentional PDF debranding
         run: |
           git fetch --no-tags origin feature/beam-travel-history-v1
-          git diff --exit-code --name-only "origin/feature/beam-travel-history-v1" HEAD -- travel/supabase/schema.sql travel/supabase/migrations
+          # This PR explicitly introduces one reviewed subscription migration.
+          # Reject every OTHER SQL change. Canonical schema and that specific
+          # dated migration are independently verified by fresh-schema CI.
+          changes="$(git diff --name-only "origin/feature/beam-travel-history-v1" HEAD -- travel/supabase/schema.sql travel/supabase/migrations)"
+          while IFS= read -r file; do
+            case "$file" in
+              ""|travel/supabase/schema.sql|travel/supabase/migrations/20261101230000_travel_access_until_readonly.sql) ;;
+              *) echo "::error::Unexpected SQL change: $file"; exit 1 ;;
+            esac
+          done <<< "$changes"
+          test -f travel/supabase/migrations/20261101230000_travel_access_until_readonly.sql
+          node tests/travel-access-expiry.cjs
           node tests/travel-factual-pdf.cjs
           # PDF branding is intentionally removed under the client-owned requirement.
           # The factual-PDF workflow and the full suite validate document contents.

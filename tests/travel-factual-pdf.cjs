@@ -90,7 +90,7 @@ assert.ok(!app.includes('const COUNTRY_NAMES={'),
  "No duplicate country dictionary in the app");
 assert.ok(app.includes('id="travelerNameForm"') && app.includes('maxlength="80"'),
  "Accessible traveler-name form missing");
-assert.match(inline,/\.select\("country_of_residence,display_name,deleting"\)/,
+assert.match(inline,/\.select\("country_of_residence,display_name,deleting(?:,access_until)?"\)/,
  "Journal must load display_name from the user's profile");
 assert.match(inline,/\.update\(\{display_name:name,phone:phone\|\|null,postal_address:address\|\|null,country_of_residence:residence\}\)/,
  "All profile fields must be saved together once");

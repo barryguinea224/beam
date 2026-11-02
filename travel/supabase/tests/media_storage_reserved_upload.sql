@@ -56,6 +56,9 @@ grant select on public.trips to authenticated;
 insert into auth.users(id) values
  ('30000000-0000-4000-8000-000000000021'),
  ('30000000-0000-4000-8000-000000000022');
+-- Both fixture accounts remain active; expiration behavior has its own hostile test.
+update public.profiles set access_until=(current_date+interval '2 years')::date
+ where id in ('30000000-0000-4000-8000-000000000021','30000000-0000-4000-8000-000000000022');
 insert into public.trips(id,user_id,country_code,entry_date,exit_date,purpose)
 values('40000000-0000-4000-8000-000000000021',
        '30000000-0000-4000-8000-000000000021',

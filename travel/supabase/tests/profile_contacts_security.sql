@@ -26,6 +26,8 @@ update public.profiles
  set deleting=true,deletion_requested_at=now()
  where id='cccccccc-cccc-4ccc-8ccc-cccccccccccc';
 
+update public.profiles set access_until=(current_date+interval '2 years')::date
+ where id in ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb');
 -- Supabase supplies these default table permissions in production. The
 -- minimal CI database has no Supabase default privileges: grant SELECT only
 -- here so UPDATE+SELECT RLS behavior can be verified as in the real API.
@@ -41,6 +43,8 @@ begin
  if not has_column_privilege('authenticated','public.profiles','phone','UPDATE')
     or not has_column_privilege('authenticated','public.profiles','postal_address','UPDATE')
    then raise exception 'new columns must be individually writable'; end if;
+ if has_column_privilege('authenticated','public.profiles','access_until','UPDATE')
+   then raise exception 'client can change access expiry'; end if;
  if has_column_privilege('authenticated','public.profiles','deleting','UPDATE')
    or has_column_privilege('authenticated','public.profiles','id','UPDATE')
    then raise exception 'privileged profile columns must remain non-writable'; end if;

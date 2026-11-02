@@ -34,7 +34,26 @@ const expectDenied=(label: string,error: { status?: number; code?: string; name?
 
 const sa=await login("A",A,env.TEST_A_EMAIL,env.TEST_A_PASSWORD);
 const sb=await login("B",B,env.TEST_B_EMAIL,env.TEST_B_PASSWORD);
-console.log("Authenticated A/B with real JWTs",sa.user.id,sb.user.id);
+
+// Preflight FIRST: these accounts already exist in staging. The database
+// administrator sets access_until in the SQL Editor, never in this JWT bench.
+// Do not modify a date here or attempt any write until BOTH pass the check.
+const assertAccessValid=async(label:"A"|"B",c:ReturnType<typeof client>,uid:string)=>{
+  const {data,error}=await c.from("profiles")
+    .select("access_until").eq("id",uid).single();
+  if(error||!data){
+    throw new Error(`BANC A/B BLOQUÉ : impossible de lire access_until pour ${label}. Vérifiez la migration et les droits SELECT sur staging (aucune écriture de test lancée).`);
+  }
+  const until=data.access_until;
+  const today=new Date().toISOString().slice(0,10);
+  if(typeof until!=="string" || !/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(until) || until<today){
+    throw new Error(`BANC A/B BLOQUÉ : date access_until absente ou expirée pour ${label}. Renouvelez son accès dans le SQL Editor staging avant de relancer le banc (aucune écriture de test lancée).`);
+  }
+  console.log(`PASS ${label} access_until valide (échéance : ${until})`);
+};
+await assertAccessValid("A",A,sa.user.id);
+await assertAccessValid("B",B,sb.user.id);
+console.log("Authenticated A/B with real JWTs; both access dates valid");
 
 const original={user_id:sa.user.id,country_code:"GN",cities:["Conakry"],entry_date:"2026-01-01",exit_date:"2026-01-02",purpose:"autre",note:"A-original-note"};
 let ta,tb,domesticTrip;

@@ -5,7 +5,7 @@ const root=path.resolve(__dirname,"../travel");
 const {intercept:syntheticTravelConfig}=require("./helpers/synthetic-travel-config.cjs");
 function fakeSupabase(){
  const uid="22222222-2222-4222-8222-222222222222";
- const profile={display_name:null,country_of_residence:"GN",deleting:false,phone:null,postal_address:null};
+ const profile={display_name:null,country_of_residence:"GN",deleting:false,access_until:"2099-12-31",phone:null,postal_address:null};
  const trips=[];
  window.__fixture={profile,trips};
  window.supabase={createClient(){return {

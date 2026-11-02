@@ -12,6 +12,7 @@ create table public.profiles (
   nationality text check(char_length(nationality)<=60),
   home_city text not null default 'Conakry' check(char_length(home_city)<=80),
   country_of_residence char(2) check(country_of_residence ~ '^[A-Z]{2}$'),
+  access_until date, -- NULL means read-only until the owner sets a valid date
   deleting boolean not null default false,
   deletion_requested_at timestamptz,
   deletion_claimed_until timestamptz,
@@ -204,16 +205,17 @@ grant usage on schema private to authenticated;
 create function private.account_accepts_writes(uid uuid)
 returns boolean language sql stable security definer set search_path='' as $$
   select uid = (select auth.uid())
-    and exists(select 1 from public.profiles p where p.id=uid and not p.deleting);
+    and exists(select 1 from public.profiles p
+      where p.id=uid and not p.deleting and p.access_until >= current_date);
 $$;
 revoke execute on function private.account_accepts_writes(uuid) from public,anon,authenticated;
 grant execute on function private.account_accepts_writes(uuid) to authenticated;
 
 create function private.trip_accepts_writes(uid uuid, trip uuid)
 returns boolean language sql stable security definer set search_path='' as $$
-  select uid = (select auth.uid())
-    and exists(select 1 from public.trips t join public.profiles p on p.id=t.user_id
-      where t.id=trip and t.user_id=uid and not t.deleting and not p.deleting);
+  select private.account_accepts_writes(uid)
+    and exists(select 1 from public.trips t
+      where t.id=trip and t.user_id=uid and not t.deleting);
 $$;
 revoke execute on function private.trip_accepts_writes(uuid,uuid) from public,anon,authenticated;
 grant execute on function private.trip_accepts_writes(uuid,uuid) to authenticated;
@@ -255,7 +257,8 @@ from public.trips where not is_domestic and not deleting;
 insert into storage.buckets(id,name,public,file_size_limit,allowed_mime_types)
 values('media','media',false,10485760,array['image/webp']) on conflict(id) do nothing;
 create policy "storage lire" on storage.objects for select to authenticated using(
- bucket_id='media' and (storage.foldername(name))[1]=auth.uid()::text and private.account_accepts_writes(auth.uid()));
+ bucket_id='media' and (storage.foldername(name))[1]=auth.uid()::text
+ and exists(select 1 from public.profiles p where p.id=auth.uid() and not p.deleting));
 create policy "storage ajouter" on storage.objects for insert to authenticated with check(
  bucket_id='media'
  and (storage.foldername(name))[1]=auth.uid()::text

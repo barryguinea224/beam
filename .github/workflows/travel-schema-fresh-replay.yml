@@ -8,6 +8,7 @@ on:
     branches: [feature/beam-travel-history-v1]
     paths:
       - "travel/supabase/schema.sql"
+      - "travel/supabase/migrations/20261101230000_travel_access_until_readonly.sql"
       - "travel/supabase/tests/*.sql"
       - ".github/workflows/travel-schema-fresh-replay.yml"
       - "PRODUCTION_SETUP.md"
@@ -121,6 +122,7 @@ jobs:
           # cron dispatch, migrations, or non-transactional fixtures.
           tests=(
             security_privileges.sql
+            access_expiry_guards.sql
             activities_quota_guards.sql
             media_server_guards.sql
             cover_media_integrity.sql

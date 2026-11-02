@@ -30,7 +30,7 @@ function serve(){
 }
 function fakeSupabase(){
  const uid="22222222-2222-4222-8222-222222222222";
- const profile={display_name:"Aminata Diallo",country_of_residence:"GN",deleting:false,
+ const profile={display_name:"Aminata Diallo",country_of_residence:"GN",deleting:false,access_until:"2099-12-31",
   phone:null,postal_address:null};
  // Persist ONLY fictitious browser-test contact values across a page reload.
  // This is a local mock store, never production Supabase data.

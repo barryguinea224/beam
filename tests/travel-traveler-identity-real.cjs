@@ -28,7 +28,7 @@ function server(){
 }
 function fakeSupabase(){
  const uid="22222222-2222-4222-8222-222222222222";
- const profile={display_name:"Mariama Djouldé Doumbouya Camara Binta Barry",country_of_residence:"GN",deleting:false,
+ const profile={display_name:"Mariama Djouldé Doumbouya Camara Binta Barry",country_of_residence:"GN",deleting:false,access_until:"2099-12-31",
   phone:null,postal_address:null};
  const trips=[
   {country_code:"FR",cities:["Paris"],entry_date:"2026-05-01",exit_date:"2026-05-07",duration_days:7,is_domestic:false},
