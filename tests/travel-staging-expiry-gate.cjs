@@ -14,10 +14,10 @@ assert.match(live,/environment: staging\s*\n/);
 assert.match(live,/Run hostile A\/B bench against staging/);
 assert.match(live,/SUPABASE_PUBLISHABLE_KEY: \$\{\{ secrets.STAGING_ANON_KEY \}\}/);
 assert.doesNotMatch(live,/staging-destructive|STAGING_SERVICE_ROLE_KEY|staging_migration_applied/);
-assert.match(live,/if: \(github\.event_name != 'pull_request'[^\n]*\)/,
- "normal PRs must still trigger real staging bench");
-assert.match(live,/github\.head_ref != 'feature\/travel-profile-avatar-20261102'/,
- "avatar PR must block remote staging until migration is applied");
+assert.match(live,/if: github\.event_name != 'pull_request' \|\| !startsWith\(github\.head_ref, 'ci\/travel-fresh-supabase-schema-replay-'\)/,
+ "normal PRs must still trigger real staging bench, except fresh schema replay");
+assert.doesNotMatch(live,/github\.head_ref != 'feature\/travel-profile-avatar-20261102'/,
+ "the avatar branch exclusion was removed after the staging migration");
 assert.doesNotMatch(bench,/STAGING_SERVICE_ROLE_KEY|auth.admin|const admin\s*=|testExpiredDisposable|setFixtureAccess|twoYearsOut/);
 assert.match(bench,/const sa=await login\("A"/);
 assert.match(bench,/const sb=await login\("B"/);
