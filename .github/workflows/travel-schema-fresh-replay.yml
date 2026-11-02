@@ -9,6 +9,7 @@ on:
     paths:
       - "travel/supabase/schema.sql"
       - "travel/supabase/migrations/20261101230000_travel_access_until_readonly.sql"
+      - "travel/supabase/migrations/20261102150000_travel_avatar_row_first.sql"
       - "travel/supabase/tests/*.sql"
       - ".github/workflows/travel-schema-fresh-replay.yml"
       - "PRODUCTION_SETUP.md"
@@ -123,6 +124,7 @@ jobs:
           tests=(
             security_privileges.sql
             access_expiry_guards.sql
+            avatar_security.sql
             activities_quota_guards.sql
             media_server_guards.sql
             cover_media_integrity.sql
