@@ -42,7 +42,9 @@ jobs:
         (github.event.pull_request.number == 28 &&
          github.event.pull_request.head.ref == 'security/travel-sql-storage-errors-hardening') ||
         (github.event.pull_request.number == 63 &&
-         github.event.pull_request.head.ref == 'feature/travel-profile-avatar-20261102')
+         github.event.pull_request.head.ref == 'feature/travel-profile-avatar-20261102') ||
+        (github.event.pull_request.number == 64 &&
+         github.event.pull_request.head.ref == 'feature/travel-delete-staging-netlify-cors-20261102')
       )
     runs-on: ubuntu-latest
     timeout-minutes: 10
