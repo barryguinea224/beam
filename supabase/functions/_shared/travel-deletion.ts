@@ -65,6 +65,38 @@ export async function deletePhotoForUser(admin: AdminClient, uid: string, mediaI
   return { ok: true };
 }
 
+
+/** Clean only the caller's tracked avatar, never an arbitrary Storage path. */
+export async function deleteAvatarForUser(admin: AdminClient, uid: string, avatarId: string) {
+  const { data: path, error } = await admin.rpc("retire_reserved_avatar", {
+    p_uid: uid, p_avatar_id: avatarId,
+  });
+  if (error) throw new Error("AVATAR_RETIRE_FAILED");
+  if (!path) return { ok: true, already_absent: true };
+  const { error: removeError } = await admin.storage.from("media").remove([path]);
+  if (removeError) throw new Error("STORAGE_REMOVE_FAILED");
+  if (await objectExists(admin, path)) throw new Error("STORAGE_VERIFY_FAILED");
+  const { error: dbError } = await admin.from("avatar_media").delete()
+    .eq("id", avatarId).eq("user_id", uid).eq("state", "retired");
+  if (dbError) throw new Error("AVATAR_RESERVATION_CLEANUP_FAILED");
+  return { ok: true };
+}
+
+export async function activateAvatarForUser(admin: AdminClient, uid: string, avatarId: string) {
+  const { data: previous, error } = await admin.rpc("activate_reserved_avatar", {
+    p_uid: uid, p_avatar_id: avatarId,
+  });
+  if (error) throw new Error("AVATAR_ACTIVATION_FAILED");
+  // The new photo is already active. A transient Storage outage must never
+  // make the caller retry a non-pending reservation or lose the new image.
+  let cleanupPending = false;
+  if (previous && previous !== avatarId) {
+    try { await deleteAvatarForUser(admin, uid, previous); }
+    catch { cleanupPending = true; }
+  }
+  return { ok: true, avatar_id: avatarId, cleanup_pending: cleanupPending };
+}
+
 export async function deleteTripForUser(admin: AdminClient, uid: string, tripId: string) {
   const { data: trip, error } = await admin.from("trips")
     .select("id,user_id,deleting,deletion_requested_at").eq("id", tripId).eq("user_id", uid).maybeSingle();
@@ -97,6 +129,8 @@ export async function deleteAccountForUser(admin: AdminClient, uid: string) {
   if (markError) throw markError;
   if (!marked) throw new Error("PROFILE_NOT_FOUND");
 
+  // Includes media/<uid>/profile/*, active, retired and interrupted uploads.
+  // The recovery worker invokes this same shared engine on its next pass.
   await removeAndVerify(admin, uid);
 
   const { data: ownedCount, error: ownedError } = await admin.rpc("count_owned_storage_objects", { uid });

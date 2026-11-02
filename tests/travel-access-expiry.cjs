@@ -21,7 +21,10 @@ for(const sql of [schema,migration]){
  assert.match(sql,/private\.account_accepts_writes\(uid\)/);
  assert.match(sql,/storage lire/);
  assert.match(sql,/bucket_id='media'/);
- assert.doesNotMatch(sql,/create policy "storage lire"[\s\S]*?private\.account_accepts_writes/);
+ const readPolicy=sql.split('create policy "storage lire"')[1]?.split(";")[0]||"";
+ assert.ok(readPolicy,"private read policy must exist");
+ assert.doesNotMatch(readPolicy,/private\.account_accepts_writes/,
+  "expired accounts must still read private photos");
 }
 assert.doesNotMatch(schema,/grant update\([^)]*access_until/);
 assert.match(admin,/greatest\(current_date,coalesce\(p\.access_until,current_date\)\)/);
@@ -29,6 +32,6 @@ assert.match(admin,/v_duration not in \('1 year','2 years'\)/);
 assert.match(html,/<script src="\.\/access\.js"><\/script>/);
 assert.match(html,/#accessBanner/);
 assert.match(html,/travelAccessReadOnly/);
-assert.match(html,/select\("country_of_residence,display_name,deleting,access_until"\)/);
+assert.match(html,/select\("country_of_residence,display_name,deleting,access_until(?:,avatar_id)?"\)/);
 assert.match(html,/Accès jusqu'au/);
 console.log("PASS expiry UTC boundaries, null guard, grant isolation, deployment SQL and UI");

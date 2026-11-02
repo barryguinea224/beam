@@ -73,7 +73,7 @@ jobs:
           create table auth.users(id uuid primary key, raw_user_meta_data jsonb default '{}'::jsonb);
           create function auth.uid() returns uuid language sql stable as $$ select null::uuid $$;
           create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);
-          create table storage.objects(id uuid,name text,bucket_id text,owner uuid,owner_id text);
+          create table storage.objects(id uuid,name text,bucket_id text,owner uuid,owner_id text,metadata jsonb default '{}'::jsonb);
           create function storage.foldername(text) returns text[] language sql immutable as $$ select string_to_array($1,'/') $$;
           SQL
       - name: Execute canonical schema from scratch
@@ -116,9 +116,20 @@ jobs:
         env: { PGPASSWORD: postgres }
         run: psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f travel/supabase/tests/media_storage_reserved_upload.sql
 
+      - name: Setup Deno for LOCAL source checks only
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Typecheck avatar JWT hostile bench and server actions (NO staging)
+        run: |
+          deno check travel/supabase/tests/hostile_ab.ts
+          deno check supabase/functions/travel-delete/index.ts
+
   hostile-ab:
     # Fresh-schema replay PRs must NEVER acquire staging environment credentials.
     # Other Travel PRs keep the existing staging hostile bench unchanged.
+    # Avatar SQL migration and travel-delete were applied to STAGING on 2026-11-02;
+    # the real JWT bench now covers PR #63 like every other Travel PR.
     if: github.event_name != 'pull_request' || !startsWith(github.head_ref, 'ci/travel-fresh-supabase-schema-replay-')
     name: Real JWT / RLS hostile bench
     concurrency:
