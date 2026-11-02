@@ -4,11 +4,15 @@ import {
   adminClient,
   deleteAccountForUser,
   deletePhotoForUser,
+  deleteAvatarForUser,
+  activateAvatarForUser,
   deleteTripForUser,
 } from "../_shared/travel-deletion.ts";
 
 type Action =
   | { action: "delete_photo"; media_id: string }
+  | { action: "activate_avatar"; avatar_id: string }
+  | { action: "delete_avatar"; avatar_id: string }
   | { action: "delete_trip"; trip_id: string }
   | { action: "delete_account"; confirmation: "SUPPRIMER" };
 
@@ -71,6 +75,10 @@ Deno.serve(async (req: Request) => {
     if (body.action === "delete_photo" && (!("media_id" in body) || !UUID.test(body.media_id))) {
       return json(req, { error: "INVALID_REQUEST" }, 400);
     }
+    if ((body.action === "activate_avatar" || body.action === "delete_avatar") &&
+        (!("avatar_id" in body) || !UUID.test(body.avatar_id))) {
+      return json(req, { error: "INVALID_REQUEST" }, 400);
+    }
     if (body.action === "delete_trip" && (!("trip_id" in body) || !UUID.test(body.trip_id))) {
       return json(req, { error: "INVALID_REQUEST" }, 400);
     }
@@ -78,6 +86,13 @@ Deno.serve(async (req: Request) => {
 
     if (body.action === "delete_photo") {
       return json(req, await deletePhotoForUser(admin, user.id, body.media_id));
+    }
+
+    if (body.action === "activate_avatar") {
+      return json(req, await activateAvatarForUser(admin, user.id, body.avatar_id));
+    }
+    if (body.action === "delete_avatar") {
+      return json(req, await deleteAvatarForUser(admin, user.id, body.avatar_id));
     }
 
     if (body.action === "delete_trip") {
