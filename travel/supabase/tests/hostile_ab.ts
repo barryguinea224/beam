@@ -183,6 +183,98 @@ const storageIdB=crypto.randomUUID();
 const storagePathB=`${sb.user.id}/${tb.id}/${storageIdB}.webp`;
 const tinyWebp=Uint8Array.from(atob("UklGRiIAAABXRUJQVlA4IBYAAAAwAQCdASoBAAEAAUAmJaQAA3AA/v89WAAAAA=="),c=>c.charCodeAt(0));
 const blob=(bytes: Uint8Array,type: string)=>new Blob([bytes.slice().buffer],{type});
+
+// Avatar hostile test with the EXISTING A/B JWTs; no new credential, user
+// provisioning, server key or staging access-date mutation.
+// Staging migration + travel-delete avatar actions MUST be installed first.
+async function verifyAvatarIsolation(){
+  const auid=sa.user.id, buid=sb.user.id;
+  const {data:before,error:beforeErr}=await A.from("profiles")
+    .select("avatar_id").eq("id",auid).single();
+  if(beforeErr)throw new Error("AVATAR_SCHEMA_NOT_APPLIED_TO_STAGING");
+  const id=crypto.randomUUID(), path=auid+"/profile/"+id+".webp";
+  let reserved=false;
+  try{
+    // B cannot write the protected avatar column even on B's own profile.
+    const {error:directAvatarUpdate}=await B.from("profiles")
+      .update({avatar_id:id}).eq("id",buid);
+    expectDenied("B cannot update profiles.avatar_id directly",directAvatarUpdate);
+
+    const {error:reservationError}=await A.from("avatar_media").insert({
+      id,user_id:auid,storage_path:path,state:"pending",
+      width:1,height:1,bytes:tinyWebp.length
+    });
+    if(reservationError)throw new Error("A_AVATAR_ROW_FIRST_RESERVATION_FAILED: "+reservationError.message);
+    reserved=true;
+    const {data:foreign,error:foreignErr}=await B.from("avatar_media")
+      .select("id,storage_path,state").eq("id",id);
+    if(foreignErr||foreign?.length)throw new Error("SECURITY REGRESSION: B can read A's avatar");
+
+    const {error:foreignReserve}=await B.from("avatar_media").insert({
+      id:crypto.randomUUID(),user_id:auid,storage_path:auid+"/profile/"+crypto.randomUUID()+".webp",
+      width:1,height:1,bytes:tinyWebp.length
+    });
+    expectDenied("B cannot reserve an avatar under A's account",foreignReserve);
+
+    const ba=B.storage.from("media"),aa=A.storage.from("media");
+    const {error:foreignUpload}=await ba.upload(path,blob(tinyWebp,"image/webp"),{
+      contentType:"image/webp",upsert:false
+    });
+    expectDenied("B cannot upload A's reserved profile object",foreignUpload);
+    const {error:withoutRow}=await aa.upload(auid+"/profile/"+crypto.randomUUID()+".webp",
+      blob(tinyWebp,"image/webp"),{contentType:"image/webp",upsert:false});
+    expectDenied("A cannot upload an unreserved profile object",withoutRow);
+    const {error:upload}=await aa.upload(path,blob(tinyWebp,"image/webp"),{
+      contentType:"image/webp",cacheControl:"60",upsert:false
+    });
+    if(upload)throw new Error("A_AVATAR_UPLOAD_FAILED: "+upload.message);
+    const {data:sign,error:signError}=await aa.createSignedUrl(path,300);
+    if(signError||!sign?.signedUrl)throw new Error("OWNER_AVATAR_PRIVATE_READ_FAILED");
+    const {data:foreignSigned,error:foreignSignErr}=await ba.createSignedUrl(path,300);
+    if(!foreignSignErr&&foreignSigned?.signedUrl)
+      throw new Error("SECURITY REGRESSION: B signs A avatar");
+    const {error:rawDeleteErr,data:rawDeleted}=await ba.remove([path]);
+    if(!rawDeleteErr&&(rawDeleted?.length??0)>0)
+      throw new Error("SECURITY REGRESSION: B deleted A avatar via Storage");
+    const {data:still,error:stillErr}=await aa.download(path);
+    if(stillErr||!still)throw new Error("SECURITY REGRESSION: B deletion removed A avatar");
+
+    // Do not replace a pre-existing A avatar; dedicated CI fixture is not a
+    // user account, but still keep any pre-existing avatar unchanged.
+    if(!before.avatar_id){
+      const {data:activated,error:activateErr}=await A.functions.invoke("travel-delete",{
+        body:{action:"activate_avatar",avatar_id:id}
+      });
+      if(activateErr||activated?.ok!==true||activated?.avatar_id!==id)
+        throw new Error("AVATAR_ACTIVATION_FAILED");
+      const {data:current,error:currentErr}=await A.from("profiles")
+        .select("avatar_id").eq("id",auid).single();
+      if(currentErr||current?.avatar_id!==id)throw new Error("AVATAR_ACTIVE_POINTER_NOT_SET");
+      const {data:foreignDeleted,error:foreignDeleteErr}=await B.functions.invoke("travel-delete",{
+        body:{action:"delete_avatar",avatar_id:id}
+      });
+      if(foreignDeleteErr||foreignDeleted?.ok!==true)
+        throw new Error("CROSS_OWNER_AVATAR_SERVER_DELETE_REQUEST_FAILED");
+      const {data:stillMine}=await A.from("profiles").select("avatar_id").eq("id",auid).single();
+      if(stillMine?.avatar_id!==id)
+        throw new Error("SECURITY REGRESSION: B removed A's active avatar");
+    }
+    console.log("PASS avatar A/B JWT isolation, row-first private Storage and server-only pointer");
+  }finally{
+    if(reserved){
+      const {data,error}=await A.functions.invoke("travel-delete",{
+        body:{action:"delete_avatar",avatar_id:id}
+      });
+      if(error||data?.ok!==true)throw new Error("AVATAR_TEST_SERVER_CLEANUP_FAILED");
+      const {data:remaining,error:remainingErr}=await A.from("avatar_media").select("id").eq("id",id);
+      if(remainingErr||remaining?.length)throw new Error("AVATAR_TEST_ROW_ORPHAN");
+      const {data:files,error:filesErr}=await A.storage.from("media").list(auid+"/profile",{limit:100});
+      if(filesErr||files?.some(f=>f.name===id+".webp"))
+        throw new Error("AVATAR_TEST_STORAGE_ORPHAN");
+    }
+  }
+}
+await verifyAvatarIsolation();
 let storageUploaded=false, storageUploadedB=false, signedBeforeDelete;
 try {
   // Row-first contract: the server must see a matching, owner-scoped media row.
