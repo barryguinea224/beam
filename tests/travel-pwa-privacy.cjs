@@ -162,6 +162,10 @@ async function run(){
  const cached=await f.fetch(f.origin+"/travel/photo-utils.js");
  assert.equal(await cached.text(),"PUBLIC_STATIC",
    "preloaded public shell is available only as a network-failure fallback");
+ for(const page of ["confidentialite.html","conditions.html"]){
+   assert.ok(shellUrls.includes(f.origin+"/travel/"+page),
+     "public legal page must be included in audited public shell");
+ }
  const noShell=await f.fetch(f.origin+"/travel/not-in-cache.js");
  assert.equal(noShell,null,"unknown resources must still bypass the service worker");
  const offline=await f.fetch(f.origin+"/travel/",{mode:"navigate"});
@@ -170,7 +174,13 @@ async function run(){
  assert.match(await offline.text(),/Connexion nécessaire pour consulter votre carnet/);
  assert.equal(f.cacheOps.filter(x=>x[0]==="addAll").length,1,
    "no runtime writes even after offline fallback");
- // The cached HTML must NEVER be displayed as the offline navigation.
+ // Public legal documents are safe offline, without leaking any private app HTML.
+ for(const legal of ["confidentialite.html","conditions.html"]){
+   const fallback=await f.fetch(f.origin+"/travel/"+legal,{mode:"navigate"});
+   assert.equal(await fallback.text(),"PUBLIC_STATIC",
+     "offline legal notices should be available from the public audited shell");
+ }
+ // The cached APP HTML must NEVER be displayed as the offline navigation.
  const offlineIndex=await f.fetch(f.origin+"/travel/index.html",{mode:"navigate"});
  assert.equal(offlineIndex.status,503);
  assert.match(await offlineIndex.text(),/Connexion nécessaire pour consulter votre carnet/);
