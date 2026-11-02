@@ -6,6 +6,14 @@ The browser must never delete `trips`, `media`, Storage objects, or Auth users d
 
 ## Invariants
 
+### Photo de profil (avatar facultatif)
+
+1. Un client connecté et dont l'accès est encore actif réserve un chemin unique `<uid>/profile/<uuid>.webp` dans `public.avatar_media`, statut `pending`, avec **une seule réservation en attente**. Conversion WebP carrée ≤512 px sur le téléphone, sans EXIF ni GPS ; pas d'upsert. Les RLS empêchent les écritures sur des comptes expirés, tout changement direct de `profiles.avatar_id` et toute suppression client de Storage.
+2. Le serveur `travel-delete` vérifie l'existence de l'objet et active la nouvelle photo via `activate_reserved_avatar` (fonction uniquement `service_role`) : l'ancien avatar devient `retired` sous verrou de profil ; l'avatar actif reste unique. Le serveur supprime l'ancien Storage (puis sa réservation) en vérifiant l'absence du fichier.
+3. `delete_avatar` retire d'abord le pointeur courant (pour une photo active, uniquement si l'accès autorise les écritures), puis supprime et vérifie Storage, puis efface la réservation. Les réservations `pending` ou `retired` peuvent toujours être nettoyées après expiration. Tout échec de Storage laisse une réservation `retired` pour un nouveau nettoyage ; jamais une suppression directe dans le navigateur.
+4. L'affichage lit une URL signée **300 secondes** du bucket privé ; pour les comptes expirés, la lecture reste autorisée. Ni avatar ni chemin privé ne doivent figurer dans le PDF factuel ou le livret.
+5. **Suppression du compte et worker de reprise :** le moteur commun `deleteAccountForUser` supprime et vérifie **tout le préfixe `<uid>/`**, donc `<uid>/profile/` y compris les objets en attente/retired/orphelins ; ensuite seulement l'utilisateur Auth est détruit et les lignes `avatar_media` disparaissent par cascade. Le worker `travel-deletion-retry` réutilise ce même moteur. En cas d'interruption après la barrière `profiles.deleting=true`, la reprise recommence le balayage du dossier entier.
+
 ### Photo
 1. Resolve media row by `id + caller user_id`.
 2. Remove exact Storage object.

@@ -1,13 +1,13 @@
 // BEAM Travel History PWA — PRIVATE BY DEFAULT.
 // Cache only the audited, versioned public shell. No runtime cache writes.
 // Never cache Supabase, signed links, personal trips, photos or API responses.
-const CACHE_NAME = "beam-travel-shell-v1-20261102-legal-pages-v15";
+const CACHE_NAME = "beam-travel-shell-v1-20261102-profile-avatar-v17";
 const SCOPE_PATH = "/travel/";
 const PUBLIC_SHELL = [
   "./index.html", "./config.js", "./offline-bootstrap.js", "./pwa.js",
   // Public legal documents: never any account/session data.
   "./confidentialite.html", "./conditions.html", "./legal.css",
-  "./access.js", "./photo-utils.js", "./photo-upload.js", "./trip-detail.js",
+  "./access.js", "./avatar.js", "./photo-utils.js", "./photo-upload.js", "./trip-detail.js",
   "./countries.js", "./country-picker.js", "./factual-pdf.js", "./factual-pdf-file.js",
   "./journal-stats.js", "./dashboard-filters.js", "./dashboard-filters.css", "./printable-journal.js", "./family-booklet.js",
   "./visual-cards.js", "./visual-cards.css",
