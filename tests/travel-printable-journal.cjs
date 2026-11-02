@@ -106,8 +106,12 @@ assert.match(inline,/function travelDashboardTitle\(input\)/,
  "dashboard title fallback must exist independently");
 assert.match(inline,/heading\.textContent=clean\|\|"Voyageur"/,
  "the profile heading now shows the actual declared name with no booklet prefix");
-assert.match(inline,/\$\("#travelerAvatar"\)\.textContent=travelerInitials\(clean\)/,
- "initials-only avatar must use the already-loaded profile; not a photo");
+assert.match(inline,/function travelerInitials\(name\)/,
+ "initials must remain available when private profile photo is absent");
+assert.match(inline,/function renderAvatar\(\)/,
+ "the dashboard must render private avatar or fallback initials");
+assert.match(inline,/el\.textContent=initials/,
+ "missing avatar must display the name-derived initials");
 assert.match(inline,/setDashboardTitle\(data\.display_name\)/,"saved full name must update the responsive dashboard title");
 assert.match(inline,/function setDashboardTitle\(name\)/,"name rendering must use the shared no-truncation helper");
 assert.match(inline,/window\.BEAM_FAMILY_BOOKLET\?\.render/,
