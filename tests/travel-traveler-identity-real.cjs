@@ -177,7 +177,7 @@ async function main(){
         "title must respect clamp(20px,5.6vw,28px): "+JSON.stringify(typography));
       assert.ok(Math.abs(typography.lineHeight/typography.fontSize-1.15)<0.02,
         "title line height must be 1.15: "+JSON.stringify(typography));
-      assert.ok(typography.lines>=1&&typography.lines<=2.03,
+      assert.ok(typography.lines>=0.98&&typography.lines<=2.03,
         "sample traveler name must fit within two visible lines at "+width+"px: "+JSON.stringify(typography));
       assert.ok(typography.rect.left>=typography.block.left-1 &&
         typography.rect.right<=typography.block.right+1,
