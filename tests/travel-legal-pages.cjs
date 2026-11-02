@@ -56,7 +56,7 @@ for(const info of pages){
  for(const phrase of info.evidence)assert.ok(h.includes(phrase),"missing source legal statement: "+phrase);
  const sections=(h.match(/<section aria-labelledby=/g)||[]).length;
  assert.equal(sections,info.headings.length,"all headings must be semantic sections");
- assert.ok(h.includes('<a href="./">← Retour au carnet</a>'));
+ assert.match(h,/<a class="back" href="\.\/">← Retour au carnet<\/a>/);
  assert.ok(h.includes('href="./conditions.html"')&&h.includes('href="./confidentialite.html"'));
 }
 const auth=app.slice(app.indexOf('<section id="auth"'),app.indexOf('<main id="app"'));
