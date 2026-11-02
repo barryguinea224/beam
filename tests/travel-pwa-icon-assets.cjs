@@ -21,13 +21,16 @@ const found=expected.map(v=>({...v,...inspect(v.name)}));
 for(const v of found)assert.deepEqual([v.w,v.h],[v.size,v.size],v.name+" dimensions");
 assert.notEqual(found[0].sha,found[1].sha,"512px must be generated, not a 192px copy");
 assert.notEqual(found[1].sha,found[2].sha,"maskable version must have full-bleed artwork");
+const maskBytes=fs.readFileSync(path.join(root,"icon-maskable-512.png"));
+assert.ok(!maskBytes.includes(Buffer.from("tRNS")),"maskable icon must have no transparent palette");
+assert.notEqual(found[2].colorType,6,"maskable icon must use an opaque RGB or palette pixel format");
 for(const name of ["bth-logo.svg","bth-maskable.svg"]){
  const data=fs.readFileSync(path.join(root,"src",name),"utf8");
  assert.match(data,/<svg[^>]+viewBox="0 0 192 192"/);
  for(const color of ["#174d3a","#e3a93a","#f4efe2","#e6dcc6","#5f917a"])
   assert.ok(data.includes(color),name+" missing logo palette "+color);
- assert.doesNotMatch(data,/<image\b|data:image|<script\b|https?:\/\//i,
-  "SVG must be genuinely vector, editable, local and scriptless");
+ assert.doesNotMatch(data,/<image\b|data:image|<script\b|<(?:foreignObject|use)\b|\bhref=/i,
+  "SVG must be genuinely vector, editable, self-contained and scriptless");
 }
 const maskSVG=fs.readFileSync(path.join(root,"src","bth-maskable.svg"),"utf8");
 assert.match(maskSVG,/<rect[^>]+width="192"[^>]+height="192"/);
