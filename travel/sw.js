@@ -1,10 +1,12 @@
 // BEAM Travel History PWA — PRIVATE BY DEFAULT.
 // Cache only the audited, versioned public shell. No runtime cache writes.
 // Never cache Supabase, signed links, personal trips, photos or API responses.
-const CACHE_NAME = "beam-travel-shell-v1-20261101-access-expiry-readonly-v14";
+const CACHE_NAME = "beam-travel-shell-v1-20261102-legal-pages-v15";
 const SCOPE_PATH = "/travel/";
 const PUBLIC_SHELL = [
   "./index.html", "./config.js", "./offline-bootstrap.js", "./pwa.js",
+  // Public legal documents: never any account/session data.
+  "./confidentialite.html", "./conditions.html", "./legal.css",
   "./access.js", "./photo-utils.js", "./photo-upload.js", "./trip-detail.js",
   "./countries.js", "./country-picker.js", "./factual-pdf.js", "./factual-pdf-file.js",
   "./journal-stats.js", "./dashboard-filters.js", "./dashboard-filters.css", "./printable-journal.js", "./family-booklet.js",
@@ -79,6 +81,14 @@ self.addEventListener("fetch", event => {
         // security update wins without always re-downloading unchanged files.
         return await fetch(request, {cache:"no-cache"});
       } catch {
+        // Only the two explicitly audited PUBLIC legal pages may be opened
+        // from the install-time cache while offline; the app HTML remains private.
+        if (url.pathname === SCOPE_PATH + "confidentialite.html" ||
+            url.pathname === SCOPE_PATH + "conditions.html") {
+          const cache = await caches.open(CACHE_NAME);
+          const cachedPublicLegal = await cache.match(request, {ignoreSearch:false});
+          if (cachedPublicLegal) return cachedPublicLegal;
+        }
         // Serve a fresh PUBLIC offline-only page, never a previously rendered
         // app document. Works even after logout purges the shell caches.
         return new Response(`<!doctype html><html lang="fr"><head><meta charset="utf-8">
