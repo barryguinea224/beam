@@ -236,7 +236,6 @@ html.beamOffline #auth,html.beamOffline #app,html.beamOffline #modal,html.beamOf
 #avatarPick{position:absolute;max-width:1px;width:1px;height:1px;opacity:0;overflow:hidden}
 html.travelAccessReadOnly #avatarChange,html.travelAccessReadOnly #avatarRemove{display:none!important}
 #travelHero .travelerNameBlock{flex:1;min-width:0}
-#dashboardTitle,#dashboardTitle.longTitle,#dashboardTitle.extraLongTitle{font-family:Georgia,serif;font-weight:700;font-size:clamp(20px,5.6vw,28px);line-height:1.15;margin:0;max-width:100%;white-space:normal;overflow-wrap:anywhere;word-break:normal;text-overflow:clip;overflow:visible}
 #dashboardTitle.longTitle{font-size:clamp(20px,2.8vw,31px)}
 #dashboardTitle.extraLongTitle{font-size:clamp(18px,2.4vw,26px)}
 #travelHero .travelerSubtitle{font:400 12px/1.3 system-ui,sans-serif;color:var(--muted);margin:4px 0 0}
@@ -315,6 +314,8 @@ html.travelAccessReadOnly #photoField,html.travelAccessReadOnly #saveTrip{displa
 .legalLinksAuth{margin:12px 0 0}
 .legalLinksAccount{border-top:1px solid var(--line);padding-top:12px;margin-top:0}
 @media(max-width:400px){.legalLinks{gap:4px 9px}}
+/* Final traveler name typography: overrides older mobile size declarations. */
+#dashboardTitle,#dashboardTitle.longTitle,#dashboardTitle.extraLongTitle{font-family:Georgia,serif;font-weight:700;font-size:clamp(20px,5.6vw,28px);line-height:1.15;margin:0;max-width:100%;white-space:normal;overflow-wrap:anywhere;word-break:normal;text-overflow:clip;overflow:visible}
 </style><link rel="stylesheet" href="./visual-cards.css"><link rel="stylesheet" href="./dashboard-filters.css">
 <script src="/travel/offline-bootstrap.js"></script></head><body>
 <section id="offline" role="status" aria-live="polite"><div class="ey">BEAM · Travel History</div><h1>Connexion nécessaire pour consulter votre carnet</h1><p>Vos voyages et photos sont privés et indisponibles hors ligne. Reconnectez-vous à Internet pour continuer.</p></section>
