@@ -164,7 +164,24 @@ async function main(){
           block:{left:blockRect.left,right:blockRect.right},
           avatar:{left:avatarRect.left,right:avatarRect.right,center:(avatarRect.top+avatarRect.bottom)/2},
           identity:{left:identityRect.left,right:identityRect.right,center:(identityRect.top+identityRect.bottom)/2},
-          scrollWidth:document.documentElement.scrollWidth
+          scrollWidth:document.documentElement.scrollWidth,
+          inlineStyle:el.style.cssText,
+          outerHTML:el.outerHTML,
+          viewportMeta:document.querySelector('meta[name="viewport"]')?.content,
+          windowWidth:innerWidth,
+          matchedFontRules:(()=>{
+            const found=[];
+            const walk=(rules,origin)=>{
+              for(const rule of rules){
+                if(rule.cssRules){walk(rule.cssRules,origin+" > "+rule.conditionText);continue}
+                if(!rule.selectorText||!rule.style?.fontSize)continue;
+                try{if(el.matches(rule.selectorText))found.push({selector:rule.selectorText,origin,fontSize:rule.style.fontSize,lineHeight:rule.style.lineHeight,important:rule.style.getPropertyPriority("font-size")})}
+                catch{}
+              }
+            };
+            for(const sheet of document.styleSheets){try{walk(sheet.cssRules,sheet.href||"INLINE")}catch{}}
+            return found;
+          })()
         };
         el.textContent=previous;
         el.className=previousClasses.join(" ");
