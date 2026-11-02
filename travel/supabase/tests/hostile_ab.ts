@@ -46,7 +46,7 @@ const assertAccessValid=async(label:"A"|"B",c:ReturnType<typeof client>,uid:stri
   }
   const until=data.access_until;
   const today=new Date().toISOString().slice(0,10);
-  if(typeof until!=="string" || !/^\\d{4}-\\d{2}-\\d{2}$/.test(until) || until<today){
+  if(typeof until!=="string" || !/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(until) || until<today){
     throw new Error(`BANC A/B BLOQUÉ : date access_until absente ou expirée pour ${label}. Renouvelez son accès dans le SQL Editor staging avant de relancer le banc (aucune écriture de test lancée).`);
   }
   console.log(`PASS ${label} access_until valide (échéance : ${until})`);
