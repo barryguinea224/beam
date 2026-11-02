@@ -252,7 +252,8 @@ async function main(){
     },declaredName);
     assert.equal(long.fullText,expectedTitle,"the full declared name must be visible, unchanged");
     assert.ok(!long.fullText.includes("…")&&!long.fullText.endsWith("..."),"no ellipsis or substituted initials");
-    assert.ok(long.fontSize<shortFont,"a long name must use a smaller fluid title size");
+    assert.ok(Math.abs(long.fontSize-shortFont)<0.15,
+       "the selected compact Georgia title size must be consistent for short and long names");
     assert.ok(long.titleHeight<=long.lineHeight*3+2,"long name must fit in at most three visible lines");
     assert.ok(long.lineCount<=3,"long title may wrap onto two or three lines");
     assert.equal(long.overflow,"visible","do not clip the client's title");

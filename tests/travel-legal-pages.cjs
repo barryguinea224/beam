@@ -70,7 +70,7 @@ for(const [scope,html] of [["connexion",auth],["mon-compte",account]]){
 }
 assert.ok(account.indexOf("legalLinksAccount")>account.indexOf('id="accountSession"'),
  "terms and privacy should be available after the account controls");
-assert.match(sw,/beam-travel-shell-v1-20261102-profile-avatar-v17/);
+assert.match(sw,/beam-travel-shell-v1-20261102-traveler-title-v18/);
 for(const file of ["confidentialite.html","conditions.html","legal.css"])
  assert.ok(sw.includes('"./'+file+'"'),"public legal shell asset not audited: "+file);
 assert.doesNotMatch(sw,/cache\.put\(/,"PWA must still forbid runtime private cache writes");
