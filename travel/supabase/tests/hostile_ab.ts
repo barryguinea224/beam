@@ -1,11 +1,8 @@
 // BEAM Travel History — hostile A/B staging test
 // Secrets stay in local environment variables. Never commit credentials.
 // Required: SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, TEST_A_EMAIL,
-// TEST_A_PASSWORD, TEST_B_EMAIL, TEST_B_PASSWORD, STAGING_SERVICE_ROLE_KEY
+// TEST_A_PASSWORD, TEST_B_EMAIL, TEST_B_PASSWORD
 // CI identities only: never reuse accounts used for manual/product testing.
-// A/B are PRE-PROVISIONED CI logins; the expired account is newly created.
-// This privileged Deno bench is dispatched manually after STAGING migration
-// and uses the server key only in the protected staging-destructive environment.
 
 import { createClient } from "npm:@supabase/supabase-js@2.75.0";
 import { ACTIVITY_KINDS } from "../../constants.js";
@@ -14,20 +11,9 @@ const TEST_ACTIVITY_KIND = ACTIVITY_KINDS[0];
 if (!TEST_ACTIVITY_KIND) throw new Error("No allowed activity kind configured");
 
 const env = Deno.env.toObject();
-const required = ["SUPABASE_URL","SUPABASE_PUBLISHABLE_KEY","TEST_A_EMAIL","TEST_A_PASSWORD","TEST_B_EMAIL","TEST_B_PASSWORD","STAGING_SERVICE_ROLE_KEY"];
+const required = ["SUPABASE_URL","SUPABASE_PUBLISHABLE_KEY","TEST_A_EMAIL","TEST_A_PASSWORD","TEST_B_EMAIL","TEST_B_PASSWORD"];
 for (const k of required) if (!env[k]) throw new Error(`Missing ${k}`);
 for (const k of ["TEST_A_EMAIL","TEST_B_EMAIL"]) if (!/\+ci-[ab]@/i.test(env[k])) throw new Error(`${k} must be a dedicated CI identity (+ci-a / +ci-b)`);
-if (new URL(env.SUPABASE_URL).hostname !== "coigbvhxywbmqgacmhzf.supabase.co")
-  throw new Error("REFUSING_NON_STAGING_PROJECT");
-if (env.STAGING_SERVICE_ROLE_KEY === env.SUPABASE_PUBLISHABLE_KEY)
-  throw new Error("STAGING_SERVER_KEY_MUST_DIFFER_FROM_PUBLIC_KEY");
-const admin = createClient(env.SUPABASE_URL,env.STAGING_SERVICE_ROLE_KEY,{
-  auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}
-});
-// Refuse to provision ANY account if the dated schema migration is missing.
-// The SELECT is service-only; the browser clients never receive the server key.
-const {error:expirySchemaError}=await admin.from("profiles").select("access_until").limit(1);
-if(expirySchemaError) throw new Error("STAGING_ACCESS_UNTIL_MIGRATION_NOT_APPLIED");
 
 const client = () => createClient(env.SUPABASE_URL, env.SUPABASE_PUBLISHABLE_KEY, {
   auth: { persistSession:false, autoRefreshToken:false }
@@ -46,27 +32,28 @@ const expectDenied=(label: string,error: { status?: number; code?: string; name?
   console.log("PASS denied:", label, "| status:", error.status ?? "n/a", "| code:", error.code ?? error.name ?? "n/a", "| message:", error.message ?? String(error));
 };
 
-const twoYearsOut=()=>{
-  const value=new Date();
-  value.setUTCFullYear(value.getUTCFullYear()+2);
-  return value.toISOString().slice(0,10);
-};
-const setFixtureAccess=async(uid:string,email:string,date:string)=>{
-  const {data:identity,error:identityError}=await admin.auth.admin.getUserById(uid);
-  if(identityError||identity?.user?.email?.toLowerCase()!==email.toLowerCase())
-    throw new Error("REFUSING_NON_CI_IDENTITY_ACCESS_UPDATE");
-  const {data,error}=await admin.from("profiles")
-    .update({access_until:date}).eq("id",uid).select("id,access_until").single();
-  if(error||data?.id!==uid||data.access_until!==date)
-    throw new Error("CI_ACCESS_DATE_SETUP_FAILED");
-};
 const sa=await login("A",A,env.TEST_A_EMAIL,env.TEST_A_PASSWORD);
 const sb=await login("B",B,env.TEST_B_EMAIL,env.TEST_B_PASSWORD);
-// These two accounts already exist in Auth: grant a future end date right
-// after authenticating them and BEFORE any normal client RLS write.
-await setFixtureAccess(sa.user.id,env.TEST_A_EMAIL,twoYearsOut());
-await setFixtureAccess(sb.user.id,env.TEST_B_EMAIL,twoYearsOut());
-console.log("PASS server-only access_until activated for dedicated A/B identities");
+
+// Preflight FIRST: these accounts already exist in staging. The database
+// administrator sets access_until in the SQL Editor, never in this JWT bench.
+// Do not modify a date here or attempt any write until BOTH pass the check.
+const assertAccessValid=async(label:"A"|"B",c:ReturnType<typeof client>,uid:string)=>{
+  const {data,error}=await c.from("profiles")
+    .select("access_until").eq("id",uid).single();
+  if(error||!data){
+    throw new Error(`BANC A/B BLOQUÉ : impossible de lire access_until pour ${label}. Vérifiez la migration et les droits SELECT sur staging (aucune écriture de test lancée).`);
+  }
+  const until=data.access_until;
+  const today=new Date().toISOString().slice(0,10);
+  if(typeof until!=="string" || !/^\\d{4}-\\d{2}-\\d{2}$/.test(until) || until<today){
+    throw new Error(`BANC A/B BLOQUÉ : date access_until absente ou expirée pour ${label}. Renouvelez son accès dans le SQL Editor staging avant de relancer le banc (aucune écriture de test lancée).`);
+  }
+  console.log(`PASS ${label} access_until valide (échéance : ${until})`);
+};
+await assertAccessValid("A",A,sa.user.id);
+await assertAccessValid("B",B,sb.user.id);
+console.log("Authenticated A/B with real JWTs; both access dates valid");
 
 const original={user_id:sa.user.id,country_code:"GN",cities:["Conakry"],entry_date:"2026-01-01",exit_date:"2026-01-02",purpose:"autre",note:"A-original-note"};
 let ta,tb,domesticTrip;
@@ -505,171 +492,3 @@ console.log("Next phase: server deletion operations + retained-JWT deletion repl
   await A.auth.signOut();
   await B.auth.signOut();
 }
-
-
-// This destructive case uses a FRESH +ci-expired-* identity created in Auth.
-// Unlike A/B (pre-provisioned CI logins), it is never shared or reused.
-// The ADMIN server key only runs in this Deno process and never enters C.
-async function testExpiredDisposable(){
-  const parts=/^([^+@\s]+)\+ci-a@([^@\s]+)$/i.exec(env.TEST_A_EMAIL.trim());
-  if(!parts)throw new Error("REFUSING_UNSAFE_EXPIRED_TEST_EMAIL_PATTERN");
-  const email=`${parts[1]}+ci-expired-${crypto.randomUUID().slice(0,12)}@${parts[2]}`.toLowerCase();
-  const password=crypto.randomUUID()+crypto.randomUUID();
-  const publicClient=client();
-  let uid:string|null=null;
-  let tripId:string|null=null;
-  let uploadedPath:string|null=null;
-  let removedByTravelDelete=false;
-  const bytes=Uint8Array.from(
-    atob("UklGRiIAAABXRUJQVlA4IBYAAAAwAQCdASoBAAEAAUAmJaQAA3AA/v89WAAAAA=="),
-    letter=>letter.charCodeAt(0)
-  );
-  const webp=()=>new Blob([bytes.slice().buffer],{type:"image/webp"});
-  const requireUnchanged=async<T>(label:string,operation:PromiseLike<{data:T[]|null;error:unknown}>)=>{
-    const {data,error}=await operation;
-    // RLS UPDATE/DELETE may return no rows without throwing.
-    if(!error && (data?.length??0)>0)throw new Error("EXPIRY_SECURITY_REGRESSION: "+label);
-    console.log("PASS expired denied: "+label);
-  };
-  try{
-    // Server-only Auth creation, then immediately assign active access BEFORE
-    // signing in or inserting a trip. Failed creation/setup is fully cleaned.
-    const {data:created,error:createError}=await admin.auth.admin.createUser({
-      email,password,email_confirm:true
-    });
-    if(createError||!created.user)throw new Error("EXPIRED_FIXTURE_AUTH_CREATION_FAILED");
-    uid=created.user.id;
-    await setFixtureAccess(uid,email,twoYearsOut());
-    console.log("PASS expired fixture created with initial active date (server only)");
-
-    const {data:signed,error:loginError}=await publicClient.auth.signInWithPassword({email,password});
-    if(loginError||!signed.session||signed.user.id!==uid)
-      throw new Error("EXPIRED_FIXTURE_LOGIN_FAILED");
-    // Reserve and upload one real private photo while the account is active.
-    const {data:trip,error:tripErr}=await publicClient.from("trips").insert({
-      country_code:"FR",cities:["Paris"],entry_date:"2024-05-01",exit_date:"2024-05-05",
-      purpose:"tourisme",note:"expiring-ci-fixture"
-    }).select("id").single();
-    if(tripErr||!trip)throw new Error("EXPIRED_FIXTURE_ACTIVE_TRIP_CREATE_FAILED");
-    tripId=trip.id;
-    const {error:activityErr}=await publicClient.from("activities").insert({
-      trip_id:tripId,title:"Test d'accès expiré",kind:TEST_ACTIVITY_KIND
-    });
-    if(activityErr)throw new Error("EXPIRED_FIXTURE_ACTIVE_ACTIVITY_CREATE_FAILED");
-    const originalPhotoId=crypto.randomUUID();
-    uploadedPath=`${uid}/${tripId}/${originalPhotoId}.webp`;
-    const {error:mediaError}=await publicClient.from("media").insert({
-      id:originalPhotoId,trip_id:tripId,storage_path:uploadedPath,kind:"photo",bytes:bytes.length
-    });
-    if(mediaError)throw new Error("EXPIRED_FIXTURE_ACTIVE_MEDIA_RESERVE_FAILED");
-    const {error:uploadError}=await publicClient.storage.from("media").upload(
-      uploadedPath,webp(),{contentType:"image/webp",upsert:false,cacheControl:"60"});
-    if(uploadError)throw new Error("EXPIRED_FIXTURE_ACTIVE_STORAGE_UPLOAD_FAILED");
-
-    // Second valid media reservation (created while active) ensures the
-    // later Storage denial tests access expiry, NOT missing row reservation.
-    const candidateId=crypto.randomUUID();
-    const candidatePath=`${uid}/${tripId}/${candidateId}.webp`;
-    const {error:candidateError}=await publicClient.from("media").insert({
-      id:candidateId,trip_id:tripId,storage_path:candidatePath,kind:"photo",bytes:bytes.length
-    });
-    if(candidateError)throw new Error("EXPIRED_FIXTURE_RESERVED_UPLOAD_SETUP_FAILED");
-
-    const yesterday=new Date();
-    yesterday.setUTCDate(yesterday.getUTCDate()-1);
-    const expiredDate=yesterday.toISOString().slice(0,10);
-    const {data:expiredRow,error:expireError}=await admin.from("profiles")
-      .update({access_until:expiredDate}).eq("id",uid).select("id,access_until").single();
-    if(expireError||expiredRow?.access_until!==expiredDate)
-      throw new Error("EXPIRED_FIXTURE_SERVER_EXPIRY_UPDATE_FAILED");
-
-    const {data:ownProfile,error:profileReadErr}=await publicClient.from("profiles")
-      .select("access_until").eq("id",uid).single();
-    if(profileReadErr||ownProfile?.access_until!==expiredDate)
-      throw new Error("EXPIRED_CANNOT_READ_OWN_PROFILE");
-    for(const [table,field,expected] of [
-      ["trips","id",tripId],["activities","trip_id",tripId],["media","id",originalPhotoId]
-    ] as const){
-      const {data,error}=await publicClient.from(table).select(field).eq(field,expected);
-      if(error||data?.length!==1)throw new Error("EXPIRED_CANNOT_READ_OWN_"+table.toUpperCase());
-    }
-    const {data:pdfRows,error:pdfError}=await publicClient.from("travel_history_pdf")
-      .select("country_code,entry_date").eq("user_id",uid);
-    if(pdfError||!pdfRows?.some(x=>x.country_code==="FR"))
-      throw new Error("EXPIRED_CANNOT_READ_FACTUAL_PDF_VIEW");
-    const storage=publicClient.storage.from("media");
-    const {data:photoBlob,error:downloadError}=await storage.download(uploadedPath);
-    if(downloadError||!photoBlob)throw new Error("EXPIRED_PRIVATE_PHOTO_DOWNLOAD_DENIED");
-    const {data:signedPhoto,error:signedError}=await storage.createSignedUrl(uploadedPath,60);
-    if(signedError||!signedPhoto?.signedUrl)
-      throw new Error("EXPIRED_PRIVATE_PHOTO_SIGNING_DENIED");
-    console.log("PASS expired account reads trips, activities, photos, signed URLs and factual PDF");
-
-    const {error:tripInsertError}=await publicClient.from("trips").insert({
-      country_code:"SN",cities:["Dakar"],entry_date:"2025-01-01",exit_date:"2025-01-02",
-      purpose:"autre"
-    });
-    expectDenied("expired trip INSERT via API",tripInsertError);
-    await requireUnchanged("trip UPDATE via API",publicClient.from("trips")
-      .update({note:"blocked"}).eq("id",tripId).select("id"));
-    const {error:activityInsertError}=await publicClient.from("activities").insert({
-      trip_id:tripId,title:"blocked",kind:TEST_ACTIVITY_KIND
-    });
-    expectDenied("expired activity INSERT via API",activityInsertError);
-    await requireUnchanged("activity UPDATE via API",publicClient.from("activities")
-      .update({title:"blocked"}).eq("trip_id",tripId).select("id"));
-    await requireUnchanged("activity DELETE via API",publicClient.from("activities")
-      .delete().eq("trip_id",tripId).select("id"));
-    const newMediaId=crypto.randomUUID();
-    const {error:mediaInsertError}=await publicClient.from("media").insert({
-      id:newMediaId,trip_id:tripId,
-      storage_path:`${uid}/${tripId}/${newMediaId}.webp`,kind:"photo",bytes:bytes.length
-    });
-    expectDenied("expired media INSERT via API",mediaInsertError);
-    await requireUnchanged("media UPDATE via API",publicClient.from("media")
-      .update({caption:"blocked"}).eq("id",originalPhotoId).select("id"));
-    const {error:uploadExpiredError}=await storage.upload(candidatePath,webp(),{
-      contentType:"image/webp",upsert:false,cacheControl:"60"
-    });
-    expectDenied("expired reserved Storage upload via API",uploadExpiredError);
-    await requireUnchanged("profile UPDATE via API",publicClient.from("profiles")
-      .update({display_name:"blocked"}).eq("id",uid).select("id"));
-    const {error:extendError}=await publicClient.from("profiles")
-      .update({access_until:twoYearsOut()}).eq("id",uid);
-    expectDenied("client attempts to extend access_until",extendError);
-
-    // Crucial erasure guarantee: expiry MUST NOT block travel-delete. The
-    // account signed in moments ago, satisfying RECENT_AUTH_REQUIRED.
-    const {data:deleted,error:deleteError}=await publicClient.functions.invoke("travel-delete",{
-      body:{action:"delete_account",confirmation:"SUPPRIMER"}
-    });
-    if(deleteError||deleted?.ok!==true||deleted?.account_deleted!==true)
-      throw new Error("EXPIRED_TRAVEL_DELETE_ACCOUNT_FAILED");
-    const {data:profileAfter,error:verifyError}=await admin.from("profiles")
-      .select("id").eq("id",uid).maybeSingle();
-    if(verifyError||profileAfter)throw new Error("EXPIRED_ACCOUNT_PROFILE_REMAINS");
-    const {data:authAfter,error:authAfterError}=await admin.auth.admin.getUserById(uid);
-    if(!authAfterError&&authAfter?.user)
-      throw new Error("EXPIRED_ACCOUNT_AUTH_USER_REMAINS");
-    removedByTravelDelete=true;
-    console.log("PASS expired account securely deletes itself via travel-delete");
-  }finally{
-    // Any failed scenario still cleans ONLY the UUID of its freshly created
-    // +ci-expired-* identity; never touch A/B or actual customer accounts.
-    if(uid&&!removedByTravelDelete){
-      const {data:who,error:whoError}=await admin.auth.admin.getUserById(uid);
-      if(!whoError&&who?.user){
-        if(who.user.email?.toLowerCase()!==email)
-          throw new Error("REFUSING_NON_DISPOSABLE_CLEANUP");
-        if(uploadedPath){
-          const {error:removeError}=await admin.storage.from("media").remove([uploadedPath]);
-          if(removeError)throw new Error("EXPIRED_FIXTURE_PHOTO_CLEANUP_FAILED");
-        }
-        const {error:deleteError}=await admin.auth.admin.deleteUser(uid);
-        if(deleteError)throw new Error("EXPIRED_FIXTURE_USER_CLEANUP_FAILED");
-      }
-    }
-    await publicClient.auth.signOut().catch(()=>{});
-  }
-}
-await testExpiredDisposable();

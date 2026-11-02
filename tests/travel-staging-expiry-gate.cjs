@@ -1,44 +1,34 @@
 "use strict";
-// Local, credential-free regression for protected staging release ordering.
-// Never connects to Supabase or executes the destructive hostile bench.
+// Non-secret checks: existing A/B staging test is allowed to RUN automatically,
+// but expiration itself stays covered by disposable local SQL tests.
 const assert=require("node:assert/strict");
 const fs=require("node:fs");
-const workflow=fs.readFileSync(".github/workflows/hostile-ab.yml","utf8");
+const wf=fs.readFileSync(".github/workflows/hostile-ab.yml","utf8");
 const bench=fs.readFileSync("travel/supabase/tests/hostile_ab.ts","utf8");
 const sql=fs.readFileSync("travel/supabase/STAGING_ACCESS_EXPIRY_SETUP.sql","utf8");
-const localJob=workflow.slice(workflow.indexOf("  schema-parse:"),workflow.indexOf("  hostile-ab:"));
-const protectedJob=workflow.slice(workflow.indexOf("  hostile-ab:"));
-assert.match(workflow,/workflow_dispatch:\s*\n\s*inputs:\s*\n\s*staging_migration_applied:/);
-assert.match(protectedJob,/if: github\.event_name == 'workflow_dispatch' && inputs\.staging_migration_applied == true/);
-assert.match(protectedJob,/environment: staging-destructive/);
-assert.doesNotMatch(protectedJob,/environment: staging\s*\n/);
-assert.match(protectedJob,/STAGING_SERVICE_ROLE_KEY: \$\{\{ secrets\.STAGING_SERVICE_ROLE_KEY \}\}/);
-assert.match(localJob,/deno check travel\/supabase\/tests\/hostile_ab\.ts/);
-assert.match(localJob,/STAGING_ACCESS_EXPIRY_SETUP\.sql/);
-assert.match(bench,/REFUSING_NON_STAGING_PROJECT/);
-assert.match(bench,/STAGING_ACCESS_UNTIL_MIGRATION_NOT_APPLIED/);
-assert.ok(bench.indexOf("select(\"access_until\").limit(1)")<bench.indexOf('const sa=await login'),
- "Migration must be checked before A/B login or any writes");
-assert.match(bench,/await setFixtureAccess\(sa\.user\.id,env\.TEST_A_EMAIL,twoYearsOut\(\)\)/);
-assert.match(bench,/await setFixtureAccess\(sb\.user\.id,env\.TEST_B_EMAIL,twoYearsOut\(\)\)/);
-const fresh=bench.indexOf('admin.auth.admin.createUser({');
-assert.ok(fresh>0,"Disposable expired account must be created by server admin");
-const active=bench.indexOf("await setFixtureAccess(uid,email,twoYearsOut());",fresh);
-const login=bench.indexOf("publicClient.auth.signInWithPassword({email,password})",fresh);
-assert.ok(active>fresh&&login>active,"Set initial access immediately after creation, before login");
-assert.match(bench,/admin\.from\("profiles"\)\s*\.update\(\{access_until:expiredDate\}\)/);
-assert.match(bench,/EXPIRED_PRIVATE_PHOTO_DOWNLOAD_DENIED/);
-assert.match(bench,/EXPIRED_CANNOT_READ_FACTUAL_PDF_VIEW/);
-assert.match(bench,/expired reserved Storage upload via API/);
-assert.match(bench,/body:\{action:"delete_account",confirmation:"SUPPRIMER"\}/);
-assert.match(bench,/EXPIRED_ACCOUNT_AUTH_USER_REMAINS/);
-assert.match(bench,/REFUSING_NON_DISPOSABLE_CLEANUP/);
-assert.match(bench,/await testExpiredDisposable\(\)/);
+const doc=fs.readFileSync("travel/supabase/STAGING_HOSTILE_EXPIRY.md","utf8");
+const local=wf.slice(wf.indexOf("  schema-parse:"),wf.indexOf("  hostile-ab:"));
+const live=wf.slice(wf.indexOf("  hostile-ab:"));
+assert.match(wf,/pull_request:\s*\n\s*branches: \[main, feature\/beam-travel-history-v1\]/);
+assert.match(live,/environment: staging\s*\n/);
+assert.match(live,/Run hostile A\/B bench against staging/);
+assert.match(live,/SUPABASE_PUBLISHABLE_KEY: \$\{\{ secrets.STAGING_ANON_KEY \}\}/);
+assert.doesNotMatch(live,/staging-destructive|STAGING_SERVICE_ROLE_KEY|staging_migration_applied/);
+assert.match(live,/if: github.event_name != 'pull_request'/);
+assert.doesNotMatch(bench,/STAGING_SERVICE_ROLE_KEY|auth.admin|const admin\s*=|testExpiredDisposable|setFixtureAccess|twoYearsOut/);
+assert.match(bench,/const sa=await login\("A"/);
+assert.match(bench,/const sb=await login\("B"/);
+assert.match(bench,/\.from\("profiles"\)\s*\.select\("access_until"\)\.eq\("id",uid\)\.single\(\)/);
+assert.match(bench,/await assertAccessValid\("A",A,sa.user.id\)/);
+assert.match(bench,/await assertAccessValid\("B",B,sb.user.id\)/);
+assert.match(bench,/Renouvelez son accès dans le SQL Editor staging/);
+assert.ok(bench.indexOf('await assertAccessValid("B",B,sb.user.id)')<
+ bench.indexOf('A.from("trips").insert(original)'),"Expiry preflight must precede all writes");
 assert.equal((sql.match(/^BEGIN;$/gm)||[]).length,1);
 assert.equal((sql.match(/^COMMIT;$/gm)||[]).length,1);
-assert.match(sql,/ALTER TABLE public\.profiles ADD COLUMN IF NOT EXISTS access_until date/);
-assert.match(sql,/UPDATE public\.profiles\s*\nSET access_until = \(CURRENT_DATE \+ INTERVAL '2 years'\)::date/);
-assert.match(sql,/has_column_privilege\('authenticated','public\.profiles','access_until','UPDATE'\)/);
-assert.match(sql,/DROP POLICY IF EXISTS "storage lire"/);
-assert.doesNotMatch(sql,/aojxeujjluhmnkwscndc|service_role|STAGING_SERVICE_ROLE_KEY/);
-console.log("PASS staging migration gated, admin-only test fixtures, expired account deletion, one transaction");
+assert.match(sql,/UPDATE public.profiles\s*\nSET access_until = \(CURRENT_DATE \+ INTERVAL '2 years'\)::date/);
+assert.match(doc,/avant le 2 novembre 2028/);
+assert.match(doc,/access_expiry_guards.sql/);
+assert.match(doc,/automatique sur les PR/);
+assert.match(local,/Canonical schema parses on clean Postgres/);
+console.log("PASS auto staging A/B bench (no admin key); read-only date preflight; expiry stays in local SQL");
