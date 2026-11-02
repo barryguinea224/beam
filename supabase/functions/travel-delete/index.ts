@@ -1,4 +1,5 @@
 import { safeDeletionError, safeInternalDeletionCode } from "../_shared/travel-public-errors.ts";
+import { isAllowedTravelOrigin } from "../_shared/travel-cors.mjs";
 import { createClient } from "npm:@supabase/supabase-js@2.95.0";
 import {
   adminClient,
@@ -16,24 +17,15 @@ type Action =
   | { action: "delete_trip"; trip_id: string }
   | { action: "delete_account"; confirmation: "SUPPRIMER" };
 
-// Production CORS excludes Netlify previews; staging retains them.
+// Production remains strictly allowlisted; numeric previews are staging-only.
 const projectHost = (() => {
   try { return new URL(Deno.env.get("SUPABASE_URL") || "").hostname; }
   catch { return ""; }
 })();
-const PROJECT_ORIGINS: Record<string,string[]> = {
-  "aojxeujjluhmnkwscndc.supabase.co": ["https://beamguinee.com"],
-  "coigbvhxywbmqgacmhzf.supabase.co": [
-    "https://beamguinee.com",
-    "https://www.beamguinee.com",
-    "https://deploy-preview-3--inquisitive-boba-e06b58.netlify.app"
-  ]
-};
-const ALLOWED_ORIGINS = new Set(PROJECT_ORIGINS[projectHost] || []);
 
 function cors(req: Request): Record<string, string> {
   const origin = req.headers.get("origin") || "";
-  return ALLOWED_ORIGINS.has(origin) ? {
+  return isAllowedTravelOrigin(projectHost, origin) ? {
     "access-control-allow-origin": origin,
     "access-control-allow-methods": "POST, OPTIONS",
     "access-control-allow-headers": "authorization, content-type, apikey, x-client-info",
@@ -61,7 +53,7 @@ async function caller(req: Request) {
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     const origin = req.headers.get("origin") || "";
-    if (!ALLOWED_ORIGINS.has(origin)) return new Response(null, { status: 403 });
+    if (!isAllowedTravelOrigin(projectHost, origin)) return new Response(null, { status: 403 });
     return new Response(null, { status: 204, headers: cors(req) });
   }
   if (req.method !== "POST") return json(req, { error: "METHOD_NOT_ALLOWED" }, 405);
