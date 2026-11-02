@@ -76,9 +76,9 @@ async function main(){
  const browser=await chromium.launch({headless:true,args:["--no-sandbox","--disable-dev-shm-usage"]});
  try{
   fs.mkdirSync(out,{recursive:true});
-  for(const width of [360,1280]){
+  for(const width of [320,360,390,1280]){
    const context=await browser.newContext({viewport:{width,height:780},
-    isMobile:width===360,hasTouch:width===360,serviceWorkers:"block"});
+    isMobile:width!==1280,hasTouch:width!==1280,serviceWorkers:"block"});
    const page=await context.newPage();
    await page.route("**/*",route=>{
     const url=new URL(route.request().url());
@@ -138,6 +138,57 @@ async function main(){
     assert.ok(head.accountText.includes("Mon compte")&&head.accountHit,"account link must be accessible");
     assert.ok(head.titleFits&&head.titleNotClipped,"long name must wrap, not overflow or truncate "+JSON.stringify(head));
     assert.ok(head.scrollWidth<=width+1,"no horizontal overflow at "+width+"px "+JSON.stringify(head));
+    if(width<=390){
+      // The real profile layout (including its 60px avatar) must show the
+      // requested 26-character name in no more than two full, uncut lines.
+      const typography=await page.evaluate(()=>{
+        const el=document.querySelector("#dashboardTitle");
+        const block=el.parentElement;
+        const identity=document.querySelector("#travelHero .travelerIdentity");
+        const avatar=document.querySelector("#travelerAvatar");
+        const previous=el.textContent;
+        const previousClasses=[...el.classList];
+        el.textContent="Elhadj Alpha Mamadou Barry";
+        el.classList.remove("longTitle","extraLongTitle");
+        const css=getComputedStyle(el);
+        const rect=el.getBoundingClientRect();
+        const blockRect=block.getBoundingClientRect();
+        const avatarRect=avatar.getBoundingClientRect();
+        const identityRect=identity.getBoundingClientRect();
+        const fontSize=parseFloat(css.fontSize);
+        const lineHeight=parseFloat(css.lineHeight);
+        const lines=rect.height/lineHeight;
+        const result={
+          fontFamily:css.fontFamily,fontWeight:css.fontWeight,fontSize,lineHeight,
+          lines,title:el.textContent,rect:{left:rect.left,right:rect.right,height:rect.height},
+          block:{left:blockRect.left,right:blockRect.right},
+          avatar:{left:avatarRect.left,right:avatarRect.right,center:(avatarRect.top+avatarRect.bottom)/2},
+          identity:{left:identityRect.left,right:identityRect.right,center:(identityRect.top+identityRect.bottom)/2},
+          scrollWidth:document.documentElement.scrollWidth
+        };
+        el.textContent=previous;
+        el.className=previousClasses.join(" ");
+        return result;
+      });
+      const expectedSize=Math.max(20,Math.min(28,width*0.056));
+      assert.match(typography.fontFamily,/Georgia/i,"Georgia must remain the title font");
+      assert.equal(typography.fontWeight,"700","traveler name must be bold");
+      assert.ok(Math.abs(typography.fontSize-expectedSize)<0.12,
+        "title must respect clamp(20px,5.6vw,28px): "+JSON.stringify(typography));
+      assert.ok(Math.abs(typography.lineHeight/typography.fontSize-1.15)<0.02,
+        "title line height must be 1.15: "+JSON.stringify(typography));
+      assert.ok(typography.lines>=1&&typography.lines<=2.03,
+        "sample traveler name must fit within two visible lines at "+width+"px: "+JSON.stringify(typography));
+      assert.ok(typography.rect.left>=typography.block.left-1 &&
+        typography.rect.right<=typography.block.right+1,
+        "title must remain within the avatar-aligned text column: "+JSON.stringify(typography));
+      assert.ok(typography.avatar.right<typography.rect.left &&
+        Math.abs(typography.avatar.center-typography.identity.center)<2,
+        "avatar must remain left-aligned and vertically centered: "+JSON.stringify(typography));
+      assert.ok(typography.scrollWidth<=width+1,
+        "sample name must not produce horizontal overflow at "+width+"px");
+      console.log("PASS Georgia bold sample traveler name at "+width+"px",JSON.stringify(typography));
+    }
     if(width===360)assert.ok(head.mapTop<780,
      "map must begin within first screen at 360px: "+JSON.stringify(head));
     // National filter keeps its existing switching behavior and DOES NOT inflate foreign totals.
