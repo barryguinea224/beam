@@ -1,6 +1,6 @@
 [build]
   publish = "."
-  command = "node scripts/build-travel-config.cjs"
+  command = "node scripts/build-travel-config.cjs && node scripts/build-visas.cjs"
 
 [[headers]]
   for = "/*"
@@ -13,3 +13,17 @@
   for = "/travel/config.js"
   [headers.values]
     Cache-Control = "no-cache, must-revalidate"
+
+# Les fichiers source du guide sont contenus dans le publish="." mais ne
+# doivent jamais être délivrés par HTTP. Force override pour les vrais fichiers.
+[[redirects]]
+  from = "/visas/data/*"
+  to = "/visas/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/visas/README.md"
+  to = "/visas/404.html"
+  status = 404
+  force = true

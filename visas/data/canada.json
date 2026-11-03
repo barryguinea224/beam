@@ -1,0 +1,139 @@
+{
+  "destination": "Canada",
+  "drapeau": "🇨🇦",
+  "statut": "publie",
+  "verifie_le": "2026-11-03",
+  "types_visa": [
+    {
+      "type": "Visa de visiteur (résident temporaire) — tourisme ou visite familiale",
+      "autorite_competente": {
+        "nom": "Immigration, Réfugiés et Citoyenneté Canada (IRCC) — demande déposée en ligne",
+        "ville": "Traitement en ligne",
+        "pays": "Canada"
+      },
+      "lieu_depot": {
+        "categorie": "centre_externe",
+        "nom": "Centre de réception des demandes de visa (CRDV) du Canada, au compte de l’OIM (Organisation internationale pour les migrations) — pour les données biométriques, après la demande en ligne",
+        "adresse": "Locaux de l’OIM, Conakry, Guinée",
+        "rendez_vous_url": "https://visa.vfsglobal.com/gin/fr/can"
+      },
+      "conditions_demandeur": {
+        "public_cible": "Ressortissant guinéen résidant en Guinée, pour une visite temporaire (tourisme ou visite familiale).",
+        "autres_cas": "Consultez l’ambassade."
+      },
+      "documents": [
+        {
+          "libelle": "Demande remplie en ligne dans le compte sécurisé IRCC",
+          "statut": "obligatoire",
+          "note": "La liste de pièces affichée par IRCC selon votre profil fait foi."
+        },
+        {
+          "libelle": "Formulaire IMM 5707 (renseignements sur la famille)",
+          "statut": "obligatoire",
+          "note": "À télécharger dans votre compte IRCC."
+        },
+        {
+          "libelle": "Page d’information biographique du passeport",
+          "statut": "obligatoire",
+          "note": "Copie lisible de la page avec votre photo et vos données."
+        },
+        {
+          "libelle": "Photo d’identité récente aux normes",
+          "statut": "obligatoire",
+          "note": "Photo numérique conforme aux exigences IRCC."
+        },
+        {
+          "libelle": "Extrait d’acte de naissance original",
+          "statut": "obligatoire",
+          "note": "Numérisé lisiblement."
+        },
+        {
+          "libelle": "Copie du certificat de mariage",
+          "statut": "selon_le_cas",
+          "note": "Si vous êtes marié(e)."
+        },
+        {
+          "libelle": "Carte d’identité biométrique",
+          "statut": "selon_le_cas",
+          "note": "Si vous en avez une."
+        },
+        {
+          "libelle": "Professions libérales et commerçants : relevés bancaires des 6 derniers mois",
+          "statut": "selon_le_cas",
+          "note": "Preuve de fonds, en plus des documents de base."
+        },
+        {
+          "libelle": "Professions libérales et commerçants : justificatifs de l’activité",
+          "statut": "selon_le_cas",
+          "note": "Déclaration d’existence, registre du commerce, attestation fiscale en cours de validité, carte de commerçant, connaissements, factures, contrats…"
+        },
+        {
+          "libelle": "Salariés : relevés bancaires des 6 derniers mois",
+          "statut": "selon_le_cas",
+          "note": "Preuve de fonds, en plus des documents de base."
+        },
+        {
+          "libelle": "Salariés : 4 derniers bulletins de salaire",
+          "statut": "selon_le_cas",
+          "note": "Les plus récents."
+        },
+        {
+          "libelle": "Salariés : copie du contrat de travail et certificat de travail",
+          "statut": "selon_le_cas",
+          "note": "Documents à jour, signés par l’employeur."
+        },
+        {
+          "libelle": "Salariés : attestation de congé",
+          "statut": "selon_le_cas",
+          "note": "Signée par l’employeur, ou ordre de mission pour un voyage professionnel."
+        },
+        {
+          "libelle": "Itinéraire : détails des vols",
+          "statut": "selon_le_cas",
+          "note": "Montrent la durée prévue du séjour."
+        },
+        {
+          "libelle": "Itinéraire : preuve d’hébergement",
+          "statut": "selon_le_cas",
+          "note": "Réservation ou lettre de la personne qui vous accueille."
+        },
+        {
+          "libelle": "Itinéraire : inscription à un événement",
+          "statut": "selon_le_cas",
+          "note": "Si votre voyage est lié à un événement."
+        },
+        {
+          "libelle": "Documents complémentaires très utiles",
+          "statut": "selon_le_cas",
+          "note": "Permis de conduire biométrique, cartes grises de véhicules, preuves d’investissement en Guinée ou à l’étranger, toute autre preuve de revenus."
+        }
+      ],
+      "frais": {
+        "texte": "100 $CA pour la demande de visa, plus 85 $CA pour les données biométriques (si demandées). Paiement en ligne par carte de crédit. Le CRDV peut facturer des services optionnels.",
+        "verifie_le": "2026-11-03"
+      },
+      "delai_indicatif": {
+        "texte": "Variable selon le pays et la période : consultez l’outil officiel des délais de traitement d’IRCC avant de réserver votre voyage. Le passeport n’est envoyé qu’après la demande d’IRCC.",
+        "verifie_le": "2026-11-03"
+      },
+      "sources": [
+        {
+          "libelle": "IRCC — étapes finales de la demande de visa en ligne et frais",
+          "url": "https://ircc.canada.ca/visit-visiter/fr/dernieres-etapes-visa-en-ligne"
+        },
+        {
+          "libelle": "Canada.ca — trouver un centre de réception des demandes de visa (Conakry)",
+          "url": "https://www.canada.ca/fr/immigration-refugies-citoyennete/organisation/contactez-ircc/bureaux/trouver-centre-reception-demande-visa.html"
+        },
+        {
+          "libelle": "CRDV Guinée — site officiel de prise de rendez-vous (lien indiqué par Canada.ca)",
+          "url": "https://visa.vfsglobal.com/gin/fr/can"
+        },
+        {
+          "libelle": "IRCC — vérifier les délais de traitement",
+          "url": "https://www.canada.ca/fr/immigration-refugies-citoyennete/services/demande/verifier-delais-traitement.html"
+        }
+      ]
+    }
+  ]
+}
