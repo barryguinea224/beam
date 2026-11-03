@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   schema-and-build:
-    name: Visa schema, security, demo/production gate
+    name: Strict JSON schema, resilient production & preview
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
@@ -31,15 +31,26 @@ jobs:
           node --check tests/visas-schema.cjs
           node --check tests/visas-mobile.cjs
           node tests/visas-schema.cjs
-      - name: Build the public demo (no secrets, no backend)
+      - name: Strictly check every JSON fiche (fail PR on malformed content)
+        run: node scripts/build-visas.cjs --check
+      - name: Render the unverified sample for preview (no secrets)
         run: node scripts/build-visas.cjs --preview
-      - name: Assert production rejects the unverified example
+      - name: Verify production excludes unverified example without failing
         run: |
-          if node scripts/build-visas.cjs --production; then
-            echo "::error::Production must reject the unverified example"
+          set -euo pipefail
+          node scripts/build-visas.cjs --production
+          test -f visas/index.html
+          grep -q "Guide en préparation" visas/index.html
+          grep -q "wa.me/224622095630" visas/index.html
+          if test -f visas/france/index.html; then
+            echo "::error::Unverified France sample leaked into production"
             exit 1
           fi
-          echo "Production gate rejects the unverified example: PASS"
+          if grep -q 'href="/visas/france/"' visas/index.html; then
+            echo "::error::Unverified France sample leaked into production home"
+            exit 1
+          fi
+          echo "Production excludes unverified sample and preserves the site build: PASS"
       - name: Enforce untouched BTH and Supabase source trees
         shell: bash
         run: |
