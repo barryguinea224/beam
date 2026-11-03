@@ -3,6 +3,7 @@ const assert=require("node:assert/strict");
 const fs=require("node:fs");
 const os=require("node:os");
 const path=require("node:path");
+const {spawnSync}=require("node:child_process");
 const {
  validateEntry,buildSite,renderDestination,renderHome,modeFor,
  isStale,needsReview,parseDate,esc,todayUTC,DISCLAIMER
@@ -52,12 +53,17 @@ bad(o=>o.verifie_le="2026-02-30",/date calendaire invalide/);
 bad(o=>o.verifie_le="2026/11/02",/format AAAA-MM-JJ/);
 assert.throws(()=>validateEntry(input,"../france",{today}),/nom de fichier dangereux/);
 assert.equal(modeFor(["--production"],{}),"production");
+assert.equal(modeFor(["--check"],{}),"check");
+assert.equal(modeFor(["--check"],{CONTEXT:"production"}),"production");
+assert.equal(modeFor(["--preview"],{}),"preview");
 assert.equal(modeFor(["--preview"],{CONTEXT:"production"}),"production",
  "a preview flag cannot bypass Netlify production strictness");
 assert.throws(()=>modeFor(["--preview","--production"],{}),/modes contradictoires/);
-assert.throws(()=>validateEntry(input,"france",{today,mode:"production"}),/EXEMPLE/);
+assert.doesNotThrow(()=>validateEntry(input,"france",{today,mode:"preview"}),
+ "an explicitly labeled sample is valid input for preview and CI check");
 const stillExample=deep(input);stillExample.statut="publie";
-assert.throws(()=>validateEntry(stillExample,"france",{today,mode:"production"}),/EXEMPLE/);
+assert.throws(()=>validateEntry(stillExample,"france",{today,mode:"check"}),/EXEMPLE/,
+ "published status with unfinished example text must fail strict validation");
 
 // Only synthetic validation data here, NEVER a published visa claim or page.
 const mock=deep(input);
@@ -99,16 +105,26 @@ assert.ok(!/<form\b/i.test(html));
 assert.match(html,/<meta name="robots" content="noindex,nofollow,noarchive">/);
 assert.ok(esc("&<>\"'") === "&amp;&lt;&gt;&quot;&#39;");
 
-// Build output is static and fails *before writing* if demo content is present in production.
+// The guide may be incomplete: Netlify production must still deploy BTH.
+// Strict CI (--check) rejects *any* invalid schema/date/URL, even if the
+// production renderer could have omitted the invalid entry.
 const scratch=fs.mkdtempSync(path.join(os.tmpdir(),"beam-visa-build-"));
+const log={warnings:[],messages:[],warn(value){this.warnings.push(value)},log(value){this.messages.push(value)}};
+const guideRoot=path.join(scratch,"visas");
+const sub=path.join(guideRoot,"data");
+const travelConfig=path.join(scratch,"travel/config.js");
 try{
- const sub=path.join(scratch,"visas","data");
  fs.mkdirSync(sub,{recursive:true});
+ fs.mkdirSync(path.dirname(travelConfig),{recursive:true});
+ fs.writeFileSync(travelConfig,"// independent BTH fixture — must remain unchanged\n");
+ const originalTravel=fs.readFileSync(travelConfig,"utf8");
+
+ // Preview: the labeled example stays available for review, with a visible disclaimer.
  fs.writeFileSync(path.join(sub,"france.json"),JSON.stringify(input));
- const result=buildSite({root:scratch,mode:"preview",today});
- assert.equal(result.html,2);
- const home=fs.readFileSync(path.join(scratch,"visas/index.html"),"utf8");
- const detail=fs.readFileSync(path.join(scratch,"visas/france/index.html"),"utf8");
+ const preview=buildSite({root:scratch,mode:"preview",today,logger:log});
+ assert.equal(preview.html,2);
+ const home=fs.readFileSync(path.join(guideRoot,"index.html"),"utf8");
+ const detail=fs.readFileSync(path.join(guideRoot,"france/index.html"),"utf8");
  for(const page of [home,detail]){
   assert.match(page,/EXEMPLE — NON VÉRIFIÉ/);
   assert.match(page,/Seule l&#39;ambassade décide/);
@@ -119,11 +135,86 @@ try{
  assert.match(detail,/wa\.me\/224622095630\?text=/);
  assert.match(detail,/France/);
  assert.match(detail,/href="\/travel\/"/);
- fs.rmSync(path.join(scratch,"visas/index.html"));
- fs.rmSync(path.join(scratch,"visas/france"),{recursive:true});
- assert.throws(()=>buildSite({root:scratch,mode:"production",today}),/EXEMPLE/);
- assert.equal(fs.existsSync(path.join(scratch,"visas/index.html")),false,
-  "production rejects demo before creating any HTML");
+
+ // Strict validation includes the example, but does not publish or modify files.
+ const checked=buildSite({root:scratch,mode:"check",today,logger:log});
+ assert.equal(checked.html,0);
+ assert.equal(checked.files,1);
+ assert.ok(fs.existsSync(path.join(guideRoot,"france/index.html")));
+
+ // Production: exclude demo, remove previous preview page and show a usable
+ // empty guide rather than ever failing a deploy of beamguinee.com or BTH.
+ const prod=buildSite({root:scratch,mode:"production",today,logger:log});
+ assert.equal(prod.html,1,"the fallback home is the only production page");
+ assert.equal(prod.published,0);
+ assert.deepEqual(prod.excluded.map(x=>x.filename),["france.json"]);
+ assert.ok(prod.excluded[0].reason.includes("EXEMPLE"));
+ assert.ok(log.warnings.some(x=>x.includes("france.json")&&x.includes("exclue")));
+ assert.ok(log.messages.some(x=>x.includes("france.json")),"exclusions listed in production log");
+ assert.equal(fs.existsSync(path.join(guideRoot,"france/index.html")),false,
+  "no stale preview France page may survive a production build");
+ const emptyHome=fs.readFileSync(path.join(guideRoot,"index.html"),"utf8");
+ assert.match(emptyHome,/Guide en préparation/);
+ assert.match(emptyHome,/Seule l&#39;ambassade décide/);
+ assert.match(emptyHome,/wa\.me\/224622095630\?text=/);
+ assert.match(emptyHome,/Être accompagné par BEAM/);
+ assert.doesNotMatch(emptyHome,/href="\/visas\/france\/"/);
+ assert.match(emptyHome,/name="robots" content="noindex,nofollow,noarchive"/);
+ assert.equal(fs.existsSync(path.join(guideRoot,"sitemap.xml")),false,
+  "the guide does not currently generate a sitemap with excluded destinations");
+ assert.equal(fs.readFileSync(travelConfig,"utf8"),originalTravel,
+  "the guide does not modify the travel build's output");
+
+ // An invalid URL, date or schema must be a hard failure in strict CI mode,
+ // regardless of other valid or example files.
+ const invalid=deep(mock);
+ invalid.types_visa[0].sources[0].url="http://not-allowed.example/";
+ fs.writeFileSync(path.join(sub,"maroc.json"),JSON.stringify(invalid));
+ assert.throws(()=>buildSite({root:scratch,mode:"check",today,logger:log}),/HTTPS/);
+ const strictProcess=spawnSync(process.execPath,[
+  "-e", "require(process.argv[1]).buildSite({root:process.argv[2],mode:'check'});",
+  path.join(root,"scripts/build-visas.cjs"),scratch
+ ],{encoding:"utf8"});
+ assert.notEqual(strictProcess.status,0,
+  "the strict CI command must return nonzero when one fiche is invalid");
+ assert.match(strictProcess.stderr,/HTTPS/);
+
+ const prodInvalid=buildSite({root:scratch,mode:"production",today,logger:log});
+ assert.equal(prodInvalid.published,0);
+ assert.deepEqual(prodInvalid.excluded.map(x=>x.filename),["france.json","maroc.json"]);
+ assert.ok(log.warnings.some(x=>x.includes("maroc.json")&&x.includes("HTTPS")));
+ assert.ok(fs.readFileSync(path.join(guideRoot,"index.html"),"utf8").includes("Guide en préparation"));
+ assert.equal(fs.readFileSync(travelConfig,"utf8"),originalTravel,
+  "the BTH travel config survives malformed guide data");
+
+ // Even invalid JSON syntax cannot fail production.
+ fs.writeFileSync(path.join(sub,"maroc.json"),'{"types_visa": ');
+ assert.throws(()=>buildSite({root:scratch,mode:"check",today,logger:log}),/JSON|SyntaxError/);
+ const badJson=buildSite({root:scratch,mode:"production",today,logger:log});
+ assert.equal(badJson.excluded.length,2);
+ assert.equal(badJson.published,0);
+ assert.equal(fs.readFileSync(travelConfig,"utf8"),originalTravel);
+
+ // With a valid published fiche, it is included; an example or broken file
+ // stays excluded. No unverified destination may be on the home page.
+ fs.writeFileSync(path.join(sub,"maroc.json"),JSON.stringify(mock));
+ const mixed=buildSite({root:scratch,mode:"production",today,logger:log});
+ assert.equal(mixed.published,1);
+ assert.deepEqual(mixed.excluded.map(x=>x.filename),["france.json"]);
+ const mixedHome=fs.readFileSync(path.join(guideRoot,"index.html"),"utf8");
+ assert.match(mixedHome,/href="\/visas\/maroc\/"/);
+ assert.doesNotMatch(mixedHome,/href="\/visas\/france\/"/);
+ assert.ok(fs.existsSync(path.join(guideRoot,"maroc/index.html")));
+ assert.ok(!fs.existsSync(path.join(guideRoot,"france/index.html")));
+
+ // If an already-published fiche goes invalid, it must lose its old
+ // generated page rather than keep stale requirements online.
+ fs.writeFileSync(path.join(sub,"maroc.json"),"{ invalid");
+ const reverted=buildSite({root:scratch,mode:"production",today,logger:log});
+ assert.equal(reverted.published,0);
+ assert.equal(fs.existsSync(path.join(guideRoot,"maroc/index.html")),false);
+ assert.match(fs.readFileSync(path.join(guideRoot,"index.html"),"utf8"),/Guide en préparation/);
+ assert.equal(fs.readFileSync(travelConfig,"utf8"),originalTravel);
 }finally{fs.rmSync(scratch,{recursive:true,force:true})}
 const sw=fs.readFileSync(path.join(root,"travel/sw.js"),"utf8");
 assert.ok(sw.includes('const SCOPE_PATH = "/travel/"'));
@@ -132,4 +223,4 @@ const netlify=fs.readFileSync(path.join(root,"netlify.toml"),"utf8");
 assert.match(netlify,/node scripts\/build-travel-config\.cjs && node scripts\/build-visas\.cjs/);
 const css=fs.readFileSync(path.join(root,"visas/style.css"),"utf8");
 assert.doesNotMatch(css,/@import|https?:\/\/|url\(/i,"No external font/image/resource in visa CSS");
-console.log("PASS visa JSON strict fields/HTTPS/future date/production example gate, static HTML, escaping, BTH SW isolation");
+console.log("PASS visa strict CI rejection; production excludes invalid/demo, cleans stale pages, prepares empty home, leaves BTH build untouched");
