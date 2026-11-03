@@ -365,7 +365,12 @@ assert.equal(realCheck.published,6,"strict CI must see all six real published BE
 
 const sw=fs.readFileSync(path.join(root,"travel/sw.js"),"utf8");
 assert.ok(sw.includes('const SCOPE_PATH = "/travel/"'));
-assert.doesNotMatch(sw,/["']\.?\/?visas\//i,"BTH service worker must never cache the public visa guide");
+const shellList=sw.match(/const PUBLIC_SHELL = \[([\s\S]*?)\];/)?.[1];
+assert.ok(shellList,"worker public shell list exists");
+assert.doesNotMatch(shellList,/[\"']\.?\/?visas\//i,
+ "BTH service worker must never pre-cache the public visa guide");
+assert.match(sw,/if \(url\.pathname\.startsWith\("\/visas\/"\)\) return;/,
+ "visa pages and the index must bypass service worker fetch interception");
 const netlify=fs.readFileSync(path.join(root,"netlify.toml"),"utf8");
 assert.match(netlify,/node scripts\/build-travel-config\.cjs && node scripts\/build-visas\.cjs/);
 for(const blocked of ["/visas/data/*","/visas/README.md"]){
