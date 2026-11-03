@@ -2,10 +2,12 @@
 const assert=require("node:assert/strict");
 const http=require("node:http");
 const fs=require("node:fs");
+const os=require("node:os");
 const path=require("node:path");
 const {chromium}=require("playwright");
 const {buildSite}=require("../scripts/build-visas.cjs");
-const root=path.resolve(__dirname,"..");
+const repositoryRoot=path.resolve(__dirname,"..");
+let root=repositoryRoot;
 const mime={".html":"text/html; charset=utf-8",".css":"text/css; charset=utf-8",".json":"application/json"};
 function serve(){
  return http.createServer((req,res)=>{
@@ -29,11 +31,28 @@ function lum(c){
 }
 function contrast(a,b){const x=lum(a),y=lum(b);return (Math.max(x,y)+.05)/(Math.min(x,y)+.05);}
 async function main(){
- buildSite({root,mode:"preview"});
+ // A real validated France fiche takes priority when provided by BEAM.
+ // Otherwise use an isolated explicit EXEMPLE test fixture; NEVER copy
+ // that unverified content into the published visas/data directory.
+ const scratch=fs.mkdtempSync(path.join(os.tmpdir(),"beam-visas-browser-"));
+ root=scratch;
+ fs.mkdirSync(path.join(root,"visas/data"),{recursive:true});
+ fs.copyFileSync(path.join(repositoryRoot,"visas/style.css"),path.join(root,"visas/style.css"));
+ const source=path.join(repositoryRoot,"visas/data/france.json");
+ const actualFrance=fs.existsSync(source);
+ const fixture=actualFrance?source:path.join(repositoryRoot,"tests/fixtures/visas/exemple.json");
+ const data=JSON.parse(fs.readFileSync(fixture,"utf8"));
+ if(actualFrance){
+  assert.equal(data.statut,"publie","the BEAM France source must be published");
+  assert.equal(data.types_visa.reduce((sum,type)=>sum+type.documents.length,0),16,
+   "the actual BEAM France fiche must preserve its 16 documents");
+ }
+ fs.copyFileSync(fixture,path.join(root,"visas/data/france.json"));
+ buildSite({root,mode:actualFrance?"production":"preview"});
  const server=serve();
  await new Promise(resolve=>server.listen(0,"127.0.0.1",resolve));
  const browser=await chromium.launch({headless:true,args:["--no-sandbox","--disable-dev-shm-usage"]});
- const out=path.join(root,"test-artifacts/visas-mobile");
+ const out=path.join(repositoryRoot,"test-artifacts/visas-mobile");
  fs.mkdirSync(out,{recursive:true});
  try{
   for(const width of [320,360,390]){
@@ -51,7 +70,9 @@ async function main(){
      assert.equal(response.status(),200);
      assert.equal(await page.locator("script").count(),0,"HTML must not require JS");
      assert.equal(await page.locator('link[rel="stylesheet"]').count(),1);
-     assert.ok(await page.locator(".notice-demo").isVisible());
+     if(!actualFrance) assert.ok(await page.locator(".notice-demo").isVisible());
+     else assert.equal(await page.locator(".notice-demo").count(),0,
+      "the verified France page must not contain example warnings");
      assert.ok(await page.locator(".notice-law").isVisible());
      const metrics=await page.evaluate(()=>{
       const h=document.querySelector("h1"),header=document.querySelector(".masthead"),cta=document.querySelector(".button.primary");
@@ -74,7 +95,10 @@ async function main(){
       assert.ok(metrics.cta&&metrics.cta.height>=44,"CTA target must be >=44px");
       assert.ok(metrics.cta.right<=width+1&&metrics.cta.left>=-1,"CTA must fit screen");
       assert.ok(contrast(metrics.ctaColor,metrics.ctaBg)>=4.5,"CTA text contrast");
-      assert.ok(await page.locator(".notice-stale").isVisible(),"stale 2000 example must show banner");
+      if(!actualFrance) assert.ok(await page.locator(".notice-stale").isVisible(),
+       "the old test example must show the 90-day warning");
+      else assert.equal(await page.locator(".doc").count(),16,
+       "published France must display all sixteen BEAM documents without changes");
       assert.ok((await page.locator(".button.primary").getAttribute("href")).includes("France"));
       assert.equal(await page.locator('a[href="/travel/"]').count(),1);
      }else{
@@ -87,6 +111,10 @@ async function main(){
     }
    }finally{await context.close();}
   }
- }finally{await browser.close();await new Promise(resolve=>server.close(resolve));}
+ }finally{
+  await browser.close();
+  await new Promise(resolve=>server.close(resolve));
+  fs.rmSync(scratch,{recursive:true,force:true});
+ }
 }
 main().catch(err=>{console.error(err);process.exitCode=1});
