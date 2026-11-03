@@ -9,6 +9,13 @@ const {
  isStale,needsReview,parseDate,esc,todayUTC,DISCLAIMER
 }=require("../scripts/build-visas.cjs");
 const root=path.resolve(__dirname,"..");
+const travelBuilder=require("../scripts/build-travel-config.cjs");
+// Synthetic, nonfunctional PUBLIC placeholder constructed only during tests.
+const travelFixtureEnv={
+ NETLIFY:"true",CONTEXT:"deploy-preview",
+ BEAM_TRAVEL_STAGING_PUBLIC_KEY:["sb","publishable","ci_fixture_only"].join("_")
+};
+const travelBuildBaseline=travelBuilder.render(travelFixtureEnv);
 const input=JSON.parse(fs.readFileSync(path.join(root,"visas/data/france.json"),"utf8"));
 const deep=value=>JSON.parse(JSON.stringify(value));
 const today=todayUTC();
@@ -118,6 +125,12 @@ try{
  fs.mkdirSync(path.dirname(travelConfig),{recursive:true});
  fs.writeFileSync(travelConfig,"// independent BTH fixture — must remain unchanged\n");
  const originalTravel=fs.readFileSync(travelConfig,"utf8");
+ const assertTravelUnaffected=()=>{
+   assert.equal(fs.readFileSync(travelConfig,"utf8"),originalTravel,
+     "the guide must never alter the travel output");
+   assert.equal(travelBuilder.render(travelFixtureEnv),travelBuildBaseline,
+     "build-travel-config.cjs must render the same output regardless of visa data");
+ };
 
  // Preview: the labeled example stays available for review, with a visible disclaimer.
  fs.writeFileSync(path.join(sub,"france.json"),JSON.stringify(input));
@@ -162,8 +175,7 @@ try{
  assert.match(emptyHome,/name="robots" content="noindex,nofollow,noarchive"/);
  assert.equal(fs.existsSync(path.join(guideRoot,"sitemap.xml")),false,
   "the guide does not currently generate a sitemap with excluded destinations");
- assert.equal(fs.readFileSync(travelConfig,"utf8"),originalTravel,
-  "the guide does not modify the travel build's output");
+ assertTravelUnaffected();
 
  // An invalid URL, date or schema must be a hard failure in strict CI mode,
  // regardless of other valid or example files.
@@ -199,7 +211,7 @@ try{
   assert.equal(tolerated.published,0,label+" must not publish an invalid fiche");
   assert.deepEqual(tolerated.excluded.map(x=>x.filename),["france.json","maroc.json"]);
   assert.ok(fs.readFileSync(path.join(guideRoot,"index.html"),"utf8").includes("Guide en préparation"));
-  assert.equal(fs.readFileSync(travelConfig,"utf8"),originalTravel);
+  assertTravelUnaffected();
  }
  fs.writeFileSync(path.join(sub,"maroc.json"),JSON.stringify(invalid));
 
@@ -208,8 +220,7 @@ try{
  assert.deepEqual(prodInvalid.excluded.map(x=>x.filename),["france.json","maroc.json"]);
  assert.ok(log.warnings.some(x=>x.includes("maroc.json")&&x.includes("HTTPS")));
  assert.ok(fs.readFileSync(path.join(guideRoot,"index.html"),"utf8").includes("Guide en préparation"));
- assert.equal(fs.readFileSync(travelConfig,"utf8"),originalTravel,
-  "the BTH travel config survives malformed guide data");
+ assertTravelUnaffected();
 
  // Even invalid JSON syntax cannot fail production.
  fs.writeFileSync(path.join(sub,"maroc.json"),'{"types_visa": ');
@@ -217,7 +228,7 @@ try{
  const badJson=buildSite({root:scratch,mode:"production",today,logger:log});
  assert.equal(badJson.excluded.length,2);
  assert.equal(badJson.published,0);
- assert.equal(fs.readFileSync(travelConfig,"utf8"),originalTravel);
+ assertTravelUnaffected();
 
  // With a valid published fiche, it is included; an example or broken file
  // stays excluded. No unverified destination may be on the home page.
@@ -238,7 +249,7 @@ try{
  assert.equal(reverted.published,0);
  assert.equal(fs.existsSync(path.join(guideRoot,"maroc/index.html")),false);
  assert.match(fs.readFileSync(path.join(guideRoot,"index.html"),"utf8"),/Guide en préparation/);
- assert.equal(fs.readFileSync(travelConfig,"utf8"),originalTravel);
+ assertTravelUnaffected();
 
  // Removing a source JSON also removes a previously generated page.
  fs.writeFileSync(path.join(sub,"maroc.json"),JSON.stringify(mock));
@@ -250,7 +261,7 @@ try{
  assert.ok(!fs.existsSync(path.join(guideRoot,"maroc/index.html")),
    "a destination removed from the JSON directory must not remain online");
  assert.match(fs.readFileSync(path.join(guideRoot,"index.html"),"utf8"),/Guide en préparation/);
- assert.equal(fs.readFileSync(travelConfig,"utf8"),originalTravel);
+ assertTravelUnaffected();
 }finally{fs.rmSync(scratch,{recursive:true,force:true})}
 const sw=fs.readFileSync(path.join(root,"travel/sw.js"),"utf8");
 assert.ok(sw.includes('const SCOPE_PATH = "/travel/"'));
