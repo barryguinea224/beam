@@ -27,7 +27,7 @@ La validation contrôle la syntaxe HTTPS, **pas** la légitimité ou la compéte
 
 ## Structure complète d'une fiche
 
-Une fiche comprend `destination`, `drapeau`, `statut`, `verifie_le` et `types_visa[]`. Chaque type comprend `type`, `autorite_competente` (`nom`, `ville`, `pays`), `lieu_depot`, `conditions_demandeur` (`public_cible`, `autres_cas`), `documents[]` (`libelle`, `statut`, `note`), `frais` et `delai_indicatif` (`texte`, `verifie_le`), ainsi que `sources[]` (`libelle`, `url` HTTPS).
+Une fiche comprend `destination`, `code_pays` (ISO 3166-1 alpha-2, deux lettres majuscules validées dans le référentiel BTH), `drapeau`, `statut`, `verifie_le` et `types_visa[]`. Chaque type comprend `type`, `autorite_competente` (`nom`, `ville`, `pays`), `lieu_depot`, `conditions_demandeur` (`public_cible`, `autres_cas`), `documents[]` (`libelle`, `statut`, `note`), `frais` et `delai_indicatif` (`texte`, `verifie_le`), ainsi que `sources[]` (`libelle`, `url` HTTPS).
 
 Les documents ont le statut `obligatoire` ou `selon_le_cas`. La règle actuelle exige `conditions_demandeur.autres_cas = "Consultez l’ambassade."`. Les dates `verifie_le` doivent être valides et non futures. Le marqueur exact `EXEMPLE — NON VÉRIFIÉ` est interdit dans une fiche publiée, mais le mot français « exemple » reste autorisé dans un texte normal.
 
@@ -60,3 +60,13 @@ Avertissement public :
 > Informations indicatives, vérifiées à la date indiquée. Seule l'ambassade décide. BEAM n'est pas affilié aux ambassades ni aux centres de dépôt.
 
 Aucune garantie d'obtention de visa.
+
+## Liaison publique avec BEAM Travel History
+
+Chaque vraie fiche `visas/data/*.json` doit posséder `code_pays` : France `FR`, Canada `CA`, Royaume-Uni `GB`, Turquie `TR`, Chine `CN`, Maroc `MA`. La validation `--check` refuse un code manquant, non majuscule, inconnu du catalogue ISO 3166-1 alpha-2 de BTH ou utilisé deux fois pour des fiches publiées.
+
+À chaque génération (aperçu ou production), `/visas/fiches.json` est **réécrit entièrement** à partir des fiches publiées et valides. Il contient exclusivement un tableau d’objets `{code_pays,slug,destination}`, jamais une fiche d'exemple ou une autre propriété (documents, frais, données de voyage, identifiants, etc.). `--check` ne génère aucun fichier. `netlify.toml` indique `Cache-Control: no-store` pour ce fichier public.
+
+Le tableau de bord BTH expose un lien normal « Guide des visas » vers `/visas/`, dans le même onglet. Dans une fiche voyage, le composant `travel/visa-guide.js` lit uniquement `/visas/fiches.json` depuis la même origine, avec `cache: "no-store"`, cookies omis, aucun référent, aucun paramètre et un délai maximal de 1,5 seconde. Il compare localement le code ISO du voyage ; si le pays est dans la liste, il affiche « Préparer un nouveau visa ? Voir la fiche [destination] ». Si l'index manque, est invalide, ou en cas de délai dépassé, **aucun lien ni erreur** ne s'affiche. Aucune donnée du voyageur n'est transmise.
+
+Le service worker BTH v19 conserve son périmètre `/travel/` et n'intercepte ni ne met en cache les pages `/visas/` ni `/visas/fiches.json`. Les tests contrôlent le schéma du manifeste, la non-publication des exemples, le lien France, l’absence de lien pour un pays non répertorié, les erreurs réseau silencieuses et l'affichage BTH entre 320 et 390 px.
