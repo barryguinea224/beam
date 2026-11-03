@@ -240,6 +240,10 @@ html.travelAccessReadOnly #avatarChange,html.travelAccessReadOnly #avatarRemove{
 #dashboardTitle.longTitle{font-size:clamp(20px,2.8vw,31px)}
 #dashboardTitle.extraLongTitle{font-size:clamp(18px,2.4vw,26px)}
 #travelHero .travelerSubtitle{font:400 12px/1.3 system-ui,sans-serif;color:var(--muted);margin:4px 0 0}
+#dashboardVisaGuide{display:inline-block;margin-top:5px;color:var(--g);font:650 12px/1.35 system-ui,sans-serif;text-underline-offset:3px;overflow-wrap:anywhere}
+#dashboardVisaGuide:focus-visible,.detailVisaGuide a:focus-visible{outline:2px solid var(--g);outline-offset:3px;border-radius:3px}
+.detailVisaGuide{font:500 13px/1.5 system-ui,sans-serif;color:var(--muted);margin:12px 0 0;overflow-wrap:anywhere}
+.detailVisaGuide a{color:var(--g);font-weight:700;text-underline-offset:3px}
 #travelHero .statsWrap{margin-top:10px}
 #travelHero .stats{gap:7px}
 #travelHero .stat{min-width:0;border-radius:16px;padding:9px 10px}
@@ -322,7 +326,7 @@ html.travelAccessReadOnly #photoField,html.travelAccessReadOnly #saveTrip{displa
 <main id="app" class="hidden"><div class="w"><header class="top" aria-label="Actions du carnet"><div id="headerActions" class="headerActions"></div></header>
 <section id="accessBanner" class="hidden" role="status" aria-live="polite" aria-label="Durée d'accès"></section>
 <section id="welcomeCard" class="hidden" aria-labelledby="welcomeTitle"><h2 id="welcomeTitle">Bienvenue dans votre carnet</h2><p>Trois étapes pour raconter vos voyages et retrouver votre historique personnel.</p><div class="welcomeSteps"><button id="welcomeName" class="welcomeStep" type="button"><span class="check" aria-hidden="true">○</span><span>1. Ajoutez votre nom</span></button><button id="welcomeTrip" class="welcomeStep" type="button"><span class="check" aria-hidden="true">○</span><span>2. Ajoutez votre premier voyage</span></button><button id="welcomePdf" class="welcomeStep" type="button"><span class="check" aria-hidden="true">○</span><span>3. Générez votre PDF ambassade</span></button></div><p id="welcomeHint" role="status" aria-live="polite"></p></section>
-<section id="travelHero" class="hero"><div class="travelerHeader"><div class="travelerTopBar"><span class="travelerEy">Mon carnet de voyage</span><button type="button" id="openAccount" class="travelerAccountLink" aria-controls="accountOverlay" aria-expanded="false"><span aria-hidden="true">⚙</span> Mon compte</button></div><div class="travelerIdentity"><span id="travelerAvatar" class="travelerAvatar" aria-hidden="true">V</span><div class="travelerNameBlock"><h1 id="dashboardTitle">Voyageur</h1><p class="travelerSubtitle">Mon histoire à travers le monde</p><div class="beamInstall" data-beam-install-area><button class="beamInstallButton" type="button" data-beam-install-action hidden>Installer BTH</button><details class="beamInstallHelp" data-beam-install-help><summary>Comment installer BTH</summary><p data-beam-install-steps>Depuis le menu de votre navigateur, cherchez « Installer l’application » ou « Ajouter à l’écran d’accueil », si cette option est proposée.</p></details><p class="beamInstallStatus" role="status" aria-live="polite" data-beam-install-status></p></div></div></div></div><div class="actions"><button id="add" class="btn">+ Ajouter un voyage</button><div id="pdfActionGroup" class="pdfActionGroup"><button id="pdf" class="btn ghost">PDF ambassade</button><label class="pdfContactChoice" for="includePdfContacts"><input id="includePdfContacts" type="checkbox" autocomplete="off" disabled> Inclure mes coordonnées dans ce PDF</label></div><button id="printJournal" class="btn ghost" type="button">Mon carnet</button></div><div class="statsWrap"><div class="stats"><div class="stat"><b id="nt">0</b><small id="ntl">Voyages</small></div><div class="stat"><b id="nc">0</b><small id="ncl">Pays</small></div><div class="stat"><b id="nd">0</b><small id="ndl">Jours</small></div></div><p class="travelerScopeLine" role="status" aria-live="polite"><span id="statsScopeLabel">Voyages à l’étranger</span><span id="domesticCount"></span></p></div></section>
+<section id="travelHero" class="hero"><div class="travelerHeader"><div class="travelerTopBar"><span class="travelerEy">Mon carnet de voyage</span><button type="button" id="openAccount" class="travelerAccountLink" aria-controls="accountOverlay" aria-expanded="false"><span aria-hidden="true">⚙</span> Mon compte</button></div><div class="travelerIdentity"><span id="travelerAvatar" class="travelerAvatar" aria-hidden="true">V</span><div class="travelerNameBlock"><h1 id="dashboardTitle">Voyageur</h1><p class="travelerSubtitle">Mon histoire à travers le monde</p><a id="dashboardVisaGuide" href="/visas/">Guide des visas</a><div class="beamInstall" data-beam-install-area><button class="beamInstallButton" type="button" data-beam-install-action hidden>Installer BTH</button><details class="beamInstallHelp" data-beam-install-help><summary>Comment installer BTH</summary><p data-beam-install-steps>Depuis le menu de votre navigateur, cherchez « Installer l’application » ou « Ajouter à l’écran d’accueil », si cette option est proposée.</p></details><p class="beamInstallStatus" role="status" aria-live="polite" data-beam-install-status></p></div></div></div></div><div class="actions"><button id="add" class="btn">+ Ajouter un voyage</button><div id="pdfActionGroup" class="pdfActionGroup"><button id="pdf" class="btn ghost">PDF ambassade</button><label class="pdfContactChoice" for="includePdfContacts"><input id="includePdfContacts" type="checkbox" autocomplete="off" disabled> Inclure mes coordonnées dans ce PDF</label></div><button id="printJournal" class="btn ghost" type="button">Mon carnet</button></div><div class="statsWrap"><div class="stats"><div class="stat"><b id="nt">0</b><small id="ntl">Voyages</small></div><div class="stat"><b id="nc">0</b><small id="ncl">Pays</small></div><div class="stat"><b id="nd">0</b><small id="ndl">Jours</small></div></div><p class="travelerScopeLine" role="status" aria-live="polite"><span id="statsScopeLabel">Voyages à l’étranger</span><span id="domesticCount"></span></p></div></section>
 <section id="accountStatusChecking" class="panel" role="status" aria-live="polite"><p>Vérification de votre compte…</p></section>
 <section id="deletionPending" class="panel hidden" role="status" aria-live="polite">
 <h2>Suppression de votre compte en cours</h2>
@@ -367,6 +371,7 @@ html.travelAccessReadOnly #photoField,html.travelAccessReadOnly #saveTrip{displa
     <div class="detailTop"><div><div class="ey">Ma fiche voyage</div><h2 id="detailTitle">Voyage</h2><p id="detailIntro" class="detailIntro">Informations et souvenirs privés.</p></div><button id="detailClose" type="button" class="btn ghost">Fermer</button></div>
     <dl id="detailFacts" class="detailFacts"></dl>
     <div class="actions"><button type="button" id="detailEdit" class="btn">Modifier le voyage</button></div>
+    <p id="detailVisaGuide" class="detailVisaGuide" hidden></p>
     <p id="detailStatus" role="alert" class="notice hidden"></p>
     <section class="detailSection" aria-labelledby="detailPhotosTitle"><h3 id="detailPhotosTitle">Photos du voyage</h3><div id="detailPhotos" class="detailGallery" aria-live="polite"></div></section>
     <section class="detailSection" aria-labelledby="detailNoteTitle"><h3 id="detailNoteTitle">Mon souvenir</h3><p id="detailNote" class="detailNote"></p></section>
@@ -381,7 +386,7 @@ html.travelAccessReadOnly #photoField,html.travelAccessReadOnly #saveTrip{displa
     </section>
   </div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./config.js"></script><script src="./pwa.js"></script><script src="./access.js"></script><script src="./photo-utils.js"></script><script src="./photo-upload.js"></script><script src="./avatar.js"></script><script src="./trip-detail.js"></script><script src="./countries.js"></script><script src="./country-picker.js"></script><script src="./factual-pdf.js"></script><script src="./factual-pdf-file.js"></script><script src="./journal-stats.js"></script><script src="./dashboard-filters.js"></script><script src="./visual-cards.js"></script><script src="./printable-journal.js"></script><script src="./family-booklet.js"></script><script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./config.js"></script><script src="./pwa.js"></script><script src="./access.js"></script><script src="./photo-utils.js"></script><script src="./photo-upload.js"></script><script src="./avatar.js"></script><script src="./trip-detail.js"></script><script src="./visa-guide.js"></script><script src="./countries.js"></script><script src="./country-picker.js"></script><script src="./factual-pdf.js"></script><script src="./factual-pdf-file.js"></script><script src="./journal-stats.js"></script><script src="./dashboard-filters.js"></script><script src="./visual-cards.js"></script><script src="./printable-journal.js"></script><script src="./family-booklet.js"></script><script>
 const C=window.BEAM_TRAVEL_CONFIG||{},ok=C.supabaseUrl&&!C.supabaseUrl.includes("YOUR_")&&C.supabaseAnonKey&&!C.supabaseAnonKey.includes("YOUR_"),S=ok&&typeof supabase!=="undefined"?supabase.createClient(C.supabaseUrl,C.supabaseAnonKey):null,$=s=>document.querySelector(s);let user,trips=[],accountState="loading";
 function view(id){$("#auth").classList.add("hidden");$("#app").classList.add("hidden");$(id).classList.remove("hidden");document.title=id==="#app"?"Mon carnet de voyage":"BEAM Travel History"}
 let profile={country_of_residence:null,display_name:null,access_until:null,avatar_id:null};
@@ -893,6 +898,7 @@ async function clearPwaSession(){
  clearContactFields();dashboardFilters=window.BEAM_DASHBOARD_FILTERS.normalize(window.BEAM_DASHBOARD_FILTERS.EMPTY);
  try{resetPhotoUI(null)}catch{}
  // Remove private content from hidden DOM as well as the visible journal.
+ window.BEAM_VISA_GUIDE?.hide($("#detailVisaGuide"));
  for(const id of ["#trips","#detailPhotos","#photoGallery","#detailFacts","#detailActivities",
    "#detailNote","#detailIntro","#detailTitle","#map","#mapInfo","#countryList"]){
    $(id)?.replaceChildren();
@@ -1010,6 +1016,7 @@ function detailActivityMessage(message){
 }
 function closeTripDetail(){
  detailRequest++;detailTripId=null;detailActivitiesRows=[];
+ window.BEAM_VISA_GUIDE?.hide($("#detailVisaGuide"));
  $("#tripDetailModal").classList.remove("open");
  $("#detailPhotos").replaceChildren();$("#detailActivities").replaceChildren();
  $("#detailActivityForm").reset();
@@ -1047,6 +1054,8 @@ function openTripDetail(id){
  $("#detailPhotos").innerHTML='<p class="detailEmpty">Chargement des photos privées…</p>';
  $("#detailActivities").innerHTML='<p class="detailEmpty">Chargement des activités…</p>';
  $("#tripDetailModal").classList.add("open");
+ // Read a fixed public index only; never transmit the country or trip data.
+ void window.BEAM_VISA_GUIDE?.showForCountry(trip.country_code,$("#detailVisaGuide"));
  $("#detailSheet").scrollTop=0;
  $("#detailClose").focus();
  refreshTripDetail(id).catch(()=>{if(detailTripId===id)detailMessage("Impossible de charger cette fiche. Réessayez en la rouvrant.")});
