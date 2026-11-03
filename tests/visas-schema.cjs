@@ -6,7 +6,7 @@ const path=require("node:path");
 const {spawnSync}=require("node:child_process");
 const {
  validateEntry,buildSite,renderDestination,renderHome,modeFor,
- isStale,needsReview,parseDate,esc,todayUTC,DISCLAIMER
+ isStale,needsReview,containsExample,parseDate,esc,todayUTC,DISCLAIMER
 }=require("../scripts/build-visas.cjs");
 const root=path.resolve(__dirname,"..");
 const travelBuilder=require("../scripts/build-travel-config.cjs");
@@ -16,7 +16,8 @@ const travelFixtureEnv={
  BEAM_TRAVEL_STAGING_PUBLIC_KEY:["sb","publishable","ci_fixture_only"].join("_")
 };
 const travelBuildBaseline=travelBuilder.render(travelFixtureEnv);
-const input=JSON.parse(fs.readFileSync(path.join(root,"visas/data/france.json"),"utf8"));
+// Isolated fixture: no unverified destination belongs in publishable visas/data.
+const input=JSON.parse(fs.readFileSync(path.join(root,"tests/fixtures/visas/exemple.json"),"utf8"));
 const deep=value=>JSON.parse(JSON.stringify(value));
 const today=todayUTC();
 function bad(modify,match) {
@@ -84,6 +85,20 @@ v.documents[0]={libelle:"Pièce fictive de test",statut:"obligatoire",note:"Ceci
 v.frais={texte:"Montant fictif de test",verifie_le:today};
 v.delai_indicatif={texte:"Délai fictif de test",verifie_le:today};
 assert.doesNotThrow(()=>validateEntry(mock,"france",{today,mode:"production"}));
+// An ordinary French sentence using "exemple" is not the reserved marker.
+const everyday=deep(mock);
+everyday.types_visa[0].documents[0].note="Par exemple, relevés bancaires";
+assert.equal(containsExample(everyday),false);
+assert.doesNotThrow(()=>validateEntry(everyday,"france",{today,mode:"check"}),
+ "Par exemple, relevés bancaires is valid editorial content");
+const reserved=deep(everyday);
+reserved.types_visa[0].documents[0].note="EXEMPLE — NON VÉRIFIÉ";
+assert.equal(containsExample(reserved),true);
+assert.throws(()=>validateEntry(reserved,"france",{today,mode:"check"}),/EXEMPLE/,
+ "only the complete marker must be rejected in published content");
+const demoStatus=deep(everyday);demoStatus.statut="exemple";
+assert.equal(containsExample(demoStatus),true);
+assert.doesNotThrow(()=>validateEntry(demoStatus,"france",{today,mode:"check"}));
 assert.equal(isStale("2000-01-01",today),true);
 assert.equal(isStale(today,today),false);
 assert.equal(isStale(today,today),false);
@@ -106,6 +121,8 @@ assert.ok(html.includes(DISCLAIMER.replace(/'/g,"&#39;")) || html.includes("Seul
 assert.ok(html.includes("224622095630"));
 assert.ok(html.includes("/travel/"));
 assert.ok(html.includes('class="button primary"'));
+assert.doesNotMatch(html,/BEAM doit vérifier manuellement la pertinence et la compétence de chaque source\./,
+ "internal editorial instruction must never appear on public pages");
 assert.ok(!/<script\b/i.test(html));
 assert.ok(!/<iframe\b/i.test(html));
 assert.ok(!/<form\b/i.test(html));
@@ -148,6 +165,7 @@ try{
  assert.match(detail,/wa\.me\/224622095630\?text=/);
  assert.match(detail,/France/);
  assert.match(detail,/href="\/travel\/"/);
+ assert.doesNotMatch(detail,/BEAM doit vérifier manuellement la pertinence et la compétence de chaque source\./);
 
  // Strict validation includes the example, but does not publish or modify files.
  const checked=buildSite({root:scratch,mode:"check",today,logger:log});
@@ -159,6 +177,8 @@ try{
  // empty guide rather than ever failing a deploy of beamguinee.com or BTH.
  const prod=buildSite({root:scratch,mode:"production",today,logger:log});
  assert.equal(prod.html,1,"the fallback home is the only production page");
+ assert.ok(fs.existsSync(path.join(guideRoot,"404.html")),
+   "Netlify 404 rules need a real safe 404 target");
  assert.equal(prod.published,0);
  assert.deepEqual(prod.excluded.map(x=>x.filename),["france.json"]);
  assert.ok(prod.excluded[0].reason.includes("EXEMPLE"));
@@ -262,12 +282,38 @@ try{
    "a destination removed from the JSON directory must not remain online");
  assert.match(fs.readFileSync(path.join(guideRoot,"index.html"),"utf8"),/Guide en préparation/);
  assertTravelUnaffected();
+
+ // Synthetic published France: proves the generator can publish the route
+ // when BEAM eventually supplies a real source (not a substitute for it).
+ fs.writeFileSync(path.join(sub,"france.json"),JSON.stringify(mock));
+ const testPublished=buildSite({root:scratch,mode:"production",today,logger:log});
+ assert.equal(testPublished.published,1);
+ assert.ok(fs.existsSync(path.join(guideRoot,"france/index.html")));
+ assert.match(fs.readFileSync(path.join(guideRoot,"index.html"),"utf8"),
+   /href="\/visas\/france\/"/);
+ assert.doesNotMatch(fs.readFileSync(path.join(guideRoot,"france/index.html"),"utf8"),
+   /BEAM doit vérifier manuellement la pertinence et la compétence de chaque source/);
+ fs.unlinkSync(path.join(sub,"france.json"));
+ const noData=buildSite({root:scratch,mode:"check",today,logger:log});
+ assert.equal(noData.published,0);
+ const preparation=buildSite({root:scratch,mode:"production",today,logger:log});
+ assert.equal(preparation.published,0);
+ assert.ok(!fs.existsSync(path.join(guideRoot,"france/index.html")));
+ assert.match(fs.readFileSync(path.join(guideRoot,"index.html"),"utf8"),/Guide en préparation/);
+ assertTravelUnaffected();
 }finally{fs.rmSync(scratch,{recursive:true,force:true})}
 const sw=fs.readFileSync(path.join(root,"travel/sw.js"),"utf8");
 assert.ok(sw.includes('const SCOPE_PATH = "/travel/"'));
 assert.doesNotMatch(sw,/["']\.?\/?visas\//i,"BTH service worker must never cache the public visa guide");
 const netlify=fs.readFileSync(path.join(root,"netlify.toml"),"utf8");
 assert.match(netlify,/node scripts\/build-travel-config\.cjs && node scripts\/build-visas\.cjs/);
+for(const blocked of ["/visas/data/*","/visas/README.md"]){
+ const escapeRegex=blocked.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
+ const section=new RegExp("\\[\\[redirects\\]\\]\\s+from\\s*=\\s*\\\""+escapeRegex+
+  "\\\"\\s+to\\s*=\\s*\\\"/visas/404\\.html\\\"\\s+status\\s*=\\s*404\\s+force\\s*=\\s*true");
+ assert.match(netlify,section,
+  "Netlify must force a real HTTP 404 even when the source file exists: "+blocked);
+}
 const css=fs.readFileSync(path.join(root,"visas/style.css"),"utf8");
 assert.doesNotMatch(css,/@import|https?:\/\/|url\(/i,"No external font/image/resource in visa CSS");
 console.log("PASS visa strict CI rejection; production excludes invalid/demo, cleans stale pages, prepares empty home, leaves BTH build untouched");

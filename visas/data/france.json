@@ -1,45 +1,136 @@
 {
   "destination": "France",
   "drapeau": "🇫🇷",
-  "statut": "exemple",
-  "verifie_le": "2000-01-01",
+  "statut": "publie",
+  "verifie_le": "2026-11-03",
   "types_visa": [
     {
-      "type": "EXEMPLE — NON VÉRIFIÉ : court séjour tourisme",
+      "type": "Court séjour (visa Schengen « C ») — tourisme, visite familiale ou privée",
       "autorite_competente": {
-        "nom": "EXEMPLE — NON VÉRIFIÉ : autorité à confirmer",
-        "ville": "À confirmer",
-        "pays": "À confirmer"
+        "nom": "Section consulaire de l’Ambassade de France en Guinée et en Sierra Leone",
+        "ville": "Conakry",
+        "pays": "Guinée"
       },
       "lieu_depot": {
-        "categorie": "a_confirmer",
-        "nom": "EXEMPLE — NON VÉRIFIÉ : lieu non renseigné",
-        "adresse": "EXEMPLE — NON VÉRIFIÉ : adresse non renseignée",
-        "rendez_vous_url": null
+        "categorie": "centre_externe",
+        "nom": "Capago Guinée (prestataire mandaté par l’Ambassade, qui reçoit les dossiers mais ne décide pas)",
+        "adresse": "Immeuble ZEIN, 6e étage, Kaloum, Conakry",
+        "rendez_vous_url": "https://visa-fr-gn.capago.eu/splash"
       },
       "conditions_demandeur": {
-        "public_cible": "EXEMPLE — NON VÉRIFIÉ : conditions du demandeur à renseigner",
+        "public_cible": "Ressortissant guinéen résidant en Guinée, pour un séjour de 90 jours maximum sur une période de 180 jours.",
         "autres_cas": "Consultez l’ambassade."
       },
       "documents": [
         {
-          "libelle": "EXEMPLE — NON VÉRIFIÉ : document à renseigner",
+          "libelle": "Formulaire de demande dûment rempli (France-Visas), imprimé et signé",
+          "statut": "obligatoire",
+          "note": "La liste générée par France-Visas selon votre profil fait foi."
+        },
+        {
+          "libelle": "Photo d’identité récente aux normes biométriques",
+          "statut": "obligatoire",
+          "note": "Désormais prise directement au centre Capago lors du rendez-vous."
+        },
+        {
+          "libelle": "Passeport en cours de validité",
+          "statut": "obligatoire",
+          "note": "Au moins 3 mois de validité après l’expiration du visa demandé ; délivré depuis moins de 10 ans, avec au moins 2 pages vierges."
+        },
+        {
+          "libelle": "Photocopie du passeport",
+          "statut": "obligatoire",
+          "note": "Toutes les pages qui portent des données, des visas ou des cachets."
+        },
+        {
+          "libelle": "Assurance voyage couvrant tout le séjour dans l’espace Schengen",
+          "statut": "obligatoire",
+          "note": "Couverture minimale de 30 000 €, rapatriement compris."
+        },
+        {
+          "libelle": "Acte de naissance",
+          "statut": "obligatoire",
+          "note": "Original ou copie, selon les instructions du centre."
+        },
+        {
+          "libelle": "Acte de mariage",
           "statut": "selon_le_cas",
-          "note": "Exemple de structure, aucune pièce exigée n’est indiquée."
+          "note": "Si vous êtes marié(e)."
+        },
+        {
+          "libelle": "Carte d’identité biométrique",
+          "statut": "selon_le_cas",
+          "note": "Si vous en avez une."
+        },
+        {
+          "libelle": "Professions libérales et commerçants : relevés bancaires des 3 derniers mois",
+          "statut": "selon_le_cas",
+          "note": "En plus des documents de base."
+        },
+        {
+          "libelle": "Professions libérales et commerçants : justificatifs de l’activité",
+          "statut": "selon_le_cas",
+          "note": "Déclaration d’existence, registre du commerce, attestation fiscale en cours de validité, carte de commerçant, connaissements, factures, contrats…"
+        },
+        {
+          "libelle": "Salariés : relevés bancaires des 3 derniers mois",
+          "statut": "selon_le_cas",
+          "note": "En plus des documents de base."
+        },
+        {
+          "libelle": "Salariés : derniers bulletins de salaire",
+          "statut": "selon_le_cas",
+          "note": "Les plus récents."
+        },
+        {
+          "libelle": "Salariés : copie du contrat de travail et certificat de travail",
+          "statut": "selon_le_cas",
+          "note": "Documents à jour, signés par l’employeur."
+        },
+        {
+          "libelle": "Salariés : attestation de congé",
+          "statut": "selon_le_cas",
+          "note": "Signée par l’employeur, ou ordre de mission pour un voyage professionnel."
+        },
+        {
+          "libelle": "Visite familiale ou chez des amis : attestation d’accueil originale",
+          "statut": "selon_le_cas",
+          "note": "Délivrée par la mairie de la personne qui vous héberge en France."
+        },
+        {
+          "libelle": "Tourisme : réservation d’hôtel confirmée",
+          "statut": "selon_le_cas",
+          "note": "Couvrant toute la durée du séjour."
         }
       ],
       "frais": {
-        "texte": "EXEMPLE — NON VÉRIFIÉ : aucun montant renseigné",
-        "verifie_le": "2000-01-01"
+        "texte": "Droits de visa Schengen : 90 € par adulte, 45 € de 6 à moins de 12 ans, gratuit avant 6 ans (payés en francs guinéens au taux appliqué). S’y ajoutent les frais de service Capago, à payer d’avance pour que le rendez-vous soit pris en compte.",
+        "verifie_le": "2026-11-03"
       },
       "delai_indicatif": {
-        "texte": "EXEMPLE — NON VÉRIFIÉ : aucun délai renseigné",
-        "verifie_le": "2000-01-01"
+        "texte": "En règle générale, décision sous 15 jours calendaires après le dépôt, pouvant aller jusqu’à 45 jours dans certains cas (règle Schengen). Déposez au moins 3 à 4 semaines avant le départ, et au plus tôt 6 mois avant.",
+        "verifie_le": "2026-11-03"
       },
       "sources": [
         {
-          "libelle": "France-Visas — portail officiel (pour vérification ultérieure)",
-          "url": "https://www.france-visas.gouv.fr/"
+          "libelle": "France-Visas — page Guinée (lieu de dépôt)",
+          "url": "https://france-visas.gouv.fr/guinee"
+        },
+        {
+          "libelle": "France-Visas — assistant visa (liste personnalisée des pièces)",
+          "url": "https://france-visas.gouv.fr/web/france-visas/assistant-visa"
+        },
+        {
+          "libelle": "France-Visas — frais de visa",
+          "url": "https://france-visas.gouv.fr/documents/d/france-visas/frais-de-visa-francais"
+        },
+        {
+          "libelle": "Campus France Guinée — procédure Capago, adresse et prise de rendez-vous",
+          "url": "https://www.guinee.campusfrance.org/la-demande-de-visa"
+        },
+        {
+          "libelle": "Code des visas de l’Union européenne (règlement CE 810/2009)",
+          "url": "https://eur-lex.europa.eu/legal-content/FR/TXT/?uri=CELEX:32009R0810"
         }
       ]
     }
