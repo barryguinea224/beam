@@ -10,6 +10,11 @@
     X-Frame-Options = "SAMEORIGIN"
 
 [[headers]]
+  for = "/visas/fiches.json"
+  [headers.values]
+    Cache-Control = "no-store"
+
+[[headers]]
   for = "/travel/config.js"
   [headers.values]
     Cache-Control = "no-cache, must-revalidate"
