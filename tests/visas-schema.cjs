@@ -1,0 +1,130 @@
+"use strict";
+const assert=require("node:assert/strict");
+const fs=require("node:fs");
+const os=require("node:os");
+const path=require("node:path");
+const {
+ validateEntry,buildSite,renderDestination,renderHome,modeFor,
+ isStale,parseDate,esc,todayUTC,DISCLAIMER
+}=require("../scripts/build-visas.cjs");
+const root=path.resolve(__dirname,"..");
+const input=JSON.parse(fs.readFileSync(path.join(root,"visas/data/france.json"),"utf8"));
+const deep=value=>JSON.parse(JSON.stringify(value));
+const today=todayUTC();
+function bad(modify,match) {
+ const obj=deep(input);modify(obj);
+ assert.throws(()=>validateEntry(obj,"france",{today,mode:"preview"}),match);
+}
+// Required-field contract (including each nested array type and metadata).
+for(const name of ["destination","drapeau","statut","verifie_le","types_visa"]){
+ bad(o=>delete o[name],/champ obligatoire manquant/);
+}
+for(const name of ["type","autorite_competente","lieu_depot","conditions_demandeur","documents","frais","delai_indicatif","sources"]){
+ bad(o=>delete o.types_visa[0][name],/champ obligatoire manquant/);
+}
+bad(o=>delete o.types_visa[0].autorite_competente.pays,/champ obligatoire manquant/);
+bad(o=>delete o.types_visa[0].lieu_depot.adresse,/champ obligatoire manquant/);
+bad(o=>delete o.types_visa[0].lieu_depot.rendez_vous_url,/champ obligatoire manquant/);
+bad(o=>delete o.types_visa[0].conditions_demandeur.public_cible,/champ obligatoire manquant/);
+bad(o=>delete o.types_visa[0].documents[0].note,/champ obligatoire manquant/);
+bad(o=>delete o.types_visa[0].frais.verifie_le,/champ obligatoire manquant/);
+bad(o=>delete o.types_visa[0].delai_indicatif.verifie_le,/champ obligatoire manquant/);
+bad(o=>delete o.types_visa[0].sources[0].url,/champ obligatoire manquant/);
+bad(o=>o.types_visa=[],/au moins un type/);
+bad(o=>o.types_visa[0].documents=[],/au moins un document/);
+bad(o=>o.types_visa[0].sources=[],/au moins une source/);
+bad(o=>o.types_visa[0].documents[0].statut="inconnu",/obligatoire ou selon_le_cas/);
+bad(o=>o.types_visa[0].lieu_depot.categorie="annuaire_quelconque",/type de lieu invalide/);
+bad(o=>o.types_visa[0].conditions_demandeur.autres_cas="",/texte prudent obligatoire/);
+bad(o=>o.destination=" ",/non vide/);
+bad(o=>o.une_faute_de_frappe=true,/champ inconnu/);
+for(const url of ["http://www.france-visas.gouv.fr/","//www.france-visas.gouv.fr/","javascript:alert(1)","https://person:pass@www.france-visas.gouv.fr/","https://example.com/a b"]){
+ bad(o=>o.types_visa[0].sources[0].url=url,/HTTPS|URL/);
+}
+bad(o=>o.types_visa[0].lieu_depot.rendez_vous_url="http://example.com/prise-rdv",/HTTPS/);
+const future=new Date(Date.parse(today+"T00:00:00Z")+86400000).toISOString().slice(0,10);
+for(const setter of [
+ o=>o.verifie_le=future,
+ o=>o.types_visa[0].frais.verifie_le=future,
+ o=>o.types_visa[0].delai_indicatif.verifie_le=future,
+])bad(setter,/date future interdite/);
+bad(o=>o.verifie_le="2026-02-30",/date calendaire invalide/);
+bad(o=>o.verifie_le="2026/11/02",/format AAAA-MM-JJ/);
+assert.throws(()=>validateEntry(input,"../france",{today}),/nom de fichier dangereux/);
+assert.equal(modeFor(["--production"],{}),"production");
+assert.equal(modeFor(["--preview"],{CONTEXT:"production"}),"production",
+ "a preview flag cannot bypass Netlify production strictness");
+assert.throws(()=>modeFor(["--preview","--production"],{}),/modes contradictoires/);
+assert.throws(()=>validateEntry(input,"france",{today,mode:"production"}),/EXEMPLE/);
+const stillExample=deep(input);stillExample.statut="publie";
+assert.throws(()=>validateEntry(stillExample,"france",{today,mode:"production"}),/EXEMPLE/);
+
+// Only synthetic validation data here, NEVER a published visa claim or page.
+const mock=deep(input);
+mock.statut="publie";mock.verifie_le=today;
+const v=mock.types_visa[0];
+v.type="Type de test";
+v.autorite_competente={nom:"Institution fictive de test",ville:"Ville de test",pays:"Pays de test"};
+v.lieu_depot={categorie:"ambassade",nom:"Lieu fictif",adresse:"Adresse fictive",rendez_vous_url:"https://www.france-visas.gouv.fr/"};
+v.conditions_demandeur.public_cible="Personne fictive de test";
+v.documents[0]={libelle:"Pièce fictive de test",statut:"obligatoire",note:"Ceci ne doit pas être publié"};
+v.frais={texte:"Montant fictif de test",verifie_le:today};
+v.delai_indicatif={texte:"Délai fictif de test",verifie_le:today};
+assert.doesNotThrow(()=>validateEntry(mock,"france",{today,mode:"production"}));
+assert.equal(isStale("2000-01-01",today),true);
+assert.equal(isStale(today,today),false);
+assert.equal(isStale(today,today),false);
+assert.ok(renderDestination(input,"france",today).includes("Informations à revérifier"));
+assert.ok(!renderDestination(mock,"france",today).includes("Informations à revérifier"));
+assert.ok(renderHome([{slug:"france",entry:input}],today).includes("Informations à revérifier"));
+
+// Render safe text (even malicious editor content is escaped).
+const hostile=deep(input);
+hostile.destination='<img src=x onerror="alert(1)">';
+const html=renderDestination(hostile,"france",today);
+assert.ok(html.includes("&lt;img src=x onerror=&quot;alert(1)&quot;&gt;"));
+assert.ok(!html.includes('<img src=x onerror='));
+assert.ok(html.includes(DISCLAIMER.replace(/'/g,"&#39;")) || html.includes("Seule l'ambassade décide."));
+assert.ok(html.includes("224622095630"));
+assert.ok(html.includes("/travel/"));
+assert.ok(html.includes('class="button primary"'));
+assert.ok(!/<script\b/i.test(html));
+assert.ok(!/<iframe\b/i.test(html));
+assert.ok(!/<form\b/i.test(html));
+assert.match(html,/<meta name="robots" content="noindex,nofollow,noarchive">/);
+assert.ok(esc("&<>\"'") === "&amp;&lt;&gt;&quot;&#39;");
+
+// Build output is static and fails *before writing* if demo content is present in production.
+const scratch=fs.mkdtempSync(path.join(os.tmpdir(),"beam-visa-build-"));
+try{
+ const sub=path.join(scratch,"visas","data");
+ fs.mkdirSync(sub,{recursive:true});
+ fs.writeFileSync(path.join(sub,"france.json"),JSON.stringify(input));
+ const result=buildSite({root:scratch,mode:"preview",today});
+ assert.equal(result.html,2);
+ const home=fs.readFileSync(path.join(scratch,"visas/index.html"),"utf8");
+ const detail=fs.readFileSync(path.join(scratch,"visas/france/index.html"),"utf8");
+ for(const page of [home,detail]){
+  assert.match(page,/EXEMPLE — NON VÉRIFIÉ/);
+  assert.match(page,/Seule l'ambassade décide/);
+  assert.match(page,/href="\/visas\/style.css"/);
+  assert.doesNotMatch(page,/<script\b|<iframe\b|<img[^>]+src="https?:/i);
+  assert.ok(!page.includes("google-analytics")&&!page.includes("gtag("));
+ }
+ assert.match(detail,/wa\.me\/224622095630\?text=/);
+ assert.match(detail,/France/);
+ assert.match(detail,/href="\/travel\/"/);
+ fs.rmSync(path.join(scratch,"visas/index.html"));
+ fs.rmSync(path.join(scratch,"visas/france"),{recursive:true});
+ assert.throws(()=>buildSite({root:scratch,mode:"production",today}),/EXEMPLE/);
+ assert.equal(fs.existsSync(path.join(scratch,"visas/index.html")),false,
+  "production rejects demo before creating any HTML");
+}finally{fs.rmSync(scratch,{recursive:true,force:true})}
+const sw=fs.readFileSync(path.join(root,"travel/sw.js"),"utf8");
+assert.ok(sw.includes('const SCOPE_PATH = "/travel/"'));
+assert.doesNotMatch(sw,/["']\.?\/?visas\//i,"BTH service worker must never cache the public visa guide");
+const netlify=fs.readFileSync(path.join(root,"netlify.toml"),"utf8");
+assert.match(netlify,/node scripts\/build-travel-config\.cjs && node scripts\/build-visas\.cjs/);
+const css=fs.readFileSync(path.join(root,"visas/style.css"),"utf8");
+assert.doesNotMatch(css,/@import|https?:\/\/|url\(/i,"No external font/image/resource in visa CSS");
+console.log("PASS visa JSON strict fields/HTTPS/future date/production example gate, static HTML, escaping, BTH SW isolation");
