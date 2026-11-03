@@ -25,7 +25,7 @@ function bad(modify,match) {
  assert.throws(()=>validateEntry(obj,"france",{today,mode:"preview"}),match);
 }
 // Required-field contract (including each nested array type and metadata).
-for(const name of ["destination","drapeau","statut","verifie_le","types_visa"]){
+for(const name of ["destination","code_pays","drapeau","statut","verifie_le","types_visa"]){
  bad(o=>delete o[name],/champ obligatoire manquant/);
 }
 for(const name of ["type","autorite_competente","lieu_depot","conditions_demandeur","documents","frais","delai_indicatif","sources"]){
@@ -49,6 +49,10 @@ bad(o=>o.types_visa[0].lieu_depot.categorie="en_ligne",/HTTPS/);
 // A documented online procedure always needs a valid official HTTPS portal URL.
 bad(o=>o.types_visa[0].conditions_demandeur.autres_cas="",/texte prudent obligatoire/);
 bad(o=>o.destination=" ",/non vide/);
+for(const invalidCode of ["","F","FRA","fr","ZZ","1F","F1","UK",null]){
+ bad(o=>o.code_pays=invalidCode,/code ISO 3166-1 alpha-2/);
+}
+assert.equal(input.code_pays,"FR");
 bad(o=>o.une_faute_de_frappe=true,/champ inconnu/);
 for(const url of ["http://www.france-visas.gouv.fr/","//www.france-visas.gouv.fr/","javascript:alert(1)","https://person:pass@www.france-visas.gouv.fr/","https://example.com/a b"]){
  bad(o=>o.types_visa[0].sources[0].url=url,/HTTPS|URL/);
@@ -177,6 +181,8 @@ try{
  assert.equal(preview.html,2);
  const home=fs.readFileSync(path.join(guideRoot,"index.html"),"utf8");
  const detail=fs.readFileSync(path.join(guideRoot,"france/index.html"),"utf8");
+ const manifest=()=>JSON.parse(fs.readFileSync(path.join(guideRoot,"fiches.json"),"utf8"));
+ assert.deepEqual(manifest(),[],"preview must never advertise unverified examples");
  for(const page of [home,detail]){
   assert.match(page,/EXEMPLE — NON VÉRIFIÉ/);
   assert.match(page,/Seule l&#39;ambassade décide/);
@@ -193,6 +199,7 @@ try{
  const checked=buildSite({root:scratch,mode:"check",today,logger:log});
  assert.equal(checked.html,0);
  assert.equal(checked.files,1);
+ assert.deepEqual(manifest(),[],"--check cannot change the generated public index");
  assert.ok(fs.existsSync(path.join(guideRoot,"france/index.html")));
 
  // Production: exclude demo, remove previous preview page and show a usable
@@ -202,6 +209,7 @@ try{
  assert.ok(fs.existsSync(path.join(guideRoot,"404.html")),
    "Netlify 404 rules need a real safe 404 target");
  assert.equal(prod.published,0);
+ assert.deepEqual(manifest(),[],"no example may leak into production manifest");
  assert.deepEqual(prod.excluded.map(x=>x.filename),["france.json"]);
  assert.ok(prod.excluded[0].reason.includes("EXEMPLE"));
  assert.ok(log.warnings.some(x=>x.includes("france.json")&&x.includes("exclue")));
@@ -277,6 +285,9 @@ try{
  fs.writeFileSync(path.join(sub,"maroc.json"),JSON.stringify(mock));
  const mixed=buildSite({root:scratch,mode:"production",today,logger:log});
  assert.equal(mixed.published,1);
+ assert.deepEqual(manifest(),[{code_pays:"FR",slug:"maroc",destination:"France"}]);
+ for(const row of manifest())assert.deepEqual(Object.keys(row).sort(),
+   ["code_pays","destination","slug"],"manifest contains exactly three nonprivate fields");
  assert.deepEqual(mixed.excluded.map(x=>x.filename),["france.json"]);
  const mixedHome=fs.readFileSync(path.join(guideRoot,"index.html"),"utf8");
  assert.match(mixedHome,/href="\/visas\/maroc\/"/);
@@ -289,6 +300,7 @@ try{
  fs.writeFileSync(path.join(sub,"maroc.json"),"{ invalid");
  const reverted=buildSite({root:scratch,mode:"production",today,logger:log});
  assert.equal(reverted.published,0);
+ assert.deepEqual(manifest(),[],"unpublished/invalid fiche must be removed from the manifest");
  assert.equal(fs.existsSync(path.join(guideRoot,"maroc/index.html")),false);
  assert.match(fs.readFileSync(path.join(guideRoot,"index.html"),"utf8"),/Guide en préparation/);
  assertTravelUnaffected();
@@ -300,6 +312,7 @@ try{
  fs.unlinkSync(path.join(sub,"maroc.json"));
  const removedSource=buildSite({root:scratch,mode:"production",today,logger:log});
  assert.equal(removedSource.published,0);
+ assert.deepEqual(manifest(),[],"deleted fiche cannot remain in public manifest");
  assert.ok(!fs.existsSync(path.join(guideRoot,"maroc/index.html")),
    "a destination removed from the JSON directory must not remain online");
  assert.match(fs.readFileSync(path.join(guideRoot,"index.html"),"utf8"),/Guide en préparation/);
@@ -309,6 +322,7 @@ try{
  fs.writeFileSync(path.join(sub,"maroc.json"),JSON.stringify(online));
  const onlineProd=buildSite({root:scratch,mode:"production",today,logger:log});
  assert.equal(onlineProd.published,1);
+ assert.deepEqual(manifest(),[{code_pays:"FR",slug:"maroc",destination:"France"}]);
  const onlineOutput=fs.readFileSync(path.join(guideRoot,"maroc/index.html"),"utf8");
  assert.match(onlineOutput,/Démarche en ligne/);
  assert.match(onlineOutput,/>Ouvrir le portail officiel<\/a>/);
@@ -321,6 +335,7 @@ try{
  fs.writeFileSync(path.join(sub,"france.json"),JSON.stringify(mock));
  const testPublished=buildSite({root:scratch,mode:"production",today,logger:log});
  assert.equal(testPublished.published,1);
+ assert.deepEqual(manifest(),[{code_pays:"FR",slug:"france",destination:"France"}]);
  assert.ok(fs.existsSync(path.join(guideRoot,"france/index.html")));
  assert.match(fs.readFileSync(path.join(guideRoot,"index.html"),"utf8"),
    /href="\/visas\/france\/"/);
@@ -331,13 +346,31 @@ try{
  assert.equal(noData.published,0);
  const preparation=buildSite({root:scratch,mode:"production",today,logger:log});
  assert.equal(preparation.published,0);
+ assert.deepEqual(manifest(),[]);
  assert.ok(!fs.existsSync(path.join(guideRoot,"france/index.html")));
  assert.match(fs.readFileSync(path.join(guideRoot,"index.html"),"utf8"),/Guide en préparation/);
  assertTravelUnaffected();
 }finally{fs.rmSync(scratch,{recursive:true,force:true})}
+// Real sources must all be published with distinct valid ISO codes.
+const actual=fs.readdirSync(path.join(root,"visas/data")).filter(name=>name.endsWith(".json")).sort();
+assert.deepEqual(actual,["canada.json","chine.json","france.json","maroc.json","royaume-uni.json","turquie.json"]);
+const expectedCodes={canada:"CA",chine:"CN",france:"FR",maroc:"MA","royaume-uni":"GB",turquie:"TR"};
+for(const name of actual){
+ const country=name.slice(0,-5),row=JSON.parse(fs.readFileSync(path.join(root,"visas/data",name),"utf8"));
+ assert.equal(row.code_pays,expectedCodes[country]);
+ assert.equal(row.statut,"publie");
+}
+const realCheck=buildSite({root,mode:"check",today,logger:log});
+assert.equal(realCheck.published,6,"strict CI must see all six real published BEAM fiches");
+
 const sw=fs.readFileSync(path.join(root,"travel/sw.js"),"utf8");
 assert.ok(sw.includes('const SCOPE_PATH = "/travel/"'));
-assert.doesNotMatch(sw,/["']\.?\/?visas\//i,"BTH service worker must never cache the public visa guide");
+const shellList=sw.match(/const PUBLIC_SHELL = \[([\s\S]*?)\];/)?.[1];
+assert.ok(shellList,"worker public shell list exists");
+assert.doesNotMatch(shellList,/[\"']\.?\/?visas\//i,
+ "BTH service worker must never pre-cache the public visa guide");
+assert.match(sw,/if \(url\.pathname\.startsWith\("\/visas\/"\)\) return;/,
+ "visa pages and the index must bypass service worker fetch interception");
 const netlify=fs.readFileSync(path.join(root,"netlify.toml"),"utf8");
 assert.match(netlify,/node scripts\/build-travel-config\.cjs && node scripts\/build-visas\.cjs/);
 for(const blocked of ["/visas/data/*","/visas/README.md"]){

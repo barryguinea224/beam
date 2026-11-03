@@ -6,6 +6,10 @@ on:
     paths:
       - "visas/**"
       - "scripts/build-visas.cjs"
+      - "travel/index.html"
+      - "travel/visa-guide.js"
+      - "travel/sw.js"
+      - "tests/travel-visa-*.cjs"
       - "tests/visas-*.cjs"
       - "tests/fixtures/visas/**"
       - "netlify.toml"
@@ -32,6 +36,9 @@ jobs:
           node --check tests/visas-schema.cjs
           node --check tests/visas-mobile.cjs
           node tests/visas-schema.cjs
+          node --check travel/visa-guide.js
+          node --check tests/travel-visa-guide.cjs
+          node tests/travel-visa-guide.cjs
       - name: Strictly check every JSON fiche (fail PR on malformed content)
         run: node scripts/build-visas.cjs --check
       - name: Render static preview (no secrets)
@@ -93,6 +100,12 @@ jobs:
           const result=buildSite({mode:"production"});
           assert.equal(result.published,6,"six fiches must actually publish");
           assert.equal(result.excluded.length,0,"no fiche should be excluded");
+          const publicIndex=JSON.parse(fs.readFileSync("visas/fiches.json","utf8"));
+          assert.equal(publicIndex.length,6,"every published destination needs an index entry");
+          assert.deepEqual(publicIndex.map(x=>x.code_pays).sort(),["FR","CA","GB","TR","CN","MA"].sort());
+          for(const row of publicIndex)
+            assert.deepEqual(Object.keys(row).sort(),["code_pays","destination","slug"],
+              "the BTH public listing must contain exactly three fields");
           const home=fs.readFileSync("visas/index.html","utf8");
           assert.doesNotMatch(home,/Guide en préparation/);
           for(const name of expected){
@@ -131,6 +144,8 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Render generated visa pages (offline no-secret fixture)
         run: node tests/visas-mobile.cjs
+      - name: Test BTH links on 320–390px with real HTML/CSS
+        run: node tests/travel-visa-mobile.cjs
       - name: Upload mobile previews
         if: always()
         uses: actions/upload-artifact@v4
