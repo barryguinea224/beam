@@ -1,0 +1,94 @@
+{
+  "destination": "Turquie",
+  "drapeau": "🇹🇷",
+  "statut": "publie",
+  "verifie_le": "2026-11-03",
+  "types_visa": [
+    {
+      "type": "Visa touristique — tourisme, visite ou vacances",
+      "autorite_competente": {
+        "nom": "Ambassade de la République de Türkiye à Conakry (seule à décider)",
+        "ville": "Conakry",
+        "pays": "Guinée"
+      },
+      "lieu_depot": {
+        "categorie": "centre_externe",
+        "nom": "Sefa Visa — centre officiel de demande de visa pour la Türkiye, autorisé par l’Ambassade. Dépôt en personne, données biométriques prises sur place.",
+        "adresse": "Diamond Plaza, Kipé, Ratoma, Conakry — du lundi au vendredi, 8 h 30 à 17 h",
+        "rendez_vous_url": "https://sefavisa.com/gn/en"
+      },
+      "conditions_demandeur": {
+        "public_cible": "Ressortissant guinéen résidant en Guinée, pour un voyage de tourisme, de visite ou de vacances.",
+        "autres_cas": "Consultez l’ambassade."
+      },
+      "documents": [
+        {
+          "libelle": "Passeport valable au moins 12 mois",
+          "statut": "obligatoire",
+          "note": "Original, à présenter au centre."
+        },
+        {
+          "libelle": "2 photos d’identité sur fond blanc",
+          "statut": "obligatoire",
+          "note": "Récentes."
+        },
+        {
+          "libelle": "Réservation d’hôtel ou lettre d’invitation",
+          "statut": "obligatoire",
+          "note": "Couvrant la durée du séjour."
+        },
+        {
+          "libelle": "Réservation de vol aller-retour",
+          "statut": "obligatoire",
+          "note": "Aux dates prévues."
+        },
+        {
+          "libelle": "Relevé de compte bancaire et lettre bancaire",
+          "statut": "obligatoire",
+          "note": "Preuve de fonds pour le séjour."
+        },
+        {
+          "libelle": "Certificat de travail, de salaire ou d’étudiant",
+          "statut": "obligatoire",
+          "note": "Selon votre situation."
+        },
+        {
+          "libelle": "Copies des visas obtenus précédemment",
+          "statut": "selon_le_cas",
+          "note": "Si vous en avez."
+        },
+        {
+          "libelle": "Consentement parental",
+          "statut": "selon_le_cas",
+          "note": "Pour les demandeurs de moins de 18 ans."
+        }
+      ],
+      "frais": {
+        "texte": "Frais de visa et frais de service du centre : renseignez-vous auprès de Sefa Visa Guinée avant le dépôt (+224 61 194 60 41).",
+        "verifie_le": "2026-11-03"
+      },
+      "delai_indicatif": {
+        "texte": "Variable selon la période : demandez le délai en cours au centre Sefa Visa et déposez bien avant votre départ. Le suivi du dossier se fait en ligne sur le site du centre.",
+        "verifie_le": "2026-11-03"
+      },
+      "sources": [
+        {
+          "libelle": "Sefa Visa Guinée — centre officiel de demande de visa pour la Türkiye",
+          "url": "https://sefavisa.com/gn/en"
+        },
+        {
+          "libelle": "Sefa Visa Guinée — adresse, téléphone et horaires",
+          "url": "https://sefavisa.com/gn/en/contact"
+        },
+        {
+          "libelle": "Sefa Visa Guinée — types de visa et listes de documents",
+          "url": "https://sefavisa.com/gn/en/visa-types"
+        },
+        {
+          "libelle": "Ambassade de la République de Türkiye à Conakry — contact",
+          "url": "https://konakri-be.mfa.gov.tr/Mission/Contact"
+        }
+      ]
+    }
+  ]
+}

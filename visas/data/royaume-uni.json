@@ -1,0 +1,109 @@
+{
+  "destination": "Royaume-Uni",
+  "drapeau": "🇬🇧",
+  "statut": "publie",
+  "verifie_le": "2026-11-03",
+  "types_visa": [
+    {
+      "type": "Visa de visiteur standard — tourisme ou visite familiale",
+      "autorite_competente": {
+        "nom": "UK Visas and Immigration (UKVI) — demande déposée en ligne sur GOV.UK",
+        "ville": "Traitement en ligne",
+        "pays": "Royaume-Uni"
+      },
+      "lieu_depot": {
+        "categorie": "centre_externe",
+        "nom": "Centre de collecte des données biométriques (empreintes et photo) du Royaume-Uni. Depuis la Guinée, le plus utilisé est celui de Freetown (Sierra Leone). Vous pouvez aussi utiliser un centre dans tout pays où vous êtes en situation légale (par exemple en France avec un visa ou un titre de séjour valide). Aucun passeport n’est déposé : visa électronique (eVisa).",
+        "adresse": "Freetown, Sierra Leone (ou autre centre choisi) — adresse indiquée lors de la prise de rendez-vous",
+        "rendez_vous_url": "https://www.gov.uk/standard-visitor/apply-standard-visitor-visa"
+      },
+      "conditions_demandeur": {
+        "public_cible": "Ressortissant guinéen, pour une visite de 6 mois maximum, qui donne ses données biométriques dans un pays où il est en situation légale.",
+        "autres_cas": "Consultez l’ambassade."
+      },
+      "documents": [
+        {
+          "libelle": "Demande remplie et payée en ligne sur GOV.UK",
+          "statut": "obligatoire",
+          "note": "Vous choisissez ensuite le centre où donner vos données biométriques."
+        },
+        {
+          "libelle": "Passeport en cours de validité",
+          "statut": "obligatoire",
+          "note": "Valable pour toute la durée du séjour, avec au moins une page vierge. Il n’est plus déposé : le visa est délivré sous forme électronique (eVisa)."
+        },
+        {
+          "libelle": "Extrait d’acte de naissance",
+          "statut": "obligatoire",
+          "note": "Numérisé lisiblement."
+        },
+        {
+          "libelle": "Extrait d’acte de mariage",
+          "statut": "selon_le_cas",
+          "note": "Si vous êtes marié(e)."
+        },
+        {
+          "libelle": "Salariés : attestation de travail",
+          "statut": "selon_le_cas",
+          "note": "Et, si possible, le contrat de travail."
+        },
+        {
+          "libelle": "Salariés : bulletins de paie des 3 derniers mois au minimum",
+          "statut": "selon_le_cas",
+          "note": "Les plus récents."
+        },
+        {
+          "libelle": "Chefs d’entreprise : RCCM, NIF et quittance de paiement des impôts",
+          "statut": "selon_le_cas",
+          "note": "Documents en cours de validité."
+        },
+        {
+          "libelle": "Attestation bancaire et relevés des 3 derniers mois au minimum",
+          "statut": "obligatoire",
+          "note": "Preuve de fonds suffisants pour le séjour."
+        },
+        {
+          "libelle": "Attestation d’accueil ou réservation d’hôtel",
+          "statut": "obligatoire",
+          "note": "Couvrant la durée du séjour."
+        },
+        {
+          "libelle": "Réservation de vol",
+          "statut": "obligatoire",
+          "note": "Aller-retour, aux dates prévues."
+        },
+        {
+          "libelle": "Tout document qui renforce la demande",
+          "statut": "selon_le_cas",
+          "note": "Carte grise, permis de conduire, contrat de bail, etc."
+        }
+      ],
+      "frais": {
+        "texte": "135 £ pour un visa de visiteur de 6 mois (tarif en vigueur depuis le 8 avril 2026), payés en ligne. Les visas de 2, 5 et 10 ans coûtent plus cher. Le centre de collecte peut facturer des services optionnels.",
+        "verifie_le": "2026-11-03"
+      },
+      "delai_indicatif": {
+        "texte": "En général, réponse sous 3 semaines après le rendez-vous biométrique. La demande peut être faite jusqu’à 3 mois avant le voyage.",
+        "verifie_le": "2026-11-03"
+      },
+      "sources": [
+        {
+          "libelle": "GOV.UK — visa de visiteur standard",
+          "url": "https://www.gov.uk/standard-visitor"
+        },
+        {
+          "libelle": "GOV.UK — faire sa demande de visa de visiteur",
+          "url": "https://www.gov.uk/standard-visitor/apply-standard-visitor-visa"
+        },
+        {
+          "libelle": "GOV.UK — eVisa (visa électronique)",
+          "url": "https://www.gov.uk/evisa"
+        },
+        {
+          "libelle": "GOV.UK — informations de l’ambassade britannique pour les demandeurs en Guinée",
+          "url": "https://www.gov.uk/government/news/visa-application-outreach-at-the-british-embassy-in-guinea.fr"
+        }
+      ]
+    }
+  ]
+}

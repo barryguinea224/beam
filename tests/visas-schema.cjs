@@ -44,6 +44,9 @@ bad(o=>o.types_visa[0].documents=[],/au moins un document/);
 bad(o=>o.types_visa[0].sources=[],/au moins une source/);
 bad(o=>o.types_visa[0].documents[0].statut="inconnu",/obligatoire ou selon_le_cas/);
 bad(o=>o.types_visa[0].lieu_depot.categorie="annuaire_quelconque",/type de lieu invalide/);
+bad(o=>o.types_visa[0].lieu_depot.categorie="en_ligne",/HTTPS/);
+// The demo exception for a missing link applies only to "a_confirmer".
+// A documented online procedure always needs a valid official HTTPS portal URL.
 bad(o=>o.types_visa[0].conditions_demandeur.autres_cas="",/texte prudent obligatoire/);
 bad(o=>o.destination=" ",/non vide/);
 bad(o=>o.une_faute_de_frappe=true,/champ inconnu/);
@@ -85,6 +88,25 @@ v.documents[0]={libelle:"Pièce fictive de test",statut:"obligatoire",note:"Ceci
 v.frais={texte:"Montant fictif de test",verifie_le:today};
 v.delai_indicatif={texte:"Délai fictif de test",verifie_le:today};
 assert.doesNotThrow(()=>validateEntry(mock,"france",{today,mode:"production"}));
+// A synthetic online procedure tests the shape and labels, not actual visa facts.
+const online=deep(mock);
+online.types_visa[0].lieu_depot.categorie="en_ligne";
+online.types_visa[0].lieu_depot.nom="Portail fictif de test";
+online.types_visa[0].lieu_depot.rendez_vous_url="https://example.org/portail-de-test";
+assert.doesNotThrow(()=>validateEntry(online,"test-en-ligne",{today,mode:"check"}));
+const onlinePage=renderDestination(online,"test-en-ligne",today);
+assert.match(onlinePage,/<span class="chip">Démarche en ligne<\/span>/);
+assert.match(onlinePage,/>Ouvrir le portail officiel<\/a>/);
+assert.match(onlinePage,/href="https:\/\/example.org\/portail-de-test"/);
+assert.doesNotMatch(onlinePage,/Ouvrir le lien officiel de rendez-vous/);
+assert.match(renderDestination(mock,"france",today),/>Ouvrir le lien officiel de rendez-vous<\/a>/,
+ "physical deposit retains the existing appointment label");
+for(const invalidUrl of [null,"http://example.org/portail-de-test","javascript:alert(1)"]){
+ const badOnline=deep(online);
+ badOnline.types_visa[0].lieu_depot.rendez_vous_url=invalidUrl;
+ assert.throws(()=>validateEntry(badOnline,"test-en-ligne",{today,mode:"check"}),/HTTPS/,
+  "online portal must be an HTTPS URL");
+}
 // An ordinary French sentence using "exemple" is not the reserved marker.
 const everyday=deep(mock);
 everyday.types_visa[0].documents[0].note="Par exemple, relevés bancaires";
@@ -281,6 +303,17 @@ try{
  assert.ok(!fs.existsSync(path.join(guideRoot,"maroc/index.html")),
    "a destination removed from the JSON directory must not remain online");
  assert.match(fs.readFileSync(path.join(guideRoot,"index.html"),"utf8"),/Guide en préparation/);
+ assertTravelUnaffected();
+
+ // Integration: an online fiche is published only as synthetic test data here.
+ fs.writeFileSync(path.join(sub,"maroc.json"),JSON.stringify(online));
+ const onlineProd=buildSite({root:scratch,mode:"production",today,logger:log});
+ assert.equal(onlineProd.published,1);
+ const onlineOutput=fs.readFileSync(path.join(guideRoot,"maroc/index.html"),"utf8");
+ assert.match(onlineOutput,/Démarche en ligne/);
+ assert.match(onlineOutput,/>Ouvrir le portail officiel<\/a>/);
+ assert.match(fs.readFileSync(path.join(guideRoot,"index.html"),"utf8"),/href="\/visas\/maroc\/"/);
+ fs.unlinkSync(path.join(sub,"maroc.json"));
  assertTravelUnaffected();
 
  // Synthetic published France: proves the generator can publish the route
