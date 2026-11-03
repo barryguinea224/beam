@@ -47,6 +47,11 @@ function todayUTC(now = new Date()) { return now.toISOString().slice(0, 10); }
 function isStale(date, today) {
   return (Date.parse(today + "T00:00:00Z") - Date.parse(date + "T00:00:00Z")) / DAY_MS > 90;
 }
+function needsReview(entry, today) {
+  return isStale(entry.verifie_le, today) ||
+    entry.types_visa.some(v=>isStale(v.frais.verifie_le, today) ||
+      isStale(v.delai_indicatif.verifie_le, today));
+}
 function modeFor(args = process.argv.slice(2), env = process.env) {
   for (const a of args) if (a !== "--preview" && a !== "--production") fail("options", "option inconnue " + a);
   if (args.includes("--production") && args.includes("--preview")) fail("options", "modes contradictoires");
@@ -146,8 +151,8 @@ function shell({title,description,body,demo}) {
   ].join("\n") + "\n";
 }
 function staleBanner(entry, today) {
-  if (!isStale(entry.verifie_le, today)) return "";
-  return '<aside class="notice notice-stale" role="status"><strong>Informations à revérifier</strong><p>La dernière vérification indiquée dépasse 90 jours. Consultez la source officielle avant toute démarche.</p></aside>';
+  if (!needsReview(entry, today)) return "";
+  return '<aside class="notice notice-stale" role="status"><strong>Informations à revérifier</strong><p>Au moins une date de vérification (fiche, frais ou délai) dépasse 90 jours. Consultez la source officielle avant toute démarche.</p></aside>';
 }
 function demoBanner() {
   return '<aside class="notice notice-demo" role="status"><strong>EXEMPLE — NON VÉRIFIÉ</strong><p>Cette fiche sert uniquement à illustrer la structure. Elle ne fournit aucune exigence, adresse, frais ou délai vérifié. Ne préparez pas une demande à partir de cet exemple.</p></aside>';
@@ -218,7 +223,7 @@ function renderHome(entries,today) {
       '<h2><a href="/visas/' + e(slug) + '/">' + e(entry.destination) + "</a></h2>" +
       '<p class="date-note">' + e(dateNote(entry.verifie_le,demo)) + "</p>" +
       (demo?'<p class="chip warn">EXEMPLE — NON VÉRIFIÉ</p>':"") +
-      (isStale(entry.verifie_le,today)?'<p class="stale-label">Informations à revérifier</p>':"") +
+      (needsReview(entry,today)?'<p class="stale-label">Informations à revérifier</p>':"") +
       '<p><a class="details-link" href="/visas/' + e(slug) + '/">Voir la fiche →</a></p></article></li>';
   }).join("\n");
   const demo=entries.some(x=>x.entry.statut==="exemple");
@@ -265,4 +270,4 @@ if(require.main===module) {
     console.log("BEAM visas: "+result.html+" pages statiques, "+result.files+" fiches, mode "+result.mode);
   }catch(error){console.error("Échec du guide des visas : "+error.message);process.exitCode=1;}
 }
-module.exports={MARKER,DISCLAIMER,parseDate,https,isStale,modeFor,validateEntry,renderDestination,renderHome,buildSite,esc,todayUTC};
+module.exports={MARKER,DISCLAIMER,parseDate,https,isStale,needsReview,modeFor,validateEntry,renderDestination,renderHome,buildSite,esc,todayUTC};

@@ -5,7 +5,7 @@ const os=require("node:os");
 const path=require("node:path");
 const {
  validateEntry,buildSite,renderDestination,renderHome,modeFor,
- isStale,parseDate,esc,todayUTC,DISCLAIMER
+ isStale,needsReview,parseDate,esc,todayUTC,DISCLAIMER
 }=require("../scripts/build-visas.cjs");
 const root=path.resolve(__dirname,"..");
 const input=JSON.parse(fs.readFileSync(path.join(root,"visas/data/france.json"),"utf8"));
@@ -74,6 +74,11 @@ assert.doesNotThrow(()=>validateEntry(mock,"france",{today,mode:"production"}));
 assert.equal(isStale("2000-01-01",today),true);
 assert.equal(isStale(today,today),false);
 assert.equal(isStale(today,today),false);
+const staleFees=deep(mock);staleFees.types_visa[0].frais.verifie_le="2000-01-01";
+assert.equal(needsReview(staleFees,today),true,
+ "a stale fee verification must trigger the warning even when the overall fiche is recent");
+assert.ok(renderDestination(staleFees,"france",today).includes("Informations à revérifier"));
+assert.ok(renderHome([{slug:"france",entry:staleFees}],today).includes("Informations à revérifier"));
 assert.ok(renderDestination(input,"france",today).includes("Informations à revérifier"));
 assert.ok(!renderDestination(mock,"france",today).includes("Informations à revérifier"));
 assert.ok(renderHome([{slug:"france",entry:input}],today).includes("Informations à revérifier"));
@@ -106,7 +111,7 @@ try{
  const detail=fs.readFileSync(path.join(scratch,"visas/france/index.html"),"utf8");
  for(const page of [home,detail]){
   assert.match(page,/EXEMPLE — NON VÉRIFIÉ/);
-  assert.match(page,/Seule l'ambassade décide/);
+  assert.match(page,/Seule l&#39;ambassade décide/);
   assert.match(page,/href="\/visas\/style.css"/);
   assert.doesNotMatch(page,/<script\b|<iframe\b|<img[^>]+src="https?:/i);
   assert.ok(!page.includes("google-analytics")&&!page.includes("gtag("));

@@ -43,7 +43,7 @@ Le modèle refuse les champs inconnus et manquants, dates impossibles/futures, m
 
 ### Fraîcheur des informations
 
-À **chaque construction**, une date `verifie_le` supérieure à 90 jours déclenche automatiquement le bandeau **Informations à revérifier** sur la fiche, et un rappel sur l'accueil. Les dates de frais et délais sont affichées séparément.
+À **chaque construction**, une date `verifie_le` supérieure à 90 jours, qu'elle concerne la fiche, les frais ou le délai, déclenche automatiquement le bandeau **Informations à revérifier** sur la fiche, et un rappel sur l'accueil. Les dates de frais et délais sont affichées séparément.
 
 **Limitation d'une publication HTML sans JavaScript :** si la page reste en ligne sans nouvel export, le bandeau ne peut pas changer spontanément le 91e jour. Il faudra configurer un **redéploiement quotidien** dans la plateforme d'hébergement avant la publication réelle pour maintenir le calcul automatique à jour. Aucune API, tâche planifiée, clé ni hook de redéploiement n'est inclus ici.
 
