@@ -16,6 +16,14 @@ Ce répertoire produit des **pages HTML publiques indépendantes**, sans compte,
 
 **ATTENTION :** l'exemple de test France (`tests/fixtures/visas/exemple.json`) n'est pas une fiche de conseils visa et **ne doit jamais être copié en production**. Il n'indique aucune exigence, frais, adresse ni délai vérifié. La vraie fiche BEAM doit être enregistrée **à l'identique** dans `visas/data/france.json` après réception du document validé.
 
+## Mise en ligne de la première vraie fiche France
+
+La fiche France fournie et vérifiée par BEAM doit être placée **sans aucune modification** à l'emplacement `visas/data/france.json`. La fiche de test `tests/fixtures/visas/exemple.json` ne doit jamais être déplacée dans `visas/data/` : elle sert uniquement à tester le refus de contenu non vérifié en production.
+
+Tant que le JSON France signé ou validé par BEAM n'a pas été reçu, le site public affiche « Guide en préparation ». La CI exécute également un scénario de **France synthétique publiée dans un dossier temporaire**, mais ce test ne remplace ni les 16 pièces originales ni la validation de la vraie fiche. Lorsque le fichier réel est ajouté, les tests mobiles s'exécutent avec ce fichier exact, en vérifiant le nombre total de 16 pièces.
+
+Les URLs `/visas/data/*.json` et `/visas/README.md` sont bloquées par deux réécritures Netlify **404 forcées** vers `/visas/404.html`, y compris quand les fichiers existent dans le dossier de publication. Cela ne constitue pas un coffre à secrets : les fiches ne doivent contenir aucune information confidentielle.
+
 ## Modifier une fiche depuis GitHub sur un téléphone
 
 1. Ouvrez le dépôt `barryguinea224/beam` sur github.com dans le navigateur du téléphone et sélectionnez la branche de travail du guide (jamais la production directement).
