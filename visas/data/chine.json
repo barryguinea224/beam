@@ -14,7 +14,7 @@
       },
       "lieu_depot": {
         "categorie": "ambassade",
-        "nom": "Service consulaire de l’Ambassade de Chine — demande d’abord en ligne, puis dépôt du passeport, des documents et des empreintes, sans rendez-vous, pendant les heures d’ouverture",
+        "nom": "Service consulaire de l’Ambassade : demande en ligne, puis dépôt sans rendez-vous",
         "adresse": "Cité ministérielle, Donka, Conakry — téléphone : +224 66 400 66 22, e-mail : chinaemb_gn@mfa.gov.cn",
         "rendez_vous_url": "https://consular.mfa.gov.cn/VISA/"
       },
@@ -25,71 +25,83 @@
       "documents": [
         {
           "libelle": "Passeport original",
+          "groupe": "base",
           "statut": "obligatoire",
           "note": "Au moins 2 pages entièrement vierges et 6 mois de validité à compter de la demande (15 mois pour un visa multi-entrées d’un an), avec la photocopie de la page de données et de la page photo."
         },
         {
           "libelle": "Formulaire rempli en ligne, page de confirmation et code-barres",
+          "groupe": "base",
           "statut": "obligatoire",
           "note": "Sur le site consulaire officiel de la Chine, puis imprimés pour le dépôt."
         },
         {
           "libelle": "Photo d’identité en couleur sur fond blanc (48 mm × 33 mm)",
+          "groupe": "base",
           "statut": "obligatoire",
           "note": "Récente. Apportez une photo imprimée si le téléchargement en ligne a échoué."
         },
         {
           "libelle": "Lettre d’invitation du partenaire commercial en Chine",
+          "groupe": "but",
           "statut": "obligatoire",
           "note": "Avec : vos informations (nom, prénom, sexe, date de naissance, numéro de passeport), le motif, les dates et lieux de la visite, votre lien avec l’entreprise, qui finance le voyage, et les coordonnées, le cachet et la signature en chinois du représentant de l’entreprise. Pour un visa d’un an à entrées multiples, la lettre doit expliquer le plan d’invitations multiples."
         },
         {
           "libelle": "Copie de la pièce d’identité du signataire de l’invitation",
+          "groupe": "but",
           "statut": "selon_le_cas",
           "note": "Passeport et carte de séjour s’il est étranger résidant en Chine, ou carte d’identité chinoise recto-verso."
         },
         {
           "libelle": "Licence commerciale chinoise de l’entreprise qui invite",
+          "groupe": "but",
           "statut": "selon_le_cas",
           "note": "Si elle est demandée."
         },
         {
           "libelle": "Anciens visas chinois (originaux et copies)",
+          "groupe": "autres",
           "statut": "selon_le_cas",
           "note": "Si vous êtes allé en Chine au cours des 5 dernières années."
         },
         {
           "libelle": "Première demande depuis 5 ans : billet d’avion aller-retour réservé",
+          "groupe": "autres",
           "statut": "selon_le_cas",
           "note": "Si vous n’êtes pas allé en Chine au cours des 5 dernières années."
         },
         {
           "libelle": "Première demande depuis 5 ans : réservation d’hôtel",
+          "groupe": "autres",
           "statut": "selon_le_cas",
           "note": "Couvrant le séjour."
         },
         {
           "libelle": "Première demande depuis 5 ans : attestation de solde bancaire supérieur à 5 000 USD",
+          "groupe": "autres",
           "statut": "selon_le_cas",
           "note": "Délivrée par votre banque."
         },
         {
           "libelle": "Première demande depuis 5 ans : RCCM (registre du commerce en Guinée)",
+          "groupe": "autres",
           "statut": "selon_le_cas",
           "note": "Pour votre entreprise."
         },
         {
           "libelle": "Mineurs de moins de 18 ans : acte de naissance et autorisation des parents",
+          "groupe": "autres",
           "statut": "selon_le_cas",
           "note": "Avec les pièces d’identité des deux parents."
         }
       ],
       "frais": {
-        "texte": "Les frais de visa se paient seulement après acceptation de la demande, au moment du retrait du passeport, selon le mode de paiement indiqué par l’Ambassade.",
+        "texte": "Payés après acceptation, au retrait du passeport.",
         "verifie_le": "2026-11-03"
       },
       "delai_indicatif": {
-        "texte": "L’Ambassade recommande de déposer au moins un mois avant le départ. Le passeport se retire à la date indiquée sur le récépissé. Un visa ne peut pas être prolongé : s’il expire avant le voyage, il faut refaire une demande.",
+        "texte": "Déposez au moins 1 mois avant le départ. Le visa ne peut pas être prolongé.",
         "verifie_le": "2026-11-03"
       },
       "sources": [

@@ -14,7 +14,7 @@
       },
       "lieu_depot": {
         "categorie": "en_ligne",
-        "nom": "Portail officiel Accès Maroc : création de compte, formulaire, pièces jointes, puis suivi de la demande en ligne",
+        "nom": "Portail officiel Accès Maroc (100 % en ligne)",
         "adresse": "Aucun déplacement : tout se fait en ligne",
         "rendez_vous_url": "https://www.acces-maroc.ma/"
       },
@@ -25,51 +25,59 @@
       "documents": [
         {
           "libelle": "Photo d’identité",
+          "groupe": "base",
           "statut": "obligatoire",
           "note": "Numérisée en JPG ou PDF, 1 Mo maximum."
         },
         {
           "libelle": "Carte d’identité ou titre de séjour",
+          "groupe": "base",
           "statut": "obligatoire",
           "note": "Numérisé en JPG ou PDF, 1 Mo maximum."
         },
         {
           "libelle": "Page d’identité du passeport",
+          "groupe": "base",
           "statut": "obligatoire",
           "note": "Le passeport doit être valable jusqu’à votre départ du Maroc. Numérisée en JPG ou PDF, 1 Mo maximum."
         },
         {
           "libelle": "Billet de retour",
+          "groupe": "but",
           "statut": "obligatoire",
           "note": "À présenter si demandé."
         },
         {
           "libelle": "Réservation d’hôtel ou invitation",
+          "groupe": "but",
           "statut": "obligatoire",
           "note": "Couvrant le séjour."
         },
         {
           "libelle": "Moyens financiers suffisants",
+          "groupe": "base",
           "statut": "obligatoire",
           "note": "Au moins 70 € par jour de séjour."
         },
         {
           "libelle": "Documents justificatifs du voyage d’affaires",
+          "groupe": "but",
           "statut": "selon_le_cas",
           "note": "Si vous voyagez pour affaires."
         },
         {
           "libelle": "Justificatifs de participation à un événement",
+          "groupe": "but",
           "statut": "selon_le_cas",
           "note": "Si votre voyage est lié à un événement au Maroc."
         }
       ],
       "frais": {
-        "texte": "Frais de l’AEVM payés en ligne sur le portail Accès Maroc, au moment de la demande.",
+        "texte": "Payés en ligne sur le portail.",
         "verifie_le": "2026-11-03"
       },
       "delai_indicatif": {
-        "texte": "Suivi en ligne : « en cours de traitement », « en attente de complément » ou « refusée ». Faites la demande bien avant le départ. Pour une famille ou un groupe, regroupez les demandes dans un seul dossier.",
+        "texte": "Suivi en ligne. Faites la demande bien avant le départ ; une famille = un seul dossier.",
         "verifie_le": "2026-11-03"
       },
       "sources": [
