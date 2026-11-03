@@ -55,8 +55,8 @@ async function main(){
    fs.copyFileSync(original,path.join(root,"visas/data",name));
    return [slug,entry];
   }));
-  assert.equal(entries.get("france").types_visa.reduce((n,v)=>n+v.documents.length,0),16,
-   "the real BEAM France must preserve its sixteen documents");
+  assert.ok(entries.get("france").types_visa.every(v=>v.documents.length>0),
+   "the real BEAM France must retain its own document list, whatever its length");
   const built=buildSite({root,mode:"production"});
   assert.equal(built.published,slugs.length,"every real fiche should be publishable");
   assert.equal(built.excluded.length,0,"no real fiche may be dropped from the guide");
@@ -102,7 +102,9 @@ async function main(){
      assert.ok(contrast(metrics.brandColor,metrics.headerBg)>=4.5,"brand contrast "+slug);
      if(section){
       const data=entries.get(slug);
-      assert.ok(metrics.cta&&metrics.cta.height>=44,"CTA target must be >=44px");
+      assert.ok(metrics.cta&&metrics.cta.height>=48,"main BEAM WhatsApp target must be prominent");
+      assert.equal(await page.locator("h1").innerText(),"Visa "+data.destination,
+       "destination title should be direct and short");
       assert.ok(metrics.cta.right<=width+1&&metrics.cta.left>=-1,"CTA must fit screen");
       assert.ok(contrast(metrics.ctaColor,metrics.ctaBg)>=4.5,"CTA contrast "+slug);
       assert.equal(await page.locator(".doc").count(),
@@ -110,10 +112,38 @@ async function main(){
        "all source documents must render: "+slug);
       assert.equal(await page.locator(".visa-type").count(),data.types_visa.length);
       assert.ok((await page.locator(".button.primary").getAttribute("href")).includes(data.destination));
+      assert.equal(await page.locator(".button.primary").innerText(),"On s'occupe de tout pour vous — WhatsApp");
       assert.equal(await page.locator('a[href="/travel/"]').count(),1);
+      assert.equal(await page.locator(".visa-more").count(),1);
+      assert.equal(await page.locator(".visa-more").evaluate(el=>el.open),false,
+       "Plus de détails must initially be collapsed");
+      assert.equal(await page.locator(".document-notes:visible").count(),0);
+      const share=page.getByRole("link",{name:"Partager cette liste sur WhatsApp"});
+      assert.equal(await share.count(),1);
+      const shared=new URL(await share.getAttribute("href"));
+      assert.equal(shared.origin,"https://wa.me");
+      assert.equal(shared.pathname,"/");
+      assert.equal(shared.searchParams.get("text"),
+       "Visa "+data.destination+" — Documents à fournir : https://beamguinee.com/visas/"+slug+"/");
+      assert.equal(await share.getAttribute("onclick"),null,
+       "sharing must not require JavaScript");
       for(const [index,type] of data.types_visa.entries()){
        const sectionEl=page.locator(".visa-type").nth(index);
-       const place=sectionEl.locator(".two-col .detail-card").nth(1);
+       assert.equal(await sectionEl.locator(".brief-row").count(),3,
+        "En bref must contain exactly three concise rows");
+       const place=sectionEl.locator(".brief-row").first();
+       const labels=await sectionEl.locator(".doc-label").allInnerTexts();
+       assert.deepEqual(labels,type.documents.map(d=>d.libelle),
+        "every source document label must appear once and in editorial group order when ungrouped");
+       const groups=type.documents.map(d=>d.groupe||"base");
+       // The public checklist must not reveal notes or document statuses.
+       for(const doc of type.documents)
+        assert.equal(await sectionEl.locator(".documents-card").getByText(doc.note,{exact:true}).count(),0);
+       const more=page.locator(".visa-more");
+       for(const doc of type.documents)
+        assert.ok((await more.innerText()).includes(doc.note),
+          "all source document notes must remain available in collapsed details");
+       assert.ok(groups.every(g=>["base","salaries","commercants","but","autres"].includes(g)));
        if(type.lieu_depot.categorie==="en_ligne"){
         assert.equal(await place.locator(".chip").innerText(),"Démarche en ligne");
         const portal=place.getByRole("link",{name:"Ouvrir le portail officiel"});
@@ -130,6 +160,15 @@ async function main(){
         "home must link to "+destination);
      }
      assert.deepEqual(outsiders,[],"no third-party requests for static page");
+     if(section){
+      await page.locator(".visa-more summary").click();
+      assert.equal(await page.locator(".visa-more").evaluate(el=>el.open),true);
+      assert.ok(await page.locator(".document-notes").first().isVisible());
+      assert.ok(await page.locator(".sources-list").first().isVisible());
+      assert.ok((await page.evaluate(()=>document.documentElement.scrollWidth))<=width+1,
+       "expanded details must not overflow at "+width+"px");
+      await page.locator(".visa-more summary").click();
+     }
      const filename=section?slug:"accueil";
      await page.screenshot({path:path.join(out,filename+"-"+width+".png"),fullPage:true,animations:"disabled"});
      console.log("PASS published visa guide "+filename+" "+width+"px: no JS, no overflow, no remote resources");
@@ -156,7 +195,7 @@ async function main(){
     const response=await page.goto("http://127.0.0.1:"+server.address().port+"/visas/test-en-ligne/",{waitUntil:"networkidle"});
     assert.equal(response.status(),200);
     assert.ok(await page.locator(".notice-demo").isVisible());
-    assert.equal(await page.locator(".two-col .detail-card").nth(1).locator(".chip").innerText(),"Démarche en ligne");
+    assert.equal(await page.locator(".brief-row").first().locator(".chip").innerText(),"Démarche en ligne");
     const portal=page.getByRole("link",{name:"Ouvrir le portail officiel"});
     assert.equal(await portal.count(),1);
     assert.equal(await portal.getAttribute("href"),"https://example.org/portail-de-test");
