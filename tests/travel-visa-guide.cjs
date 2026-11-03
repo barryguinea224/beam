@@ -24,7 +24,7 @@ async function main(){
   [{code_pays:"fr",slug:"france",destination:"France"}],
   [{code_pays:"FR",slug:"../france",destination:"France"}],
   [{code_pays:"FR",slug:"france",destination:""}]]){
-  if(invalid===null||invalid!==sample)assert.equal(guide.validFiches(invalid),false);
+  assert.equal(guide.validFiches(invalid),false);
  }
  const calls=[];
  const fetchFn=(url,opts)=>{calls.push({url,opts});return Promise.resolve(response());};
