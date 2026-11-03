@@ -43,15 +43,7 @@ jobs:
           test -f visas/index.html
           test -f visas/404.html
           if test -f visas/data/france.json; then
-            node - <<'NODE'
-            const fs=require("node:fs"),assert=require("node:assert/strict");
-            const france=JSON.parse(fs.readFileSync("visas/data/france.json","utf8"));
-            assert.equal(france.statut,"publie");
-            assert.equal(france.types_visa.reduce((n,v)=>n+v.documents.length,0),16);
-            assert.ok(fs.existsSync("visas/france/index.html"));
-            assert.ok(fs.readFileSync("visas/index.html","utf8").includes('href="/visas/france/"'));
-            console.log("BEAM verified France is published, 16 documents: PASS");
-            NODE
+            node -e 'const fs=require("node:fs"),assert=require("node:assert/strict"); const france=JSON.parse(fs.readFileSync("visas/data/france.json","utf8")); assert.equal(france.statut,"publie"); assert.equal(france.types_visa.reduce((n,v)=>n+v.documents.length,0),16); assert.ok(fs.existsSync("visas/france/index.html")); assert.ok(fs.readFileSync("visas/index.html","utf8").includes("href=\\\"/visas/france/\\\"")); console.log("BEAM verified France is published, 16 documents: PASS");'
           else
             grep -q "Guide en préparation" visas/index.html
             grep -q "wa.me/224622095630" visas/index.html
