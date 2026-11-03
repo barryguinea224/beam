@@ -1,0 +1,86 @@
+{
+  "destination": "Maroc",
+  "drapeau": "🇲🇦",
+  "statut": "publie",
+  "verifie_le": "2026-11-03",
+  "types_visa": [
+    {
+      "type": "Autorisation électronique de voyage au Maroc (AEVM) — à la place d’un visa",
+      "autorite_competente": {
+        "nom": "Autorités marocaines — portail officiel Accès Maroc",
+        "ville": "Démarche en ligne",
+        "pays": "Maroc"
+      },
+      "lieu_depot": {
+        "categorie": "en_ligne",
+        "nom": "Portail officiel Accès Maroc : création de compte, formulaire, pièces jointes, puis suivi de la demande en ligne",
+        "adresse": "Aucun déplacement : tout se fait en ligne",
+        "rendez_vous_url": "https://www.acces-maroc.ma/"
+      },
+      "conditions_demandeur": {
+        "public_cible": "Ressortissant guinéen soumis à l’AEVM. Ne sont pas concernés : les titulaires d’un titre de séjour marocain valide, les voyageurs en transit qui ne quittent pas l’aéroport ou le port, et les personnes mariées à un(e) Marocain(e) munies des justificatifs.",
+        "autres_cas": "Consultez l’ambassade."
+      },
+      "documents": [
+        {
+          "libelle": "Photo d’identité",
+          "statut": "obligatoire",
+          "note": "Numérisée en JPG ou PDF, 1 Mo maximum."
+        },
+        {
+          "libelle": "Carte d’identité ou titre de séjour",
+          "statut": "obligatoire",
+          "note": "Numérisé en JPG ou PDF, 1 Mo maximum."
+        },
+        {
+          "libelle": "Page d’identité du passeport",
+          "statut": "obligatoire",
+          "note": "Le passeport doit être valable jusqu’à votre départ du Maroc. Numérisée en JPG ou PDF, 1 Mo maximum."
+        },
+        {
+          "libelle": "Billet de retour",
+          "statut": "obligatoire",
+          "note": "À présenter si demandé."
+        },
+        {
+          "libelle": "Réservation d’hôtel ou invitation",
+          "statut": "obligatoire",
+          "note": "Couvrant le séjour."
+        },
+        {
+          "libelle": "Moyens financiers suffisants",
+          "statut": "obligatoire",
+          "note": "Au moins 70 € par jour de séjour."
+        },
+        {
+          "libelle": "Documents justificatifs du voyage d’affaires",
+          "statut": "selon_le_cas",
+          "note": "Si vous voyagez pour affaires."
+        },
+        {
+          "libelle": "Justificatifs de participation à un événement",
+          "statut": "selon_le_cas",
+          "note": "Si votre voyage est lié à un événement au Maroc."
+        }
+      ],
+      "frais": {
+        "texte": "Frais de l’AEVM payés en ligne sur le portail Accès Maroc, au moment de la demande.",
+        "verifie_le": "2026-11-03"
+      },
+      "delai_indicatif": {
+        "texte": "Suivi en ligne : « en cours de traitement », « en attente de complément » ou « refusée ». Faites la demande bien avant le départ. Pour une famille ou un groupe, regroupez les demandes dans un seul dossier.",
+        "verifie_le": "2026-11-03"
+      },
+      "sources": [
+        {
+          "libelle": "Accès Maroc — portail officiel de l’AEVM",
+          "url": "https://www.acces-maroc.ma/"
+        },
+        {
+          "libelle": "Portail consulaire du Maroc",
+          "url": "https://www.consulat.ma/"
+        }
+      ]
+    }
+  ]
+}

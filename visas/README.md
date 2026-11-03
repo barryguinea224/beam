@@ -1,72 +1,62 @@
-# BEAM — Guide des visas depuis Conakry (phase 1)
+# BEAM — Guide public des visas depuis Conakry
 
-Ce répertoire produit des **pages HTML publiques indépendantes**, sans compte, base de données, script navigateur, bibliothèque distante, balise de suivi ou emblème d’ambassade.
+Ce guide produit des pages HTML statiques sans compte, JavaScript navigateur, suivi publicitaire ou base de données. Les informations éditoriales sont fournies et vérifiées par BEAM, pas inventées par le générateur.
 
-## Lire le guide
+## Fichiers sources et publication
 
-- Accueil : `/visas/`
-- Fiche d'une destination : `/visas/france/` **une fois la fiche France vérifiée fournie et ajoutée**. Aucune vraie fiche France n'est encore présente dans `visas/data/`.
-- Les fichiers `visas/data/<pays>.json` sont la source de vérité. Les fichiers JSON et ce README sont protégés de l'accès HTTP par des règles Netlify 404 forcées. N'y placez jamais de données personnelles ou de secrets.
-- Le script `scripts/build-visas.cjs` produit `visas/index.html` et `visas/<pays>/index.html` à chaque build.
-- `node scripts/build-visas.cjs --preview` génère les fiches présentes ; s'il n'y en a pas, il affiche **« Guide en préparation »**. L'ancien exemple non vérifié est **isolé sous `tests/fixtures/visas/exemple.json`**, jamais dans `visas/data/`.
-- `node scripts/build-visas.cjs --check` valide **strictement toutes les fiches** pour la CI : tout champ invalide, date future, JSON malformé ou URL non HTTPS fait échouer la PR. L'exemple clairement marqué `statut: "exemple"` reste autorisé pour les prévisualisations et pour les tests de structure.
-- `node scripts/build-visas.cjs --production` **réussit même si des fiches sont invalides ou non vérifiées** : elles sont exclues de la génération et de l'accueil et les noms des fichiers exclus, avec leurs raisons, figurent dans le journal.
-- En production Netlify (`CONTEXT=production`), le générateur passe toujours en mode tolérant même si quelqu'un indique `--preview` ou `--check`. Le build de BTH reste indépendant de la qualité des données du guide.
-- Tant qu'aucune fiche vérifiée n'est publiée, `/visas/` affiche **« Guide en préparation »** avec l'avertissement légal et le bouton WhatsApp BEAM. Aucun `/visas/france/` issu de l'exemple n'est généré.
+- `visas/data/<pays>.json` : fiches BEAM, à conserver **à l'identique** lors de leur ajout ou remplacement ; ne jamais créer de conditions, documents, frais ou adresses pour remplir une fiche.
+- `tests/fixtures/visas/exemple.json` : exemple **NON VÉRIFIÉ**, réservé aux tests. Ne jamais le placer dans `visas/data/`.
+- `node scripts/build-visas.cjs --check` : valide strictement toutes les fiches (structure, champs, dates, URL HTTPS et marqueur d'exemple), sans générer de HTML.
+- `node scripts/build-visas.cjs --preview` : génère un aperçu statique ; les fiches `exemple` portent un avertissement.
+- `node scripts/build-visas.cjs --production` : publie les seules fiches valides en `statut: "publie"`, exclut les exemples et les fiches invalides sans interrompre le déploiement. Supprime les anciennes pages générées devenues exclues.
+- `CONTEXT=production` impose ce mode de génération tolérant sur Netlify, indépendamment de l'argument en ligne de commande.
 
-**ATTENTION :** l'exemple de test France (`tests/fixtures/visas/exemple.json`) n'est pas une fiche de conseils visa et **ne doit jamais être copié en production**. Il n'indique aucune exigence, frais, adresse ni délai vérifié. La vraie fiche BEAM doit être enregistrée **à l'identique** dans `visas/data/france.json` après réception du document validé.
+Le nombre de fiches **publiées** ne doit jamais être simulé. L'objectif du lot Maroc/Canada est **six fiches réelles** après réception du JSON Maroc vérifié et de la mise à jour Canada fournie par BEAM. Tant que les originaux n'ont pas été fournis, la CI ne peut pas attester ce résultat.
 
-## Mise en ligne de la première vraie fiche France
+## Modèle des lieux de dépôt
 
-La fiche France fournie et vérifiée par BEAM doit être placée **sans aucune modification** à l'emplacement `visas/data/france.json`. La fiche de test `tests/fixtures/visas/exemple.json` ne doit jamais être déplacée dans `visas/data/` : elle sert uniquement à tester le refus de contenu non vérifié en production.
+Chaque `types_visa[]` contient `lieu_depot` avec exactement les champs :
 
-Tant que le JSON France signé ou validé par BEAM n'a pas été reçu, le site public affiche « Guide en préparation ». La CI exécute également un scénario de **France synthétique publiée dans un dossier temporaire**, mais ce test ne remplace ni les 16 pièces originales ni la validation de la vraie fiche. Lorsque le fichier réel est ajouté, les tests mobiles s'exécutent avec ce fichier exact, en vérifiant le nombre total de 16 pièces.
+- `categorie` : `"ambassade"`, `"centre_externe"` ou `"en_ligne"` pour une fiche publiée ; `"a_confirmer"` est réservé aux exemples.
+- `nom` et `adresse` : textes non vides transmis par BEAM. **Pour une procédure en ligne, ne pas inventer d'adresse physique** : reprendre le texte BEAM à l'identique.
+- `rendez_vous_url` : URL HTTPS obligatoire. Pour `ambassade` et `centre_externe`, elle désigne le lien de rendez-vous de la fiche ; pour `en_ligne`, elle désigne **le portail officiel de démarche en ligne**, pas nécessairement une prise de rendez-vous. `null` n'est autorisé que pour `a_confirmer` dans un exemple.
 
-Les URLs `/visas/data/*.json` et `/visas/README.md` sont bloquées par deux réécritures Netlify **404 forcées** vers `/visas/404.html`, y compris quand les fichiers existent dans le dossier de publication. Cela ne constitue pas un coffre à secrets : les fiches ne doivent contenir aucune information confidentielle.
+Le rendu affiche la catégorie `en_ligne` sous le libellé **« Démarche en ligne »**, avec le lien **« Ouvrir le portail officiel »**. Les catégories physiques conservent **« Ouvrir le lien officiel de rendez-vous »**. Les liens sont affichés, mais jamais chargés automatiquement au visiteur.
 
-## Modifier une fiche depuis GitHub sur un téléphone
+La validation contrôle la syntaxe HTTPS, **pas** la légitimité ou la compétence de l'autorité : BEAM doit vérifier manuellement chaque source et portail.
 
-1. Ouvrez le dépôt `barryguinea224/beam` sur github.com dans le navigateur du téléphone et sélectionnez la branche de travail du guide (jamais la production directement).
-2. Ouvrez `visas/data/france.json` **si ce fichier existe** (ou une autre destination), appuyez sur le menu `...` puis **Edit file** (icône crayon selon la version mobile). S'il n'existe pas encore, choisissez **Add file → Create new file** dans `visas/data/`. Si les boutons manquent, demander la version « Site pour ordinateur » du navigateur.
-3. Saisissez uniquement les éléments **vérifiés auprès des sources officielles**. Gardez les noms de champs et les guillemets JSON. Ne rajoutez jamais de secret, de numéro de dossier, de données de client ou de logo d'ambassade.
-4. Vérifiez les données **pour chaque type de visa** : autorité compétente (nom, ville, pays), lieu et catégorie de dépôt (ambassade ou centre externe), adresse, **lien officiel DIRECT de prise de rendez-vous**, public concerné, documents obligatoires ou selon le cas, frais et délai indicatif. Les autres situations doivent conserver « Consultez l’ambassade. ».
-5. Pour chaque source, ajoutez `libelle` et une URL **HTTPS officielle** ; vérifiez manuellement qu'elle appartient réellement à l'autorité compétente ou à son centre partenaire. Une URL HTTPS n'est pas, à elle seule, une preuve officielle.
-6. Actualisez `verifie_le` sur la fiche, ainsi que **les dates propres aux frais et aux délais** uniquement après leur vérification réelle. Dates au format `AAAA-MM-JJ`, jamais futures.
-7. Retirez **toutes les mentions EXEMPLE — NON VÉRIFIÉ**, remplacez `statut: "exemple"` par `statut: "publie"`. Remplacez `a_confirmer` par `ambassade` ou `centre_externe` et fournissez une véritable URL de rendez-vous. Le validateur refuse les champs vides ou manquants dans la CI. En production, toute fiche d'exemple ou invalide est exclue sans interrompre le déploiement.
-8. Utilisez **Commit changes** vers votre branche, puis ouvrez une **Pull request** vers `feature/beam-travel-history-v1`. Attendez les tests, relisez l'aperçu Netlify sur téléphone, puis demandez la revue. N'ajoutez pas de données non vérifiées pour faire passer les tests.
+## Structure complète d'une fiche
 
-### Ajouter une destination
+Une fiche comprend `destination`, `drapeau`, `statut`, `verifie_le` et `types_visa[]`. Chaque type comprend `type`, `autorite_competente` (`nom`, `ville`, `pays`), `lieu_depot`, `conditions_demandeur` (`public_cible`, `autres_cas`), `documents[]` (`libelle`, `statut`, `note`), `frais` et `delai_indicatif` (`texte`, `verifie_le`), ainsi que `sources[]` (`libelle`, `url` HTTPS).
 
-Dans GitHub, ouvrez `visas/data/`, **Add file → Create new file**, nommez le fichier avec un identifiant sûr en minuscules : `maroc.json`, `croatie.json`, etc. Copiez **la structure** de `tests/fixtures/visas/exemple.json`, remplacez chaque champ par des faits confirmés, ne conservez pas les mentions d'exemple, puis validez par PR. Le script génère automatiquement `/visas/maroc/`, etc. N'ajoutez pas manuellement une page HTML.
+Les documents ont le statut `obligatoire` ou `selon_le_cas`. La règle actuelle exige `conditions_demandeur.autres_cas = "Consultez l’ambassade."`. Les dates `verifie_le` doivent être valides et non futures. Le marqueur exact `EXEMPLE — NON VÉRIFIÉ` est interdit dans une fiche publiée, mais le mot français « exemple » reste autorisé dans un texte normal.
 
-## Structure et validation automatique
+**Fraîcheur :** dès qu'une date de vérification de fiche, de frais ou de délai a plus de 90 jours au moment du build, le site affiche « Informations à revérifier ». Sur un site statique, ce bandeau ne change pas tout seul sans nouvelle construction.
 
-Le JSON contient `destination`, `drapeau`, `statut`, `verifie_le`, `types_visa[]`. Chaque type contient :
+## Édition sur GitHub et tests
 
-- `type` ; `autorite_competente` (`nom`, `ville`, `pays`) ;
-- `lieu_depot` (`categorie`, `nom`, `adresse`, `rendez_vous_url`) ;
-- `conditions_demandeur` (`public_cible`, `autres_cas`) ;
-- `documents[]` (`libelle`, `statut` parmi `obligatoire` / `selon_le_cas`, `note`) ;
-- `frais` et `delai_indicatif` (`texte`, `verifie_le`) ;
-- `sources[]` (au moins un `libelle` et une `url` en HTTPS).
+Depuis un téléphone, ouvrez le dépôt `barryguinea224/beam`, choisissez une branche de travail puis `visas/data/`. Ouvrez une fiche avec **Edit file** ou utilisez **Add file → Create new file**. Ajoutez uniquement le texte JSON vérifié par BEAM ; évitez tout secret ou donnée de client. Ouvrez ensuite une PR vers `feature/beam-travel-history-v1`.
 
-En **CI stricte**, le modèle refuse les champs inconnus et manquants, les dates impossibles/futures, les mauvaises URLs et le seul marqueur exact `EXEMPLE — NON VÉRIFIÉ` dans une fiche marquée `publie`. La formule courante « par exemple » est autorisée. Les exemples déclarés sont autorisés pour l'aperçu, mais **jamais publiés en production**. En production, même un JSON invalide est écarté avec un avertissement dans le journal, sans bloquer les autres pages du site. Le modèle ne vérifie **pas** automatiquement les textes des documents, les montants, les délais ni le caractère officiel d'un domaine HTTPS : BEAM en demeure responsable.
+Tests à vérifier avant fusion :
 
-### Fraîcheur des informations
+```sh
+node scripts/build-visas.cjs --check
+node tests/visas-schema.cjs
+node scripts/build-visas.cjs --production
+# Test Chromium, après installation de Playwright :
+node tests/visas-mobile.cjs
+```
 
-À **chaque construction**, une date `verifie_le` supérieure à 90 jours, qu'elle concerne la fiche, les frais ou le délai, déclenche automatiquement le bandeau **Informations à revérifier** sur la fiche, et un rappel sur l'accueil. Les dates de frais et délais sont affichées séparément.
+Le workflow `.github/workflows/visas-static.yml` exécute le contrôle strict et les tests Chromium à 320, 360 et 390 px. Pour ce lot, il doit confirmer **six fiches publiées** et leurs pages accessibles après fourniture du Maroc. Une démo synthétique ne remplace pas cette vérification.
 
-**Limitation du HTML statique :** le bandeau est calculé **à chaque build**. S'il n'y a pas de nouveau déploiement le 91e jour, il ne s'actualise pas de lui-même. **Aucun redéploiement quotidien n'est prévu.** Les dates affichées permettent au visiteur d'évaluer leur fraîcheur.
+## Confidentialité, sécurité et périmètre
 
-## Déploiement et protection des données
+Avec `publish = "."` sur Netlify, les règles 404 **forcées** de `netlify.toml` bloquent `/visas/data/*` et `/visas/README.md`. Cela ne constitue pas un stockage secret : aucun contenu confidentiel ne doit se trouver dans le dépôt. La cible `/visas/404.html` est créée par le générateur.
 
-Le `netlify.toml` existant conserve le build de `travel/config.js`, puis exécute `node scripts/build-visas.cjs`. Les aperçus construisent la fiche d'exemple ; **en production celle-ci est exclue, le guide affiche « Guide en préparation » et le build réussit**. Une fiche malformée ne peut pas empêcher un déploiement de `beamguinee.com` ou de BTH ; **la CI de la PR la refuse**, afin de préserver la qualité éditoriale. Le générateur supprime les anciennes pages HTML de destinations devenues exclues ou supprimées lorsqu'elles lui appartiennent. Aucun sitemap visas n'est généré actuellement ; une éventuelle génération future doit reprendre uniquement les fiches incluses. Le dossier `/travel/`, ses données, le schéma Supabase et les Edge Functions ne sont pas modifiés.
+Le guide ne change ni `/travel/`, ni Supabase, ni les Edge Functions. Le service worker de BTH reste limité à `/travel/` ; le générateur des visas ne modifie pas ses fichiers. Aucun sitemap visas n'est généré dans cette phase.
 
-Le service worker BTH est limité à `/travel/` et ne met **aucune** page `/visas/` en cache. Les liens externes ne chargent aucune ressource au moment de l'affichage : ce sont seulement des liens cliquables. Le bouton BEAM ouvre WhatsApp avec un texte prérempli, sans transmettre d'information avant le clic.
+Avertissement public :
 
-**Consigne interne, non affichée au public :** BEAM doit vérifier manuellement la pertinence et la compétence de chaque source. L'adresse HTTPS seule n'en prouve pas la validité.
-
-Avertissement affiché sur toutes les pages :
 > Informations indicatives, vérifiées à la date indiquée. Seule l'ambassade décide. BEAM n'est pas affilié aux ambassades ni aux centres de dépôt.
 
-Aucune promesse d'obtention de visa ni de pourcentage de réussite.
+Aucune garantie d'obtention de visa.

@@ -61,8 +61,60 @@ jobs:
             exit 1
           fi
 
+  six-published:
+    name: Release gate — six original BEAM destination fiches
+    needs: [schema-and-build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Require six genuine, validated and generated pages
+        run: |
+          set -euo pipefail
+          node scripts/build-visas.cjs --check
+          node <<'NODE'
+          const fs=require("node:fs");
+          const path=require("node:path");
+          const assert=require("node:assert/strict");
+          const {buildSite}=require("./scripts/build-visas.cjs");
+          const names=fs.readdirSync("visas/data").filter(x=>x.endsWith(".json")).sort();
+          const expected=["canada.json","chine.json","france.json","maroc.json","royaume-uni.json","turquie.json"];
+          assert.deepEqual(names,expected,
+            "Six original BEAM JSON sources required. Missing maroc.json? Attach the BEAM file, not a synthetic example.");
+          for(const name of names){
+            const entry=JSON.parse(fs.readFileSync(path.join("visas/data",name),"utf8"));
+            assert.equal(entry.statut,"publie",name+" must be a BEAM verified publication");
+          }
+          const result=buildSite({mode:"production"});
+          assert.equal(result.published,6,"six fiches must actually publish");
+          assert.equal(result.excluded.length,0,"no fiche should be excluded");
+          const home=fs.readFileSync("visas/index.html","utf8");
+          assert.doesNotMatch(home,/Guide en préparation/);
+          for(const name of expected){
+            const slug=name.slice(0,-5),file="visas/"+slug+"/index.html";
+            assert.ok(fs.existsSync(file),file+" missing after production build");
+            assert.ok(home.includes('href="/visas/'+slug+'/"'),"home must link "+slug);
+            const entry=JSON.parse(fs.readFileSync(path.join("visas/data",name),"utf8"));
+            const html=fs.readFileSync(file,"utf8");
+            for(const type of entry.types_visa){
+              if(type.lieu_depot.categorie==="en_ligne"){
+                assert.match(html,/Démarche en ligne/);
+                assert.match(html,/Ouvrir le portail officiel/);
+                assert.ok(html.includes(type.lieu_depot.rendez_vous_url.replace(/&/g,"&amp;")),
+                  name+" must link to BEAM's exact online portal URL");
+              }
+            }
+          }
+          console.log("Six verified BEAM fiches published and linked: PASS");
+          NODE
+
   mobile:
-    name: Real Chromium at 320, 360 and 390px
+    name: Real Chromium at 320, 360, 375 and 390px
     needs: [schema-and-build]
     runs-on: ubuntu-latest
     timeout-minutes: 15

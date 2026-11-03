@@ -88,11 +88,11 @@ function validateEntry(entry, slug, {mode = "preview", today = todayUTC()} = {})
     shape(visa.autorite_competente, where + ".autorite_competente", ["nom", "ville", "pays"]);
     for (const key of ["nom", "ville", "pays"]) requiredText(visa.autorite_competente[key], where + ".autorite_competente." + key);
     shape(visa.lieu_depot, where + ".lieu_depot", ["categorie", "nom", "adresse", "rendez_vous_url"]);
-    if (!["ambassade", "centre_externe", ...(demo ? ["a_confirmer"] : [])].includes(visa.lieu_depot.categorie))
+    if (!["ambassade", "centre_externe", "en_ligne", ...(demo ? ["a_confirmer"] : [])].includes(visa.lieu_depot.categorie))
       fail(where + ".lieu_depot.categorie", "type de lieu invalide");
     requiredText(visa.lieu_depot.nom, where + ".lieu_depot.nom");
     requiredText(visa.lieu_depot.adresse, where + ".lieu_depot.adresse");
-    if (demo && visa.lieu_depot.rendez_vous_url === null) {
+    if (demo && visa.lieu_depot.categorie === "a_confirmer" && visa.lieu_depot.rendez_vous_url === null) {
       // The sample must not invent a booking URL.
     } else https(visa.lieu_depot.rendez_vous_url, where + ".lieu_depot.rendez_vous_url");
     shape(visa.conditions_demandeur, where + ".conditions_demandeur", ["public_cible", "autres_cas"]);
@@ -173,10 +173,13 @@ function renderType(visa, demo, index) {
     ' <span class="chip">' + e(docLabel(d.statut)) + '</span></div><p>' + e(d.note) + '</p></li>').join("\n");
   const urls = visa.sources.map(s => "<li>" + link(s.url,s.libelle) + "</li>").join("\n");
   const place = visa.lieu_depot;
+  const linkLabel = place.categorie === "en_ligne"
+    ? "Ouvrir le portail officiel" : "Ouvrir le lien officiel de rendez-vous";
   const reservation = place.rendez_vous_url === null
     ? '<p class="muted">Prise de rendez-vous : lien non renseigné pour cet exemple.</p>'
-    : '<p>' + link(place.rendez_vous_url,"Ouvrir le lien officiel de rendez-vous") + "</p>";
-  const placeType = {"ambassade":"Ambassade", "centre_externe":"Centre externe", "a_confirmer":"À confirmer"}[place.categorie];
+    : "<p>" + link(place.rendez_vous_url,linkLabel) + "</p>";
+  const placeType = {"ambassade":"Ambassade", "centre_externe":"Centre externe",
+    "en_ligne":"Démarche en ligne", "a_confirmer":"À confirmer"}[place.categorie];
   return [
     '<section class="visa-type" aria-labelledby="visa-' + index + '">',
     '<h2 id="visa-' + index + '">' + e(visa.type) + "</h2>",
