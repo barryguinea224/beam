@@ -7,6 +7,7 @@ on:
       - "visas/**"
       - "scripts/build-visas.cjs"
       - "tests/visas-*.cjs"
+      - "tests/fixtures/visas/**"
       - "netlify.toml"
       - ".github/workflows/visas-static.yml"
 
@@ -33,24 +34,30 @@ jobs:
           node tests/visas-schema.cjs
       - name: Strictly check every JSON fiche (fail PR on malformed content)
         run: node scripts/build-visas.cjs --check
-      - name: Render the unverified sample for preview (no secrets)
+      - name: Render static preview (no secrets)
         run: node scripts/build-visas.cjs --preview
-      - name: Verify production excludes unverified example without failing
+      - name: Verify production fallback or a published verified France
         run: |
           set -euo pipefail
           node scripts/build-visas.cjs --production
           test -f visas/index.html
-          grep -q "Guide en préparation" visas/index.html
-          grep -q "wa.me/224622095630" visas/index.html
-          if test -f visas/france/index.html; then
-            echo "::error::Unverified France sample leaked into production"
-            exit 1
+          test -f visas/404.html
+          if test -f visas/data/france.json; then
+            node - <<'NODE'
+            const fs=require("node:fs"),assert=require("node:assert/strict");
+            const france=JSON.parse(fs.readFileSync("visas/data/france.json","utf8"));
+            assert.equal(france.statut,"publie");
+            assert.equal(france.types_visa.reduce((n,v)=>n+v.documents.length,0),16);
+            assert.ok(fs.existsSync("visas/france/index.html"));
+            assert.ok(fs.readFileSync("visas/index.html","utf8").includes('href="/visas/france/"'));
+            console.log("BEAM verified France is published, 16 documents: PASS");
+            NODE
+          else
+            grep -q "Guide en préparation" visas/index.html
+            grep -q "wa.me/224622095630" visas/index.html
+            test ! -f visas/france/index.html
+            echo "France source not supplied: only the preparation page is published."
           fi
-          if grep -q 'href="/visas/france/"' visas/index.html; then
-            echo "::error::Unverified France sample leaked into production home"
-            exit 1
-          fi
-          echo "Production excludes unverified sample and preserves the site build: PASS"
       - name: Enforce untouched BTH and Supabase source trees
         shell: bash
         run: |

@@ -5,21 +5,21 @@ Ce répertoire produit des **pages HTML publiques indépendantes**, sans compte,
 ## Lire le guide
 
 - Accueil : `/visas/`
-- Fiche d'une destination : `/visas/france/` (exemple uniquement)
+- Fiche d'une destination : `/visas/france/` **une fois la fiche France vérifiée fournie et ajoutée**. Aucune vraie fiche France n'est encore présente dans `visas/data/`.
 - Les fichiers `visas/data/<pays>.json` sont la source de vérité. Les fichiers JSON et ce README sont protégés de l'accès HTTP par des règles Netlify 404 forcées. N'y placez jamais de données personnelles ou de secrets.
 - Le script `scripts/build-visas.cjs` produit `visas/index.html` et `visas/<pays>/index.html` à chaque build.
-- `node scripts/build-visas.cjs --preview` construit localement une version **non indexable** avec le bandeau **EXEMPLE — NON VÉRIFIÉ**.
+- `node scripts/build-visas.cjs --preview` génère les fiches présentes ; s'il n'y en a pas, il affiche **« Guide en préparation »**. L'ancien exemple non vérifié est **isolé sous `tests/fixtures/visas/exemple.json`**, jamais dans `visas/data/`.
 - `node scripts/build-visas.cjs --check` valide **strictement toutes les fiches** pour la CI : tout champ invalide, date future, JSON malformé ou URL non HTTPS fait échouer la PR. L'exemple clairement marqué `statut: "exemple"` reste autorisé pour les prévisualisations et pour les tests de structure.
 - `node scripts/build-visas.cjs --production` **réussit même si des fiches sont invalides ou non vérifiées** : elles sont exclues de la génération et de l'accueil et les noms des fichiers exclus, avec leurs raisons, figurent dans le journal.
 - En production Netlify (`CONTEXT=production`), le générateur passe toujours en mode tolérant même si quelqu'un indique `--preview` ou `--check`. Le build de BTH reste indépendant de la qualité des données du guide.
 - Tant qu'aucune fiche vérifiée n'est publiée, `/visas/` affiche **« Guide en préparation »** avec l'avertissement légal et le bouton WhatsApp BEAM. Aucun `/visas/france/` issu de l'exemple n'est généré.
 
-**ATTENTION : l'exemple France n'est pas une fiche de conseils visa.** Il n'indique aucune condition, exigence, adresse, frais ou délai. Il ne peut pas être publié comme information vérifiée. Le lien France-Visas pointe vers le portail officiel ; il ne valide pas le reste de l'exemple.
+**ATTENTION :** l'exemple de test France (`tests/fixtures/visas/exemple.json`) n'est pas une fiche de conseils visa et **ne doit jamais être copié en production**. Il n'indique aucune exigence, frais, adresse ni délai vérifié. La vraie fiche BEAM doit être enregistrée **à l'identique** dans `visas/data/france.json` après réception du document validé.
 
 ## Modifier une fiche depuis GitHub sur un téléphone
 
 1. Ouvrez le dépôt `barryguinea224/beam` sur github.com dans le navigateur du téléphone et sélectionnez la branche de travail du guide (jamais la production directement).
-2. Ouvrez `visas/data/france.json` (ou une autre destination), appuyez sur le menu `...` puis **Edit file** (icône crayon selon la version mobile). Si le bouton manque, demander la version « Site pour ordinateur » du navigateur.
+2. Ouvrez `visas/data/france.json` **si ce fichier existe** (ou une autre destination), appuyez sur le menu `...` puis **Edit file** (icône crayon selon la version mobile). S'il n'existe pas encore, choisissez **Add file → Create new file** dans `visas/data/`. Si les boutons manquent, demander la version « Site pour ordinateur » du navigateur.
 3. Saisissez uniquement les éléments **vérifiés auprès des sources officielles**. Gardez les noms de champs et les guillemets JSON. Ne rajoutez jamais de secret, de numéro de dossier, de données de client ou de logo d'ambassade.
 4. Vérifiez les données **pour chaque type de visa** : autorité compétente (nom, ville, pays), lieu et catégorie de dépôt (ambassade ou centre externe), adresse, **lien officiel DIRECT de prise de rendez-vous**, public concerné, documents obligatoires ou selon le cas, frais et délai indicatif. Les autres situations doivent conserver « Consultez l’ambassade. ».
 5. Pour chaque source, ajoutez `libelle` et une URL **HTTPS officielle** ; vérifiez manuellement qu'elle appartient réellement à l'autorité compétente ou à son centre partenaire. Une URL HTTPS n'est pas, à elle seule, une preuve officielle.
@@ -29,7 +29,7 @@ Ce répertoire produit des **pages HTML publiques indépendantes**, sans compte,
 
 ### Ajouter une destination
 
-Dans GitHub, ouvrez `visas/data/`, **Add file → Create new file**, nommez le fichier avec un identifiant sûr en minuscules : `maroc.json`, `croatie.json`, etc. Copiez **la structure** du JSON France, remplacez chaque champ par des faits confirmés, ne conservez pas les mentions d'exemple, puis validez par PR. Le script génère automatiquement `/visas/maroc/`, etc. N'ajoutez pas manuellement une page HTML.
+Dans GitHub, ouvrez `visas/data/`, **Add file → Create new file**, nommez le fichier avec un identifiant sûr en minuscules : `maroc.json`, `croatie.json`, etc. Copiez **la structure** de `tests/fixtures/visas/exemple.json`, remplacez chaque champ par des faits confirmés, ne conservez pas les mentions d'exemple, puis validez par PR. Le script génère automatiquement `/visas/maroc/`, etc. N'ajoutez pas manuellement une page HTML.
 
 ## Structure et validation automatique
 

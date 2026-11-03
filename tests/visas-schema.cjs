@@ -282,6 +282,25 @@ try{
    "a destination removed from the JSON directory must not remain online");
  assert.match(fs.readFileSync(path.join(guideRoot,"index.html"),"utf8"),/Guide en préparation/);
  assertTravelUnaffected();
+
+ // Synthetic published France: proves the generator can publish the route
+ // when BEAM eventually supplies a real source (not a substitute for it).
+ fs.writeFileSync(path.join(sub,"france.json"),JSON.stringify(mock));
+ const testPublished=buildSite({root:scratch,mode:"production",today,logger:log});
+ assert.equal(testPublished.published,1);
+ assert.ok(fs.existsSync(path.join(guideRoot,"france/index.html")));
+ assert.match(fs.readFileSync(path.join(guideRoot,"index.html"),"utf8"),
+   /href="\/visas\/france\/"/);
+ assert.doesNotMatch(fs.readFileSync(path.join(guideRoot,"france/index.html"),"utf8"),
+   /BEAM doit vérifier manuellement la pertinence et la compétence de chaque source/);
+ fs.unlinkSync(path.join(sub,"france.json"));
+ const noData=buildSite({root:scratch,mode:"check",today,logger:log});
+ assert.equal(noData.published,0);
+ const preparation=buildSite({root:scratch,mode:"production",today,logger:log});
+ assert.equal(preparation.published,0);
+ assert.ok(!fs.existsSync(path.join(guideRoot,"france/index.html")));
+ assert.match(fs.readFileSync(path.join(guideRoot,"index.html"),"utf8"),/Guide en préparation/);
+ assertTravelUnaffected();
 }finally{fs.rmSync(scratch,{recursive:true,force:true})}
 const sw=fs.readFileSync(path.join(root,"travel/sw.js"),"utf8");
 assert.ok(sw.includes('const SCOPE_PATH = "/travel/"'));
