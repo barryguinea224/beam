@@ -1,0 +1,47 @@
+{
+  "destination": "France",
+  "drapeau": "🇫🇷",
+  "statut": "exemple",
+  "verifie_le": "2000-01-01",
+  "types_visa": [
+    {
+      "type": "EXEMPLE — NON VÉRIFIÉ : court séjour tourisme",
+      "autorite_competente": {
+        "nom": "EXEMPLE — NON VÉRIFIÉ : autorité à confirmer",
+        "ville": "À confirmer",
+        "pays": "À confirmer"
+      },
+      "lieu_depot": {
+        "categorie": "a_confirmer",
+        "nom": "EXEMPLE — NON VÉRIFIÉ : lieu non renseigné",
+        "adresse": "EXEMPLE — NON VÉRIFIÉ : adresse non renseignée",
+        "rendez_vous_url": null
+      },
+      "conditions_demandeur": {
+        "public_cible": "EXEMPLE — NON VÉRIFIÉ : conditions du demandeur à renseigner",
+        "autres_cas": "Consultez l’ambassade."
+      },
+      "documents": [
+        {
+          "libelle": "EXEMPLE — NON VÉRIFIÉ : document à renseigner",
+          "statut": "selon_le_cas",
+          "note": "Exemple de structure, aucune pièce exigée n’est indiquée."
+        }
+      ],
+      "frais": {
+        "texte": "EXEMPLE — NON VÉRIFIÉ : aucun montant renseigné",
+        "verifie_le": "2000-01-01"
+      },
+      "delai_indicatif": {
+        "texte": "EXEMPLE — NON VÉRIFIÉ : aucun délai renseigné",
+        "verifie_le": "2000-01-01"
+      },
+      "sources": [
+        {
+          "libelle": "France-Visas — portail officiel (pour vérification ultérieure)",
+          "url": "https://www.france-visas.gouv.fr/"
+        }
+      ]
+    }
+  ]
+}

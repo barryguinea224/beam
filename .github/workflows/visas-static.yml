@@ -1,0 +1,90 @@
+name: BEAM Visa Guide — static preview and validation
+
+on:
+  pull_request:
+    branches: [feature/beam-travel-history-v1]
+    paths:
+      - "visas/**"
+      - "scripts/build-visas.cjs"
+      - "tests/visas-*.cjs"
+      - "netlify.toml"
+      - ".github/workflows/visas-static.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  schema-and-build:
+    name: Strict JSON schema, resilient production & preview
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Validate build script and tests
+        run: |
+          node --check scripts/build-visas.cjs
+          node --check tests/visas-schema.cjs
+          node --check tests/visas-mobile.cjs
+          node tests/visas-schema.cjs
+      - name: Strictly check every JSON fiche (fail PR on malformed content)
+        run: node scripts/build-visas.cjs --check
+      - name: Render the unverified sample for preview (no secrets)
+        run: node scripts/build-visas.cjs --preview
+      - name: Verify production excludes unverified example without failing
+        run: |
+          set -euo pipefail
+          node scripts/build-visas.cjs --production
+          test -f visas/index.html
+          grep -q "Guide en préparation" visas/index.html
+          grep -q "wa.me/224622095630" visas/index.html
+          if test -f visas/france/index.html; then
+            echo "::error::Unverified France sample leaked into production"
+            exit 1
+          fi
+          if grep -q 'href="/visas/france/"' visas/index.html; then
+            echo "::error::Unverified France sample leaked into production home"
+            exit 1
+          fi
+          echo "Production excludes unverified sample and preserves the site build: PASS"
+      - name: Enforce untouched BTH and Supabase source trees
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --exit-code -- travel/ supabase/; then
+            echo "Travel and Supabase trees were not modified by the generator."
+          else
+            echo "::error::Visa generator modified a protected tree"
+            exit 1
+          fi
+
+  mobile:
+    name: Real Chromium at 320, 360 and 390px
+    needs: [schema-and-build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install local browser test runner
+        run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Render generated visa pages (offline no-secret fixture)
+        run: node tests/visas-mobile.cjs
+      - name: Upload mobile previews
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: beam-visas-preview-320-390
+          path: test-artifacts/visas-mobile/
+          if-no-files-found: ignore
+          retention-days: 7
