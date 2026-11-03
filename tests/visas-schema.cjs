@@ -179,6 +179,30 @@ try{
   "the strict CI command must return nonzero when one fiche is invalid");
  assert.match(strictProcess.stderr,/HTTPS/);
 
+ // Prove *each* invalid category breaks the exact strict CI execution,
+ // while production safely skips it without touching the BTH output.
+ for(const [label,mutate,pattern] of [
+  ["future date",o=>{o.verifie_le=future},/date future interdite/],
+  ["missing schema field",o=>{delete o.types_visa[0].frais},/champ obligatoire manquant/]
+ ]){
+  const invalidCase=deep(mock);
+  mutate(invalidCase);
+  fs.writeFileSync(path.join(sub,"maroc.json"),JSON.stringify(invalidCase));
+  assert.throws(()=>buildSite({root:scratch,mode:"check",today,logger:log}),pattern,label);
+  const strict=spawnSync(process.execPath,[
+   "-e", "require(process.argv[1]).buildSite({root:process.argv[2],mode:'check'});",
+   path.join(root,"scripts/build-visas.cjs"),scratch
+  ],{encoding:"utf8"});
+  assert.notEqual(strict.status,0,label+" must cause the real CI validator to fail");
+  assert.match(strict.stderr,pattern,label+" diagnostic");
+  const tolerated=buildSite({root:scratch,mode:"production",today,logger:log});
+  assert.equal(tolerated.published,0,label+" must not publish an invalid fiche");
+  assert.deepEqual(tolerated.excluded.map(x=>x.filename),["france.json","maroc.json"]);
+  assert.ok(fs.readFileSync(path.join(guideRoot,"index.html"),"utf8").includes("Guide en préparation"));
+  assert.equal(fs.readFileSync(travelConfig,"utf8"),originalTravel);
+ }
+ fs.writeFileSync(path.join(sub,"maroc.json"),JSON.stringify(invalid));
+
  const prodInvalid=buildSite({root:scratch,mode:"production",today,logger:log});
  assert.equal(prodInvalid.published,0);
  assert.deepEqual(prodInvalid.excluded.map(x=>x.filename),["france.json","maroc.json"]);
@@ -213,6 +237,18 @@ try{
  const reverted=buildSite({root:scratch,mode:"production",today,logger:log});
  assert.equal(reverted.published,0);
  assert.equal(fs.existsSync(path.join(guideRoot,"maroc/index.html")),false);
+ assert.match(fs.readFileSync(path.join(guideRoot,"index.html"),"utf8"),/Guide en préparation/);
+ assert.equal(fs.readFileSync(travelConfig,"utf8"),originalTravel);
+
+ // Removing a source JSON also removes a previously generated page.
+ fs.writeFileSync(path.join(sub,"maroc.json"),JSON.stringify(mock));
+ buildSite({root:scratch,mode:"production",today,logger:log});
+ assert.ok(fs.existsSync(path.join(guideRoot,"maroc/index.html")));
+ fs.unlinkSync(path.join(sub,"maroc.json"));
+ const removedSource=buildSite({root:scratch,mode:"production",today,logger:log});
+ assert.equal(removedSource.published,0);
+ assert.ok(!fs.existsSync(path.join(guideRoot,"maroc/index.html")),
+   "a destination removed from the JSON directory must not remain online");
  assert.match(fs.readFileSync(path.join(guideRoot,"index.html"),"utf8"),/Guide en préparation/);
  assert.equal(fs.readFileSync(travelConfig,"utf8"),originalTravel);
 }finally{fs.rmSync(scratch,{recursive:true,force:true})}
