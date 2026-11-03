@@ -187,6 +187,15 @@ async function main(){
   demo.destination="Destination fictive de test";
   demo.types_visa[0].lieu_depot.categorie="en_ligne";
   demo.types_visa[0].lieu_depot.rendez_vous_url="https://example.org/portail-de-test";
+  // Private test fixture only: exercise the five optional groups at every
+  // phone width without inventing any content in the six BEAM data files.
+  const base=demo.types_visa[0].documents[0];
+  demo.types_visa[0].documents=[
+   {...base,libelle:"Document fictif sans groupe"},
+   ...["base","salaries","commercants","but","autres"].map(g=>({
+    ...base,groupe:g,libelle:"Document fictif — "+g
+   }))
+  ];
   fs.writeFileSync(path.join(root,"visas/data/test-en-ligne.json"),JSON.stringify(demo));
   buildSite({root,mode:"preview"});
   for(const width of widths){
@@ -204,8 +213,22 @@ async function main(){
     const portal=page.getByRole("link",{name:"Ouvrir le portail officiel"});
     assert.equal(await portal.count(),1);
     assert.equal(await portal.getAttribute("href"),"https://example.org/portail-de-test");
-    const scroll=await page.evaluate(()=>document.documentElement.scrollWidth);
-    assert.ok(scroll<=width+1,"online demo overflows at "+width+"px");
+    const labels=await page.locator(".doc-label").allInnerTexts();
+    assert.deepEqual(labels,["Document fictif sans groupe","Document fictif — base",
+     "Document fictif — salaries","Document fictif — commercants",
+     "Document fictif — but","Document fictif — autres"]);
+    assert.deepEqual(await page.locator(".document-group h4").allInnerTexts(),
+     ["Documents de base","Pour les salariés",
+      "Pour les commerçants et professions libérales",
+      "Selon le but du voyage","Documents complémentaires"]);
+    assert.equal(await page.locator(".visa-more").evaluate(el=>el.open),false);
+    let scroll=await page.evaluate(()=>document.documentElement.scrollWidth);
+    assert.ok(scroll<=width+1,"online grouped demo overflows at "+width+"px");
+    await page.locator(".visa-more summary").click();
+    assert.ok(await page.locator(".document-notes").isVisible());
+    scroll=await page.evaluate(()=>document.documentElement.scrollWidth);
+    assert.ok(scroll<=width+1,"expanded grouped demo overflows at "+width+"px");
+    await page.locator(".visa-more summary").click();
     assert.deepEqual(outsiders,[],"online test page must not load third-party resources");
     await page.screenshot({path:path.join(out,"en-ligne-exemple-"+width+".png"),fullPage:true,animations:"disabled"});
     console.log("PASS online-only test fixture "+width+"px");
