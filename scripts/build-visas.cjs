@@ -2,8 +2,10 @@
 /**
  * BEAM public visa guide, fully static. No browser JavaScript, tracking or APIs.
  * Local preview: node scripts/build-visas.cjs --preview
- * Strict release: node scripts/build-visas.cjs --production
- * Netlify CONTEXT=production is always strict, even with --preview.
+ * Strict CI check: node scripts/build-visas.cjs --check (all JSON must validate).
+ * Production: node scripts/build-visas.cjs --production (exclude bad/demo,
+ * never block BTH because of guide content).
+ * Netlify CONTEXT=production always uses the resilient production build.
  */
 const fs = require("node:fs");
 const path = require("node:path");
@@ -53,10 +55,17 @@ function needsReview(entry, today) {
       isStale(v.delai_indicatif.verifie_le, today));
 }
 function modeFor(args = process.argv.slice(2), env = process.env) {
-  for (const a of args) if (a !== "--preview" && a !== "--production") fail("options", "option inconnue " + a);
-  if (args.includes("--production") && args.includes("--preview")) fail("options", "modes contradictoires");
+  for (const a of args) if (!["--preview","--production","--check"].includes(a))
+    fail("options", "option inconnue " + a);
+  if (new Set(args).size > 1) fail("options", "modes contradictoires");
   if (env.CONTEXT === "production") return "production";
+  if (args.includes("--check")) return "check";
   return args.includes("--production") ? "production" : "preview";
+}
+function containsExample(entry) {
+  return isRecord(entry) &&
+    (entry.statut === "exemple" ||
+      JSON.stringify(entry).normalize("NFD").toUpperCase().includes("EXEMPLE"));
 }
 function validateEntry(entry, slug, {mode = "preview", today = todayUTC()} = {}) {
   const at = "visas/data/" + slug + ".json";
@@ -68,9 +77,10 @@ function validateEntry(entry, slug, {mode = "preview", today = todayUTC()} = {})
   parseDate(entry.verifie_le, at + ".verifie_le", today);
   if (!Array.isArray(entry.types_visa) || entry.types_visa.length < 1) fail(at + ".types_visa", "au moins un type obligatoire");
   const demo = entry.statut === "exemple";
-  if (mode === "production" && demo) fail(at, "EXEMPLE — NON VÉRIFIÉ interdit en production");
-  if (mode === "production" && JSON.stringify(entry).normalize("NFD").toUpperCase().includes("EXEMPLE"))
-    fail(at, "marqueur EXEMPLE résiduel interdit en production");
+  // Placeholder rows are valid *examples* during preview/check. A supposedly
+  // published fiche with leftover placeholder text is an editorial error.
+  if (!demo && containsExample(entry))
+    fail(at, "marqueur EXEMPLE résiduel dans une fiche marquée publie");
   for (const [i, visa] of entry.types_visa.entries()) {
     const where = at + ".types_visa[" + i + "]";
     shape(visa, where, ["type", "autorite_competente", "lieu_depot", "conditions_demandeur", "documents", "frais", "delai_indicatif", "sources"]);
@@ -130,6 +140,7 @@ function dateNote(date, demo) {
 function shell({title,description,body,demo}) {
   return [
     "<!doctype html>",
+    "<!-- BEAM_VISAS_GENERATED: do not edit the HTML, edit visas/data/*.json -->",
     '<html lang="fr"><head><meta charset="utf-8">',
     '<meta name="viewport" content="width=device-width, initial-scale=1">',
     '<meta name="color-scheme" content="light">',
@@ -217,6 +228,25 @@ function renderDestination(entry, slug, today) {
   });
 }
 function renderHome(entries,today) {
+  if (entries.length === 0) {
+    const whatsapp = "https://wa.me/224622095630?text=" +
+      encodeURIComponent("Bonjour BEAM, je souhaite être accompagné pour une demande de visa depuis Conakry.");
+    return shell({
+      title:"Guide en préparation | Visas depuis Conakry — BEAM",
+      description:"Guide des visas BEAM en préparation. Consultez les autorités compétentes et contactez BEAM pour un accompagnement.",
+      demo:true, // No published fiche: prevent indexing an empty guide.
+      body:[
+        '<section class="intro"><div class="eyebrow">Guide indépendant · Depuis Conakry</div>',
+        '<h1>Guide en préparation</h1>',
+        '<p class="lead">Les fiches sont en cours de vérification. Aucune destination n’est publiée pour le moment.</p></section>',
+        '<aside class="notice notice-law"><strong>Information importante</strong><p>' + e(DISCLAIMER) + '</p></aside>',
+        '<section class="next"><h2>Besoin d’être accompagné ?</h2>',
+        '<p>BEAM peut vous aider à organiser vos démarches sans garantir une décision consulaire.</p>',
+        '<div class="actions">' + link(whatsapp,"Être accompagné par BEAM",' class="button primary"') +
+        '<a class="button secondary" href="/travel/">Conservez votre historique de voyages avec BTH</a></div></section>'
+      ].join("\n")
+    });
+  }
   const cards=entries.map(({slug,entry})=>{
     const demo=entry.statut==="exemple";
     return '<li><article class="destination-card"><div class="flag" aria-hidden="true">' + e(entry.drapeau) + "</div>" +
@@ -240,34 +270,79 @@ function renderHome(entries,today) {
   ].join("\n");
   return shell({title:"Guide des visas depuis Conakry | BEAM",description:"Guide de visas indépendant BEAM, avec sources officielles, dates de vérification et informations indicatives.",body,demo});
 }
-function buildSite({root=path.resolve(__dirname,".."),mode="preview",today=todayUTC()}={}) {
-  if (!["preview","production"].includes(mode)) fail("mode", "mode invalide");
+function buildSite({root=path.resolve(__dirname,".."),mode="preview",today=todayUTC(),logger=console}={}) {
+  if (!["preview","production","check"].includes(mode)) fail("mode", "mode invalide");
   parseDate(today,"date de construction",todayUTC());
   const dataDir=path.join(root,"visas","data");
-  const files=fs.readdirSync(dataDir).filter(n=>n.endsWith(".json")).sort();
-  if (!files.length) fail("visas/data", "aucune fiche JSON");
-  const entries=files.map(filename=>{
+  let files;
+  try {
+    files=fs.readdirSync(dataDir).filter(n=>n.endsWith(".json")).sort();
+  } catch(error) {
+    if (mode==="production" && error.code==="ENOENT") files=[];
+    else throw error;
+  }
+  if (!files.length && mode!=="production") fail("visas/data","aucune fiche JSON");
+
+  const entries=[],excluded=[];
+  for (const filename of files) {
     const slug=filename.slice(0,-5);
-    let entry;
-    try{entry=JSON.parse(fs.readFileSync(path.join(dataDir,filename),"utf8"))}
-    catch(err){fail(filename,"JSON invalide ("+err.message+")")}
-    return {slug,entry:validateEntry(entry,slug,{mode,today})};
-  });
+    try {
+      // Filename is used in paths; validate before constructing an output path.
+      if(!/^[a-z][a-z0-9-]{1,39}$/.test(slug)) fail(filename,"nom de fichier dangereux");
+      const entry=JSON.parse(fs.readFileSync(path.join(dataDir,filename),"utf8"));
+      if (mode==="production" && containsExample(entry))
+        fail(filename,"EXEMPLE — NON VÉRIFIÉ : fiche exclue de la production");
+      validateEntry(entry,slug,{mode:mode==="check"?"preview":mode,today});
+      entries.push({slug,entry});
+    } catch(error) {
+      if (mode!=="production") fail(filename,error.message);
+      const reason=error.message;
+      excluded.push({filename,reason});
+      logger.warn("[visas] Fiche exclue de la production : "+filename+" — "+reason);
+    }
+  }
+  // CI validates the complete set and never writes generated HTML.
+  if (mode==="check") return {mode,files:files.length,html:0,published:entries.length,excluded,date:today};
+
   const destDir=path.join(root,"visas");
-  // All validation happens before any file is written: no partial release.
+  fs.mkdirSync(destDir,{recursive:true});
+  const outputSlugs=new Set(entries.map(({slug})=>slug));
+  // A production build may reuse a workspace that previously rendered a
+  // preview. Never leave a stale HTML file for an excluded destination.
+  // Also clean old generated destinations if their JSON source was removed.
+  if (mode==="production") {
+    for (const item of fs.readdirSync(destDir,{withFileTypes:true})) {
+      if (!item.isDirectory() || !/^[a-z][a-z0-9-]{1,39}$/.test(item.name) ||
+          item.name==="data" || outputSlugs.has(item.name)) continue;
+      const dest=path.join(destDir,item.name),file=path.join(dest,"index.html");
+      if(!fs.existsSync(file)) continue;
+      const owned=files.includes(item.name+".json") ||
+        fs.readFileSync(file,"utf8").includes("BEAM_VISAS_GENERATED");
+      if(!owned) continue; // Do not delete unrelated manually maintained pages.
+      fs.rmSync(file);
+      try { fs.rmdirSync(dest); } catch(error) {
+        if(error.code!=="ENOTEMPTY") throw error;
+      }
+    }
+  }
   fs.writeFileSync(path.join(destDir,"index.html"),renderHome(entries,today),"utf8");
   for(const {slug,entry} of entries){
     const output=path.join(destDir,slug);
     fs.mkdirSync(output,{recursive:true});
     fs.writeFileSync(path.join(output,"index.html"),renderDestination(entry,slug,today),"utf8");
   }
-  return {mode,files:files.length,html:entries.length+1,date:today};
+  logger.log("[visas] "+mode+" : "+entries.length+" fiche(s) publiée(s), "+
+    excluded.length+" exclue(s).");
+  if (mode==="production" && excluded.length)
+    logger.log("[visas] Exclusions : "+excluded.map(item=>item.filename).join(", "));
+  return {mode,files:files.length,html:entries.length+1,published:entries.length,excluded,date:today};
 }
 if(require.main===module) {
   try {
     const mode=modeFor();
     const result=buildSite({mode});
-    console.log("BEAM visas: "+result.html+" pages statiques, "+result.files+" fiches, mode "+result.mode);
+    console.log("BEAM visas : "+result.files+" fichier(s) examiné(s), "+
+      result.published+" publié(s), "+result.excluded.length+" exclu(s) ; mode "+result.mode);
   }catch(error){console.error("Échec du guide des visas : "+error.message);process.exitCode=1;}
 }
-module.exports={MARKER,DISCLAIMER,parseDate,https,isStale,needsReview,modeFor,validateEntry,renderDestination,renderHome,buildSite,esc,todayUTC};
+module.exports={MARKER,DISCLAIMER,parseDate,https,isStale,needsReview,modeFor,containsExample,validateEntry,renderDestination,renderHome,buildSite,esc,todayUTC};
