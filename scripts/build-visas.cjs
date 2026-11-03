@@ -65,7 +65,7 @@ function modeFor(args = process.argv.slice(2), env = process.env) {
 function containsExample(entry) {
   return isRecord(entry) &&
     (entry.statut === "exemple" ||
-      JSON.stringify(entry).normalize("NFD").toUpperCase().includes("EXEMPLE"));
+      JSON.stringify(entry).includes(MARKER));
 }
 function validateEntry(entry, slug, {mode = "preview", today = todayUTC()} = {}) {
   const at = "visas/data/" + slug + ".json";
@@ -198,7 +198,7 @@ function renderType(visa, demo, index) {
     "</div>",
     '<section class="detail-card"><h3>Documents à préparer</h3><ul class="document-list">' + li + "</ul></section>",
     '<section class="sources"><h3>Sources officielles à consulter</h3><ul>' + urls + "</ul>",
-    '<p class="muted">BEAM doit vérifier manuellement la pertinence et la compétence de chaque source.</p></section>',
+    '</section>',
     "</section>"
   ].join("\n");
 }
@@ -278,10 +278,11 @@ function buildSite({root=path.resolve(__dirname,".."),mode="preview",today=today
   try {
     files=fs.readdirSync(dataDir).filter(n=>n.endsWith(".json")).sort();
   } catch(error) {
-    if (mode==="production" && error.code==="ENOENT") files=[];
+    if (error.code==="ENOENT") files=[];
     else throw error;
   }
-  if (!files.length && mode!=="production") fail("visas/data","aucune fiche JSON");
+  // No published data is a valid state: always render "Guide en préparation".
+  // Strict CI still rejects every invalid JSON that is present.
 
   const entries=[],excluded=[];
   for (const filename of files) {
@@ -326,6 +327,12 @@ function buildSite({root=path.resolve(__dirname,".."),mode="preview",today=today
     }
   }
   fs.writeFileSync(path.join(destDir,"index.html"),renderHome(entries,today),"utf8");
+  fs.writeFileSync(path.join(destDir,"404.html"),shell({
+    title:"Page introuvable | BEAM Visas",
+    description:"Cette ressource n’est pas disponible sur le Guide des visas de BEAM.",
+    body:'<section class="intro"><h1>Page introuvable</h1><p>Cette ressource n’est pas disponible.</p><p><a href="/visas/">Retour au Guide des visas</a></p></section>',
+    demo:true
+  }),"utf8");
   for(const {slug,entry} of entries){
     const output=path.join(destDir,slug);
     fs.mkdirSync(output,{recursive:true});

@@ -6,7 +6,7 @@ Ce répertoire produit des **pages HTML publiques indépendantes**, sans compte,
 
 - Accueil : `/visas/`
 - Fiche d'une destination : `/visas/france/` (exemple uniquement)
-- Les fichiers `visas/data/<pays>.json` sont la source de vérité.
+- Les fichiers `visas/data/<pays>.json` sont la source de vérité. Les fichiers JSON et ce README sont protégés de l'accès HTTP par des règles Netlify 404 forcées. N'y placez jamais de données personnelles ou de secrets.
 - Le script `scripts/build-visas.cjs` produit `visas/index.html` et `visas/<pays>/index.html` à chaque build.
 - `node scripts/build-visas.cjs --preview` construit localement une version **non indexable** avec le bandeau **EXEMPLE — NON VÉRIFIÉ**.
 - `node scripts/build-visas.cjs --check` valide **strictement toutes les fiches** pour la CI : tout champ invalide, date future, JSON malformé ou URL non HTTPS fait échouer la PR. L'exemple clairement marqué `statut: "exemple"` reste autorisé pour les prévisualisations et pour les tests de structure.
@@ -42,7 +42,7 @@ Le JSON contient `destination`, `drapeau`, `statut`, `verifie_le`, `types_visa[]
 - `frais` et `delai_indicatif` (`texte`, `verifie_le`) ;
 - `sources[]` (au moins un `libelle` et une `url` en HTTPS).
 
-En **CI stricte**, le modèle refuse les champs inconnus et manquants, les dates impossibles/futures, les mauvaises URLs et les mentions résiduelles `EXEMPLE` dans une fiche marquée `publie`. Les exemples déclarés sont autorisés pour l'aperçu, mais **jamais publiés en production**. En production, même un JSON invalide est écarté avec un avertissement dans le journal, sans bloquer les autres pages du site. Le modèle ne vérifie **pas** automatiquement les textes des documents, les montants, les délais ni le caractère officiel d'un domaine HTTPS : BEAM en demeure responsable.
+En **CI stricte**, le modèle refuse les champs inconnus et manquants, les dates impossibles/futures, les mauvaises URLs et le seul marqueur exact `EXEMPLE — NON VÉRIFIÉ` dans une fiche marquée `publie`. La formule courante « par exemple » est autorisée. Les exemples déclarés sont autorisés pour l'aperçu, mais **jamais publiés en production**. En production, même un JSON invalide est écarté avec un avertissement dans le journal, sans bloquer les autres pages du site. Le modèle ne vérifie **pas** automatiquement les textes des documents, les montants, les délais ni le caractère officiel d'un domaine HTTPS : BEAM en demeure responsable.
 
 ### Fraîcheur des informations
 
@@ -55,6 +55,8 @@ En **CI stricte**, le modèle refuse les champs inconnus et manquants, les dates
 Le `netlify.toml` existant conserve le build de `travel/config.js`, puis exécute `node scripts/build-visas.cjs`. Les aperçus construisent la fiche d'exemple ; **en production celle-ci est exclue, le guide affiche « Guide en préparation » et le build réussit**. Une fiche malformée ne peut pas empêcher un déploiement de `beamguinee.com` ou de BTH ; **la CI de la PR la refuse**, afin de préserver la qualité éditoriale. Le générateur supprime les anciennes pages HTML de destinations devenues exclues ou supprimées lorsqu'elles lui appartiennent. Aucun sitemap visas n'est généré actuellement ; une éventuelle génération future doit reprendre uniquement les fiches incluses. Le dossier `/travel/`, ses données, le schéma Supabase et les Edge Functions ne sont pas modifiés.
 
 Le service worker BTH est limité à `/travel/` et ne met **aucune** page `/visas/` en cache. Les liens externes ne chargent aucune ressource au moment de l'affichage : ce sont seulement des liens cliquables. Le bouton BEAM ouvre WhatsApp avec un texte prérempli, sans transmettre d'information avant le clic.
+
+**Consigne interne, non affichée au public :** BEAM doit vérifier manuellement la pertinence et la compétence de chaque source. L'adresse HTTPS seule n'en prouve pas la validité.
 
 Avertissement affiché sur toutes les pages :
 > Informations indicatives, vérifiées à la date indiquée. Seule l'ambassade décide. BEAM n'est pas affilié aux ambassades ni aux centres de dépôt.
