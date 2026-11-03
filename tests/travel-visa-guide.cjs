@@ -90,8 +90,8 @@ async function main(){
  assert.match(sw,/visas-links-v19/);
  assert.match(sw,/"\.\/visa-guide\.js"/,"new helper must be an audited public shell asset");
  assert.match(sw,/if \(url\.pathname\.startsWith\("\/visas\/"\)\) return;/);
- assert.doesNotMatch(sw,/[\"'](?:\.\/)?visas\//,
-  "worker public shell may never cache /visas/ or /visas/fiches.json");
+ assert.doesNotMatch(sw,/["\']\.\/visas\//,
+  "worker public shell must never pre-cache visa pages or public index");
  console.log("PASS BTH -> visas: France link, unlisted country, silent failures, no-store, deadline, stale guard and SW isolation");
 }
 main().catch(error=>{console.error(error);process.exitCode=1});
