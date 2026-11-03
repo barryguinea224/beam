@@ -27,9 +27,31 @@ La validation contrôle la syntaxe HTTPS, **pas** la légitimité ou la compéte
 
 ## Structure complète d'une fiche
 
-Une fiche comprend `destination`, `code_pays` (ISO 3166-1 alpha-2, deux lettres majuscules validées dans le référentiel BTH), `drapeau`, `statut`, `verifie_le` et `types_visa[]`. Chaque type comprend `type`, `autorite_competente` (`nom`, `ville`, `pays`), `lieu_depot`, `conditions_demandeur` (`public_cible`, `autres_cas`), `documents[]` (`libelle`, `statut`, `note`), `frais` et `delai_indicatif` (`texte`, `verifie_le`), ainsi que `sources[]` (`libelle`, `url` HTTPS).
+Une fiche comprend `destination`, `code_pays` (ISO 3166-1 alpha-2, deux lettres majuscules validées dans le référentiel BTH), `drapeau`, `statut`, `verifie_le` et `types_visa[]`. Chaque type comprend `type`, `autorite_competente` (`nom`, `ville`, `pays`), `lieu_depot`, `conditions_demandeur` (`public_cible`, `autres_cas`), `documents[]` (`libelle`, `statut`, `note`, `groupe` facultatif), `frais` et `delai_indicatif` (`texte`, `verifie_le`), ainsi que `sources[]` (`libelle`, `url` HTTPS).
 
 Les documents ont le statut `obligatoire` ou `selon_le_cas`. La règle actuelle exige `conditions_demandeur.autres_cas = "Consultez l’ambassade."`. Les dates `verifie_le` doivent être valides et non futures. Le marqueur exact `EXEMPLE — NON VÉRIFIÉ` est interdit dans une fiche publiée, mais le mot français « exemple » reste autorisé dans un texte normal.
+
+## Présentation simplifiée des fiches (sans toucher au contenu)
+
+La page de chaque destination place le titre `Visa [destination]` en tête, suivi d'un grand bouton **« On s'occupe de tout pour vous — WhatsApp »** (numéro BEAM existant, message prérempli avec la destination). Une courte mention « Informations indicatives · BEAM n'est pas affilié aux ambassades » reste visible en haut. Les avertissements importants de fiche d'exemple et de données âgées de plus de 90 jours restent visibles.
+
+La section **« Documents à fournir »** est une liste visuelle avec ✓ non interactifs. Les documents conservent exactement le texte de leur champ `libelle`, sans `note` ni `statut` affiché dans la liste principale. Le champ `groupe` est **facultatif** sur chaque objet `documents[]`, strictement limité aux valeurs suivantes (ordre d'affichage fixe) :
+
+| Valeur `groupe` | Titre public |
+| --- | --- |
+| `base` | Documents de base |
+| `salaries` | Pour les salariés |
+| `commercants` | Pour les commerçants et professions libérales |
+| `but` | Selon le but du voyage |
+| `autres` | Documents complémentaires |
+
+Si `groupe` est absent, le document va dans **`base`** ; aucun autre champ ne change et aucun statut n'est déduit du groupe. Les groupes vides ne sont pas affichés. BEAM peut réécrire ses propres libellés, mais le gabarit **ne supprime, n'invente et ne reformule aucun document**. `statut` et `note` restent des champs obligatoires.
+
+Chaque type de visa affiche ensuite **« En bref »** sur exactement trois rubriques : lieu de dépôt (nom et lien officiel de rendez-vous ou de portail en ligne), frais et délai indicatif. Les textes de `lieu_depot.nom`, `frais.texte` et `delai_indicatif.texte` sont reproduits intégralement, même s'ils sont encore longs ; seul BEAM raccourcira les données. Le lien physique conserve « Ouvrir le lien officiel de rendez-vous » et la catégorie `en_ligne` conserve « Ouvrir le portail officiel ».
+
+Un lien statique **« Partager cette liste sur WhatsApp »** utilise `https://wa.me/?text=` avec le titre et l'URL publique `https://beamguinee.com/visas/<slug>/` ; ni JavaScript, ni donnée personnelle, ni adresse de client.
+
+En bas, un seul bloc HTML `<details>` **fermé par défaut**, intitulé « Plus de détails », contient l'autorité compétente, l'adresse et les conditions, la liste des notes et statuts document par document, les sources, les dates et l'avertissement complet habituel. Le guide n'affirme aucune garantie de visa ou affiliation consulaire. La page d'accueil garde son avertissement habituel.
 
 **Fraîcheur :** dès qu'une date de vérification de fiche, de frais ou de délai a plus de 90 jours au moment du build, le site affiche « Informations à revérifier ». Sur un site statique, ce bandeau ne change pas tout seul sans nouvelle construction.
 

@@ -15,14 +15,22 @@ const ISO_COUNTRIES = require("../travel/countries.js");
 const MARKER = "EXEMPLE — NON VÉRIFIÉ";
 const DISCLAIMER = "Informations indicatives, vérifiées à la date indiquée. Seule l'ambassade décide. BEAM n'est pas affilié aux ambassades ni aux centres de dépôt.";
 const ALLOWED_STATUSES = ["obligatoire", "selon_le_cas"];
+// This list controls presentation only: no document requirement is inferred.
+const DOCUMENT_GROUPS = Object.freeze({
+  base:"Documents de base",
+  salaries:"Pour les salariés",
+  commercants:"Pour les commerçants et professions libérales",
+  but:"Selon le but du voyage",
+  autres:"Documents complémentaires"
+});
 const DAY_MS = 86400000;
 
 function fail(where, message) { throw new Error(where + " : " + message); }
 function isRecord(value) { return value !== null && typeof value === "object" && !Array.isArray(value); }
-function shape(value, where, names) {
+function shape(value, where, names, optional = []) {
   if (!isRecord(value)) fail(where, "objet obligatoire");
   for (const name of names) if (!Object.hasOwn(value, name)) fail(where + "." + name, "champ obligatoire manquant");
-  for (const name of Object.keys(value)) if (!names.includes(name)) fail(where + "." + name, "champ inconnu");
+  for (const name of Object.keys(value)) if (![...names,...optional].includes(name)) fail(where + "." + name, "champ inconnu");
 }
 function requiredText(value, where) {
   if (typeof value !== "string" || !value.trim() || value.trim() !== value)
@@ -107,10 +115,12 @@ function validateEntry(entry, slug, {mode = "preview", today = todayUTC()} = {})
     if (!Array.isArray(visa.documents) || visa.documents.length < 1) fail(where + ".documents", "au moins un document obligatoire");
     for (const [j, document] of visa.documents.entries()) {
       const dw = where + ".documents[" + j + "]";
-      shape(document, dw, ["libelle", "statut", "note"]);
+      shape(document, dw, ["libelle", "statut", "note"], ["groupe"]);
       requiredText(document.libelle, dw + ".libelle");
       if (!ALLOWED_STATUSES.includes(document.statut)) fail(dw + ".statut", "obligatoire ou selon_le_cas attendu");
       requiredText(document.note, dw + ".note");
+      if (Object.hasOwn(document,"groupe") && !Object.hasOwn(DOCUMENT_GROUPS,document.groupe))
+        fail(dw + ".groupe", "groupe invalide : base, salaries, commercants, but ou autres");
     }
     for (const k of ["frais", "delai_indicatif"]) {
       shape(visa[k], where + "." + k, ["texte", "verifie_le"]);
@@ -142,7 +152,7 @@ function niceDate(date) {
 function dateNote(date, demo) {
   return demo ? "Date technique d’exemple — NON VÉRIFIÉ" : "Vérifié le " + niceDate(date);
 }
-function shell({title,description,body,demo}) {
+function shell({title,description,body,demo,footerDisclaimer=true}) {
   return [
     "<!doctype html>",
     "<!-- BEAM_VISAS_GENERATED: do not edit the HTML, edit visas/data/*.json -->",
@@ -161,7 +171,8 @@ function shell({title,description,body,demo}) {
     '<span class="not-official">Guide indépendant · Non officiel</span>',
     "</div></header>",
     '<main class="wrap" id="contenu">' + body + "</main>",
-    '<footer class="site-footer"><div class="wrap"><p>' + e(DISCLAIMER) + '</p>',
+    '<footer class="site-footer"><div class="wrap">',
+    footerDisclaimer ? '<p>' + e(DISCLAIMER) + '</p>' : "",
     '<p>BEAM · Guide public indépendant depuis Conakry.</p></div></footer>',
     "</body></html>"
   ].join("\n") + "\n";
@@ -174,65 +185,101 @@ function demoBanner() {
   return '<aside class="notice notice-demo" role="status"><strong>EXEMPLE — NON VÉRIFIÉ</strong><p>Cette fiche sert uniquement à illustrer la structure. Elle ne fournit aucune exigence, adresse, frais ou délai vérifié. Ne préparez pas une demande à partir de cet exemple.</p></aside>';
 }
 function renderType(visa, demo, index) {
-  const li = visa.documents.map(d => '<li class="doc"><div class="doc-title">' + e(d.libelle) +
-    ' <span class="chip">' + e(docLabel(d.statut)) + '</span></div><p>' + e(d.note) + '</p></li>').join("\n");
-  const urls = visa.sources.map(s => "<li>" + link(s.url,s.libelle) + "</li>").join("\n");
-  const place = visa.lieu_depot;
-  const linkLabel = place.categorie === "en_ligne"
+  // A simple visual checklist. Grouping is editorial and optional; no
+  // statuses or notes are mixed into the short public document labels.
+  const groups = Object.keys(DOCUMENT_GROUPS).map(key => {
+    const docs=visa.documents.filter(doc => (doc.groupe || "base")===key);
+    if (!docs.length) return "";
+    const items=docs.map(doc=>
+      '<li class="doc"><span class="doc-check" aria-hidden="true">✓</span><span class="doc-label">' +
+      e(doc.libelle) + '</span></li>').join("\n");
+    return '<section class="document-group" aria-labelledby="visa-' + index + '-group-' + key + '">' +
+      '<h4 id="visa-' + index + '-group-' + key + '">' + e(DOCUMENT_GROUPS[key]) + '</h4>' +
+      '<ul class="document-list">' + items + '</ul></section>';
+  }).join("\n");
+  const place=visa.lieu_depot;
+  const linkLabel=place.categorie==="en_ligne"
     ? "Ouvrir le portail officiel" : "Ouvrir le lien officiel de rendez-vous";
-  const reservation = place.rendez_vous_url === null
-    ? '<p class="muted">Prise de rendez-vous : lien non renseigné pour cet exemple.</p>'
-    : "<p>" + link(place.rendez_vous_url,linkLabel) + "</p>";
-  const placeType = {"ambassade":"Ambassade", "centre_externe":"Centre externe",
-    "en_ligne":"Démarche en ligne", "a_confirmer":"À confirmer"}[place.categorie];
+  const reservation=place.rendez_vous_url===null
+    ? '<span class="muted">Lien non renseigné pour cet exemple.</span>'
+    : link(place.rendez_vous_url,linkLabel);
+  const placeType={"ambassade":"Ambassade","centre_externe":"Centre externe",
+    "en_ligne":"Démarche en ligne","a_confirmer":"À confirmer"}[place.categorie];
   return [
     '<section class="visa-type" aria-labelledby="visa-' + index + '">',
-    '<h2 id="visa-' + index + '">' + e(visa.type) + "</h2>",
-    '<div class="two-col">',
-    '<section class="detail-card"><h3>Autorité compétente</h3>',
-    "<p><strong>" + e(visa.autorite_competente.nom) + "</strong></p>",
-    "<p>" + e(visa.autorite_competente.ville) + " · " + e(visa.autorite_competente.pays) + "</p></section>",
-    '<section class="detail-card"><h3>Lieu de dépôt</h3>',
-    '<p><span class="chip">' + e(placeType) + "</span> " + e(place.nom) + "</p>",
-    "<p>" + e(place.adresse) + "</p>",reservation,"</section>",
-    '<section class="detail-card"><h3>Conditions du demandeur</h3>',
-    "<p>" + e(visa.conditions_demandeur.public_cible) + "</p>",
-    '<p><strong>Autres situations :</strong> ' + e(visa.conditions_demandeur.autres_cas) + "</p></section>",
-    '<section class="detail-card"><h3>Frais et délais indicatifs</h3>',
-    "<p><strong>Frais :</strong> " + e(visa.frais.texte) + "</p>",
-    '<p class="date-note">' + e(dateNote(visa.frais.verifie_le,demo)) + "</p>",
-    "<p><strong>Délai :</strong> " + e(visa.delai_indicatif.texte) + "</p>",
-    '<p class="date-note">' + e(dateNote(visa.delai_indicatif.verifie_le,demo)) + "</p></section>",
-    "</div>",
-    '<section class="detail-card"><h3>Documents à préparer</h3><ul class="document-list">' + li + "</ul></section>",
-    '<section class="sources"><h3>Sources officielles à consulter</h3><ul>' + urls + "</ul>",
+    '<h2 id="visa-' + index + '">' + e(visa.type) + '</h2>',
+    '<section class="documents-card" aria-labelledby="documents-' + index + '">',
+    '<h3 id="documents-' + index + '">Documents à fournir</h3>',
+    groups,
     '</section>',
-    "</section>"
+    '<section class="summary-card" aria-labelledby="summary-' + index + '">',
+    '<h3 id="summary-' + index + '">En bref</h3>',
+    '<dl class="brief-list">',
+    '<div class="brief-row"><dt>Lieu de dépôt</dt><dd><span class="chip">' + e(placeType) +
+      '</span> ' + e(place.nom) + '<span class="brief-link">' + reservation + '</span></dd></div>',
+    '<div class="brief-row"><dt>Frais</dt><dd>' + e(visa.frais.texte) + '</dd></div>',
+    '<div class="brief-row"><dt>Délai</dt><dd>' + e(visa.delai_indicatif.texte) + '</dd></div>',
+    '</dl></section>',
+    '</section>'
+  ].join("\n");
+}
+function renderTypeDetails(visa,demo,index) {
+  const place=visa.lieu_depot;
+  const notes=visa.documents.map(doc =>
+    '<li><strong>' + e(doc.libelle) + '</strong> <span class="chip">' +
+    e(docLabel(doc.statut)) + '</span><p>' + e(doc.note) + '</p></li>').join("\n");
+  const urls=visa.sources.map(source=>
+    '<li>' + link(source.url,source.libelle) + '</li>').join("\n");
+  return [
+    '<section class="visa-extra" aria-labelledby="visa-extra-' + index + '">',
+    '<h3 id="visa-extra-' + index + '">' + e(visa.type) + '</h3>',
+    '<h4>Autorité compétente</h4>',
+    '<p>' + e(visa.autorite_competente.nom) + '</p>',
+    '<p>' + e(visa.autorite_competente.ville) + ' · ' + e(visa.autorite_competente.pays) + '</p>',
+    '<h4>Lieu de dépôt : précisions</h4>',
+    '<p>' + e(place.adresse) + '</p>',
+    '<h4>Conditions du demandeur</h4>',
+    '<p>' + e(visa.conditions_demandeur.public_cible) + '</p>',
+    '<p><strong>Autres situations :</strong> ' + e(visa.conditions_demandeur.autres_cas) + '</p>',
+    '<h4>Notes et statut des documents</h4>',
+    '<ul class="document-notes">' + notes + '</ul>',
+    '<h4>Sources officielles</h4>',
+    '<ul class="sources-list">' + urls + '</ul>',
+    '<h4>Dates de vérification</h4>',
+    '<p>Frais : ' + e(dateNote(visa.frais.verifie_le,demo)) + '</p>',
+    '<p>Délai : ' + e(dateNote(visa.delai_indicatif.verifie_le,demo)) + '</p>',
+    '</section>'
   ].join("\n");
 }
 function renderDestination(entry, slug, today) {
-  const demo = entry.statut === "exemple";
-  const whatsapp = "https://wa.me/224622095630?text=" +
+  const demo=entry.statut==="exemple";
+  const whatsapp="https://wa.me/224622095630?text=" +
     encodeURIComponent("Bonjour BEAM, je souhaite être accompagné pour une demande de visa vers " + entry.destination + ".");
-  const body = [
-    '<nav class="breadcrumb" aria-label="Fil d’Ariane"><a href="/visas/">Guide des visas</a><span aria-hidden="true"> / </span><span>' + e(entry.destination) + "</span></nav>",
-    '<section class="intro"><div class="eyebrow">Depuis Conakry · Guide indépendant</div>',
-    '<h1><span class="flag" aria-hidden="true">' + e(entry.drapeau) + "</span> Visa : " + e(entry.destination) + "</h1>",
-    '<p class="lead">Informations générales destinées à préparer vos vérifications auprès des autorités compétentes.</p>',
-    '<p class="date-note">' + e(dateNote(entry.verifie_le,demo)) + "</p></section>",
+  // Public canonical URL only: never include browser state or visitor data.
+  const share="https://wa.me/?text=" +
+    encodeURIComponent("Visa " + entry.destination + " — Documents à fournir : https://beamguinee.com/visas/" + slug + "/");
+  const body=[
+    '<nav class="breadcrumb" aria-label="Fil d’Ariane"><a href="/visas/">Guide des visas</a><span aria-hidden="true"> / </span><span>' + e(entry.destination) + '</span></nav>',
+    '<section class="intro visa-intro">',
+    '<h1><span class="flag" aria-hidden="true">' + e(entry.drapeau) + '</span> Visa ' + e(entry.destination) + '</h1>',
+    '<div class="hero-cta">' + link(whatsapp,"On s'occupe de tout pour vous — WhatsApp",' class="button primary"') + '</div>',
+    '<p class="notice-law notice-short">Informations indicatives · BEAM n&#39;est pas affilié aux ambassades</p>',
+    '</section>',
     demo ? demoBanner() : "",
     staleBanner(entry,today),
-    '<aside class="notice notice-law"><strong>À lire avant toute démarche</strong><p>' + e(DISCLAIMER) + "</p></aside>",
-    entry.types_visa.map((type,i)=>renderType(type,demo,i)).join("\n"),
-    '<section class="next"><h2>Besoin d’aide pour préparer votre dossier ?</h2>',
-    '<p>BEAM peut vous accompagner dans l’organisation de vos démarches, sans pouvoir garantir une décision consulaire.</p>',
-    '<div class="actions">' + link(whatsapp,"Être accompagné par BEAM",' class="button primary"') +
-    '<a class="button secondary" href="/travel/">Conservez votre historique de voyages avec BTH</a></div></section>'
+    entry.types_visa.map((visa,index)=>renderType(visa,demo,index)).join("\n"),
+    '<div class="share-area">' + link(share,"Partager cette liste sur WhatsApp",' class="button secondary share-button"') + '</div>',
+    '<p class="related-travel"><a href="/travel/">Conservez votre historique de voyages avec BTH</a></p>',
+    '<details class="visa-more"><summary>Plus de détails</summary><div class="visa-more-body">',
+    '<p class="date-note">' + e(dateNote(entry.verifie_le,demo)) + '</p>',
+    entry.types_visa.map((visa,index)=>renderTypeDetails(visa,demo,index)).join("\n"),
+    '<p class="full-disclaimer">' + e(DISCLAIMER) + '</p>',
+    '</div></details>'
   ].join("\n");
   return shell({
     title:"Visa " + entry.destination + " depuis Conakry | Guide BEAM",
     description:"Guide indépendant BEAM : " + entry.destination + ". Informations indicatives, sources officielles et dates de vérification.",
-    body,demo
+    body,demo,footerDisclaimer:false
   });
 }
 function renderHome(entries,today) {

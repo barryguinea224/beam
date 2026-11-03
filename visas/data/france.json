@@ -14,7 +14,7 @@
       },
       "lieu_depot": {
         "categorie": "centre_externe",
-        "nom": "Capago Guinée (prestataire mandaté par l’Ambassade, qui reçoit les dossiers mais ne décide pas)",
+        "nom": "Capago Guinée (reçoit les dossiers, l’ambassade décide)",
         "adresse": "Immeuble ZEIN, 6e étage, Kaloum, Conakry",
         "rendez_vous_url": "https://visa-fr-gn.capago.eu/splash"
       },
@@ -25,91 +25,107 @@
       "documents": [
         {
           "libelle": "Formulaire de demande dûment rempli (France-Visas), imprimé et signé",
+          "groupe": "base",
           "statut": "obligatoire",
           "note": "La liste générée par France-Visas selon votre profil fait foi."
         },
         {
           "libelle": "Photo d’identité récente aux normes biométriques",
+          "groupe": "base",
           "statut": "obligatoire",
           "note": "Désormais prise directement au centre Capago lors du rendez-vous."
         },
         {
           "libelle": "Passeport en cours de validité",
+          "groupe": "base",
           "statut": "obligatoire",
           "note": "Au moins 3 mois de validité après l’expiration du visa demandé ; délivré depuis moins de 10 ans, avec au moins 2 pages vierges."
         },
         {
           "libelle": "Photocopie du passeport",
+          "groupe": "base",
           "statut": "obligatoire",
           "note": "Toutes les pages qui portent des données, des visas ou des cachets."
         },
         {
           "libelle": "Assurance voyage couvrant tout le séjour dans l’espace Schengen",
+          "groupe": "base",
           "statut": "obligatoire",
           "note": "Couverture minimale de 30 000 €, rapatriement compris."
         },
         {
           "libelle": "Acte de naissance",
+          "groupe": "base",
           "statut": "obligatoire",
           "note": "Original ou copie, selon les instructions du centre."
         },
         {
           "libelle": "Acte de mariage",
+          "groupe": "base",
           "statut": "selon_le_cas",
           "note": "Si vous êtes marié(e)."
         },
         {
           "libelle": "Carte d’identité biométrique",
+          "groupe": "base",
           "statut": "selon_le_cas",
           "note": "Si vous en avez une."
         },
         {
-          "libelle": "Professions libérales et commerçants : relevés bancaires des 3 derniers mois",
+          "libelle": "Relevés bancaires des 3 derniers mois",
+          "groupe": "commercants",
           "statut": "selon_le_cas",
           "note": "En plus des documents de base."
         },
         {
-          "libelle": "Professions libérales et commerçants : justificatifs de l’activité",
+          "libelle": "Justificatifs de l’activité",
+          "groupe": "commercants",
           "statut": "selon_le_cas",
           "note": "Déclaration d’existence, registre du commerce, attestation fiscale en cours de validité, carte de commerçant, connaissements, factures, contrats…"
         },
         {
-          "libelle": "Salariés : relevés bancaires des 3 derniers mois",
+          "libelle": "Relevés bancaires des 3 derniers mois",
+          "groupe": "salaries",
           "statut": "selon_le_cas",
           "note": "En plus des documents de base."
         },
         {
-          "libelle": "Salariés : derniers bulletins de salaire",
+          "libelle": "Derniers bulletins de salaire",
+          "groupe": "salaries",
           "statut": "selon_le_cas",
           "note": "Les plus récents."
         },
         {
-          "libelle": "Salariés : copie du contrat de travail et certificat de travail",
+          "libelle": "Copie du contrat de travail et certificat de travail",
+          "groupe": "salaries",
           "statut": "selon_le_cas",
           "note": "Documents à jour, signés par l’employeur."
         },
         {
-          "libelle": "Salariés : attestation de congé",
+          "libelle": "Attestation de congé",
+          "groupe": "salaries",
           "statut": "selon_le_cas",
           "note": "Signée par l’employeur, ou ordre de mission pour un voyage professionnel."
         },
         {
-          "libelle": "Visite familiale ou chez des amis : attestation d’accueil originale",
+          "libelle": "Attestation d’accueil originale",
+          "groupe": "but",
           "statut": "selon_le_cas",
           "note": "Délivrée par la mairie de la personne qui vous héberge en France."
         },
         {
-          "libelle": "Tourisme : réservation d’hôtel confirmée",
+          "libelle": "Réservation d’hôtel confirmée",
+          "groupe": "but",
           "statut": "selon_le_cas",
           "note": "Couvrant toute la durée du séjour."
         }
       ],
       "frais": {
-        "texte": "Droits de visa Schengen : 90 € par adulte, 45 € de 6 à moins de 12 ans, gratuit avant 6 ans (payés en francs guinéens au taux appliqué). S’y ajoutent les frais de service Capago, à payer d’avance pour que le rendez-vous soit pris en compte.",
+        "texte": "90 € par adulte, 45 € de 6 à 12 ans, gratuit avant 6 ans, plus les frais Capago payés d’avance.",
         "verifie_le": "2026-11-03"
       },
       "delai_indicatif": {
-        "texte": "En règle générale, décision sous 15 jours calendaires après le dépôt, pouvant aller jusqu’à 45 jours dans certains cas (règle Schengen). Déposez au moins 3 à 4 semaines avant le départ, et au plus tôt 6 mois avant.",
+        "texte": "15 jours en général (jusqu’à 45). Déposez 3 à 4 semaines avant le départ.",
         "verifie_le": "2026-11-03"
       },
       "sources": [
