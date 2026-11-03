@@ -13,12 +13,12 @@
       },
       "lieu_depot": {
         "categorie": "centre_externe",
-        "nom": "Centre de réception des demandes de visa (CRDV) du Canada, au compte de l’OIM (Organisation internationale pour les migrations) — pour les données biométriques, après la demande en ligne",
+        "nom": "Centre de réception des demandes de visa (CRDV) du Canada, au compte de l’OIM (Organisation internationale pour les migrations) — pour les données biométriques, après la demande en ligne. Vous pouvez aussi donner vos données biométriques dans un CRDV de tout pays où vous êtes en situation légale.",
         "adresse": "Locaux de l’OIM, Conakry, Guinée",
         "rendez_vous_url": "https://visa.vfsglobal.com/gin/fr/can"
       },
       "conditions_demandeur": {
-        "public_cible": "Ressortissant guinéen résidant en Guinée, pour une visite temporaire (tourisme ou visite familiale).",
+        "public_cible": "Ressortissant guinéen, pour une visite temporaire (tourisme ou visite familiale), qui donne ses données biométriques en Guinée ou dans un pays où il est en situation légale.",
         "autres_cas": "Consultez l’ambassade."
       },
       "documents": [
