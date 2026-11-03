@@ -1,5 +1,6 @@
 {
   "destination": "France",
+  "code_pays": "FR",
   "drapeau": "🇫🇷",
   "statut": "exemple",
   "verifie_le": "2000-01-01",

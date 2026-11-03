@@ -1,13 +1,13 @@
 // BEAM Travel History PWA — PRIVATE BY DEFAULT.
 // Cache only the audited, versioned public shell. No runtime cache writes.
 // Never cache Supabase, signed links, personal trips, photos or API responses.
-const CACHE_NAME = "beam-travel-shell-v1-20261102-traveler-title-v18";
+const CACHE_NAME = "beam-travel-shell-v1-20261103-visas-links-v19";
 const SCOPE_PATH = "/travel/";
 const PUBLIC_SHELL = [
   "./index.html", "./config.js", "./offline-bootstrap.js", "./pwa.js",
   // Public legal documents: never any account/session data.
   "./confidentialite.html", "./conditions.html", "./legal.css",
-  "./access.js", "./avatar.js", "./photo-utils.js", "./photo-upload.js", "./trip-detail.js",
+  "./access.js", "./avatar.js", "./photo-utils.js", "./photo-upload.js", "./trip-detail.js", "./visa-guide.js",
   "./countries.js", "./country-picker.js", "./factual-pdf.js", "./factual-pdf-file.js",
   "./journal-stats.js", "./dashboard-filters.js", "./dashboard-filters.css", "./printable-journal.js", "./family-booklet.js",
   "./visual-cards.js", "./visual-cards.css",
@@ -68,6 +68,8 @@ self.addEventListener("fetch", event => {
   // Absolutely no fetch interception for Supabase URLs, cross-origin CDN,
   // private photos, signed URL query strings, POST, or unknown files.
   const url = new URL(request.url);
+  // Public visa pages and /visas/fiches.json must bypass this worker entirely.
+  if (url.pathname.startsWith("/visas/")) return;
   const isBareHome = request.method === "GET" &&
     url.origin === self.location.origin && url.pathname === SCOPE_PATH &&
     url.search === "" && url.hash === "";

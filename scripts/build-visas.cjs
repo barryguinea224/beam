@@ -9,6 +9,8 @@
  */
 const fs = require("node:fs");
 const path = require("node:path");
+// Reuse BTH’s local ISO 3166-1 alpha-2 catalogue (249 real country/territory codes).
+const ISO_COUNTRIES = require("../travel/countries.js");
 
 const MARKER = "EXEMPLE — NON VÉRIFIÉ";
 const DISCLAIMER = "Informations indicatives, vérifiées à la date indiquée. Seule l'ambassade décide. BEAM n'est pas affilié aux ambassades ni aux centres de dépôt.";
@@ -70,8 +72,11 @@ function containsExample(entry) {
 function validateEntry(entry, slug, {mode = "preview", today = todayUTC()} = {}) {
   const at = "visas/data/" + slug + ".json";
   if (!/^[a-z][a-z0-9-]{1,39}$/.test(slug)) fail(at, "nom de fichier dangereux");
-  shape(entry, at, ["destination", "drapeau", "statut", "verifie_le", "types_visa"]);
+  shape(entry, at, ["destination", "code_pays", "drapeau", "statut", "verifie_le", "types_visa"]);
   requiredText(entry.destination, at + ".destination");
+  if (typeof entry.code_pays !== "string" || !/^[A-Z]{2}$/.test(entry.code_pays) ||
+      !ISO_COUNTRIES.valid(entry.code_pays))
+    fail(at + ".code_pays", "code ISO 3166-1 alpha-2 valide obligatoire (2 lettres majuscules)");
   requiredText(entry.drapeau, at + ".drapeau");
   if (!["exemple", "publie"].includes(entry.statut)) fail(at + ".statut", "valeur attendue : exemple ou publie");
   parseDate(entry.verifie_le, at + ".verifie_le", today);
@@ -297,6 +302,9 @@ function buildSite({root=path.resolve(__dirname,".."),mode="preview",today=today
       if (mode==="production" && containsExample(entry))
         fail(filename,"EXEMPLE — NON VÉRIFIÉ : fiche exclue de la production");
       validateEntry(entry,slug,{mode:mode==="check"?"preview":mode,today});
+      if(entry.statut==="publie" && entries.some(item=>
+        item.entry.statut==="publie" && item.entry.code_pays===entry.code_pays))
+        fail(filename,"code_pays déjà publié pour une autre destination");
       entries.push({slug,entry});
     } catch(error) {
       if (mode!=="production") fail(filename,error.message);
@@ -330,6 +338,13 @@ function buildSite({root=path.resolve(__dirname,".."),mode="preview",today=today
     }
   }
   fs.writeFileSync(path.join(destDir,"index.html"),renderHome(entries,today),"utf8");
+  // Public, data-minimal index for BTH. Never include example, draft, travel
+  // records, URLs from source fiches or other editorial fields. Regenerate from
+  // scratch on every build so unpublished/removed fiches disappear immediately.
+  const publicFiches=entries
+    .filter(({entry})=>entry.statut==="publie"&&!containsExample(entry))
+    .map(({slug,entry})=>({code_pays:entry.code_pays,slug,destination:entry.destination}));
+  fs.writeFileSync(path.join(destDir,"fiches.json"),JSON.stringify(publicFiches,null,2)+"\n","utf8");
   fs.writeFileSync(path.join(destDir,"404.html"),shell({
     title:"Page introuvable | BEAM Visas",
     description:"Cette ressource n’est pas disponible sur le Guide des visas de BEAM.",
