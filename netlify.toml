@@ -1,6 +1,6 @@
 [build]
   publish = "."
-  command = "node scripts/build-travel-config.cjs"
+  command = "node scripts/build-travel-config.cjs && node scripts/build-visas.cjs"
 
 [[headers]]
   for = "/*"
