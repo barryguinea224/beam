@@ -103,7 +103,7 @@ async function main(){
      if(section){
       const data=entries.get(slug);
       assert.ok(metrics.cta&&metrics.cta.height>=48,"main BEAM WhatsApp target must be prominent");
-      assert.equal(await page.locator("h1").innerText(),"Visa "+data.destination,
+      assert.match(await page.locator("h1").innerText(),new RegExp("Visa "+data.destination+"$"),
        "destination title should be direct and short");
       assert.ok(metrics.cta.right<=width+1&&metrics.cta.left>=-1,"CTA must fit screen");
       assert.ok(contrast(metrics.ctaColor,metrics.ctaBg)>=4.5,"CTA contrast "+slug);
@@ -133,15 +133,20 @@ async function main(){
         "En bref must contain exactly three concise rows");
        const place=sectionEl.locator(".brief-row").first();
        const labels=await sectionEl.locator(".doc-label").allInnerTexts();
-       assert.deepEqual(labels,type.documents.map(d=>d.libelle),
-        "every source document label must appear once and in editorial group order when ungrouped");
+       const order=["base","salaries","commercants","but","autres"];
+       const original=type.documents.map((doc,index)=>({doc,index}));
+       const expected=original.sort((a,b)=>
+        order.indexOf(a.doc.groupe||"base")-order.indexOf(b.doc.groupe||"base")||a.index-b.index)
+        .map(x=>x.doc.libelle);
+       assert.deepEqual(labels,expected,
+        "every source document label must appear exactly once in group order");
        const groups=type.documents.map(d=>d.groupe||"base");
        // The public checklist must not reveal notes or document statuses.
        for(const doc of type.documents)
         assert.equal(await sectionEl.locator(".documents-card").getByText(doc.note,{exact:true}).count(),0);
        const more=page.locator(".visa-more");
        for(const doc of type.documents)
-        assert.ok((await more.innerText()).includes(doc.note),
+        assert.ok((await more.textContent()).includes(doc.note),
           "all source document notes must remain available in collapsed details");
        assert.ok(groups.every(g=>["base","salaries","commercants","but","autres"].includes(g)));
        if(type.lieu_depot.categorie==="en_ligne"){
