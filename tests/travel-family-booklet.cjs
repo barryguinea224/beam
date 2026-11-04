@@ -56,7 +56,8 @@ const model={
  mapSvgText,
  trips:[
   {trip:{id:"fictif-2026",country_code:"SN",cities:["Dakar"],entry_date:"2026-07-04",
-    exit_date:"2026-07-19",duration_days:16,purpose:"famille",note:"Nous avons marché sur la plage au coucher du soleil.",is_domestic:false},
+    exit_date:"2026-07-19",duration_days:16,purpose:"famille",note:"Nous avons marché sur la plage au coucher du soleil.",is_domestic:false,
+    airline:"Compagnie de test",hotel:"Hôtel de démonstration"},
    activities:[{title:"Promenade sur la plage",place:"Dakar",happened_on:"2026-07-12"}],
    photos:[dummyUrl],favoritePhoto:dummyUrl,missingPhotos:0},
   {trip:{id:"fictif-2025",country_code:"GN",cities:["Dalaba"],entry_date:"2025-05-01",
@@ -125,6 +126,8 @@ async function main(){
    });
    assert.equal(audit.sheetCount,4);
    assert.equal(audit.format,"booklet");
+   assert.match(audit.text,/Compagnie : Compagnie de test/);
+   assert.match(audit.text,/Hébergement : Hôtel de démonstration/);
    assert.equal(audit.coverTitle,"Carnet d\u0027Aminata Camara".replace("\\u0027","\u0027"));
    assert.equal(audit.tabTitle,"Carnet d\u0027Aminata Camara".replace("\\u0027","\u0027"));
    assert.ok(audit.paperRect.height>audit.paperRect.width,"Physical A4 must be portrait");

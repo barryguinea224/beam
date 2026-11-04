@@ -45,6 +45,7 @@
    days:Number.isInteger(days)&&days>0?days:0,
    purpose:PURPOSES[trip.purpose]||"Autre",
    domestic:trip.is_domestic===true,
+   airline:clean(trip.airline).slice(0,160),hotel:clean(trip.hotel).slice(0,160),
    memory:clean(trip.note),
    activities:(Array.isArray(activities)?activities:[]).slice(0,50).map(a=>Object.freeze({
     title:clean(a.title).slice(0,160),place:clean(a.place).slice(0,160),date:date(a.happened_on)
@@ -202,6 +203,7 @@
   ".trip-line{font-size:10pt;color:#496c57;margin:0}",
   ".pills{display:flex;gap:2mm;flex-wrap:wrap;margin:4mm 0 7mm}",
   ".pill{font:700 9pt system-ui;border-radius:999px;padding:2mm 4mm;border:1px solid #afcab8;background:#f1f7f2;color:#27583f}",
+  ".trip-logistics{font:9pt/1.4 system-ui,sans-serif;color:#456b54;overflow-wrap:anywhere;margin:1mm 0 4mm}",
   ".photo-mosaic{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:3mm;min-width:0}",
   ".photo-mosaic figure{margin:0;border-radius:3mm;overflow:hidden;break-inside:avoid;min-width:0;background:#ecf1e9}",
   ".photo-mosaic figure:first-child{grid-column:1/-1}",
@@ -336,6 +338,8 @@
    const pills=el(hero,"div","pills");
    for(const text of [trip.purpose,trip.duration,...(trip.domestic?["Séjour national"]:[])])
     el(pills,"span","pill",text);
+   const logistics=[trip.airline&&"Compagnie : "+trip.airline,trip.hotel&&"Hébergement : "+trip.hotel].filter(Boolean);
+   if(logistics.length)el(hero,"p","trip-logistics",logistics.join(" · "));
    if(trip.photos.length){
     const grid=el(hero,"div","photo-mosaic");
     for(const [i,url] of trip.photos.entries()){

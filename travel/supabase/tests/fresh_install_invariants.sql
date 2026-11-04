@@ -58,6 +58,26 @@ BEGIN
     OR NOT has_column_privilege('authenticated','public.profiles','country_of_residence','UPDATE')
   THEN RAISE EXCEPTION 'MISSING_OPTIONAL_CONTACT_COLUMN_GRANTS'; END IF;
 
+  -- Optional trip logistics are names only, never included in the factual PDF.
+  IF NOT has_column_privilege('authenticated','public.trips','airline','UPDATE')
+    OR NOT has_column_privilege('authenticated','public.trips','hotel','UPDATE')
+  THEN RAISE EXCEPTION 'MISSING_TRIP_OPTIONAL_STAY_GRANTS'; END IF;
+  IF has_column_privilege('authenticated','public.trips','deleting','UPDATE')
+    OR has_column_privilege('authenticated','public.trips','user_id','UPDATE')
+  THEN RAISE EXCEPTION 'UNSAFE_TRIP_OPTIONAL_STAY_GRANTS'; END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conrelid='public.trips'::regclass
+      AND conname='trips_airline_max_length' AND contype='c'
+  ) OR NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conrelid='public.trips'::regclass
+      AND conname='trips_hotel_max_length' AND contype='c'
+  ) THEN RAISE EXCEPTION 'MISSING_TRIP_STAY_LENGTH_CONSTRAINTS'; END IF;
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema='public' AND table_name='travel_history_pdf'
+      AND column_name IN ('airline','hotel')
+  ) THEN RAISE EXCEPTION 'FACTUAL_PDF_EXPOSES_OPTIONAL_STAY'; END IF;
+
   -- RLS action-by-action allowlist. Each policy must be owner-scoped.
   IF (SELECT count(*) FROM pg_policies WHERE schemaname='public' AND tablename IN ('profiles','trips','activities','media')) <> 12
   THEN RAISE EXCEPTION 'INCORRECT_APPLICATION_RLS_POLICY_COUNT'; END IF;

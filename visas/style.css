@@ -71,6 +71,8 @@ p{margin:9px 0}
 .documents-card .doc{display:grid;grid-template-columns:21px minmax(0,1fr);align-items:start;gap:9px;border:0;margin:0;padding:6px 0;font-size:.98rem;line-height:1.45}
 .doc-check{color:#17623d;font-size:1.14rem;font-weight:900;line-height:1.25}
 .doc-label{min-width:0;overflow-wrap:anywhere}
+.doc-copy{min-width:0;overflow-wrap:anywhere}
+.doc-note{font-size:.84em;line-height:1.5;color:#455950;overflow-wrap:anywhere}
 /* BEAM reference layout: full-width base, then profile cards side by side. */
 .document-group-base{width:100%;min-width:0}
 .profile-situation{border-top:1px solid #e2e9e3;margin-top:14px;padding-top:16px;min-width:0}
