@@ -210,11 +210,12 @@ function renderType(visa, demo, index) {
       '<div class="profile-grid'+(employee&&entrepreneur?'':' single-profile')+'">' +
       employee+entrepreneur+'</div></section>'
     : "";
+  const baseDocs=renderGroup("base",DOCUMENT_GROUPS.base,"document-group-base");
   const groups=[
-    renderGroup("base",DOCUMENT_GROUPS.base,"document-group-base"),
-    // Same-tab, static link only: no visitor data or query parameters.
-    '<aside class="identity-passport"><p>🛂 Votre passeport est-il encore valable assez longtemps ? ' +
-      '<a href="https://ididentite.com/" rel="noopener">Vérifiez-le et partagez vos informations en toute sécurité avec identité</a></p></aside>',
+    baseDocs,
+    // Same-tab static link, immediately after the base list (if present).
+    baseDocs ? '<aside class="identity-passport"><p>🛂 Votre passeport est-il encore valable assez longtemps ? ' +
+      '<a href="https://ididentite.com/" rel="noopener">Vérifiez-le et partagez vos informations en toute sécurité avec identité</a></p></aside>' : "",
     situation,
     renderGroup("but",DOCUMENT_GROUPS.but),
     renderGroup("autres",DOCUMENT_GROUPS.autres)
