@@ -60,7 +60,7 @@ for(const error of errors)console.error("BROKEN: "+error);
 if(errors.length)process.exitCode=1;
 else console.log("PASS: all same-origin HTML links and fragments resolve in generated output");
 
-if(process.argv.includes("--external")){
+async function runExternalAudit(){
  // Every external link actually present in generated sheets, plus all
  // appointment and official-source URLs from the six untouched JSON files.
  const all=new Map();
@@ -135,4 +135,7 @@ if(process.argv.includes("--external")){
   outputs.map(x=>"| "+x.state+" | "+(x.status||"—")+" | "+
    x.categories.join(", ")+" | "+x.countries.join(", ")+" | "+
    x.url.replace(/\|/g,"%7C")+" |").join("\n")+"\n");
+}
+if(process.argv.includes("--external")){
+ runExternalAudit().catch(error=>{console.error(error);process.exitCode=1});
 }
