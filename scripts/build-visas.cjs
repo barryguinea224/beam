@@ -212,6 +212,9 @@ function renderType(visa, demo, index) {
     : "";
   const groups=[
     renderGroup("base",DOCUMENT_GROUPS.base,"document-group-base"),
+    // Same-tab, static link only: no visitor data or query parameters.
+    '<aside class="identity-passport"><p>🛂 Votre passeport est-il encore valable assez longtemps ? ' +
+      '<a href="https://ididentite.com/" rel="noopener">Vérifiez-le et partagez vos informations en toute sécurité avec identité</a></p></aside>',
     situation,
     renderGroup("but",DOCUMENT_GROUPS.but),
     renderGroup("autres",DOCUMENT_GROUPS.autres)
@@ -289,6 +292,10 @@ function renderDestination(entry, slug, today) {
     entry.types_visa.map((visa,index)=>renderType(visa,demo,index)).join("\n"),
     '<div class="share-area">' + link(share,"Partager cette liste sur WhatsApp",' class="button secondary share-button"') + '</div>',
     '<p class="related-travel"><a href="/travel/">Conservez votre historique de voyages avec BTH</a></p>',
+    '<section class="identity-support" aria-label="Accompagnement BEAM">',
+    '<h2>Accompagnement BEAM</h2>',
+    '<a class="button secondary identity-support-link" href="https://ididentite.com/" rel="noopener">Envoyez vos informations de passeport en toute sécurité avec identité</a>',
+    '</section>',
     '<details class="visa-more"><summary>Plus de détails</summary><div class="visa-more-body">',
     '<p class="date-note">' + e(dateNote(entry.verifie_le,demo)) + '</p>',
     entry.types_visa.map((visa,index)=>renderTypeDetails(visa,demo,index)).join("\n"),
