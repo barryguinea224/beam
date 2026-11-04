@@ -109,7 +109,7 @@ async function main() {
         assert.match(demoUrl.searchParams.get('text'), /démonstration de BTdesk/);
         assert.equal(await page.locator('.tool-badge').innerText(), 'Version en ligne bientôt');
         assert.match(await page.locator('.tool-disclaimer').innerText(), /simulateur indépendant, non affilié à un fournisseur GDS/);
-        assert.doesNotMatch(await page.locator('body').innerText(), /GDS\\s*LAB/i);
+        assert.doesNotMatch(await page.locator('body').innerText(), /GDS\s*LAB/i);
         const toolBoxes = await page.locator('#outils .tool-card').evaluateAll(cards =>
           cards.map(el => {
             const r = el.getBoundingClientRect();
