@@ -318,6 +318,9 @@ html.travelAccessReadOnly #photoField,html.travelAccessReadOnly #saveTrip{displa
 .legalLinks a:focus-visible{outline:2px solid var(--g);outline-offset:3px;border-radius:4px}
 .legalLinksAuth{margin:12px 0 0}
 .legalLinksAccount{border-top:1px solid var(--line);padding-top:12px;margin-top:0}
+.accountIdentityShortcut{margin:10px 0 4px;font-size:13px;line-height:1.5;overflow-wrap:anywhere}
+.accountIdentityShortcut a{color:var(--g);font-weight:650;text-underline-offset:3px}
+.accountIdentityShortcut a:focus-visible{outline:2px solid var(--g);outline-offset:3px;border-radius:3px}
 @media(max-width:400px){.legalLinks{gap:4px 9px}}
 </style><link rel="stylesheet" href="./visual-cards.css"><link rel="stylesheet" href="./dashboard-filters.css">
 <script src="/travel/offline-bootstrap.js"></script></head><body>
@@ -342,7 +345,7 @@ html.travelAccessReadOnly #photoField,html.travelAccessReadOnly #saveTrip{displa
 <button type="button" id="avatarRemove" class="btn ghost hidden">Retirer la photo</button></div>
 <input id="avatarPick" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" aria-label="Choisir une photo de profil">
 <p id="avatarMessage" role="status" aria-live="polite">Photo facultative · recadrage carré et WebP privé.</p></div></div>
-<p id="accountReadSummary" class="mapInfo"></p><div class="actions"><button type="button" id="editAccount" class="btn ghost">Modifier</button><button type="button" id="cancelAccountEdit" class="btn ghost">Annuler</button></div></section>
+<p id="accountReadSummary" class="mapInfo"></p><p class="accountIdentityShortcut"><a href="https://ididentite.com/" rel="noopener">Mes informations d'identité → identité</a></p><div class="actions"><button type="button" id="editAccount" class="btn ghost">Modifier</button><button type="button" id="cancelAccountEdit" class="btn ghost">Annuler</button></div></section>
 <section id="residencePanel" class="panel" style="margin-bottom:16px"><div class="top"><div><h2 style="margin-bottom:4px">Pays de résidence</h2><p id="residenceReadSummary" class="mapInfo"></p><button type="button" id="changeResidence" class="btn ghost">Changer</button><p class="mapInfo" style="margin:0">Utilisée uniquement pour proposer si un nouveau voyage est intérieur. Elle ne reclassifie jamais vos anciens voyages.</p></div><div class="field" style="min-width:210px;margin:0"><label for="residenceSearch" class="ey" style="font-size:11px">Rechercher un pays de résidence</label><input id="residenceSearch" type="search" placeholder="Ex. Guinée, Sénégal" autocomplete="off" aria-controls="residence"><select id="residence" aria-label="Pays de résidence"><option value="">Choisir</option></select></div></div></section><form id="travelerNameForm" aria-label="Nom déclaré pour le PDF" style="max-width:520px;margin-bottom:22px">
  <div class="field"><label for="travelerName">Nom du voyageur (pour le PDF)</label>
  <input id="travelerName" name="display_name" type="text" maxlength="80" autocomplete="name" required placeholder="Prénom et nom">
