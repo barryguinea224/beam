@@ -127,6 +127,31 @@ async function main(){
        "Visa "+data.destination+" — Documents à fournir : https://beamguinee.com/visas/"+slug+"/");
       assert.equal(await share.getAttribute("onclick"),null,
        "sharing must not require JavaScript");
+      const passportLinks=page.locator(".identity-passport a");
+      const expectedReminders=data.types_visa.filter(v=>v.documents.some(d=>(d.groupe||"base")==="base")).length;
+      assert.equal(await passportLinks.count(),expectedReminders,
+       "every real base checklist should be followed by the identité reminder");
+      const supportLink=page.locator(".identity-support a.identity-support-link");
+      assert.equal(await supportLink.count(),1);
+      assert.match(await page.locator(".identity-passport").first().innerText(),
+       /Votre passeport est-il encore valable assez longtemps/);
+      for(const item of [passportLinks,supportLink]){
+       const n=await item.count();
+       for(let k=0;k<n;k++){
+        const anchor=item.nth(k);
+        assert.equal(await anchor.getAttribute("href"),"https://ididentite.com/");
+        assert.equal(await anchor.getAttribute("rel"),"noopener");
+        assert.equal(await anchor.getAttribute("target"),null,"same browser tab");
+        assert.equal(await anchor.getAttribute("onclick"),null,"no inline JS or tracker");
+        const area=await anchor.evaluate(a=>{
+         const p=a.closest(".identity-passport,.identity-support");
+         const r=p.getBoundingClientRect();
+         return {left:r.left,right:r.right,width:r.width,scroll:document.documentElement.scrollWidth};
+        });
+        assert.ok(area.left>=-1&&area.right<=width+1&&area.scroll<=width+1,
+         "identity link callout must fit "+width+"px "+slug+": "+JSON.stringify(area));
+       }
+      }
       for(const [index,type] of data.types_visa.entries()){
        const sectionEl=page.locator(".visa-type").nth(index);
        assert.equal(await sectionEl.locator(".brief-row").count(),3,
