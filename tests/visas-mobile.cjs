@@ -228,7 +228,7 @@ async function main(){
         (doc.groupe||"base")==="base" && doc.statut==="selon_le_cas");
        assert.deepEqual(
         await sectionEl.locator(".document-group-base .doc-note").allInnerTexts(),
-        expectedInline.map(doc=>"— "+doc.note),
+        expectedInline.map(doc=>" — "+doc.note),
         "conditional base notes must appear once, immediately after their labels");
        assert.equal(await sectionEl.locator(".doc-note").count(),expectedInline.length,
         "profile, trip-purpose and complementary notes must stay in details");
