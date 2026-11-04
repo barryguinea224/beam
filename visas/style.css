@@ -76,6 +76,8 @@ p{margin:9px 0}
 .profile-situation{border-top:1px solid #e2e9e3;margin-top:14px;padding-top:16px;min-width:0}
 .profile-situation>h4{margin:0 0 2px;color:#194b36;font:bold 1.06rem/1.35 system-ui,sans-serif}
 .profile-subtitle{font-size:.88rem;color:#3b5748;margin:0 0 13px}
+/* Air above "Selon le but du voyage" when it follows profile cards. */
+.profile-situation + .document-group[aria-labelledby$="-group-but"]{margin-top:20px}
 .profile-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;min-width:0}
 .profile-grid.single-profile{grid-template-columns:minmax(0,1fr)}
 .profile-grid>.profile-card,
