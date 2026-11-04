@@ -94,6 +94,18 @@ p{margin:9px 0}
  .profile-grid{grid-template-columns:minmax(0,1fr)}
  .profile-grid>.profile-card,.profile-grid>.document-group+.document-group{padding:13px 12px}
 }
+/* Optional identity utility: plain links, no embedded content or scripts. */
+.identity-passport{min-width:0;margin:12px 0 4px;padding:12px 14px;border:1px solid #cbded2;border-radius:11px;background:#f0f6f1;color:#244734}
+.identity-passport p{margin:0;font-size:.9rem;line-height:1.55;overflow-wrap:anywhere}
+.identity-passport a{color:#175b42;font-weight:700;overflow-wrap:anywhere}
+.identity-support{margin:12px 0 24px;padding:14px 16px;border:1px solid var(--line);border-radius:14px;background:#f0f4ef;min-width:0}
+.identity-support h2{font-size:1.15rem;margin:0 0 10px}
+.identity-support-link{font-size:.92rem;min-width:0;max-width:100%}
+@media(max-width:600px){
+ .identity-passport{padding:11px 12px}
+ .identity-support{padding:13px 12px}
+ .identity-support-link{width:100%}
+}
 .brief-list{padding:0;margin:0}
 .brief-row{display:grid;grid-template-columns:124px minmax(0,1fr);gap:9px;padding:12px 0;border-bottom:1px solid #e2e9e3}
 .brief-row:last-child{border-bottom:0}
