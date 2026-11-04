@@ -14,7 +14,7 @@
       },
       "lieu_depot": {
         "categorie": "centre_externe",
-        "nom": "Sefa Visa — centre officiel de demande de visa pour la Türkiye, autorisé par l’Ambassade. Dépôt en personne, données biométriques prises sur place.",
+        "nom": "Sefa Visa, centre autorisé par l’Ambassade de Türkiye",
         "adresse": "Diamond Plaza, Kipé, Ratoma, Conakry — du lundi au vendredi, 8 h 30 à 17 h",
         "rendez_vous_url": "https://sefavisa.com/gn/en"
       },
@@ -25,51 +25,59 @@
       "documents": [
         {
           "libelle": "Passeport valable au moins 12 mois",
+          "groupe": "base",
           "statut": "obligatoire",
           "note": "Original, à présenter au centre."
         },
         {
           "libelle": "2 photos d’identité sur fond blanc",
+          "groupe": "base",
           "statut": "obligatoire",
           "note": "Récentes."
         },
         {
           "libelle": "Réservation d’hôtel ou lettre d’invitation",
+          "groupe": "but",
           "statut": "obligatoire",
           "note": "Couvrant la durée du séjour."
         },
         {
           "libelle": "Réservation de vol aller-retour",
+          "groupe": "but",
           "statut": "obligatoire",
           "note": "Aux dates prévues."
         },
         {
           "libelle": "Relevé de compte bancaire et lettre bancaire",
+          "groupe": "base",
           "statut": "obligatoire",
           "note": "Preuve de fonds pour le séjour."
         },
         {
           "libelle": "Certificat de travail, de salaire ou d’étudiant",
+          "groupe": "base",
           "statut": "obligatoire",
           "note": "Selon votre situation."
         },
         {
           "libelle": "Copies des visas obtenus précédemment",
+          "groupe": "autres",
           "statut": "selon_le_cas",
           "note": "Si vous en avez."
         },
         {
           "libelle": "Consentement parental",
+          "groupe": "autres",
           "statut": "selon_le_cas",
           "note": "Pour les demandeurs de moins de 18 ans."
         }
       ],
       "frais": {
-        "texte": "Frais de visa et frais de service du centre : renseignez-vous auprès de Sefa Visa Guinée avant le dépôt (+224 61 194 60 41).",
+        "texte": "À demander au centre Sefa Visa (+224 61 194 60 41).",
         "verifie_le": "2026-11-03"
       },
       "delai_indicatif": {
-        "texte": "Variable selon la période : demandez le délai en cours au centre Sefa Visa et déposez bien avant votre départ. Le suivi du dossier se fait en ligne sur le site du centre.",
+        "texte": "À demander au centre. Déposez bien avant le départ.",
         "verifie_le": "2026-11-03"
       },
       "sources": [
