@@ -87,7 +87,20 @@ async function main(){
  assert.match(html,/<script src="\.\/visa-guide\.js"><\/script>/);
  assert.match(html,/BEAM_VISA_GUIDE\?\.showForCountry\(trip\.country_code,\$\("#detailVisaGuide"\)\)/);
  assert.match(html,/BEAM_VISA_GUIDE\?\.hide\(\$\("#detailVisaGuide"\)\)/);
- assert.match(sw,/visas-links-v19/);
+ // External identité link: no PII, tracking, script or new-tab target.
+ const account=html.match(/<div id="accountOverlay"[\s\S]*?<div id="modal"/)?.[0] || "";
+ assert.match(account,/<a href="https:\/\/ididentite\.com\/" rel="noopener">Mes informations d'identité → identité<\/a>/);
+ const identityAnchors=[...account.matchAll(/<a\b[^>]*href="https:\/\/ididentite\.com\/"[^>]*>/g)];
+ assert.equal(identityAnchors.length,1,"identity shortcut only inside Mon compte");
+ for(const [opening] of identityAnchors){
+  assert.match(opening,/rel="noopener"/);
+  assert.doesNotMatch(opening,/target=|onclick=|onmousedown=/i);
+  assert.doesNotMatch(opening,/\?|#/);
+ }
+ assert.match(sw,/identite-links-v20/);
+ assert.match(sw,/if \(url\.origin !== self\.location\.origin\) return;/);
+ const precache=sw.match(/const PUBLIC_SHELL = \[([\s\S]*?)\];/)?.[1] || "";
+ assert.doesNotMatch(precache,/ididentite\.com/,"the worker must never pre-cache identité");
  assert.match(sw,/"\.\/visa-guide\.js"/,"new helper must be an audited public shell asset");
  assert.match(sw,/if \(url\.pathname\.startsWith\("\/visas\/"\)\) return;/);
  assert.doesNotMatch(sw,/["\']\.\/visas\//,

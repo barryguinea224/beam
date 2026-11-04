@@ -451,6 +451,30 @@ for(const name of actual){
  const country=name.slice(0,-5),row=JSON.parse(fs.readFileSync(path.join(root,"visas/data",name),"utf8"));
  assert.equal(row.code_pays,expectedCodes[country]);
  assert.equal(row.statut,"publie");
+ const visaPage=renderDestination(row,country,today);
+ // The two identité links are static exact URLs, even in a multi-type fiche.
+ const identityLinks=[...visaPage.matchAll(/<a\b[^>]*href="https:\/\/ididentite\.com\/"[^>]*>/g)];
+ assert.equal(identityLinks.length,row.types_visa.filter(v=>v.documents.some(d=>(d.groupe||"base")==="base")).length+1,
+  country+" requires one reminder per base checklist plus the BEAM assistance link");
+ for(const [anchor] of identityLinks){
+  assert.match(anchor,/rel="noopener"/,"all identity anchors must have rel=noopener");
+  assert.doesNotMatch(anchor,/target=|onclick=|onmousedown=/i,"simple same-tab anchors only");
+  assert.doesNotMatch(anchor,/[?#]/,"no PII, parameters or tracking fragments");
+ }
+ assert.match(visaPage,/🛂 Votre passeport est-il encore valable assez longtemps \?/);
+ assert.match(visaPage,/Vérifiez-le et partagez vos informations en toute sécurité avec identité/);
+ assert.match(visaPage,/Envoyez vos informations de passeport en toute sécurité avec identité/);
+ const sectionBefore=visaPage.split('<section class="summary-card"')[0];
+ for(const type of row.types_visa){
+  if(!type.documents.some(d=>(d.groupe||"base")==="base"))continue;
+  const baseAt=sectionBefore.indexOf('class="document-group document-group-base"');
+  const reminderAt=sectionBefore.indexOf('class="identity-passport"',baseAt);
+  const afterAt=sectionBefore.indexOf('class="profile-situation"',baseAt);
+  assert.ok(baseAt>=0 && reminderAt>baseAt && (afterAt===-1||reminderAt<afterAt),
+   country+" identity reminder must follow base documents and precede profile cards");
+ }
+ assert.doesNotMatch(visaPage,/<script\b|<iframe\b|<img[^>]+src="https?:/i,
+  "identity links must not introduce JS, trackers, iframes or remote pixels");
 }
 // BEAM's three relevant real fiches must have both document profile
 // categories, and both cards must come from the original data unchanged.
