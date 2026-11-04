@@ -86,6 +86,8 @@ p{margin:9px 0}
 .profile-grid .profile-card .doc{font-size:.95rem}
 .profile-card-employee .doc-check{color:#17623d}
 .profile-card-entrepreneur .doc-check{color:#775219}
+/* Separate travel-purpose documents from the profile cards above. */
+.profile-situation + .document-group[aria-labelledby$="-group-but"]{margin-top:20px}
 @media(max-width:599px){
  .profile-grid{grid-template-columns:minmax(0,1fr)}
  .profile-grid>.profile-card,.profile-grid>.document-group+.document-group{padding:13px 12px}
