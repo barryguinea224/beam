@@ -72,7 +72,8 @@ const ids=['#modal','#tripDetailModal','#detailTitle','#detailIntro','#detailFac
 const els=Object.fromEntries(ids.map(id=>[id,box()]));
 const calls=[];
 const tripRecord={id:'trip-1',country_code:'FR',cities:['Paris'],entry_date:'2026-06-20',
- exit_date:'2026-06-30',duration_days:11,note:'Souvenir privé',purpose:'tourisme',is_domestic:false};
+ exit_date:'2026-06-30',duration_days:11,note:'Souvenir privé',purpose:'tourisme',is_domestic:false,
+ airline:'Compagnie fictive',hotel:'<img src=x onerror=alert(1)>'};
 const photoRows=[{id:'photo-1',storage_path:'owner/trip-1/photo-1.webp'}];
 const actRows=[{id:'activity-1',title:'Visite du musée',place:'Paris',happened_on:'2026-06-22'}];
 const S={
@@ -114,6 +115,11 @@ async function main(){
  assert.equal(els['#tripDetailModal'].classList.contains('open'),true);
  assert.equal(els['#detailTitle'].textContent,'Paris');
  assert.match(els['#detailFacts'].innerHTML,/11 jours/);
+ assert.match(els['#detailFacts'].innerHTML,/Compagnie aérienne/);
+ assert.match(els['#detailFacts'].innerHTML,/Compagnie fictive/);
+ assert.match(els['#detailFacts'].innerHTML,/Hôtel \/ hébergement/);
+ assert.match(els['#detailFacts'].innerHTML,/&lt;img src=x onerror=alert\(1\)&gt;/);
+ assert.doesNotMatch(els['#detailFacts'].innerHTML,/<img/);
  assert.match(els['#detailPhotos'].innerHTML,/signed.invalid/);
  assert.match(els['#detailActivities'].innerHTML,/Visite du musée/);
  assert.equal(calls.filter(c=>c[0]==='media'&&c[1]==='filters')[0][2][0][1],'owner');

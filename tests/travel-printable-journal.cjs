@@ -32,14 +32,19 @@ assert.equal(journal.filterLabel({country:"SN",year:"2026"}),"Sénégal · 2026"
 assert.equal(journal.filterLabel({scope:"domestic"}),"Séjours nationaux");
 assert.equal(journal.filterLabel(FILTERS.EMPTY),"Tous les voyages");
 const projection=journal.viewTrip({...trips[0],
+ airline:"Compagnie de test",hotel:"Hôtel fictif",
  email:"SECRET_EMAIL",passport:"SECRET_PASSPORT",phone:"SECRET_PHONE",postal_address:"SECRET_POSTAL_ADDRESS",
  storage_path:"SECRET_STORAGE_PATH",user_id:"SECRET_USER",document_number:"SECRET_DOCUMENT"},
  [{title:"Visite du marché",place:"Dakar",happened_on:"2026-04-03",document_number:"SECRET_DOC"}],
  ["https://example.invalid/photo.webp"]);
 assert.deepEqual(Object.keys(projection).sort(),
- ["code","country","cities","entry","exit","entryISO","exitISO","duration","days","purpose","domestic","memory","activities","photos"].sort());
+ ["code","country","cities","entry","exit","entryISO","exitISO","duration","days","purpose","domestic","airline","hotel","memory","activities","photos"].sort());
 assert.ok(!JSON.stringify(projection).includes("SECRET_"));
 assert.equal(projection.memory,"Mon souvenir de Dakar");
+assert.equal(projection.airline,"Compagnie de test");
+assert.equal(projection.hotel,"Hôtel fictif");
+assert.equal(journal.viewTrip(trips[1]).airline,"");
+assert.equal(journal.viewTrip(trips[1]).hotel,"");
 assert.equal(projection.activities[0].title,"Visite du marché");
 assert.equal(journal.viewTrip(trips[1]).domestic,true);
 assert.equal(journal.viewTrip(trips[1]).country,"Guinée");
@@ -133,7 +138,7 @@ assert.equal(PDF.VIEW,"travel_history_pdf");
 assert.deepEqual(PDF.FIELDS,["country_code","cities","entry_date","exit_date","duration_days","purpose"]);
 const sw=fs.readFileSync("travel/sw.js","utf8");
 assert.ok(sw.includes('"./printable-journal.js"')&&sw.includes('"./family-booklet.js"'));
-assert.match(sw,/beam-travel-shell-v1-20261104-identite-links-v20/,"cache revision must match the rebased booklet release");
+assert.match(sw,/beam-travel-shell-v1-20261104-stay-details-v21/,"cache revision must match the rebased booklet release");
 assert.ok(!sw.includes("storage/v1/object/sign")&&!sw.includes("signedUrl"));
 assert.match(sw,/url\.origin === self\.location\.origin/);
 assert.match(sw,/url\.search === ""/);
