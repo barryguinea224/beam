@@ -187,16 +187,35 @@ function demoBanner() {
 function renderType(visa, demo, index) {
   // A simple visual checklist. Grouping is editorial and optional; no
   // statuses or notes are mixed into the short public document labels.
-  const groups = Object.keys(DOCUMENT_GROUPS).map(key => {
-    const docs=visa.documents.filter(doc => (doc.groupe || "base")===key);
-    if (!docs.length) return "";
+  const renderGroup=(key,title,variant="",headingTag="h4")=>{
+    const docs=visa.documents.filter(doc=>(doc.groupe||"base")===key);
+    if(!docs.length)return "";
     const items=docs.map(doc=>
       '<li class="doc"><span class="doc-check" aria-hidden="true">✓</span><span class="doc-label">' +
       e(doc.libelle) + '</span></li>').join("\n");
-    return '<section class="document-group" aria-labelledby="visa-' + index + '-group-' + key + '">' +
-      '<h4 id="visa-' + index + '-group-' + key + '">' + e(DOCUMENT_GROUPS[key]) + '</h4>' +
-      '<ul class="document-list">' + items + '</ul></section>';
-  }).join("\n");
+    const groupId="visa-"+index+"-group-"+key;
+    return '<section class="document-group'+(variant?' '+variant:'')+'" aria-labelledby="'+groupId+'">' +
+      '<'+headingTag+' id="'+groupId+'">'+title+'</'+headingTag+'>' +
+      '<ul class="document-list">'+items+'</ul></section>';
+  };
+  // The two profiles are exclusive *presentation* categories. Only render a
+  // card when BEAM supplied documents for that group; never infer requirements.
+  const employee=renderGroup("salaries","👔 Vous êtes salarié(e)","profile-card profile-card-employee","h5");
+  const entrepreneur=renderGroup("commercants","🏪 Vous êtes entrepreneur ou commerçant",
+    "profile-card profile-card-entrepreneur","h5");
+  const situation=employee||entrepreneur
+    ? '<section class="profile-situation" aria-labelledby="visa-'+index+'-situation">' +
+      '<h4 id="visa-'+index+'-situation">Selon votre situation</h4>' +
+      '<p class="profile-subtitle">En plus des documents de base</p>' +
+      '<div class="profile-grid'+(employee&&entrepreneur?'':' single-profile')+'">' +
+      employee+entrepreneur+'</div></section>'
+    : "";
+  const groups=[
+    renderGroup("base",DOCUMENT_GROUPS.base,"document-group-base"),
+    situation,
+    renderGroup("but",DOCUMENT_GROUPS.but),
+    renderGroup("autres",DOCUMENT_GROUPS.autres)
+  ].filter(Boolean).join("\n");
   const place=visa.lieu_depot;
   const linkLabel=place.categorie==="en_ligne"
     ? "Ouvrir le portail officiel" : "Ouvrir le lien officiel de rendez-vous";

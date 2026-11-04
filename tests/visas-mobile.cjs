@@ -65,7 +65,7 @@ async function main(){
   browser=await chromium.launch({headless:true,args:["--no-sandbox","--disable-dev-shm-usage"]});
   const out=path.join(repositoryRoot,"test-artifacts/visas-mobile");
   fs.mkdirSync(out,{recursive:true});
-  const widths=[320,360,375,390];
+  const widths=[320,360,375,390,768];
   for(const width of widths){
    const context=await browser.newContext({viewport:{width,height:780},isMobile:true,hasTouch:true,serviceWorkers:"block"});
    const page=await context.newPage();
@@ -141,6 +141,63 @@ async function main(){
        assert.deepEqual(labels,expected,
         "every source document label must appear exactly once in group order");
        const groups=type.documents.map(d=>d.groupe||"base");
+       const hasEmployee=groups.includes("salaries");
+       const hasEntrepreneur=groups.includes("commercants");
+       const profiles=sectionEl.locator(".profile-situation");
+       assert.equal(await profiles.count(),hasEmployee||hasEntrepreneur?1:0,
+        "profile section exists only when the fiche contains profile documents");
+       assert.equal(await sectionEl.locator(".profile-card-employee").count(),hasEmployee?1:0);
+       assert.equal(await sectionEl.locator(".profile-card-entrepreneur").count(),hasEntrepreneur?1:0);
+       if(hasEmployee||hasEntrepreneur){
+        assert.equal(await profiles.locator("h4").innerText(),"Selon votre situation");
+        assert.equal(await profiles.locator(".profile-subtitle").innerText(),
+          "En plus des documents de base");
+        if(hasEmployee)assert.equal(await profiles.locator(".profile-card-employee h5").innerText(),
+          "👔 Vous êtes salarié(e)");
+        if(hasEntrepreneur)assert.equal(await profiles.locator(".profile-card-entrepreneur h5").innerText(),
+          "🏪 Vous êtes entrepreneur ou commerçant");
+        const geometry=await profiles.evaluate(section=>{
+         const cards=[...section.querySelectorAll(".profile-card")];
+         const a=cards.map(el=>{const b=el.getBoundingClientRect();return {
+          left:b.left,right:b.right,top:b.top,bottom:b.bottom,width:b.width,
+          background:getComputedStyle(el).backgroundColor,
+          colors:[el,...el.querySelectorAll("h5,.doc-label,.doc-check")]
+           .map(node=>getComputedStyle(node).color)
+         }});
+         const grid=section.querySelector(".profile-grid");
+         return {cards:a,columns:getComputedStyle(grid).gridTemplateColumns,
+          scroll:document.documentElement.scrollWidth};
+        });
+        assert.equal(geometry.cards.length,Number(hasEmployee)+Number(hasEntrepreneur));
+        assert.ok(geometry.scroll<=width+1,"no profile horizontal overflow "+slug+" "+width);
+        for(const card of geometry.cards){
+         assert.ok(card.left>=-1 && card.right<=width+1,"profile card must fit the viewport");
+         for(const color of card.colors)
+          assert.ok(contrast(color,card.background)>=4.5,
+           "profile text/checkmark contrast below 4.5:1 for "+slug+" "+width);
+        }
+        if(hasEmployee&&hasEntrepreneur){
+         const [left,right]=geometry.cards;
+         if(width>=600){
+          assert.ok(Math.abs(left.top-right.top)<=2 && right.left>=left.right-2,
+           "profile cards must be side by side at "+width+"px: "+JSON.stringify(geometry));
+         }else{
+          assert.ok(right.top>=left.bottom-2,
+           "profile cards must stack at "+width+"px: "+JSON.stringify(geometry));
+         }
+        }
+       }
+       if(groups.includes("base")){
+        const baseWidth=await sectionEl.locator(".document-group-base").evaluate(el=>{
+         const panel=el.closest(".documents-card"),st=getComputedStyle(panel);
+         return {actual:el.getBoundingClientRect().width,
+          available:panel.getBoundingClientRect().width-
+           parseFloat(st.paddingLeft)-parseFloat(st.paddingRight)-
+           parseFloat(st.borderLeftWidth)-parseFloat(st.borderRightWidth)};
+        });
+        assert.ok(Math.abs(baseWidth.actual-baseWidth.available)<3,
+         "base documents must span the full content width "+width+"px: "+JSON.stringify(baseWidth));
+       }
        // The public checklist must not reveal notes or document statuses.
        for(const doc of type.documents)
         assert.equal(await sectionEl.locator(".documents-card").getByText(doc.note,{exact:true}).count(),0);
@@ -197,6 +254,16 @@ async function main(){
    }))
   ];
   fs.writeFileSync(path.join(root,"visas/data/test-en-ligne.json"),JSON.stringify(demo));
+  // These two additional fixtures remain in the disposable test root; they
+  // verify no empty "Selon votre situation" section and a single-card case.
+  const withoutProfiles=JSON.parse(JSON.stringify(demo));
+  withoutProfiles.types_visa[0].documents=withoutProfiles.types_visa[0].documents
+   .filter(doc=>!["salaries","commercants"].includes(doc.groupe));
+  fs.writeFileSync(path.join(root,"visas/data/test-sans-profil.json"),JSON.stringify(withoutProfiles));
+  const oneProfile=JSON.parse(JSON.stringify(demo));
+  oneProfile.types_visa[0].documents=oneProfile.types_visa[0].documents
+   .filter(doc=>doc.groupe!=="commercants");
+  fs.writeFileSync(path.join(root,"visas/data/test-profil-unique.json"),JSON.stringify(oneProfile));
   buildSite({root,mode:"preview"});
   for(const width of widths){
    const context=await browser.newContext({viewport:{width,height:780},isMobile:true,hasTouch:true,serviceWorkers:"block"});
@@ -218,9 +285,11 @@ async function main(){
      "Document fictif — salaries","Document fictif — commercants",
      "Document fictif — but","Document fictif — autres"]);
     assert.deepEqual(await page.locator(".document-group h4").allInnerTexts(),
-     ["Documents de base","Pour les salariés",
-      "Pour les commerçants et professions libérales",
-      "Selon le but du voyage","Documents complémentaires"]);
+     ["Documents de base","Selon le but du voyage","Documents complémentaires"]);
+    assert.equal(await page.locator(".profile-situation>h4").innerText(),"Selon votre situation");
+    assert.equal(await page.locator(".profile-subtitle").innerText(),"En plus des documents de base");
+    assert.deepEqual(await page.locator(".profile-card h5").allInnerTexts(),
+     ["👔 Vous êtes salarié(e)","🏪 Vous êtes entrepreneur ou commerçant"]);
     assert.equal(await page.locator(".visa-more").evaluate(el=>el.open),false);
     let scroll=await page.evaluate(()=>document.documentElement.scrollWidth);
     assert.ok(scroll<=width+1,"online grouped demo overflows at "+width+"px");
@@ -231,7 +300,25 @@ async function main(){
     await page.locator(".visa-more summary").click();
     assert.deepEqual(outsiders,[],"online test page must not load third-party resources");
     await page.screenshot({path:path.join(out,"en-ligne-exemple-"+width+".png"),fullPage:true,animations:"disabled"});
-    console.log("PASS online-only test fixture "+width+"px");
+    // No profile groups: the whole heading, subtitle and grid disappear.
+    let next=await page.goto("http://127.0.0.1:"+server.address().port+
+     "/visas/test-sans-profil/",{waitUntil:"networkidle"});
+    assert.equal(next.status(),200);
+    assert.equal(await page.locator(".profile-situation,.profile-card,.profile-grid").count(),0);
+    assert.equal(await page.getByText("Selon votre situation",{exact:true}).count(),0);
+    assert.ok((await page.evaluate(()=>document.documentElement.scrollWidth))<=width+1);
+    await page.screenshot({path:path.join(out,"sans-profil-"+width+".png"),fullPage:true,animations:"disabled"});
+    // One profile group: exactly one card without an empty second column.
+    next=await page.goto("http://127.0.0.1:"+server.address().port+
+     "/visas/test-profil-unique/",{waitUntil:"networkidle"});
+    assert.equal(next.status(),200);
+    assert.equal(await page.locator(".profile-card").count(),1);
+    assert.equal(await page.locator(".profile-card-employee").count(),1);
+    assert.equal(await page.locator(".profile-card-entrepreneur").count(),0);
+    assert.equal(await page.locator(".profile-grid.single-profile").count(),1);
+    assert.ok((await page.evaluate(()=>document.documentElement.scrollWidth))<=width+1);
+    await page.screenshot({path:path.join(out,"profil-unique-"+width+".png"),fullPage:true,animations:"disabled"});
+    console.log("PASS online-only, no-profile and single-profile fixtures "+width+"px");
    }finally{await context.close();}
   }
  }finally{

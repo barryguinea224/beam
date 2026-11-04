@@ -123,14 +123,44 @@ assert.match(visible,/En bref/);
 assert.equal((visible.match(/class="doc"/g)||[]).length,grouped.types_visa[0].documents.length,
  "every source document must be visible once in the checklist");
 assert.equal((visible.match(/class="doc-check"/g)||[]).length,grouped.types_visa[0].documents.length);
-const groupHeadings=["Documents de base","Pour les salariés",
- "Pour les commerçants et professions libérales","Selon le but du voyage","Documents complémentaires"];
+const groupHeadings=["Documents de base","Selon votre situation",
+ "👔 Vous êtes salarié(e)","🏪 Vous êtes entrepreneur ou commerçant",
+ "Selon le but du voyage","Documents complémentaires"];
 let previous=-1;
 for(const heading of groupHeadings){
  const position=visible.indexOf(heading);
  assert.ok(position>previous,heading+" must be in the fixed editorial group order");
  previous=position;
 }
+assert.match(visible,/En plus des documents de base/);
+assert.match(visible,/class="profile-grid"/);
+assert.equal((visible.match(/class="document-group profile-card/g)||[]).length,2,
+ "both profile cards must be shown when both groups contain source documents");
+assert.equal((visible.match(/class="profile-situation"/g)||[]).length,1);
+const onlyEmployee=deep(grouped);
+onlyEmployee.types_visa[0].documents=onlyEmployee.types_visa[0].documents
+ .filter(d=>d.groupe!=="commercants");
+const employeeHtml=renderDestination(onlyEmployee,"france",today);
+assert.match(employeeHtml,/class="profile-grid single-profile"/);
+assert.match(employeeHtml,/👔 Vous êtes salarié\(e\)/);
+assert.doesNotMatch(employeeHtml,/🏪 Vous êtes entrepreneur ou commerçant/);
+assert.equal((employeeHtml.match(/class="document-group profile-card/g)||[]).length,1);
+const onlyEntrepreneur=deep(grouped);
+onlyEntrepreneur.types_visa[0].documents=onlyEntrepreneur.types_visa[0].documents
+ .filter(d=>d.groupe!=="salaries");
+const entrepreneurHtml=renderDestination(onlyEntrepreneur,"france",today);
+assert.match(entrepreneurHtml,/class="profile-grid single-profile"/);
+assert.match(entrepreneurHtml,/🏪 Vous êtes entrepreneur ou commerçant/);
+assert.doesNotMatch(entrepreneurHtml,/👔 Vous êtes salarié\(e\)/);
+const noProfiles=deep(grouped);
+noProfiles.types_visa[0].documents=noProfiles.types_visa[0].documents
+ .filter(d=>!["salaries","commercants"].includes(d.groupe));
+const emptyProfilesHtml=renderDestination(noProfiles,"france",today);
+assert.doesNotMatch(emptyProfilesHtml,/Selon votre situation|profile-situation|profile-card|profile-grid|En plus des documents de base/,
+ "no profile section at all when source fiche has neither profile group");
+assert.match(emptyProfilesHtml,/Documents de base/);
+assert.match(emptyProfilesHtml,/Selon le but du voyage/);
+assert.match(emptyProfilesHtml,/Documents complémentaires/);
 assert.ok(visible.includes("Pièce sans groupe"),
  "ungrouped documents must appear in the base section");
 assert.doesNotMatch(visible,/Note de test [1-6]/,
@@ -421,6 +451,18 @@ for(const name of actual){
  const country=name.slice(0,-5),row=JSON.parse(fs.readFileSync(path.join(root,"visas/data",name),"utf8"));
  assert.equal(row.code_pays,expectedCodes[country]);
  assert.equal(row.statut,"publie");
+}
+// BEAM's three relevant real fiches must have both document profile
+// categories, and both cards must come from the original data unchanged.
+for(const country of ["france","canada","royaume-uni"]){
+ const row=JSON.parse(fs.readFileSync(path.join(root,"visas/data",country+".json"),"utf8"));
+ const types=row.types_visa.filter(v=>v.documents.some(d=>d.groupe==="salaries") &&
+   v.documents.some(d=>d.groupe==="commercants"));
+ assert.ok(types.length>=1,country+" must contain both source profile groups");
+ const page=renderDestination(row,country,today);
+ assert.equal((page.match(/class="profile-grid"/g)||[]).length,types.length);
+ assert.equal((page.match(/class="document-group profile-card profile-card-employee"/g)||[]).length,types.length);
+ assert.equal((page.match(/class="document-group profile-card profile-card-entrepreneur"/g)||[]).length,types.length);
 }
 const realCheck=buildSite({root,mode:"check",today,logger:log});
 assert.equal(realCheck.published,6,"strict CI must see all six real published BEAM fiches");
