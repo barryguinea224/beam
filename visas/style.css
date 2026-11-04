@@ -71,6 +71,25 @@ p{margin:9px 0}
 .documents-card .doc{display:grid;grid-template-columns:21px minmax(0,1fr);align-items:start;gap:9px;border:0;margin:0;padding:6px 0;font-size:.98rem;line-height:1.45}
 .doc-check{color:#17623d;font-size:1.14rem;font-weight:900;line-height:1.25}
 .doc-label{min-width:0;overflow-wrap:anywhere}
+/* BEAM reference layout: full-width base, then profile cards side by side. */
+.document-group-base{width:100%;min-width:0}
+.profile-situation{border-top:1px solid #e2e9e3;margin-top:14px;padding-top:16px;min-width:0}
+.profile-situation>h4{margin:0 0 2px;color:#194b36;font:bold 1.06rem/1.35 system-ui,sans-serif}
+.profile-subtitle{font-size:.88rem;color:#3b5748;margin:0 0 13px}
+.profile-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;min-width:0}
+.profile-grid.single-profile{grid-template-columns:minmax(0,1fr)}
+.profile-grid>.profile-card,
+.profile-grid>.document-group+.document-group{min-width:0;margin:0;padding:14px 15px;border:1px solid transparent;border-radius:13px}
+.profile-card-employee{background:#eaf4ed;border-color:#b2d0bd!important;color:#193f2d}
+.profile-card-entrepreneur{background:#fff5df;border-color:#dfcb94!important;color:#513c13}
+.profile-grid .profile-card h5{font:bold 1rem/1.4 system-ui,sans-serif;margin:0 0 8px;color:inherit;overflow-wrap:anywhere}
+.profile-grid .profile-card .doc{font-size:.95rem}
+.profile-card-employee .doc-check{color:#17623d}
+.profile-card-entrepreneur .doc-check{color:#775219}
+@media(max-width:599px){
+ .profile-grid{grid-template-columns:minmax(0,1fr)}
+ .profile-grid>.profile-card,.profile-grid>.document-group+.document-group{padding:13px 12px}
+}
 .brief-list{padding:0;margin:0}
 .brief-row{display:grid;grid-template-columns:124px minmax(0,1fr);gap:9px;padding:12px 0;border-bottom:1px solid #e2e9e3}
 .brief-row:last-child{border-bottom:0}
