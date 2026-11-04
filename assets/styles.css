@@ -92,3 +92,19 @@
   .terminal-scene { padding-left: 12px; padding-right: 12px; }
   .terminal-top, .terminal-bottom { letter-spacing: 0; }
 }
+
+/* Nos outils: three distinct product cards, consistent with service cards. */
+.tools-section{background:#f1efe8}
+.tools-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.tools-grid>*{min-width:0}
+.tool-card{min-height:360px;padding:28px 26px 25px}
+.tool-card h3{font-size:20px;line-height:1.35;margin:25px 0 12px;overflow-wrap:anywhere}
+.tool-card p{font-size:13px;line-height:1.75;color:#51636b;margin:0 0 23px;overflow-wrap:anywhere}
+.tool-card .tool-button{display:inline-flex;width:100%;min-height:48px;gap:12px;margin-top:auto;justify-content:space-between;color:#fff;font-size:12px;line-height:1.4;letter-spacing:0;text-align:left;white-space:normal;overflow-wrap:anywhere}
+.tool-card .tool-button .icon{width:17px;height:17px;flex-shrink:0}
+.tool-card .tool-badge{align-self:flex-start;display:inline-flex;border:1px solid #e7cda0;border-radius:999px;padding:7px 11px;background:#f8e9ca;color:#614213;font-size:11px;font-weight:750;line-height:1.4;margin:0 0 12px}
+.tool-card .tool-disclaimer{font-size:11.5px;line-height:1.6;color:#485c63;margin:0 0 20px}
+.tool-card-training{background:#fdf9f0;border-color:#eadcc7}
+@media(max-width:1000px){.tools-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.tool-card-training{grid-column:1/-1}}
+@media(max-width:700px){.tools-grid{grid-template-columns:minmax(0,1fr);gap:12px}.tool-card{min-height:0;padding:24px 22px}.tool-card-training{grid-column:auto}.tool-card h3{margin-top:19px}.tool-card .tool-button{min-height:48px}}
+@media(max-width:360px){.tool-card{padding:22px 18px}}
