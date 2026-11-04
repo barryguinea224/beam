@@ -24,6 +24,15 @@ const getHtml=p=>{
  if(!htmlCache.has(p))htmlCache.set(p,read(p));
  return htmlCache.get(p);
 };
+// The general JS suite runs before the static generator. Do not create
+// untracked HTML/JSON files in that suite; the dedicated visa CI step
+// enforces production generation before running this complete audit.
+if(!fs.existsSync(rootFile("visas/index.html"))){
+ if(process.argv.includes("--external"))
+  throw new Error("Generate the six visas first: CONTEXT=production node scripts/build-visas.cjs");
+ console.log("SKIP generated visa links: dedicated visas-static CI audits after production build");
+ process.exit(0);
+}
 const errors=[],links=[];
 for(const src of pages){
  assert.ok(fs.existsSync(rootFile(src)),"Missing audit page "+src);
