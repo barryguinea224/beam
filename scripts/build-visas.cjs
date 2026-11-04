@@ -185,14 +185,18 @@ function demoBanner() {
   return '<aside class="notice notice-demo" role="status"><strong>EXEMPLE — NON VÉRIFIÉ</strong><p>Cette fiche sert uniquement à illustrer la structure. Elle ne fournit aucune exigence, adresse, frais ou délai vérifié. Ne préparez pas une demande à partir de cet exemple.</p></aside>';
 }
 function renderType(visa, demo, index) {
-  // A simple visual checklist. Grouping is editorial and optional; no
-  // statuses or notes are mixed into the short public document labels.
+  // A simple visual checklist. Only conditional *base* documents display
+  // their existing source note inline, so the tick is never mistaken for a
+  // universal requirement. Other group notes stay inside "Plus de détails".
   const renderGroup=(key,title,variant="",headingTag="h4")=>{
     const docs=visa.documents.filter(doc=>(doc.groupe||"base")===key);
     if(!docs.length)return "";
     const items=docs.map(doc=>
-      '<li class="doc"><span class="doc-check" aria-hidden="true">✓</span><span class="doc-label">' +
-      e(doc.libelle) + '</span></li>').join("\n");
+      '<li class="doc"><span class="doc-check" aria-hidden="true">✓</span><span class="doc-copy"><span class="doc-label">' +
+      e(doc.libelle) + '</span>' +
+      (key==="base"&&doc.statut==="selon_le_cas"
+        ? '<small class="doc-note"> — ' + e(doc.note) + '</small>' : '') +
+      '</span></li>').join("\n");
     const groupId="visa-"+index+"-group-"+key;
     return '<section class="document-group'+(variant?' '+variant:'')+'" aria-labelledby="'+groupId+'">' +
       '<'+headingTag+' id="'+groupId+'">'+title+'</'+headingTag+'>' +
@@ -215,7 +219,7 @@ function renderType(visa, demo, index) {
     baseDocs,
     // Same-tab static link, immediately after the base list (if present).
     baseDocs ? '<aside class="identity-passport"><p>🛂 Votre passeport est-il encore valable assez longtemps ? ' +
-      '<a href="https://ididentite.com/" rel="noopener">Vérifiez-le et partagez vos informations en toute sécurité avec identité</a></p></aside>' : "",
+      '<a href="https://ididentite.com/" rel="noopener">Vérifiez-le et partagez vos informations en toute sécurité avec iD</a></p></aside>' : "",
     situation,
     renderGroup("but",DOCUMENT_GROUPS.but),
     renderGroup("autres",DOCUMENT_GROUPS.autres)
@@ -295,7 +299,7 @@ function renderDestination(entry, slug, today) {
     '<p class="related-travel"><a href="/travel/">Conservez votre historique de voyages avec BTH</a></p>',
     '<section class="identity-support" aria-label="Accompagnement BEAM">',
     '<h2>Accompagnement BEAM</h2>',
-    '<a class="button secondary identity-support-link" href="https://ididentite.com/" rel="noopener">Envoyez vos informations de passeport en toute sécurité avec identité</a>',
+    '<a class="button secondary identity-support-link" href="https://ididentite.com/" rel="noopener">Envoyez vos informations de passeport en toute sécurité avec iD</a>',
     '</section>',
     '<details class="visa-more"><summary>Plus de détails</summary><div class="visa-more-body">',
     '<p class="date-note">' + e(dateNote(entry.verifie_le,demo)) + '</p>',
