@@ -52,6 +52,7 @@ jobs:
       - run: |
           node tests/travel-script-load-order.cjs
           node tests/travel-printable-journal.cjs
+          node tests/travel-trip-stay.cjs
           node tests/travel-dashboard-filters.cjs
           node tests/travel-factual-pdf.cjs
 
