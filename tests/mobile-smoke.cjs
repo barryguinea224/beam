@@ -6,7 +6,7 @@ const path = require('node:path');
 const { chromium } = require('playwright');
 
 const BASE_URL = process.env.BEAM_TEST_URL || 'http://127.0.0.1:8765';
-const SIZES = [320, 360, 390, 430];
+const SIZES = [320, 360, 375, 390, 430];
 const OUT = path.join(process.cwd(), 'artifacts/mobile');
 fs.mkdirSync(OUT, { recursive: true });
 
@@ -37,6 +37,11 @@ async function main() {
 
         const measurements = await page.evaluate(() => {
           const selectors = [
+            '#outils .tools-grid',
+            '#outils .tool-card',
+            '#outils .tool-button',
+            '#outils .tool-badge',
+            '#outils .tool-disclaimer',
             '#approche .steps',
             '#approche .step',
             '#formation .terminal-scene',
@@ -77,9 +82,54 @@ async function main() {
           );
         }
 
+        // Real homepage section, titles, descriptions, URLs and mobile stacking.
+        assert.equal(await page.locator('#outils h2').innerText(), 'Nos outils');
+        assert.equal(await page.locator('#outils .tool-card').count(), 3);
+        assert.equal(await page.evaluate(() => document.querySelector('#services').nextElementSibling.id), 'outils');
+        assert.deepEqual(await page.locator('#outils .tool-card h3').allInnerTexts(), [
+          'BTH : votre carnet de voyage',
+          'iD : vos informations, votre décision',
+          'BTdesk : simulateur de formation aux réservations'
+        ]);
+        assert.deepEqual(await page.locator('#outils .tool-card > p:not(.tool-disclaimer)').allInnerTexts(), [
+          'Vos voyages, vos photos et votre historique en PDF, au même endroit.',
+          "Partagez vos informations d'identité en toute sécurité et vérifiez la validité de votre passeport.",
+          "Entraînez-vous aux réservations, à la tarification et à l'émission, avec des examens et des certificats de formation."
+        ]);
+        assert.equal(await page.getByRole('link', {name:'Ouvrir BTH'}).getAttribute('href'), '/travel/');
+        const identity = page.getByRole('link', {name:'Ouvrir iD'});
+        assert.equal(await identity.getAttribute('href'), 'https://ididentite.com/');
+        assert.equal(await identity.getAttribute('rel'), 'noopener');
+        assert.equal(await identity.getAttribute('target'), null);
+        const demo = page.getByRole('link', {name:'Demander une démonstration'});
+        const demoUrl = new URL(await demo.getAttribute('href'));
+        assert.equal(demoUrl.origin, 'https://wa.me');
+        assert.equal(demoUrl.pathname, '/224622095630');
+        assert.deepEqual([...demoUrl.searchParams.keys()], ['text']);
+        assert.match(demoUrl.searchParams.get('text'), /démonstration de BTdesk/);
+        assert.equal(await page.locator('.tool-badge').innerText(), 'Version en ligne bientôt');
+        assert.match(await page.locator('.tool-disclaimer').innerText(), /simulateur indépendant, non affilié à un fournisseur GDS/);
+        assert.doesNotMatch(await page.locator('body').innerText(), /GDS\\s*LAB/i);
+        const toolBoxes = await page.locator('#outils .tool-card').evaluateAll(cards =>
+          cards.map(el => {
+            const r = el.getBoundingClientRect();
+            return {left:r.left,right:r.right,top:r.top,bottom:r.bottom};
+          })
+        );
+        for (let index = 0; index < toolBoxes.length; index++) {
+          const box = toolBoxes[index];
+          assert.ok(box.left >= -1 && box.right <= width + 1, 'Tools card overflow at ' + width + 'px: ' + JSON.stringify(box));
+          if(index > 0)assert.ok(box.top >= toolBoxes[index - 1].bottom - 2,
+            'Tool cards must stack at ' + width + 'px');
+        }
+        assert.ok(await page.locator('.main-nav a[href="#outils"]').count() === 1);
         const menu = page.locator('.menu-toggle');
         await menu.click();
         assert.equal(await menu.getAttribute('aria-expanded'), 'true', 'Mobile menu did not open');
+        await page.locator('.main-nav a[href="#outils"]').click();
+        assert.equal(await menu.getAttribute('aria-expanded'), 'false', 'Tools navigation must close the mobile menu');
+        await menu.click();
+        assert.equal(await menu.getAttribute('aria-expanded'), 'true');
         await page.locator('.main-nav a[href="#formation"]').click();
         assert.equal(await menu.getAttribute('aria-expanded'), 'false', 'Mobile menu did not close');
 

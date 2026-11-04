@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
+    branches: [main, feature/beam-travel-history-v1]
 
 jobs:
   smoke:
@@ -47,10 +47,19 @@ jobs:
                   if not pathname or pathname == "/":
                       continue
                   dest = Path(pathname.lstrip("/"))
+                  if pathname.endswith("/") or dest.is_dir():
+                      dest = dest / "index.html"
                   assert dest.is_file(), f"{page}: missing linked file {link}"
           home = Path("index.html").read_text(encoding="utf-8")
           game = Path("simulation-3d.html").read_text(encoding="utf-8")
           assert 'href="simulation-3d.html"' in home
+          assert 'id="outils"' in home and 'href="#outils"' in home
+          assert home.index('id="services"') < home.index('id="outils"') < home.index('id="approche"')
+          assert 'href="/travel/"' in home
+          assert 'href="https://ididentite.com/" rel="noopener"' in home
+          assert "Version en ligne bientôt" in home
+          assert "simulateur indépendant, non affilié à un fournisseur GDS" in home
+          assert not re.search(r'GDS\\s*LAB', home, re.I), "Old GDS LAB brand visible on homepage"
           assert game.count('short:"') == 4, "Expected four tasks"
           assert "THREE.WebGLRenderer" in game
           assert 'data-move="up"' in game and 'id="interact"' in game
