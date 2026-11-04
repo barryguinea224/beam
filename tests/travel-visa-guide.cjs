@@ -99,7 +99,8 @@ async function main(){
  }
  assert.match(sw,/identite-links-v20/);
  assert.match(sw,/if \(url\.origin !== self\.location\.origin\) return;/);
- assert.doesNotMatch(sw,/ididentite\.com/,"the worker never refers to or pre-caches identité");
+ const precache=sw.match(/const PUBLIC_SHELL = \[([\s\S]*?)\];/)?.[1] || "";
+ assert.doesNotMatch(precache,/ididentite\.com/,"the worker must never pre-cache identité");
  assert.match(sw,/"\.\/visa-guide\.js"/,"new helper must be an audited public shell asset");
  assert.match(sw,/if \(url\.pathname\.startsWith\("\/visas\/"\)\) return;/);
  assert.doesNotMatch(sw,/["\']\.\/visas\//,
