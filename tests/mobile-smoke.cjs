@@ -171,6 +171,34 @@ async function main() {
         await context.close();
       }
     }
+    // Also check the expanded navigation fits at intermediate/desktop widths.
+    for (const width of [960, 1024, 1280]) {
+      const context = await browser.newContext({viewport:{width,height:844}});
+      try {
+        const page = await context.newPage();
+        await page.goto(BASE_URL + '/', {waitUntil:'domcontentloaded'});
+        await page.evaluate(() => document.fonts.ready);
+        const geometry = await page.evaluate(() => {
+          const header = document.querySelector('.header-inner').getBoundingClientRect();
+          const tools = document.querySelector('#outils').getBoundingClientRect();
+          return {headerRight:header.right, toolsRight:tools.right,
+            scrollWidth:document.documentElement.scrollWidth};
+        });
+        assert.ok(geometry.headerRight <= width + 1 && geometry.toolsRight <= width + 1,
+          'Header or tools section exceeds ' + width + 'px: ' + JSON.stringify(geometry));
+        const menu = page.locator('.menu-toggle');
+        if(width <= 1050) {
+          assert.ok(await menu.isVisible(), 'Tablet navigation should collapse at ' + width);
+          await menu.click();
+          assert.ok(await page.locator('.main-nav').isVisible());
+          assert.equal(await page.locator('.main-nav a[href="#outils"]').count(),1);
+        } else {
+          assert.ok(await page.locator('.main-nav').isVisible());
+        }
+        await page.screenshot({path:path.join(OUT,'homepage-'+width+'px.png'),fullPage:true,animations:'disabled'});
+        console.log('PASS desktop/tablet header ' + width + 'px');
+      } finally { await context.close(); }
+    }
   } finally {
     await browser.close();
   }

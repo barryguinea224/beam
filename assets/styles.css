@@ -108,3 +108,23 @@
 @media(max-width:1000px){.tools-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.tool-card-training{grid-column:1/-1}}
 @media(max-width:700px){.tools-grid{grid-template-columns:minmax(0,1fr);gap:12px}.tool-card{min-height:0;padding:24px 22px}.tool-card-training{grid-column:auto}.tool-card h3{margin-top:19px}.tool-card .tool-button{min-height:48px}}
 @media(max-width:360px){.tool-card{padding:22px 18px}}
+
+/* Extra navigation item: preserve the header without horizontal crowding. */
+@media(min-width:1051px){
+  .header-inner{gap:16px}
+  .main-nav{gap:10px}
+  .main-nav>a:not(.mobile-contact){font-size:11.5px}
+  .button-header{padding:0 13px;gap:8px;font-size:11.5px}
+}
+@media(min-width:921px) and (max-width:1050px){
+  .header-inner{position:relative;gap:16px}
+  .menu-toggle{display:grid;place-items:center;order:3}
+  .menu-toggle .icon{width:25px;height:25px}
+  .menu-toggle[aria-expanded="true"] .menu-open{display:none}
+  .menu-toggle[aria-expanded="true"] .menu-close{display:block}
+  .main-nav{display:none;position:absolute;top:calc(100% + 1px);left:0;right:0;margin-left:0;flex-direction:column;align-items:stretch;gap:0;padding:14px 27px 22px;background:#f7f6f2;box-shadow:0 14px 24px rgba(0,0,0,.1);z-index:50}
+  .main-nav.open{display:flex}
+  .main-nav>a:not(.mobile-contact){font-size:14px;padding:14px 0;border-bottom:1px solid #e7e7e0}
+  .main-nav .mobile-contact{display:flex;align-items:center;justify-content:space-between;background:var(--navy);color:#fff;padding:14px;border-radius:6px;margin-top:16px;font-size:13px;font-weight:800}
+  .button-header{margin-left:auto}
+}
