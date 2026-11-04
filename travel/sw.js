@@ -1,7 +1,7 @@
 // BEAM Travel History PWA — PRIVATE BY DEFAULT.
 // Cache only the audited, versioned public shell. No runtime cache writes.
 // Never cache Supabase, signed links, personal trips, photos or API responses.
-const CACHE_NAME = "beam-travel-shell-v1-20261103-visas-links-v19";
+const CACHE_NAME = "beam-travel-shell-v1-20261104-identite-links-v20";
 const SCOPE_PATH = "/travel/";
 const PUBLIC_SHELL = [
   "./index.html", "./config.js", "./offline-bootstrap.js", "./pwa.js",
@@ -68,6 +68,8 @@ self.addEventListener("fetch", event => {
   // Absolutely no fetch interception for Supabase URLs, cross-origin CDN,
   // private photos, signed URL query strings, POST, or unknown files.
   const url = new URL(request.url);
+  // No interception or cache for any external origin, including ididentite.com.
+  if (url.origin !== self.location.origin) return;
   // Public visa pages and /visas/fiches.json must bypass this worker entirely.
   if (url.pathname.startsWith("/visas/")) return;
   const isBareHome = request.method === "GET" &&
