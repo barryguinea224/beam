@@ -36,6 +36,9 @@ create table public.trips (
   exit_date date not null,
   duration_days integer generated always as (exit_date-entry_date+1) stored,
   purpose text not null check(purpose in ('tourisme','affaires','etudes','famille','sante','transit','autre')),
+  -- Optional names only, not booking documents, personal IDs or ticket numbers.
+  airline text constraint trips_airline_max_length check(char_length(airline)<=160),
+  hotel text constraint trips_hotel_max_length check(char_length(hotel)<=160),
   note text check(char_length(note)<=20000),
   is_favorite boolean not null default false,
   is_domestic boolean not null default false,
@@ -245,7 +248,7 @@ revoke all on public.profiles,public.trips,public.activities,public.media from a
 revoke delete on public.trips, public.media from authenticated;
 -- deleting is server-only. Keep ordinary trip editing available.
 revoke update on public.trips from authenticated;
-grant update(country_code,cities,entry_date,exit_date,purpose,note,is_favorite,is_domestic,cover_media_id) on public.trips to authenticated;
+grant update(country_code,cities,entry_date,exit_date,purpose,airline,hotel,note,is_favorite,is_domestic,cover_media_id) on public.trips to authenticated;
 -- Photo reservation identity, path and file properties are immutable for browser clients.
 revoke update on public.media from authenticated;
 grant update(caption,taken_on,is_favorite,position) on public.media to authenticated;

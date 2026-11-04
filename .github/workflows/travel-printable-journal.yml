@@ -34,13 +34,13 @@ jobs:
       - name: Protect SQL; independently validate the intentional PDF debranding
         run: |
           git fetch --no-tags origin feature/beam-travel-history-v1
-          # This PR explicitly introduces one reviewed subscription migration.
-          # Reject every OTHER SQL change. Canonical schema and that specific
-          # dated migration are independently verified by fresh-schema CI.
+          # Only the known expiry, avatar, and optional stay-name migrations
+          # may accompany UI changes. Reject every OTHER SQL change.
+          # Canonical schema and new stay migration are verified by disposable SQL CI.
           changes="$(git diff --name-only "origin/feature/beam-travel-history-v1" HEAD -- travel/supabase/schema.sql travel/supabase/migrations)"
           while IFS= read -r file; do
             case "$file" in
-              ""|travel/supabase/schema.sql|travel/supabase/migrations/20261101230000_travel_access_until_readonly.sql|travel/supabase/migrations/20261102150000_travel_avatar_row_first.sql) ;;
+              ""|travel/supabase/schema.sql|travel/supabase/migrations/20261101230000_travel_access_until_readonly.sql|travel/supabase/migrations/20261102150000_travel_avatar_row_first.sql|travel/supabase/migrations/20261104160000_trips_airline_hotel.sql) ;;
               *) echo "::error::Unexpected SQL change: $file"; exit 1 ;;
             esac
           done <<< "$changes"
