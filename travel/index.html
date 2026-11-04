@@ -1602,7 +1602,7 @@ $("#printJournal").onclick=async()=>{
     .select("display_name,deleting").eq("id",uid).single();
   if(stateError||!current||current.deleting)throw new Error("Profil indisponible");
   const {data:rows,error:tripError}=await S.from("trips")
-    .select("id,country_code,cities,entry_date,exit_date,duration_days,purpose,is_domestic,note")
+    .select("id,country_code,cities,entry_date,exit_date,duration_days,purpose,is_domestic,note,airline,hotel")
     .eq("user_id",uid).eq("deleting",false).order("entry_date",{ascending:false});
   if(tripError||!rows)throw new Error("Voyages indisponibles");
   const selected=window.BEAM_DASHBOARD_FILTERS.apply(rows,filters);
