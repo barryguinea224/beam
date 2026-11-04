@@ -10,6 +10,7 @@ on:
       - "travel/supabase/schema.sql"
       - "travel/supabase/migrations/20261101230000_travel_access_until_readonly.sql"
       - "travel/supabase/migrations/20261102150000_travel_avatar_row_first.sql"
+      - "travel/supabase/migrations/20261104160000_trips_airline_hotel.sql"
       - "travel/supabase/tests/*.sql"
       - ".github/workflows/travel-schema-fresh-replay.yml"
       - "PRODUCTION_SETUP.md"
@@ -131,6 +132,7 @@ jobs:
             deletion_retry_worker.sql
             media_storage_reserved_upload.sql
             profile_contacts_security.sql
+            trip_optional_stay.sql
             sql_storage_hardening.sql
           )
           for test in "${tests[@]}"; do
