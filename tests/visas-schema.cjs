@@ -113,6 +113,25 @@ grouped.types_visa[0].documents=[
 ];
 assert.doesNotThrow(()=>validateEntry(grouped,"france",{today,mode:"production"}));
 const groupedPage=renderDestination(grouped,"france",today);
+// Only the case-dependent *base* note appears in the short public checklist.
+// All mandatory base notes and all other groups' notes remain in details.
+const conditionalBase=deep(grouped);
+conditionalBase.types_visa[0].documents[0].statut="selon_le_cas";
+conditionalBase.types_visa[0].documents[0].note="Si vous êtes dans la situation de test.";
+const conditionalPage=renderDestination(conditionalBase,"france",today);
+const conditionalBeforeDetails=conditionalPage.split('<details class="visa-more">')[0];
+assert.match(conditionalBeforeDetails,
+ /<span class="doc-label">Pièce sans groupe<\/span><small class="doc-note"> — Si vous êtes dans la situation de test\.<\/small>/);
+assert.equal((conditionalBeforeDetails.match(/class="doc-note"/g)||[]).length,1,
+ "only the non-mandatory base item may expose its original note");
+assert.doesNotMatch(conditionalBeforeDetails,/Note de test [1-6]/,
+ "obligatory base documents and all profile/purpose/extra notes remain hidden");
+const hostileConditional=deep(conditionalBase);
+hostileConditional.types_visa[0].documents[0].note="Si <script>alert(1)</script>";
+const sanitizedPage=renderDestination(hostileConditional,"france",today);
+assert.match(sanitizedPage,/Si &lt;script&gt;alert\(1\)&lt;\/script&gt;/,
+ "visible conditional notes must be HTML escaped");
+assert.doesNotMatch(sanitizedPage,/<script>alert\(1\)<\/script>/);
 const visible=groupedPage.split('<details class="visa-more">')[0];
 const extras=groupedPage.split('<details class="visa-more">')[1];
 assert.ok(extras,"all detailed information must sit inside the collapsed details");
@@ -462,8 +481,21 @@ for(const name of actual){
   assert.doesNotMatch(anchor,/[?#]/,"no PII, parameters or tracking fragments");
  }
  assert.match(visaPage,/🛂 Votre passeport est-il encore valable assez longtemps \?/);
- assert.match(visaPage,/Vérifiez-le et partagez vos informations en toute sécurité avec identité/);
- assert.match(visaPage,/Envoyez vos informations de passeport en toute sécurité avec identité/);
+ assert.match(visaPage,/Vérifiez-le et partagez vos informations en toute sécurité avec iD/);
+ assert.match(visaPage,/Envoyez vos informations de passeport en toute sécurité avec iD/);
+ assert.doesNotMatch(visaPage,/en toute sécurité avec identité/);
+ const expectedBaseNotes=row.types_visa.flatMap(type=>type.documents.filter(doc=>
+   (doc.groupe||"base")==="base" && doc.statut==="selon_le_cas"));
+ assert.equal((visaPage.match(/class="doc-note"/g)||[]).length,expectedBaseNotes.length,
+  country+" must display only notes of conditional base documents");
+ for(const doc of expectedBaseNotes){
+  const snippet='<span class="doc-label">'+esc(doc.libelle)+'</span>'+
+   '<small class="doc-note"> — '+esc(doc.note)+'</small>';
+  assert.ok(visaPage.includes(snippet),
+   country+" must display the unchanged official editorial note for "+doc.libelle);
+ }
+ if(["france","canada","royaume-uni"].includes(country))
+  assert.ok(expectedBaseNotes.length>0,country+" must have tested conditional base documents");
  const sectionBefore=visaPage.split('<section class="summary-card"')[0];
  for(const type of row.types_visa){
   if(!type.documents.some(d=>(d.groupe||"base")==="base"))continue;

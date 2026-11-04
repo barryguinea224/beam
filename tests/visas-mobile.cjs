@@ -223,9 +223,28 @@ async function main(){
         assert.ok(Math.abs(baseWidth.actual-baseWidth.available)<3,
          "base documents must span the full content width "+width+"px: "+JSON.stringify(baseWidth));
        }
-       // The public checklist must not reveal notes or document statuses.
-       for(const doc of type.documents)
+       // Inline notes disambiguate non-mandatory base documents only.
+       const expectedInline=type.documents.filter(doc=>
+        (doc.groupe||"base")==="base" && doc.statut==="selon_le_cas");
+       assert.deepEqual(
+        await sectionEl.locator(".document-group-base .doc-note").allInnerTexts(),
+        expectedInline.map(doc=>"— "+doc.note),
+        "conditional base notes must appear once, immediately after their labels");
+       assert.equal(await sectionEl.locator(".doc-note").count(),expectedInline.length,
+        "profile, trip-purpose and complementary notes must stay in details");
+       for(const doc of type.documents){
+        if((doc.groupe||"base")==="base" && doc.statut==="selon_le_cas")continue;
         assert.equal(await sectionEl.locator(".documents-card").getByText(doc.note,{exact:true}).count(),0);
+       }
+       for(const note of await sectionEl.locator(".doc-note").all()){
+        const size=await note.evaluate(el=>({
+         px:parseFloat(getComputedStyle(el).fontSize),
+         right:el.getBoundingClientRect().right,
+         scroll:document.documentElement.scrollWidth
+        }));
+        assert.ok(size.px>=12 && size.right<=width+1 && size.scroll<=width+1,
+         "conditional notes must remain legible and fit Android "+width+"px: "+JSON.stringify(size));
+       }
        const more=page.locator(".visa-more");
        for(const doc of type.documents)
         assert.ok((await more.textContent()).includes(doc.note),
