@@ -254,6 +254,16 @@ async function main(){
    }))
   ];
   fs.writeFileSync(path.join(root,"visas/data/test-en-ligne.json"),JSON.stringify(demo));
+  // These two additional fixtures remain in the disposable test root; they
+  // verify no empty "Selon votre situation" section and a single-card case.
+  const withoutProfiles=JSON.parse(JSON.stringify(demo));
+  withoutProfiles.types_visa[0].documents=withoutProfiles.types_visa[0].documents
+   .filter(doc=>!["salaries","commercants"].includes(doc.groupe));
+  fs.writeFileSync(path.join(root,"visas/data/test-sans-profil.json"),JSON.stringify(withoutProfiles));
+  const oneProfile=JSON.parse(JSON.stringify(demo));
+  oneProfile.types_visa[0].documents=oneProfile.types_visa[0].documents
+   .filter(doc=>doc.groupe!=="commercants");
+  fs.writeFileSync(path.join(root,"visas/data/test-profil-unique.json"),JSON.stringify(oneProfile));
   buildSite({root,mode:"preview"});
   for(const width of widths){
    const context=await browser.newContext({viewport:{width,height:780},isMobile:true,hasTouch:true,serviceWorkers:"block"});
@@ -290,7 +300,25 @@ async function main(){
     await page.locator(".visa-more summary").click();
     assert.deepEqual(outsiders,[],"online test page must not load third-party resources");
     await page.screenshot({path:path.join(out,"en-ligne-exemple-"+width+".png"),fullPage:true,animations:"disabled"});
-    console.log("PASS online-only test fixture "+width+"px");
+    // No profile groups: the whole heading, subtitle and grid disappear.
+    let next=await page.goto("http://127.0.0.1:"+server.address().port+
+     "/visas/test-sans-profil/",{waitUntil:"networkidle"});
+    assert.equal(next.status(),200);
+    assert.equal(await page.locator(".profile-situation,.profile-card,.profile-grid").count(),0);
+    assert.equal(await page.getByText("Selon votre situation",{exact:true}).count(),0);
+    assert.ok((await page.evaluate(()=>document.documentElement.scrollWidth))<=width+1);
+    await page.screenshot({path:path.join(out,"sans-profil-"+width+".png"),fullPage:true,animations:"disabled"});
+    // One profile group: exactly one card without an empty second column.
+    next=await page.goto("http://127.0.0.1:"+server.address().port+
+     "/visas/test-profil-unique/",{waitUntil:"networkidle"});
+    assert.equal(next.status(),200);
+    assert.equal(await page.locator(".profile-card").count(),1);
+    assert.equal(await page.locator(".profile-card-employee").count(),1);
+    assert.equal(await page.locator(".profile-card-entrepreneur").count(),0);
+    assert.equal(await page.locator(".profile-grid.single-profile").count(),1);
+    assert.ok((await page.evaluate(()=>document.documentElement.scrollWidth))<=width+1);
+    await page.screenshot({path:path.join(out,"profil-unique-"+width+".png"),fullPage:true,animations:"disabled"});
+    console.log("PASS online-only, no-profile and single-profile fixtures "+width+"px");
    }finally{await context.close();}
   }
  }finally{
