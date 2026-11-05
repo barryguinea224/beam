@@ -6,24 +6,26 @@ const {chromium} = require('playwright');
 
 const original = fs.readFileSync(path.join(__dirname, '../travel/index.html'), 'utf8');
 // Exercise real markup and CSS, without authentication, scripts or Supabase traffic.
-const html = original.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '');
+const sheetCSS=fs.readFileSync(path.join(__dirname,'../travel/photo-sheet.css'),'utf8');
+const html=original.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'')
+  .replace('</head>','<style>'+sheetCSS+'</style></head>');
 const thumb = 'data:image/svg+xml,' + encodeURIComponent(
   '<svg xmlns="http://www.w3.org/2000/svg" width="300" height="180"><rect width="300" height="180" fill="#b0c4b4"/></svg>'
 );
 const scenarios = [
   {
     name:'saved photos',
-    cards: Array.from({length:2},()=>'<div class="photoTile">'+
-      '<img src="'+thumb+'" alt="Souvenir privé de ce voyage">'+
-      '<div class="actions"><button class="btn ghost" type="button">Télécharger</button>'+
-      '<button class="btn ghost" type="button">Supprimer</button></div></div>').join('')
+    cards: Array.from({length:2},()=>'<figure class="photoTile">'+
+      '<button class="photoTap" type="button" aria-label="Actions photo">'+
+      '<img src="'+thumb+'" alt="Souvenir fictif">'+
+      '<span class="photoRoles"><span class="photoRole">★</span><span class="photoRole">✈</span></span></button>'+
+      '<figcaption class="photoOneLine">Légende fictive</figcaption></figure>').join('')
   },
   {
     name:'pending photos and long names',
-    cards: Array.from({length:2},(_,i)=>'<div class="photoTile">'+
-      '<img src="'+thumb+'" alt="Photo en attente">'+
-      '<p class="photoPendingLabel">En attente · '+('nom-photo-portrait-'.repeat(4))+i+'.jpeg</p>'+
-      '<div class="actions"><button class="btn ghost" type="button">Retirer</button></div></div>').join('')
+    cards: Array.from({length:2},(_,i)=>'<figure class="photoTile">'+
+      '<button class="photoTap" type="button" aria-label="Photo en attente"><img src="'+thumb+'" alt="Photo fictive en attente"></button>'+
+      '<figcaption class="photoOneLine">En attente · '+('nom-photo-portrait-'.repeat(4))+i+'.jpeg</figcaption></figure>').join('')
   }
 ];
 const widths = [320, 360, 390];
@@ -47,7 +49,7 @@ async function main() {
             const left=sheetBox.left+parseFloat(pad.paddingLeft);
             const right=sheetBox.right-parseFloat(pad.paddingRight);
             const selectors=['#photoField','#photos','#photoGallery','.photoTile','.photoTile img',
-              '.photoTile .actions','.photoTile .btn','.photoPendingLabel'];
+              '.photoTap','.photoRoles','.photoOneLine'];
             const nodes=selectors.flatMap(selector=>
               [...document.querySelectorAll(selector)]
                 .filter(node=>node.closest('#photoField'))
@@ -72,6 +74,8 @@ async function main() {
               'Photo element clipped at '+width+'px: '+JSON.stringify({scenario:scenario.name,node,layout}));
           }
           assert.equal(layout.nodes.filter(node=>node.selector==='.photoTile').length,2);
+          assert.equal(await page.locator('#photoGallery .photoTap').count(),2);
+          assert.equal(await page.locator('#photoGallery .actions,#photoGallery .removePhoto').count(),0);
           console.log('PASS '+width+'px: '+scenario.name+' fits the trip modal');
         }
       } finally {await page.close()}

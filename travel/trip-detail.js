@@ -13,12 +13,30 @@
     return Number.isNaN(date.getTime()) ? "" :
       date.toLocaleDateString("fr-FR", {day:"numeric",month:"long",year:"numeric"});
   }
-  function photos(rows) {
+  const MAX_CAPTION=500;
+  const captionValue=value=>typeof value==="string"?value.trim().slice(0,MAX_CAPTION):"";
+  function badges(row,stay={}){
+    const flags=[
+      [stay.coverMediaId===row.id,"★","Couverture"],
+      [!!stay.airline&&stay.airlineMediaId===row.id,"✈","Vol"],
+      [!!stay.hotel&&stay.hotelMediaId===row.id,"🏨","Hôtel"]
+    ].filter(item=>item[0]);
+    return flags.length?'<span class="photoRoles" aria-hidden="true">'+
+      flags.map(([,symbol,label])=>'<span class="photoRole" title="'+esc(label)+'">'+symbol+'</span>').join("")+
+      '</span>':"";
+  }
+  function photos(rows,stay={}) {
     if (!rows.length) return '<p class="detailEmpty">Aucune photo pour ce voyage.</p>';
-    return rows.map(row => '<figure class="detailPhoto">' +
-      (row.url ? '<img loading="lazy" alt="Photo privée du voyage" src="' + esc(row.url) + '">' :
-        '<div class="detailPhotoMissing">Prévisualisation indisponible</div>') +
-      '</figure>').join("");
+    const items=rows.map(row=>{
+      const caption=captionValue(row.caption);
+      return '<figure class="detailPhoto" data-media-id="'+esc(row.id)+'">'+
+        '<button type="button" class="photoTap" data-id="'+esc(row.id)+'" aria-label="Ouvrir les actions de cette photo">'+
+        (row.url?'<img loading="lazy" alt="Photo privée du voyage" src="'+esc(row.url)+'">':
+          '<span class="detailPhotoMissing">Prévisualisation indisponible</span>')+
+        badges(row,stay)+'</button>'+
+        (caption?'<figcaption class="photoOneLine">'+esc(caption)+'</figcaption>':"")+'</figure>';
+    }).join("");
+    return items;
   }
   function activities(rows) {
     if (!rows.length) return '<p class="detailEmpty">Aucune activité pour le moment.</p>';
@@ -41,7 +59,7 @@
     }
     return {value:{title:cleanTitle,place:cleanPlace || null,happened_on:date || null,kind:"lieu"}};
   }
-  const api=Object.freeze({photos,activities,validateActivity,dateFR});
+  const api=Object.freeze({photos,badges,captionValue,MAX_CAPTION,activities,validateActivity,dateFR});
   if(root)root.BEAM_TRIP_DETAIL=api;
   if(typeof module!=="undefined"&&module.exports)module.exports=api;
 })(typeof window!=="undefined"?window:undefined);

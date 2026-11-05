@@ -21,8 +21,8 @@ for(const [key,label] of [["airline","Compagnie aérienne"],["hotel","Hôtel / h
 }
 assert.ok(migration.includes("grant update(airline,hotel) on public.trips to authenticated"));
 assert.ok(page.includes("airline.length>160||hotel.length>160"));
-assert.ok(page.includes('fact("Compagnie aérienne",trip.airline)'));
-assert.ok(page.includes('fact("Hôtel / hébergement",trip.hotel)'));
+assert.ok(page.includes('stayFact("Compagnie aérienne",trip.airline,"airline")'));
+assert.ok(page.includes('stayFact("Hôtel / hébergement",trip.hotel,"hotel")'));
 assert.ok(journal.includes("trip-logistics") && booklet.includes("stay-logistics"));
 // Regression: inspect the REAL query feeding both personal print formats.
 const printStart=page.indexOf('$("#printJournal").onclick=async()=>');
@@ -33,7 +33,7 @@ const tripQueries=[...printHandler.matchAll(/S\.from\("trips"\)\s*\.select\("([^
 assert.equal(tripQueries.length,1,"one explicit trips projection must feed both personal print formats");
 const expectedColumns=[
  "id","country_code","cities","entry_date","exit_date","duration_days",
- "purpose","is_domestic","note","airline","hotel"
+ "purpose","is_domestic","note","airline","hotel","airline_media_id","hotel_media_id"
 ];
 assert.deepEqual(tripQueries[0][1].split(","),expectedColumns,
  "the real personal-booklet select must include airline + hotel (never select *)");
@@ -47,7 +47,7 @@ assert.ok(factualHandler.includes("BEAM_TRAVEL_PDF.fetchRows(S,uid)"),
 assert.deepEqual(PDF.FIELDS,["country_code","cities","entry_date","exit_date","duration_days","purpose"],
  "neither airline nor hotel may enter the factual PDF");
 
-assert.ok(sw.includes("stay-details-v22"));
+assert.ok(sw.includes("flight-connections-v29"));
 const sample={country_code:"FR",cities:["Paris"],entry_date:"2025-05-01",exit_date:"2025-05-03",
  duration_days:3,purpose:"tourisme",airline:"  Compagnie fictive  ",hotel:"  Hôtel fictif  "};
 const projected=JOURNAL.viewTrip(sample);

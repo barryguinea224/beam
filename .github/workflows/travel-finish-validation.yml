@@ -67,3 +67,11 @@ jobs:
             test-artifacts/travel-onboarding-real/empty-360.png
             test-artifacts/travel-onboarding-real/first-trip-360.png
           if-no-files-found: warn
+
+      - name: Upload Android photo grid and bottom-sheet captures (synthetic fixtures)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bth-photo-actions-android-320-390
+          path: test-artifacts/photo-sheet-android/*.png
+          if-no-files-found: warn

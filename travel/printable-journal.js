@@ -7,6 +7,7 @@
  const MAX_PHOTOS_PER_TRIP=4,MAX_TOTAL_PHOTOS=40,SIGNED_SECONDS=300;
  const COUNTRIES=root?.BEAM_COUNTRIES||(typeof require==="function"?require("./countries.js"):null);
  const FILTERS=root?.BEAM_DASHBOARD_FILTERS||(typeof require==="function"?require("./dashboard-filters.js"):null);
+ const FLIGHTS=root?.BEAM_FLIGHT_CONNECTIONS||(typeof require==="function"?require("./flight-connections.js"):null);
  if(!COUNTRIES||!FILTERS)throw new Error("Référentiels du carnet indisponibles.");
  const PURPOSES=Object.freeze({tourisme:"Tourisme",affaires:"Affaires",etudes:"Études",famille:"Famille",sante:"Santé",transit:"Transit",autre:"Autre"});
  const FLAGS=new Set(COUNTRIES.ORDER.map(code=>code.toLowerCase()));
@@ -33,9 +34,12 @@
   if(Number.isNaN(d.getTime())||d.toISOString().slice(0,10)!==s)return "—";
   return s.slice(8,10)+"/"+s.slice(5,7)+"/"+s.slice(0,4);
  }
- function viewTrip(trip,activities=[],photos=[]){
+ function viewTrip(trip,activities=[],photos=[],stayPhotos={},photoCaptions=[]){
   if(!trip||!COUNTRIES.valid(trip.country_code))throw new Error("Pays du séjour inconnu.");
   const days=Number(trip.duration_days);
+  const entries=(Array.isArray(photos)?photos:[]).slice(0,MAX_PHOTOS_PER_TRIP)
+    .map((url,i)=>({url,caption:clean(Array.isArray(photoCaptions)?photoCaptions[i]:"").slice(0,500)}))
+    .filter(item=>typeof item.url==="string"&&item.url.startsWith("https://"));
   return Object.freeze({
    code:trip.country_code,country:COUNTRIES.NAMES[trip.country_code],
    cities:Array.isArray(trip.cities)?trip.cities.filter(c=>typeof c==="string"&&c.trim()).slice(0,15).join(", "):"",
@@ -46,12 +50,15 @@
    purpose:PURPOSES[trip.purpose]||"Autre",
    domestic:trip.is_domestic===true,
    airline:clean(trip.airline).slice(0,160),hotel:clean(trip.hotel).slice(0,160),
+   airlinePhoto:typeof stayPhotos.airlinePhoto==="string"&&stayPhotos.airlinePhoto.startsWith("https://")?
+     stayPhotos.airlinePhoto:"",
+   hotelPhoto:typeof stayPhotos.hotelPhoto==="string"&&stayPhotos.hotelPhoto.startsWith("https://")?
+     stayPhotos.hotelPhoto:"",
    memory:clean(trip.note),
    activities:(Array.isArray(activities)?activities:[]).slice(0,50).map(a=>Object.freeze({
     title:clean(a.title).slice(0,160),place:clean(a.place).slice(0,160),date:date(a.happened_on)
    })).filter(a=>a.title),
-   photos:(Array.isArray(photos)?photos:[]).slice(0,MAX_PHOTOS_PER_TRIP)
-     .filter(p=>typeof p==="string"&&p.startsWith("https://"))
+   photos:entries.map(item=>item.url),photoCaptions:entries.map(item=>item.caption)
   });
  }
  function preferredMediaQuery(query){
@@ -84,7 +91,7 @@
  }
  // Reconstruct ONLY checked geometry paths from the repository's local static SVG.
  // No innerHTML, foreignObject, event handlers, styles, links or remote resources.
- function map(parent,raw,visited){
+ function map(parent,raw,visited,flightModel={}){
   const container=el(parent,"div","atlas");
   const doc=parent.ownerDocument;
   let count=0;
@@ -106,8 +113,10 @@
      svg.appendChild(shape);count++;
     }
     if(count){
+     const arcs=FLIGHTS?.draw(svg,flightModel.residence,flightModel.destinations,
+      flightModel.centroids,{animate:false})||[];
      container.appendChild(svg);
-     fitAtlasToVisited(svg);
+     fitAtlasToVisited(svg,arcs);
     }
    }
   }
@@ -116,10 +125,11 @@
  }
  // The same visited-path bounds strategy as fitMapToVisited in the app.
  // Use a stable landscape aspect ratio so Guinea + Senegal stay legible on A4.
- function fitAtlasToVisited(svg){
+ function fitAtlasToVisited(svg,arcs=[]){
   const paths=[...svg.querySelectorAll("path.atlas-visited")];
   if(!paths.length)return;
   const bounds=[];
+  for(const route of arcs)for(const [x,y] of [route.from,route.to,route.control])bounds.push({x,y,width:0,height:0});
   for(const path of paths){
    try{
     const b=path.getBBox();
@@ -182,7 +192,7 @@
   ".atlas{border-radius:5mm;min-height:65mm;margin:5mm 0;background:#edf2eb;padding:4mm;overflow:hidden}",
   ".atlas svg{display:block;width:100%;height:auto;max-height:83mm}",
   ".atlas path{fill:#cbd7cc;stroke:#fff;stroke-width:1;vector-effect:non-scaling-stroke}",
-  ".atlas path.atlas-visited{fill:#15835a;stroke:#165036;stroke-width:1.25}",
+  ".atlas path.atlas-visited{fill:#7fb196;stroke:#ffffff;stroke-width:.8}",
   ".atlas-fallback{padding:20mm 5mm;text-align:center;font-family:Georgia,serif;color:#496a56}",
   ".metric-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:3mm;margin:5mm 0 2mm}",
   ".metric{min-width:0;border-radius:3mm;background:#e8f1e9;padding:4mm 3mm}",
@@ -203,10 +213,14 @@
   ".trip-line{font-size:10pt;color:#496c57;margin:0}",
   ".pills{display:flex;gap:2mm;flex-wrap:wrap;margin:4mm 0 7mm}",
   ".pill{font:700 9pt system-ui;border-radius:999px;padding:2mm 4mm;border:1px solid #afcab8;background:#f1f7f2;color:#27583f}",
-  ".trip-logistics{font:9pt/1.4 system-ui,sans-serif;color:#456b54;overflow-wrap:anywhere;margin:1mm 0 4mm}",
+  ".trip-logistics{display:flex;flex-wrap:wrap;align-items:center;gap:3mm;margin:1mm 0 4mm;min-width:0}",
+  ".trip-logistics-line{display:flex;align-items:center;gap:2mm;min-width:0;flex:1 1 75mm;break-inside:avoid}",
+  ".trip-logistics-line img{width:13mm;height:12mm;object-fit:contain;flex:none;border-radius:2mm;background:#e4eee6}",
+  ".trip-logistics-line span{font:8.5pt/1.3 system-ui,sans-serif;color:#456b54;min-width:0;overflow-wrap:anywhere}",
   ".photo-mosaic{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:3mm;min-width:0}",
   ".photo-mosaic figure{margin:0;border-radius:3mm;overflow:hidden;break-inside:avoid;min-width:0;background:#ecf1e9}",
   ".photo-mosaic figure:first-child{grid-column:1/-1}",
+  ".photo-caption{font:8pt/1.3 system-ui,sans-serif;color:#42624f;padding:2mm 3mm 3mm;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;max-width:100%}",
   ".photo-mosaic img{display:block;width:100%;height:46mm;object-fit:cover}",
   ".photo-mosaic figure:first-child img{height:99mm}",
   ".photo-mosaic .photo-missing{margin:0}",
@@ -242,7 +256,9 @@
  function render(doc,model){
   if(!doc?.createElement||!model||!Array.isArray(model.trips))throw new Error("Carnet indisponible.");
   const name=clean(model.name).replace(/\s+/g," ").slice(0,80);
-  const list=model.trips.map(t=>viewTrip(t.trip,t.activities,t.photos));
+  const list=model.trips.map(t=>viewTrip(t.trip,t.activities,t.photos,{
+    airlinePhoto:t.airlinePhoto,hotelPhoto:t.hotelPhoto
+  },t.photoCaptions));
   const failed=model.trips.map(t=>{
    const n=Number(t.missingPhotos);
    return Number.isInteger(n)&&n>0?Math.min(n,MAX_PHOTOS_PER_TRIP):0;
@@ -300,7 +316,11 @@
   el(summaryTop,"div","eyebrow","MES VOYAGES EN IMAGES");
   el(summaryTop,"span","summary-kicker",period(list));
   el(yearbook,"h2",null,"Mon année en voyages");
-  map(yearbook,model.mapSvgText,new Set(countries));
+  map(yearbook,model.mapSvgText,new Set(countries),{
+   residence:model.countryOfResidence,
+   destinations:list.filter(t=>!t.domestic).map(t=>t.code),
+   centroids:model.worldCentroids
+  });
   const nums=el(yearbook,"div","metric-grid");
   for(const [value,label] of [[summary.length,"voyage"+(summary.length===1?"":"s")+" à l’étranger"],
     [summaryCountries,"pays à l’étranger"],
@@ -338,13 +358,25 @@
    const pills=el(hero,"div","pills");
    for(const text of [trip.purpose,trip.duration,...(trip.domestic?["Séjour national"]:[])])
     el(pills,"span","pill",text);
-   const logistics=[trip.airline&&"Compagnie : "+trip.airline,trip.hotel&&"Hébergement : "+trip.hotel].filter(Boolean);
-   if(logistics.length)el(hero,"p","trip-logistics",logistics.join(" · "));
+   if(trip.airline||trip.hotel){
+    const logistics=el(hero,"div","trip-logistics");
+    for(const [role,label,name,url] of [
+     ["airline","Compagnie",trip.airline,trip.airlinePhoto],
+     ["hotel","Hébergement",trip.hotel,trip.hotelPhoto]
+    ]){
+     if(!name)continue;
+     const line=el(logistics,"div","trip-logistics-line");
+     const img=el(line,"img");img.src=url||model.stayArt?.[role]||"/travel/assets/stay-"+role+".svg";
+     img.alt="";img.setAttribute("referrerpolicy","no-referrer");
+     el(line,"span",null,label+" : "+name);
+    }
+   }
    if(trip.photos.length){
     const grid=el(hero,"div","photo-mosaic");
     for(const [i,url] of trip.photos.entries()){
      const figure=el(grid,"figure",i===0?"featured-photo":"supporting-photo");
      makePhoto(figure,url,"Photo privée de "+trip.country);
+     if(trip.photoCaptions[i])el(figure,"figcaption","photo-caption",trip.photoCaptions[i]);
     }
    }else{
     const ribbon=el(hero,"div","photo-placeholder");

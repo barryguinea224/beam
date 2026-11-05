@@ -1,0 +1,8 @@
+/* Lightweight public overlay: drawn inside the existing SVG, never intercepting map taps. */
+#map [data-flight-connections="true"],
+#map [data-flight-connections="true"] * {pointer-events:none!important;cursor:default}
+#map .flightMotion {animation:beam-flight-draw .48s cubic-bezier(.2,.7,.3,1) both}
+@keyframes beam-flight-draw {from{stroke-dashoffset:100}to{stroke-dashoffset:0}}
+@media(prefers-reduced-motion:reduce){
+ #map .flightMotion{animation:none!important;stroke-dasharray:none!important;stroke-dashoffset:0!important}
+}
