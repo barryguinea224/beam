@@ -39,7 +39,7 @@ async function main(){
   from(table){
    assert.equal(table,"media");
    return {select(fields){
-    assert.equal(fields,"id,storage_path,created_at");
+    assert.equal(fields,"id,storage_path,created_at,caption");
     return {eq(){return this},order(){const d=deferred();mediaRequests.push(d);return d.promise}}
    }};
   },
@@ -48,6 +48,7 @@ async function main(){
   }}}
  };
  const ctx=vm.createContext({
+  DETAIL:require("../travel/trip-detail.js"),photoTripStay:()=>({}),
   window:{BEAM_PHOTO:{MAX_PHOTOS:10,validateSelection:async()=>[]}},
   S:db,user:{id:"owner-1"},accountState:"active",editingTripId:"trip-1",
   trips:[{id:"trip-1",cover_media_id:null}],esc:s=>String(s),

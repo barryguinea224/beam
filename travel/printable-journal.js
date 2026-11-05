@@ -33,9 +33,12 @@
   if(Number.isNaN(d.getTime())||d.toISOString().slice(0,10)!==s)return "—";
   return s.slice(8,10)+"/"+s.slice(5,7)+"/"+s.slice(0,4);
  }
- function viewTrip(trip,activities=[],photos=[],stayPhotos={}){
+ function viewTrip(trip,activities=[],photos=[],stayPhotos={},photoCaptions=[]){
   if(!trip||!COUNTRIES.valid(trip.country_code))throw new Error("Pays du séjour inconnu.");
   const days=Number(trip.duration_days);
+  const entries=(Array.isArray(photos)?photos:[]).slice(0,MAX_PHOTOS_PER_TRIP)
+    .map((url,i)=>({url,caption:clean(Array.isArray(photoCaptions)?photoCaptions[i]:"").slice(0,500)}))
+    .filter(item=>typeof item.url==="string"&&item.url.startsWith("https://"));
   return Object.freeze({
    code:trip.country_code,country:COUNTRIES.NAMES[trip.country_code],
    cities:Array.isArray(trip.cities)?trip.cities.filter(c=>typeof c==="string"&&c.trim()).slice(0,15).join(", "):"",
@@ -54,8 +57,7 @@
    activities:(Array.isArray(activities)?activities:[]).slice(0,50).map(a=>Object.freeze({
     title:clean(a.title).slice(0,160),place:clean(a.place).slice(0,160),date:date(a.happened_on)
    })).filter(a=>a.title),
-   photos:(Array.isArray(photos)?photos:[]).slice(0,MAX_PHOTOS_PER_TRIP)
-     .filter(p=>typeof p==="string"&&p.startsWith("https://"))
+   photos:entries.map(item=>item.url),photoCaptions:entries.map(item=>item.caption)
   });
  }
  function preferredMediaQuery(query){
@@ -214,6 +216,7 @@
   ".photo-mosaic{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:3mm;min-width:0}",
   ".photo-mosaic figure{margin:0;border-radius:3mm;overflow:hidden;break-inside:avoid;min-width:0;background:#ecf1e9}",
   ".photo-mosaic figure:first-child{grid-column:1/-1}",
+  ".photo-caption{font:8pt/1.3 system-ui,sans-serif;color:#42624f;padding:2mm 3mm 3mm;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;max-width:100%}",
   ".photo-mosaic img{display:block;width:100%;height:46mm;object-fit:cover}",
   ".photo-mosaic figure:first-child img{height:99mm}",
   ".photo-mosaic .photo-missing{margin:0}",
@@ -251,7 +254,7 @@
   const name=clean(model.name).replace(/\s+/g," ").slice(0,80);
   const list=model.trips.map(t=>viewTrip(t.trip,t.activities,t.photos,{
     airlinePhoto:t.airlinePhoto,hotelPhoto:t.hotelPhoto
-  }));
+  },t.photoCaptions));
   const failed=model.trips.map(t=>{
    const n=Number(t.missingPhotos);
    return Number.isInteger(n)&&n>0?Math.min(n,MAX_PHOTOS_PER_TRIP):0;
@@ -365,6 +368,7 @@
     for(const [i,url] of trip.photos.entries()){
      const figure=el(grid,"figure",i===0?"featured-photo":"supporting-photo");
      makePhoto(figure,url,"Photo privée de "+trip.country);
+     if(trip.photoCaptions[i])el(figure,"figcaption","photo-caption",trip.photoCaptions[i]);
     }
    }else{
     const ribbon=el(hero,"div","photo-placeholder");

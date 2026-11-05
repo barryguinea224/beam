@@ -322,7 +322,7 @@ html.travelAccessReadOnly #photoField,html.travelAccessReadOnly #saveTrip{displa
 .accountIdentityShortcut a{color:var(--g);font-weight:650;text-underline-offset:3px}
 .accountIdentityShortcut a:focus-visible{outline:2px solid var(--g);outline-offset:3px;border-radius:3px}
 @media(max-width:400px){.legalLinks{gap:4px 9px}}
-</style><link rel="stylesheet" href="./visual-cards.css"><link rel="stylesheet" href="./dashboard-filters.css">
+</style><link rel="stylesheet" href="./photo-sheet.css"><link rel="stylesheet" href="./visual-cards.css"><link rel="stylesheet" href="./dashboard-filters.css">
 <script src="/travel/offline-bootstrap.js"></script></head><body>
 <section id="offline" role="status" aria-live="polite"><div class="ey">BEAM · Travel History</div><h1>Connexion nécessaire pour consulter votre carnet</h1><p>Vos voyages et photos sont privés et indisponibles hors ligne. Reconnectez-vous à Internet pour continuer.</p></section>
 <section id="auth" class="auth hidden"><div class="ey">BEAM · Travel History</div><h1>Gardez vos voyages.<br>Retrouvez votre histoire.</h1><p class="sub">Un espace personnel pour vos destinations, dates, activités, souvenirs et photos.</p><form id="login"><div class="field"><label for="email">E-mail</label><input id="email" type="email" autocomplete="email" required></div><button class="btn">Recevoir un code</button></form><div id="otpBox" class="hidden"><p class="sub">Si cette adresse est autorisée, vous recevrez un code à 6 chiffres par e-mail.</p><form id="otpForm"><div class="field"><label for="otp">Code à 6 chiffres</label><input id="otp" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" aria-describedby="otpHelp" required><small id="otpHelp">Pas de code après 2 minutes ? Vérifiez vos spams, ou <a href="https://wa.me/224622095630" target="_blank" rel="noopener noreferrer">écrivez-nous sur WhatsApp</a>.</small></div><button class="btn">Continuer avec le code</button></form><div class="actions"><button id="resend" type="button" class="btn ghost" disabled>Renvoyer un code · 60 s</button></div></div><p id="loginMsg" class="notice hidden" role="status" aria-live="polite"></p><p class="sub" id="accessHelp">Ce carnet est réservé aux clients BEAM. <a href="https://wa.me/224622095630" target="_blank" rel="noopener noreferrer">Contactez-nous sur WhatsApp</a>.</p><div class="beamInstall" data-beam-install-area><button class="beamInstallButton" type="button" data-beam-install-action hidden>Installer BTH</button><details class="beamInstallHelp" data-beam-install-help><summary>Comment installer BTH</summary><p data-beam-install-steps>Depuis le menu de votre navigateur, cherchez « Installer l’application » ou « Ajouter à l’écran d’accueil », si cette option est proposée.</p></details><p class="beamInstallStatus" role="status" aria-live="polite" data-beam-install-status></p></div><aside class="authContact" aria-label="Contact"><strong>Contact</strong><p>WhatsApp : <a href="https://wa.me/224622095630" target="_blank" rel="noopener noreferrer">+224 622 09 56 30</a></p></aside><nav class="legalLinks legalLinksAuth" aria-label="Informations légales"><a href="./confidentialite.html">Confidentialité</a><span aria-hidden="true">·</span><a href="./conditions.html">Conditions d’utilisation</a></nav></section>
@@ -388,6 +388,33 @@ html.travelAccessReadOnly #photoField,html.travelAccessReadOnly #saveTrip{displa
       </form>
     </section>
   </div>
+</div>
+<div id="photoActionOverlay" aria-hidden="true">
+ <section id="photoActionDialog" role="dialog" aria-modal="true" aria-labelledby="photoActionTitle" tabindex="-1">
+  <div class="photoSheetHead"><h2 id="photoActionTitle">Actions sur la photo</h2><button id="photoActionClose" type="button" aria-label="Fermer les actions">×</button></div>
+  <img id="photoActionImage" alt="Aperçu privé de la photo sélectionnée" referrerpolicy="no-referrer">
+  <p id="photoActionCaption"></p>
+  <div id="photoActionList">
+   <button id="photoNoteToggle" type="button">Ajouter une note</button>
+   <button id="photoCover" type="button">Choisir comme couverture</button>
+   <button id="photoAirline" type="button">Utiliser comme photo du vol</button>
+   <button id="photoHotel" type="button">Utiliser comme photo de l'hôtel</button>
+   <button id="photoDownload" type="button">Télécharger</button>
+   <button id="photoDelete" type="button" class="danger">Supprimer</button>
+   <button id="photoPendingRemove" type="button" class="danger hidden">Retirer de la sélection</button>
+  </div>
+  <form id="photoNoteForm" class="hidden">
+   <label for="photoNoteInput">Note de cette photo (500 caractères maximum)</label>
+   <textarea id="photoNoteInput" maxlength="500" rows="3"></textarea>
+   <div id="photoNoteCount" aria-live="polite">0 / 500</div>
+   <div class="photoSheetActions"><button type="submit" id="photoNoteSave">Enregistrer</button><button id="photoNoteCancel" type="button">Annuler</button><button id="photoNoteClear" type="button">Effacer</button></div>
+  </form>
+  <div id="photoDeleteConfirm" class="hidden">
+   <p>Supprimer définitivement cette photo du voyage ? Cette action ne peut pas être annulée.</p>
+   <div class="photoSheetActions"><button id="photoConfirmDelete" type="button">Confirmer la suppression</button><button id="photoCancelDelete" type="button">Annuler</button></div>
+  </div>
+  <p id="photoActionStatus" role="status" aria-live="polite"></p>
+ </section>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./config.js"></script><script src="./pwa.js"></script><script src="./access.js"></script><script src="./photo-utils.js"></script><script src="./photo-upload.js"></script><script src="./avatar.js"></script><script src="./trip-detail.js"></script><script src="./visa-guide.js"></script><script src="./countries.js"></script><script src="./country-picker.js"></script><script src="./factual-pdf.js"></script><script src="./factual-pdf-file.js"></script><script src="./journal-stats.js"></script><script src="./dashboard-filters.js"></script><script src="./visual-cards.js"></script><script src="./printable-journal.js"></script><script src="./family-booklet.js"></script><script>
 const C=window.BEAM_TRAVEL_CONFIG||{},ok=C.supabaseUrl&&!C.supabaseUrl.includes("YOUR_")&&C.supabaseAnonKey&&!C.supabaseAnonKey.includes("YOUR_"),S=ok&&typeof supabase!=="undefined"?supabase.createClient(C.supabaseUrl,C.supabaseAnonKey):null,$=s=>document.querySelector(s);let user,trips=[],accountState="loading";
@@ -1004,7 +1031,7 @@ $("#trips").onclick=e=>{const first=e.target.closest("#addFirstTrip");if(first){
 // The consultation sheet is separate from the existing trip editing form.
 // Private image URLs are signed afresh on every opening and never cached.
 const DETAIL=window.BEAM_TRIP_DETAIL;
-let detailTripId=null,detailRequest=0,detailActivityBusy=false,detailMediaBusy=false,detailMediaIds=[],detailActivitiesRows=[],detailReturnFocus=null;
+let detailTripId=null,detailRequest=0,detailActivityBusy=false,detailMediaBusy=false,detailMediaIds=[],detailPhotoRows=[],detailActivitiesRows=[],detailReturnFocus=null;
 function detailActive(id,token){
  return accountState==="active"&&!!user&&detailTripId===id&&token===detailRequest&&
    $("#tripDetailModal").classList.contains("open");
@@ -1018,7 +1045,8 @@ function detailActivityMessage(message){
  box.textContent=message;box.classList.remove("hidden");
 }
 function closeTripDetail(){
- detailRequest++;detailTripId=null;detailActivitiesRows=[];detailMediaIds=[];
+ if(typeof photoSheetState!=="undefined"&&photoSheetState?.context==="detail")closePhotoActions();
+ detailRequest++;detailTripId=null;detailActivitiesRows=[];detailMediaIds=[];detailPhotoRows=[];
  window.BEAM_VISA_GUIDE?.hide($("#detailVisaGuide"));
  $("#tripDetailModal").classList.remove("open");
  $("#detailPhotos").replaceChildren();$("#detailActivities").replaceChildren();
@@ -1071,7 +1099,7 @@ function openTripDetail(id){
 async function refreshTripDetail(id){
  const token=++detailRequest;
  const [photos,activities]=await Promise.all([
-   S.from("media").select("id,storage_path").eq("user_id",user.id).eq("trip_id",id).order("created_at",{ascending:true}),
+   S.from("media").select("id,storage_path,caption").eq("user_id",user.id).eq("trip_id",id).order("created_at",{ascending:true}),
    S.from("activities").select("id,title,place,happened_on").eq("user_id",user.id).eq("trip_id",id).order("created_at",{ascending:true})
  ]);
  if(!detailActive(id,token))return;
@@ -1082,7 +1110,7 @@ async function refreshTripDetail(id){
    $("#detailActivities").innerHTML=DETAIL.activities(activities.data);
  }
  if(photos.error||!photos.data){
-   detailMediaIds=[];
+   detailMediaIds=[];detailPhotoRows=[];
    $("#detailPhotos").innerHTML='<p class="detailEmpty">Photos indisponibles. Réessayez en rouvrant la fiche.</p>';
    return;
  }
@@ -1090,14 +1118,15 @@ async function refreshTripDetail(id){
  const signed=await Promise.all(photos.data.map(async row=>{
    try{
      const {data,error}=await S.storage.from("media").createSignedUrl(row.storage_path,300);
-     return {id:row.id,url:error?"":(data?.signedUrl||"")};
-   }catch{return {id:row.id,url:""}}
+     return {id:row.id,storage_path:row.storage_path,url:error?"":(data?.signedUrl||""),caption:row.caption||""};
+   }catch{return {id:row.id,storage_path:row.storage_path,url:"",caption:row.caption||""}}
  }));
  if(!detailActive(id,token))return;
  const trip=trips.find(t=>t.id===id);
  if(!trip)return;
+ detailPhotoRows=signed;
  $("#detailPhotos").innerHTML=DETAIL.photos(signed,{
-   canEdit:canWrite(),airline:!!trip.airline?.trim(),hotel:!!trip.hotel?.trim(),
+   canEdit:canWrite(),coverMediaId:trip.cover_media_id,airline:!!trip.airline?.trim(),hotel:!!trip.hotel?.trim(),
    airlineMediaId:trip.airline_media_id,hotelMediaId:trip.hotel_media_id
  });
  for(const role of ["airline","hotel"]){
@@ -1107,23 +1136,11 @@ async function refreshTripDetail(id){
    image.src=selected?.url||"./assets/stay-"+role+".svg";
  }
 }
-$("#detailPhotos").onclick=async e=>{
- const button=e.target.closest("button.stayPhotoChoice[data-id][data-stay-role]");
- if(!button||detailMediaBusy||!canWrite()||accountState!=="active"||!user||!detailTripId)return;
- const role=button.dataset.stayRole,photoId=button.dataset.id;
- if(!["airline","hotel"].includes(role)||!detailMediaIds.includes(photoId))return;
- const id=detailTripId,trip=trips.find(t=>t.id===id);
- if(!trip||!trip[role]?.trim())return;
- const field=role+"_media_id",selected=trip[field]===photoId?null:photoId;
- detailMediaBusy=true;button.disabled=true;
- try{
-   const {data,error}=await S.from("trips").update({[field]:selected})
-    .eq("id",id).eq("user_id",user.id).select(field).single();
-   if(error||!data||data[field]!==selected)throw Error("Échec de la sélection");
-   trip[field]=data[field];
-   if(detailTripId===id&&accountState==="active")await refreshTripDetail(id);
- }catch{if(detailTripId===id)detailMessage("Impossible de modifier cette photo. Réessayez.")}
- finally{detailMediaBusy=false;button.disabled=false}
+$("#detailPhotos").onclick=e=>{
+ const button=e.target.closest(".photoTap[data-id]");
+ if(!button||!detailTripId)return;
+ const row=detailPhotoRows.find(photo=>photo.id===button.dataset.id);
+ if(row)openPhotoActions("detail",row,detailTripId,button);
 };
 $("#detailClose").onclick=closeTripDetail;
 $("#detailEdit").onclick=()=>{
@@ -1192,6 +1209,7 @@ $("#detailActivities").onclick=async e=>{
 
 const PHOTO=window.BEAM_PHOTO;
 let existingMedia=[],pendingPhotos=[],failedPhotoSelections=[],pendingPhotoId=0,photoSelecting=false,mediaReady=false,mediaError=false,mediaRequest=0,mediaBusy=false;
+
 function showPhotoMessage(text){const el=$("#photoMessage");el.textContent=text;el.classList.remove("hidden")}
 function updatePhotoUsage(){
  const saved=existingMedia.length,waiting=pendingPhotos.length,remaining=Math.max(0,PHOTO.MAX_PHOTOS-saved-waiting);
@@ -1221,27 +1239,21 @@ function wirePhotoThumbs(container){
  }
 }
 function renderPhotoGallery(){
- const saved=existingMedia.map(row=>'<div class="photoTile" data-media-id="'+esc(row.id)+'"><div class="photoThumbSlot">'+
-   photoPreview(row)+'</div>'+
-   '<div class="actions"><button type="button" class="btn ghost setCoverPhoto" data-id="'+esc(row.id)+'" aria-pressed="'+
-    String(trips.find(t=>t.id===editingTripId)?.cover_media_id===row.id)+'">'+
-    (trips.find(t=>t.id===editingTripId)?.cover_media_id===row.id?'Retirer la couverture':'Choisir comme couverture')+
-   '</button>'+
-   ((trips.find(t=>t.id===editingTripId)?.airline||"").trim()?
-     '<button type="button" class="btn ghost stayPhotoChoice" data-stay-role="airline" data-id="'+esc(row.id)+'">'+
-     (trips.find(t=>t.id===editingTripId)?.airline_media_id===row.id?'Retirer la photo du vol':'Utiliser comme photo du vol')+'</button>':"")+
-   ((trips.find(t=>t.id===editingTripId)?.hotel||"").trim()?
-     '<button type="button" class="btn ghost stayPhotoChoice" data-stay-role="hotel" data-id="'+esc(row.id)+'">'+
-     (trips.find(t=>t.id===editingTripId)?.hotel_media_id===row.id?'Retirer la photo de l’hôtel':'Utiliser comme photo de l’hôtel')+'</button>':"")+
-   '<button type="button" class="btn ghost downloadPhoto" data-id="'+esc(row.id)+'">Télécharger</button>'+
-   '<button type="button" class="btn ghost removePhoto" data-id="'+esc(row.id)+'">Supprimer</button></div></div>');
- const waiting=pendingPhotos.map(entry=>'<div class="photoTile"><img alt="Photo en attente d’envoi" src="'+esc(entry.url)+'">'+
-   '<p class="photoPendingLabel">En attente · '+esc(entry.file.name)+'</p><div class="actions">'+
-   '<button type="button" class="btn ghost removePendingPhoto" data-pending-id="'+esc(entry.id)+
-   '" aria-label="Retirer '+esc(entry.file.name)+'">Retirer</button></div></div>');
+ const trip=trips.find(t=>t.id===editingTripId);
+ const saved=existingMedia.map(row=>{
+   const caption=DETAIL.captionValue(row.caption);
+   return '<figure class="photoTile" data-media-id="'+esc(row.id)+'">'+
+    '<button type="button" class="photoTap" data-id="'+esc(row.id)+'" aria-label="Ouvrir les actions de cette photo">'+
+    '<span class="photoThumbSlot">'+photoPreview(row)+'</span>'+
+    DETAIL.badges(row,photoTripStay(trip))+'</button>'+
+    (caption?'<figcaption class="photoOneLine">'+esc(caption)+'</figcaption>':"")+'</figure>';
+ });
+ const waiting=pendingPhotos.map(entry=>'<figure class="photoTile"><button type="button" class="photoTap" data-pending-id="'+esc(entry.id)+'" aria-label="Voir la photo en attente">'+
+   '<img alt="Photo en attente d’envoi" src="'+esc(entry.url)+'"></button>'+
+   '<figcaption class="photoOneLine">En attente · '+esc(entry.file.name)+'</figcaption></figure>');
  const rejected=failedPhotoSelections.map(entry=>'<div class="photoTile" role="status"><div class="photoThumbSlot"><span class="photoThumbPlaceholder">'+esc(PHOTO.INACCESSIBLE)+'</span></div><p class="photoPendingLabel">'+esc(entry.name)+'</p></div>');
  $("#photoGallery").innerHTML=saved.concat(waiting,rejected).join("")+
-   (saved.length&&editingTripId?"<p class=\"stayGalleryWarning\">Ne photographiez jamais votre carte d’embarquement ni votre confirmation de réservation : elles contiennent des numéros personnels.</p>":"");
+  (saved.length&&editingTripId?'<p class="stayGalleryWarning">Ne photographiez jamais votre carte d’embarquement ni votre confirmation de réservation : elles contiennent des numéros personnels.</p>':"");
  wirePhotoThumbs($("#photoGallery"));
 }
 function updateSignedThumbnail(row){
@@ -1278,7 +1290,7 @@ async function refreshMedia(tripId){
  const seq=++mediaRequest;
  mediaReady=false;mediaError=false;$("#photoMessage").classList.add("hidden");updatePhotoUsage();
  try{
-  const {data,error}=await S.from("media").select("id,storage_path,created_at")
+  const {data,error}=await S.from("media").select("id,storage_path,created_at,caption")
     .eq("user_id",user.id).eq("trip_id",tripId).order("created_at",{ascending:true});
   if(seq!==mediaRequest||editingTripId!==tripId||accountState!=="active")return;
   if(error||!Array.isArray(data))throw new Error("Media list unavailable");
@@ -1343,78 +1355,17 @@ $("#photos").onchange=async()=>{
  }catch(e){showPhotoMessage(PHOTO.message(e))}
  finally{photoSelecting=false;updatePhotoUsage()}
 };
-$("#photoGallery").onclick=async e=>{
- const b=e.target.closest("button[data-id],button[data-pending-id]");
- if(!b||mediaBusy||photoSelecting||savingTrip||accountState!=="active"||!canWrite())return;
- if(b.dataset.pendingId){removePendingPhoto(b.dataset.pendingId);return}
- if(!editingTripId)return;
- const row=existingMedia.find(x=>x.id===b.dataset.id);
- if(!row)return;
- if(b.classList.contains("stayPhotoChoice")){
-   const role=b.dataset.stayRole,field=role+"_media_id";
-   if(!["airline","hotel"].includes(role))return;
-   const tripId=editingTripId,trip=trips.find(t=>t.id===tripId);
-   if(!trip||!trip[role]?.trim())return;
-   const selected=trip[field]===row.id?null:row.id;
-   mediaBusy=true;updatePhotoUsage();b.disabled=true;
-   try{
-     const {data,error}=await S.from("trips").update({[field]:selected})
-       .eq("id",tripId).eq("user_id",user.id).select(field).single();
-     if(error||!data||editingTripId!==tripId||accountState!=="active"||data[field]!==selected)
-       throw Error("Sélection indisponible");
-     trip[field]=data[field];renderPhotoGallery();
-     showPhotoMessage(selected?"Photo choisie pour "+(role==="airline"?"le vol.":"l’hébergement."):"Illustration originale rétablie.");
-   }catch{showPhotoMessage("Impossible de modifier cette photo. Réessayez.")}
-   finally{mediaBusy=false;updatePhotoUsage()}
-   return;
+$("#photoGallery").onclick=e=>{
+ const button=e.target.closest(".photoTap");
+ if(!button||photoSheetBusy||photoSelecting||savingTrip||accountState!=="active")return;
+ const pendingId=button.dataset.pendingId;
+ if(pendingId){
+  const row=pendingPhotos.find(entry=>entry.id===pendingId);
+  if(row)openPhotoActions("pending",row,editingTripId,button);
+  return;
  }
- if(b.classList.contains("setCoverPhoto")){
-   // Server composite FK rejects wrong-owner or wrong-trip media even if bypassed.
-   const tripId=editingTripId,trip=trips.find(t=>t.id===tripId);
-   if(!trip)return;
-   const selected=trip.cover_media_id===row.id?null:row.id;
-   mediaBusy=true;updatePhotoUsage();b.disabled=true;
-   try{
-     const {data,error}=await S.from("trips").update({cover_media_id:selected})
-       .eq("id",tripId).eq("user_id",user.id).select("cover_media_id").single();
-     if(error||!data||editingTripId!==tripId||accountState!=="active")
-       throw new Error("Impossible de changer la couverture. Réessayez.");
-     trip.cover_media_id=data.cover_media_id;
-     render();renderPhotoGallery();
-     showPhotoMessage(selected?"Photo choisie pour la couverture.":"Couverture retirée.");
-   }catch(error){showPhotoMessage("Impossible de modifier la couverture. Réessayez.")}
-   finally{mediaBusy=false;updatePhotoUsage()}
-   return;
- }
- const removing=b.classList.contains("removePhoto");
- if(removing&&!window.confirm("Supprimer définitivement cette photo du voyage ?"))return;
- mediaBusy=true;updatePhotoUsage();
- $("#photoMessage").classList.add("hidden");
- try{
-   if(removing){
-     const {data,error}=await S.functions.invoke("travel-delete",{body:{action:"delete_photo",media_id:row.id}});
-     if(error||data?.ok!==true)throw new Error("Suppression non confirmée. Réessayez.");
-     // ON DELETE SET NULL clears every selected photo role, not the trip.
-     const trip=trips.find(t=>t.id===editingTripId);
-     if(trip){
-       for(const field of ["cover_media_id","airline_media_id","hotel_media_id"])
-         if(trip[field]===row.id)trip[field]=null;
-       render();
-     }
-   }else{
-     const {data,error}=await S.storage.from("media").download(row.storage_path);
-     if(error||!data)throw new Error("Téléchargement indisponible. Réessayez.");
-     const url=URL.createObjectURL(data),link=document.createElement("a");
-     link.href=url;link.download="beam-voyage-"+row.id+".webp";
-     document.body.appendChild(link);link.click();link.remove();
-     setTimeout(()=>URL.revokeObjectURL(url),60000);
-   }
- }catch(err){showPhotoMessage("Impossible de terminer cette opération. Réessayez.")}
- finally{
-   mediaBusy=false;
-   if(removing)await refreshMedia(editingTripId);
-   else updatePhotoUsage();
- }
+ const row=existingMedia.find(entry=>entry.id===button.dataset.id);
+ if(row&&editingTripId)openPhotoActions("editor",row,editingTripId,button);
 };
 async function uploadPhotos(tripId,entries){
  const failures=[];
@@ -1506,6 +1457,205 @@ $("#tripForm").onsubmit=async e=>{
  }
 };
 let deletingAccount=false;
+/* The only persistent photo-action surface. No browser confirm/prompt and no
+   client-side Storage deletion; all writes are owner/trip scoped. */
+let photoSheetState=null,photoSheetBusy=false,photoSheetReturnFocus=null;
+const photoEditable=()=>accountState==="active"&&!!user&&canWrite();
+function closePhotoActions(){
+ if(!photoSheetState||photoSheetBusy)return;
+ photoSheetState=null;
+ $("#photoActionOverlay").classList.remove("open");
+ $("#photoActionOverlay").setAttribute("aria-hidden","true");
+ $("#photoActionImage").removeAttribute("src");
+ $("#photoNoteInput").value="";
+ const target=photoSheetReturnFocus;photoSheetReturnFocus=null;
+ const fallback=$("#tripDetailModal").classList.contains("open")?$("#detailClose"):$("#photos");
+ (target?.isConnected?target:fallback)?.focus();
+}
+function photoTripStay(trip){
+ return {coverMediaId:trip?.cover_media_id,airline:!!trip?.airline?.trim(),hotel:!!trip?.hotel?.trim(),
+  airlineMediaId:trip?.airline_media_id,hotelMediaId:trip?.hotel_media_id};
+}
+function photoSheetMessage(text){$("#photoActionStatus").textContent=text}
+function refreshPhotoSheetActions(){
+ const state=photoSheetState;if(!state)return;
+ const trip=trips.find(row=>row.id===state.tripId),editable=photoEditable()&&state.context!=="pending";
+ const caption=DETAIL.captionValue(state.row.caption);
+ $("#photoNoteToggle").classList.toggle("hidden",!editable);
+ $("#photoCover").classList.toggle("hidden",!editable);
+ $("#photoAirline").classList.toggle("hidden",!editable||!trip?.airline?.trim());
+ $("#photoHotel").classList.toggle("hidden",!editable||!trip?.hotel?.trim());
+ $("#photoDelete").classList.toggle("hidden",!editable);
+ $("#photoDownload").classList.toggle("hidden",state.context==="pending");
+ $("#photoPendingRemove").classList.toggle("hidden",state.context!=="pending");
+ $("#photoNoteToggle").textContent=caption?"Modifier la note":"Ajouter une note";
+ $("#photoCover").textContent=trip?.cover_media_id===state.row.id?"Retirer la couverture":"Choisir comme couverture";
+ for(const role of ["airline","hotel"]){
+  const selected=trip?.[role+"_media_id"]===state.row.id;
+  $("#photo"+(role==="airline"?"Airline":"Hotel")).textContent=
+   selected?"Retirer comme photo "+(role==="airline"?"du vol":"de l'hôtel"):
+    "Utiliser comme photo "+(role==="airline"?"du vol":"de l'hôtel");
+ }
+ $("#photoActionCaption").textContent=caption;
+}
+function openPhotoActions(context,row,tripId,trigger){
+ if(photoSheetBusy||!row||!["detail","editor","pending"].includes(context))return;
+ const trip=trips.find(t=>t.id===tripId);
+ if(context!=="pending"&&(!trip||!row.id))return;
+ photoSheetState={context,row,tripId};
+ photoSheetReturnFocus=trigger||document.activeElement;
+ $("#photoActionStatus").textContent="";
+ $("#photoNoteForm").classList.add("hidden");
+ $("#photoDeleteConfirm").classList.add("hidden");
+ $("#photoActionList").classList.remove("hidden");
+ if(row.url)$("#photoActionImage").src=row.url;
+ else $("#photoActionImage").removeAttribute("src");
+ $("#photoNoteInput").value=DETAIL.captionValue(row.caption);
+ $("#photoNoteCount").textContent=$("#photoNoteInput").value.length+" / 500";
+ refreshPhotoSheetActions();
+ $("#photoActionOverlay").classList.add("open");
+ $("#photoActionOverlay").setAttribute("aria-hidden","false");
+ $("#photoActionClose").focus();
+}
+$("#photoActionClose").onclick=closePhotoActions;
+$("#photoActionOverlay").onclick=e=>{if(e.target===$("#photoActionOverlay"))closePhotoActions()};
+$("#photoActionOverlay").onkeydown=e=>{
+ if(e.key==="Escape"){e.preventDefault();e.stopPropagation();
+   if(!photoSheetBusy)closePhotoActions();return}
+ if(e.key!=="Tab")return;
+ const focusable=[...$("#photoActionDialog").querySelectorAll('button:not(.hidden):not(:disabled),textarea:not(:disabled)')]
+  .filter(node=>!node.closest(".hidden")&&!node.hidden&&getComputedStyle(node).display!=="none");
+ if(!focusable.length)return;
+ const first=focusable[0],last=focusable[focusable.length-1];
+ if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}
+ else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}
+};
+function updatePhotoViews(tripId){
+ const trip=trips.find(t=>t.id===tripId);
+ if(editingTripId===tripId)renderPhotoGallery();
+ if(detailTripId===tripId&&$("#tripDetailModal").classList.contains("open")){
+   $("#detailPhotos").innerHTML=DETAIL.photos(detailPhotoRows,photoTripStay(trip));
+ }
+}
+async function writePhotoRole(field){
+ const state=photoSheetState;if(!state||!photoEditable()||photoSheetBusy||state.context==="pending")return;
+ const trip=trips.find(t=>t.id===state.tripId);
+ if(!trip||!["cover_media_id","airline_media_id","hotel_media_id"].includes(field))return;
+ if(field!=="cover_media_id"&&!trip[field.slice(0,field.indexOf("_media_id"))]?.trim())return;
+ const selected=trip[field]===state.row.id?null:state.row.id;
+ photoSheetBusy=true;photoSheetMessage("");
+ try{
+   const {data,error}=await S.from("trips").update({[field]:selected})
+    .eq("id",state.tripId).eq("user_id",user.id).select(field).single();
+   if(error||!data||data[field]!==selected)throw Error("Sélection refusée");
+   trip[field]=selected;
+   render();updatePhotoViews(state.tripId);
+   if(detailTripId===state.tripId)await refreshTripDetail(state.tripId);
+   photoSheetMessage(selected?"Photo sélectionnée.":"Illustration par défaut rétablie.");
+   refreshPhotoSheetActions();
+ }catch{photoSheetMessage("Impossible de modifier cette sélection. Réessayez.")}
+ finally{photoSheetBusy=false}
+}
+$("#photoCover").onclick=()=>writePhotoRole("cover_media_id");
+$("#photoAirline").onclick=()=>writePhotoRole("airline_media_id");
+$("#photoHotel").onclick=()=>writePhotoRole("hotel_media_id");
+$("#photoNoteToggle").onclick=()=>{
+ if(!photoSheetState||!photoEditable()||photoSheetBusy)return;
+ $("#photoActionList").classList.add("hidden");
+ $("#photoNoteForm").classList.remove("hidden");
+ $("#photoNoteInput").focus();
+};
+$("#photoNoteCancel").onclick=()=>{
+ if(photoSheetBusy)return;
+ $("#photoNoteForm").classList.add("hidden");
+ $("#photoActionList").classList.remove("hidden");
+ $("#photoNoteToggle").focus();
+};
+$("#photoNoteInput").oninput=()=>{$("#photoNoteCount").textContent=$("#photoNoteInput").value.length+" / 500"};
+async function persistPhotoCaption(caption){
+ const state=photoSheetState;
+ if(!state||!photoEditable()||photoSheetBusy||state.context==="pending")return;
+ const value=String(caption).trim();
+ if(value.length>500){photoSheetMessage("500 caractères maximum.");return}
+ photoSheetBusy=true;photoSheetMessage("");
+ try{
+  const {data,error}=await S.from("media").update({caption:value||null})
+   .eq("id",state.row.id).eq("trip_id",state.tripId).eq("user_id",user.id)
+   .select("id,caption").single();
+  if(error||!data||data.id!==state.row.id)throw Error("Note refusée");
+  state.row.caption=data.caption||"";
+  for(const collection of [existingMedia,detailPhotoRows]){
+   const row=collection.find(x=>x.id===state.row.id);
+   if(row)row.caption=state.row.caption;
+  }
+  updatePhotoViews(state.tripId);
+  $("#photoNoteInput").value=state.row.caption;
+  $("#photoNoteCount").textContent=$("#photoNoteInput").value.length+" / 500";
+  $("#photoNoteForm").classList.add("hidden");
+  $("#photoActionList").classList.remove("hidden");
+  refreshPhotoSheetActions();
+  photoSheetMessage(value?"Note enregistrée.":"Note effacée.");
+  $("#photoNoteToggle").focus();
+ }catch{photoSheetMessage("Impossible d’enregistrer la note. Réessayez.")}
+ finally{photoSheetBusy=false}
+}
+$("#photoNoteForm").onsubmit=e=>{e.preventDefault();void persistPhotoCaption($("#photoNoteInput").value)};
+$("#photoNoteClear").onclick=()=>void persistPhotoCaption("");
+$("#photoDelete").onclick=()=>{
+ if(!photoEditable()||photoSheetBusy)return;
+ $("#photoActionList").classList.add("hidden");
+ $("#photoDeleteConfirm").classList.remove("hidden");
+ $("#photoConfirmDelete").focus();
+};
+$("#photoCancelDelete").onclick=()=>{
+ if(photoSheetBusy)return;
+ $("#photoDeleteConfirm").classList.add("hidden");
+ $("#photoActionList").classList.remove("hidden");
+ $("#photoDelete").focus();
+};
+$("#photoConfirmDelete").onclick=async()=>{
+ const state=photoSheetState;if(!state||!photoEditable()||photoSheetBusy||state.context==="pending")return;
+ photoSheetBusy=true;photoSheetMessage("");
+ try{
+  const {data,error}=await S.functions.invoke("travel-delete",{body:{action:"delete_photo",media_id:state.row.id}});
+  if(error||data?.ok!==true)throw Error("Suppression non confirmée");
+  const trip=trips.find(t=>t.id===state.tripId);
+  if(trip){
+   for(const field of ["cover_media_id","airline_media_id","hotel_media_id"])
+    if(trip[field]===state.row.id)trip[field]=null;
+   render();
+  }
+  photoSheetBusy=false;
+  closePhotoActions();
+  if(editingTripId===state.tripId)await refreshMedia(state.tripId);
+  if(detailTripId===state.tripId)await refreshTripDetail(state.tripId);
+ }catch{
+  photoSheetBusy=false;photoSheetMessage("Suppression non confirmée. Réessayez.");
+ }
+};
+$("#photoPendingRemove").onclick=()=>{
+ const state=photoSheetState;
+ if(state?.context!=="pending"||photoSheetBusy||!photoEditable())return;
+ removePendingPhoto(state.row.id);
+ closePhotoActions();
+};
+$("#photoDownload").onclick=async()=>{
+ const state=photoSheetState;if(!state||state.context==="pending"||photoSheetBusy||!user)return;
+ photoSheetBusy=true;photoSheetMessage("");
+ try{
+  const path=state.row.storage_path;
+  if(!path||!path.startsWith(user.id+"/"+state.tripId+"/"))throw Error("Accès refusé");
+  const {data,error}=await S.storage.from("media").download(path);
+  if(error||!data)throw Error("Téléchargement refusé");
+  const url=URL.createObjectURL(data),link=document.createElement("a");
+  link.href=url;link.download="beam-voyage-"+state.row.id+".webp";
+  document.body.appendChild(link);link.click();link.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),60000);
+  photoSheetMessage("Téléchargement lancé.");
+ }catch{photoSheetMessage("Téléchargement indisponible. Réessayez.")}
+ finally{photoSheetBusy=false}
+};
+
 function accountMessage(message,pending=false){
  const box=$(pending?"#finishDeletionMessage":"#deleteAccountMessage");
  box.textContent=message;box.classList.remove("hidden");
@@ -1681,13 +1831,13 @@ $("#printJournal").onclick=async()=>{
      S.from("activities").select("title,place,happened_on").eq("trip_id",trip.id).eq("user_id",uid)
       .order("created_at",{ascending:true}).limit(50),
      window.BEAM_FAMILY_BOOKLET.preferredMediaQuery(
-      S.from("media").select("id,storage_path,is_favorite").eq("trip_id",trip.id).eq("user_id",uid)
+      S.from("media").select("id,storage_path,is_favorite,caption").eq("trip_id",trip.id).eq("user_id",uid)
      )
     ]);
     if(activityResult.error||photoResult.error)throw new Error("Contenu indisponible");
     const media=(photoResult.data||[]).slice(0,Math.min(remaining,window.BEAM_FAMILY_BOOKLET.MAX_PHOTOS_PER_TRIP));
     remaining-=media.length;
-    const photos=[],byId=new Map();
+    const photos=[],photoCaptions=[],byId=new Map();
     let favoritePhoto="",missingPhotos=0;
     // Preserve selected stay images even outside the global 60-photo mosaic quota.
     const selectedIds=[trip.airline_media_id,trip.hotel_media_id].filter(Boolean);
@@ -1707,6 +1857,7 @@ $("#printJournal").onclick=async()=>{
           byId.set(row.id,safe);
           if(media.includes(row)){
             photos.push(safe);
+            photoCaptions.push(DETAIL.captionValue(row.caption));
             if(row.is_favorite&&!favoritePhoto)favoritePhoto=safe;
           }
         }else if(media.includes(row))missingPhotos++;
@@ -1715,7 +1866,7 @@ $("#printJournal").onclick=async()=>{
     const airlinePhoto=byId.get(trip.airline_media_id)||"";
     const hotelPhoto=byId.get(trip.hotel_media_id)||"";
     pack[position]={trip,activities:activityResult.data||[],photos,favoritePhoto,
-      airlinePhoto,hotelPhoto,missingPhotos};
+      airlinePhoto,hotelPhoto,missingPhotos,photoCaptions};
    }
   }
   await Promise.all(Array.from({length:Math.min(3,selected.length)},()=>worker()));

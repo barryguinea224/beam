@@ -24,7 +24,7 @@ assert.deepEqual(trips[0][1].split(","),[
 ],"the REAL personal booklet query must load selected stay image IDs");
 const media=[...print.matchAll(/S\.from\("media"\)\.select\("([^"]+)"\)/g)];
 assert.equal(media.length,1);
-assert.deepEqual(media[0][1].split(","),["id","storage_path","is_favorite"]);
+assert.deepEqual(media[0][1].split(","),["id","storage_path","is_favorite","caption"]);
 assert.ok(print.includes('.eq("trip_id",trip.id).eq("user_id",uid)'));
 assert.ok(print.includes("byId.get(trip.airline_media_id)"));
 assert.ok(print.includes("byId.get(trip.hotel_media_id)"));
@@ -46,7 +46,7 @@ for(const role of ["airline","hotel"]){
  assert.ok(migration.includes("trips_"+role+"_same_trip_owner"));
  assert.ok(app.includes('data-stay-role'),"photo selection controls must be present");
 }
-assert.ok(sw.includes("stay-media-v23"),"cache revision");
+assert.ok(sw.includes("photo-actions-v24"),"cache revision");
 assert.doesNotMatch(sw,/cache\.put\(/,"no runtime caching of private signed images");
 const factual=schema.split("create view public.travel_history_pdf")[1]?.split(";")[0];
 assert.ok(factual);
@@ -66,4 +66,4 @@ assert.ok(app.includes('S.from("trips").update({[field]:selected})'));
 const inline=app.match(/<script>([\s\S]*?)<\/script>/)?.[1];
 assert.ok(inline);
 new vm.Script(inline,{filename:"travel/index.html"});
-console.log("PASS stay media: real queries, same-owner FK, SVG brand hygiene, v23 and six-field PDF");
+console.log("PASS stay media: real queries, same-owner FK, SVG brand hygiene, v24 and six-field PDF");

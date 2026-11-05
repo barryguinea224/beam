@@ -14,7 +14,7 @@ assert.ok(html.includes('<script src="./trip-detail.js"></script>'),'Trip detail
 assert.ok(fs.readFileSync('travel/visual-cards.js','utf8').includes('class="tripOpen"'),
  'Visual travel card helper must keep clickable tripOpen controls');
 assert.ok(html.includes('openTripDetail(b.dataset.id)'),'Tap must open a trip, not its editing form');
-assert.ok(inline.includes('S.from("media").select("id,storage_path").eq("user_id",user.id).eq("trip_id",id)'),
+assert.ok(inline.includes('S.from("media").select("id,storage_path,caption").eq("user_id",user.id).eq("trip_id",id)'),
   'Photos must be filtered by owner and trip');
 assert.ok(inline.includes('S.from("activities").select("id,title,place,happened_on").eq("user_id",user.id).eq("trip_id",id)'),
   'Activities must be filtered by owner and trip');
@@ -28,8 +28,9 @@ assert.match(DETAIL.photos([]),/Aucune photo/);
 const stayControls=DETAIL.photos([{id:'id" onclick="bad()',url:'https://signed.invalid/p.webp'}],{
  canEdit:true,airline:true,hotel:true,airlineMediaId:'id" onclick="bad()',hotelMediaId:null
 });
-assert.match(stayControls,/Retirer la photo du vol/);
-assert.match(stayControls,/Utiliser comme photo de l’hôtel/);
+assert.match(stayControls,/class="photoTap"/);
+assert.match(stayControls,/photoRoles/);
+assert.doesNotMatch(stayControls,/stayPhotoChoice|detailCaptionToggle|detailPhotoActions/);
 assert.match(stayControls,/Ne photographiez jamais votre carte/);
 assert.ok(stayControls.includes('data-id="id&quot; onclick=&quot;bad()"'));
 assert.ok(!stayControls.includes('data-id="id" onclick='));

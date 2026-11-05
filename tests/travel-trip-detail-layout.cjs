@@ -47,7 +47,7 @@ async function run(){
      const right=outer.right-parseFloat(pad.paddingRight);
      const elements=['.detailFacts','.detailFact','.detailGallery','.detailPhoto','.detailPhoto img',
        '.detailActivity','.detailActivityText','.detailActivityForm','.detailActivityForm input',
-       '.detailStay','.stayThumb','.detailPhotoActions','.detailPhotoActions .btn']
+       '.detailStay','.stayThumb','.photoTap','.photoRoles']
        .flatMap(selector=>[...sheet.querySelectorAll(selector)].map(node=>{
         const rect=node.getBoundingClientRect();
         return {selector,left:rect.left,right:rect.right}

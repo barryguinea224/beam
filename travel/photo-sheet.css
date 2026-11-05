@@ -1,0 +1,40 @@
+/* Photo-only grids; all persistent actions live in one accessible bottom sheet. */
+#photoGallery,.detailGallery{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;min-width:0}
+#photoGallery .photoTile,.detailGallery .detailPhoto{margin:0;min-width:0;padding:5px;overflow:hidden;border:1px solid #dfe8e0;border-radius:14px;background:#fff}
+.photoTap{display:block;position:relative;width:100%;min-height:145px;padding:0;margin:0;overflow:hidden;border:0;border-radius:9px;background:#eff2ee;color:#174d3a;cursor:pointer;text-align:center}
+.photoTap:focus-visible{outline:3px solid #174d3a;outline-offset:-3px}
+#photoGallery .photoTap .photoThumbSlot{border-radius:9px}
+#photoGallery .photoTap img,.detailGallery .photoTap img{display:block;width:100%;height:145px;max-width:100%;object-fit:contain;border-radius:9px;background:#eff2ee}
+#photoGallery .photoTap .photoThumbSlot img{opacity:0}
+#photoGallery .photoTap .photoThumbSlot img.loaded{opacity:1}
+.detailGallery .detailPhoto img{height:145px}
+.photoRoles{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:3px;position:absolute;top:6px;right:6px;left:6px;z-index:1;pointer-events:none}
+.photoRole{display:inline-flex;align-items:center;justify-content:center;min-width:25px;height:25px;padding:0 4px;background:#102d23d9;color:white;border:1px solid #ffffff88;border-radius:8px;font:700 15px/1 system-ui,sans-serif;text-shadow:0 1px 2px #000}
+.photoOneLine{display:block;max-width:100%;min-width:0;padding:5px 2px 2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#476452;font:500 12px/1.4 system-ui,sans-serif}
+.detailPhotoAdvice,.stayGalleryWarning{grid-column:1/-1;color:#5b6f61;font:500 12px/1.45 system-ui,sans-serif;margin:3px 0 10px;overflow-wrap:anywhere}
+#photoActionOverlay{position:fixed;inset:0;z-index:95;display:none;align-items:flex-end;justify-content:center;padding:0;background:#10241ebf}
+#photoActionOverlay.open{display:flex}
+#photoActionDialog{width:min(100%,540px);max-width:100%;max-height:calc(100dvh - env(safe-area-inset-top, 0px) - 10px);overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;border-radius:22px 22px 0 0;background:#f7f5ef;color:#193327;padding:12px 16px calc(16px + env(safe-area-inset-bottom, 0px));box-shadow:0 -9px 40px #061b1270}
+#photoActionDialog .photoSheetHead{display:flex;justify-content:space-between;align-items:center;gap:10px}
+#photoActionDialog h2{font:700 19px/1.2 Georgia,serif;margin:0}
+#photoActionDialog button{min-height:44px;cursor:pointer}
+#photoActionClose{min-width:44px;border:0;background:#e7eee7;color:#174d3a;border-radius:50%;font-size:23px}
+#photoActionImage{display:block;width:100%;height:clamp(100px,25dvh,205px);max-width:100%;object-fit:contain;background:#e7ece6;border-radius:12px;margin:9px 0 6px}
+#photoActionImage:not([src]){display:none}
+#photoActionCaption{margin:4px 0 8px;font:500 12px/1.4 system-ui,sans-serif;color:#4b6658;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+#photoActionList{display:grid;gap:5px}
+#photoActionList button{width:100%;display:flex;align-items:center;padding:10px 13px;border:1px solid #d7e4db;border-radius:12px;background:white;color:#174d3a;font:650 14px/1.25 system-ui,sans-serif;text-align:left}
+#photoActionList button.danger,#photoConfirmDelete{color:#a12720;border-color:#eac6c2;background:#fff8f7}
+#photoNoteForm{display:grid;gap:9px;margin-top:10px}
+#photoNoteForm label{font:700 13px system-ui,sans-serif}
+#photoNoteInput{display:block;resize:vertical;min-height:92px;max-height:170px;width:100%;margin-top:5px;padding:10px;border-radius:10px;border:1px solid #9fb5a8;background:white;overflow-wrap:anywhere}
+#photoNoteCount{font:500 12px system-ui,sans-serif;text-align:right;color:#4a6355}
+.photoSheetActions{display:flex;flex-wrap:wrap;gap:8px}
+.photoSheetActions button{flex:1 1 105px;border-radius:11px;border:1px solid #becfc2;background:white;color:#1f4a34;font-weight:700;padding:9px}
+.photoSheetActions button:first-child{background:#174d3a;color:white}
+#photoDeleteConfirm{padding:12px;border:1px solid #e2b4aa;background:#fff6f4;border-radius:13px;margin-top:10px}
+#photoDeleteConfirm p{margin:0 0 9px;font-size:13px;line-height:1.45}
+#photoActionStatus{font:500 13px/1.4 system-ui,sans-serif;color:#a12720;min-height:0;margin:8px 0 0;overflow-wrap:anywhere}
+@media(min-width:750px){#photoActionOverlay{align-items:center;padding:16px}#photoActionDialog{border-radius:22px;max-height:calc(100dvh - 32px)}}
+@media(max-height:570px){#photoActionImage{height:95px}#photoActionDialog{padding-top:7px}#photoActionList{gap:2px}#photoActionList button{padding:7px 11px}}
+@media print{#photoActionOverlay{display:none!important}}
