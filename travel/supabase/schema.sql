@@ -30,6 +30,8 @@ create table public.trips (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
   cover_media_id uuid,
+  airline_media_id uuid,
+  hotel_media_id uuid,
   country_code char(2) not null check(country_code ~ '^[A-Z]{2}$'),
   cities text[] not null default '{}' check(cardinality(cities)<=10),
   entry_date date not null,
@@ -95,6 +97,14 @@ alter table public.media add constraint media_cover_identity unique (id,trip_id,
 alter table public.trips add constraint trips_cover_same_trip_owner
   foreign key (cover_media_id,id,user_id) references public.media(id,trip_id,user_id)
   on delete set null (cover_media_id);
+-- Same trip and same owner for optional airline / lodging pictures.
+-- The same media row may also be the cover or serve both optional slots.
+alter table public.trips add constraint trips_airline_same_trip_owner
+  foreign key (airline_media_id,id,user_id) references public.media(id,trip_id,user_id)
+  on delete set null (airline_media_id);
+alter table public.trips add constraint trips_hotel_same_trip_owner
+  foreign key (hotel_media_id,id,user_id) references public.media(id,trip_id,user_id)
+  on delete set null (hotel_media_id);
 
 create function public.check_same_owner() returns trigger language plpgsql security invoker set search_path='' as $$
 begin
@@ -248,7 +258,7 @@ revoke all on public.profiles,public.trips,public.activities,public.media from a
 revoke delete on public.trips, public.media from authenticated;
 -- deleting is server-only. Keep ordinary trip editing available.
 revoke update on public.trips from authenticated;
-grant update(country_code,cities,entry_date,exit_date,purpose,airline,hotel,note,is_favorite,is_domestic,cover_media_id) on public.trips to authenticated;
+grant update(country_code,cities,entry_date,exit_date,purpose,airline,hotel,note,is_favorite,is_domestic,cover_media_id,airline_media_id,hotel_media_id) on public.trips to authenticated;
 -- Photo reservation identity, path and file properties are immutable for browser clients.
 revoke update on public.media from authenticated;
 grant update(caption,taken_on,is_favorite,position) on public.media to authenticated;
