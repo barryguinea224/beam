@@ -192,7 +192,7 @@
   ".atlas{border-radius:5mm;min-height:65mm;margin:5mm 0;background:#edf2eb;padding:4mm;overflow:hidden}",
   ".atlas svg{display:block;width:100%;height:auto;max-height:83mm}",
   ".atlas path{fill:#cbd7cc;stroke:#fff;stroke-width:1;vector-effect:non-scaling-stroke}",
-  ".atlas path.atlas-visited{fill:#15835a;stroke:#165036;stroke-width:1.25}",
+  ".atlas path.atlas-visited{fill:#7fb196;stroke:#ffffff;stroke-width:.8}",
   ".atlas-fallback{padding:20mm 5mm;text-align:center;font-family:Georgia,serif;color:#496a56}",
   ".metric-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:3mm;margin:5mm 0 2mm}",
   ".metric{min-width:0;border-radius:3mm;background:#e8f1e9;padding:4mm 3mm}",
