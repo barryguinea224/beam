@@ -38,11 +38,17 @@ const projection=journal.viewTrip({...trips[0],
  [{title:"Visite du marché",place:"Dakar",happened_on:"2026-04-03",document_number:"SECRET_DOC"}],
  ["https://example.invalid/photo.webp"]);
 assert.deepEqual(Object.keys(projection).sort(),
- ["code","country","cities","entry","exit","entryISO","exitISO","duration","days","purpose","domestic","airline","hotel","memory","activities","photos"].sort());
+ ["code","country","cities","entry","exit","entryISO","exitISO","duration","days","purpose","domestic","airline","hotel","airlinePhoto","hotelPhoto","memory","activities","photos"].sort());
 assert.ok(!JSON.stringify(projection).includes("SECRET_"));
 assert.equal(projection.memory,"Mon souvenir de Dakar");
 assert.equal(projection.airline,"Compagnie de test");
 assert.equal(projection.hotel,"Hôtel fictif");
+const selected="https://fixture.invalid/a.webp";
+const withRole=journal.viewTrip({...trips[0],airline:"Fictif",hotel:"Fictif"},[],[selected],{
+ airlinePhoto:selected,hotelPhoto:"https://fixture.invalid/not-in-trip.webp"
+});
+assert.equal(withRole.airlinePhoto,selected);
+assert.equal(withRole.hotelPhoto,"","role photo must belong to this trip's supplied images");
 assert.equal(journal.viewTrip(trips[1]).airline,"");
 assert.equal(journal.viewTrip(trips[1]).hotel,"");
 assert.equal(projection.activities[0].title,"Visite du marché");
@@ -125,7 +131,7 @@ assert.match(inline,/BEAM_FAMILY_BOOKLET\.preferredMediaQuery\(/,
  "family booklet must query ten ordered private photos independently of journal four-photo quota");
 assert.match(inline,/BEAM_FAMILY_BOOKLET\.preparePhotos\(pack,window\)/,
  "family booklet must resample trusted signed images only in browser RAM before print");
-assert.match(inline,/pack\[position\]=\{trip,activities:activityResult\.data\|\|\[\],photos,favoritePhoto,missingPhotos\}/,
+assert.match(inline,/pack\[position\]=\{trip,activities:activityResult\.data\|\|\[\],photos,favoritePhoto,airlinePhoto,hotelPhoto,missingPhotos\}/,
  "failed photo signatures must reach the private print status");
 assert.match(inline,/window\.BEAM_TRAVEL_PDF\.fetchRows\(S,uid\)/);
 const printHandler=inline.slice(inline.indexOf('$("#printJournal").onclick'),inline.indexOf('$("#pdf").onclick'));
@@ -138,7 +144,7 @@ assert.equal(PDF.VIEW,"travel_history_pdf");
 assert.deepEqual(PDF.FIELDS,["country_code","cities","entry_date","exit_date","duration_days","purpose"]);
 const sw=fs.readFileSync("travel/sw.js","utf8");
 assert.ok(sw.includes('"./printable-journal.js"')&&sw.includes('"./family-booklet.js"'));
-assert.match(sw,/beam-travel-shell-v1-20261104-stay-details-v22/,"cache revision must match the rebased booklet release");
+assert.match(sw,/beam-travel-shell-v1-20261104-stay-photos-v23/,"cache revision must match the rebased booklet release");
 assert.ok(!sw.includes("storage/v1/object/sign")&&!sw.includes("signedUrl"));
 assert.match(sw,/url\.origin === self\.location\.origin/);
 assert.match(sw,/url\.search === ""/);

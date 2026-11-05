@@ -16,7 +16,7 @@ async function run(){
    const page=await browser.newPage({viewport:{width,height:780},isMobile:true,hasTouch:true});
    try{
     await page.setContent(html,{waitUntil:'domcontentloaded'});
-    const images=DETAIL.photos(Array.from({length:3},(_,i)=>({id:String(i),url:sample})));
+    const images=DETAIL.photos(Array.from({length:3},(_,i)=>({id:String(i),url:sample})),{airline_media_id:"0",hotel_media_id:"1"});
     const activities=DETAIL.activities([
      {id:'a',title:'Musée et promenade',place:'Centre-ville',happened_on:'2026-06-21'},
      {id:'b',title:'Un titre de souvenir '.repeat(10),place:'',happened_on:null}
@@ -26,11 +26,13 @@ async function run(){
      document.querySelector('#detailTitle').textContent='Paris';
      document.querySelector('#detailFacts').innerHTML=Array.from({length:6},(_,i)=>
        '<div class="detailFact"><dt>Étiquette</dt><dd>Champ '+i+' avec un texte long et explicatif</dd></div>'
-     ).join('');
+     ).join('')+
+       '<div class="detailFact"><dt>Compagnie aérienne</dt><dd class="detailStayVisual"><img src="'+sample+'" alt=""><span>Compagnie de démonstration avec un nom très long</span></dd></div>'+
+       '<div class="detailFact"><dt>Hôtel / hébergement</dt><dd class="detailStayVisual"><img src="'+sample+'" alt=""><span>Hébergement de démonstration avec un nom très long</span></dd></div>';
      document.querySelector('#detailPhotos').innerHTML=images;
      document.querySelector('#detailActivities').innerHTML=activities;
      document.querySelector('#detailNote').textContent='Souvenir très personnel '.repeat(12);
-    },{images,activities});
+    },{images,activities,sample});
     const measurement=await page.evaluate(()=>{
      const sheet=document.querySelector('#detailSheet');
      const outer=sheet.getBoundingClientRect();
@@ -38,7 +40,8 @@ async function run(){
      const left=outer.left+parseFloat(pad.paddingLeft);
      const right=outer.right-parseFloat(pad.paddingRight);
      const elements=['.detailFacts','.detailFact','.detailGallery','.detailPhoto','.detailPhoto img',
-       '.detailActivity','.detailActivityText','.detailActivityForm','.detailActivityForm input']
+       '.detailActivity','.detailActivityText','.detailActivityForm','.detailActivityForm input',
+       '.detailStayVisual','.detailStayVisual img','.detailPhotoActions','.detailStayChoice','.detailStayWarning']
        .flatMap(selector=>[...sheet.querySelectorAll(selector)].map(node=>{
         const rect=node.getBoundingClientRect();
         return {selector,left:rect.left,right:rect.right}
@@ -47,6 +50,8 @@ async function run(){
        sheetLeft:outer.left,sheetRight:outer.right,
        sheetScroll:sheet.scrollWidth,sheetClient:sheet.clientWidth,left,right,elements};
     });
+    assert.equal(await page.locator('.detailStayChoice').count(),6,'both actions for each existing photo');
+    assert.equal(await page.locator('.detailStayVisual img').count(),2);
     assert.ok(measurement.documentWidth<=width+1,'Document overflow: '+JSON.stringify(measurement));
     assert.ok(measurement.sheetLeft>=0&&measurement.sheetRight<=width+1,'Sheet clips: '+JSON.stringify(measurement));
     assert.ok(measurement.sheetScroll<=measurement.sheetClient+1,'Sheet content overflow: '+JSON.stringify(measurement));

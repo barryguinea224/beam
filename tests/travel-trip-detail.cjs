@@ -33,6 +33,13 @@ const images=DETAIL.photos([
 assert.ok(images.includes('&amp;key=&quot; onerror=&quot;alert(1)'),'URL is escaped in HTML attribute');
 assert.ok(!images.includes('key=" onerror="'),'Untrusted URLs cannot create a new attribute');
 assert.match(images,/Prévisualisation indisponible/);
+assert.match(images,/Utiliser comme photo du vol/);
+assert.match(images,/Utiliser comme photo de l’hôtel/);
+assert.match(DETAIL.photos([{id:"p",url:""}],{airline_media_id:"p"}),/Retirer la photo du vol/);
+const hostile=DETAIL.photos([{id:'p" onclick="alert(1)',url:""}]);
+assert.match(hostile,/p&quot; onclick=&quot;/);
+assert.doesNotMatch(hostile,/data-id="p" onclick=/);
+assert.match(hostile,/Ne photographiez jamais/);
 const activities=DETAIL.activities([{
  id:'a" onclick="alert(1)',title:'<img src=x onerror=alert(1)>',
  place:'<script>evil</script>',happened_on:'2026-06-21'
@@ -62,6 +69,8 @@ function box(){
   classList:{add:v=>names.add(v),remove:v=>names.delete(v),contains:v=>names.has(v)},
   focus(){context.document.activeElement=this},replaceChildren(){this.innerHTML=''},
   reset(){this.value='';this.didReset=true},
+  addEventListener(){},
+  querySelector(){return null},
   add(option){this.options=(this.options||[]).concat(option)},
   querySelectorAll(){return []}
  };
@@ -119,7 +128,9 @@ async function main(){
  assert.match(els['#detailFacts'].innerHTML,/Compagnie fictive/);
  assert.match(els['#detailFacts'].innerHTML,/Hôtel \/ hébergement/);
  assert.match(els['#detailFacts'].innerHTML,/&lt;img src=x onerror=alert\(1\)&gt;/);
- assert.doesNotMatch(els['#detailFacts'].innerHTML,/<img/);
+ assert.doesNotMatch(els['#detailFacts'].innerHTML,/<img src=x/);
+ assert.match(els['#detailFacts'].innerHTML,/stay-airline\.svg/);
+ assert.match(els['#detailFacts'].innerHTML,/stay-hotel\.svg/);
  assert.match(els['#detailPhotos'].innerHTML,/signed.invalid/);
  assert.match(els['#detailActivities'].innerHTML,/Visite du musée/);
  assert.equal(calls.filter(c=>c[0]==='media'&&c[1]==='filters')[0][2][0][1],'owner');
