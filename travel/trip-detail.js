@@ -13,12 +13,21 @@
     return Number.isNaN(date.getTime()) ? "" :
       date.toLocaleDateString("fr-FR", {day:"numeric",month:"long",year:"numeric"});
   }
-  function photos(rows) {
+  function photos(rows,stay={}) {
     if (!rows.length) return '<p class="detailEmpty">Aucune photo pour ce voyage.</p>';
-    return rows.map(row => '<figure class="detailPhoto">' +
-      (row.url ? '<img loading="lazy" alt="Photo privée du voyage" src="' + esc(row.url) + '">' :
+    const canEdit=stay.canEdit===true;
+    const buttons=row=>!canEdit ? "" : '<div class="detailPhotoActions">' +
+      (stay.airline ? '<button type="button" class="btn ghost stayPhotoChoice" data-stay-role="airline" data-id="'+esc(row.id)+'">'+
+        (stay.airlineMediaId===row.id?'Retirer la photo du vol':'Utiliser comme photo du vol')+'</button>':"") +
+      (stay.hotel ? '<button type="button" class="btn ghost stayPhotoChoice" data-stay-role="hotel" data-id="'+esc(row.id)+'">'+
+        (stay.hotelMediaId===row.id?'Retirer la photo de l’hôtel':'Utiliser comme photo de l’hôtel')+'</button>':"") +
+      '</div>';
+    const items=rows.map(row=>'<figure class="detailPhoto">' +
+      (row.url ? '<img loading="lazy" alt="Photo privée du voyage" src="'+esc(row.url)+'">' :
         '<div class="detailPhotoMissing">Prévisualisation indisponible</div>') +
-      '</figure>').join("");
+      buttons(row) + '</figure>').join("");
+    return items+(canEdit&&(stay.airline||stay.hotel)?
+      '<p class="detailPhotoAdvice">Ne photographiez jamais votre carte d’embarquement ni votre confirmation de réservation : elles contiennent des numéros personnels.</p>':"");
   }
   function activities(rows) {
     if (!rows.length) return '<p class="detailEmpty">Aucune activité pour le moment.</p>';
