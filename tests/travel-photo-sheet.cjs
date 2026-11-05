@@ -28,14 +28,15 @@ for(const field of ['airline','hotel','airline_media_id','hotel_media_id'])
 assert.match(print,/\.select\("id,storage_path,is_favorite,caption"\)/);
 assert.match(print,/photoCaptions\.push\(DETAIL\.captionValue\(row\.caption\)\)/);
 const sw=fs.readFileSync('travel/sw.js','utf8');
-assert.match(sw,/photo-actions-v24/);
+assert.match(sw,/photo-actions-v25/);
 assert.match(sw,/"\.\/photo-sheet\.css"/);
 const malicious='<img src=x onerror=alert(1)> Bonjour';
 const images=DETAIL.photos([
   {id:'safe',url:'https://example.invalid/owned.webp',caption:malicious}
 ],{airline:true,hotel:true,coverMediaId:'safe',airlineMediaId:'safe',hotelMediaId:'safe'});
 assert.ok(images.includes('class="photoTap"'));
-for(const symbol of ['★','✈','🏨','📝'])assert.ok(images.includes(symbol));
+for(const symbol of ['★','✈','🏨'])assert.ok(images.includes(symbol));
+assert.ok(!images.includes('📝'),'a note shows as its one-line caption, never as a badge');
 assert.ok(images.includes('&lt;img src=x onerror=alert(1)&gt;'));
 assert.ok(!images.includes(malicious),'caption may not become HTML');
 assert.ok(!images.includes('detailCaptionToggle')&&!images.includes('stayPhotoChoice'));
@@ -58,7 +59,7 @@ const sample='data:image/svg+xml,'+encodeURIComponent(
       const gallery=document.querySelector('#detailPhotos');
       gallery.innerHTML=Array.from({length:4},(_,i)=>'<figure class="detailPhoto">'+
        '<button type="button" class="photoTap" aria-label="Actions photo"><img alt="Photo fictive" src="'+sample+'">'+
-       '<span class="photoRoles"><span class="photoRole">★</span><span class="photoRole">📝</span></span></button>'+
+       '<span class="photoRoles"><span class="photoRole">★</span><span class="photoRole">✈</span></span></button>'+
        '<figcaption class="photoOneLine">Note fictive '+i+' · Souvenir</figcaption></figure>').join('');
       document.querySelector('#photoActionImage').src=sample;
       document.querySelector('#photoActionCaption').textContent='Note fictive';

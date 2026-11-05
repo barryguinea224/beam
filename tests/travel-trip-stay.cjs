@@ -47,7 +47,7 @@ assert.ok(factualHandler.includes("BEAM_TRAVEL_PDF.fetchRows(S,uid)"),
 assert.deepEqual(PDF.FIELDS,["country_code","cities","entry_date","exit_date","duration_days","purpose"],
  "neither airline nor hotel may enter the factual PDF");
 
-assert.ok(sw.includes("photo-actions-v24"));
+assert.ok(sw.includes("photo-actions-v25"));
 const sample={country_code:"FR",cities:["Paris"],entry_date:"2025-05-01",exit_date:"2025-05-03",
  duration_days:3,purpose:"tourisme",airline:"  Compagnie fictive  ",hotel:"  Hôtel fictif  "};
 const projected=JOURNAL.viewTrip(sample);
