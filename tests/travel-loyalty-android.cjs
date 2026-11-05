@@ -112,6 +112,16 @@ async function main(){
     });
     assert.ok(audit.documentOverflow<=1&&audit.panelOverflow<=1,"Overflow at "+width+": "+JSON.stringify(audit));
     assert.equal(audit.logos,0);assert.equal(audit.passwordFields,0);
+    // In the real app the account drawer is a fixed scrolling overlay. For an
+    // isolated full-height screenshot, unfix the drawer so Chromium does not
+    // stitch unrelated underlying page sections into the long image.
+    await page.addStyleTag({content:[
+     '#accountOverlay{position:static!important;inset:auto!important;display:block!important;overflow:visible!important;background:transparent!important}',
+     '#accountOverlay #myAccount{position:static!important;inset:auto!important;width:100%!important;max-width:100%!important;min-height:0!important;box-shadow:none!important;overflow:visible!important}',
+     '#myAccount > :not(#loyaltyPanel){display:none!important}',
+     '#loyaltyPanel{max-height:none!important;overflow:visible!important}',
+     'html,body{overflow:visible!important}'
+    ].join('')});
     await page.locator("#loyaltyPanel").screenshot({
      path:path.join("test-artifacts/loyalty-android","programmes-"+width+".png"),animations:"disabled"
     });
