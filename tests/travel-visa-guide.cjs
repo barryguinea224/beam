@@ -97,7 +97,7 @@ async function main(){
   assert.doesNotMatch(opening,/target=|onclick=|onmousedown=/i);
   assert.doesNotMatch(opening,/\?|#/);
  }
- assert.match(sw,/flight-connections-v29/);
+ assert.match(sw,/flight-connections-v30/);
  assert.match(sw,/if \(url\.origin !== self\.location\.origin\) return;/);
  const precache=sw.match(/const PUBLIC_SHELL = \[([\s\S]*?)\];/)?.[1] || "";
  assert.doesNotMatch(precache,/ididentite\.com/,"the worker must never pre-cache identité");

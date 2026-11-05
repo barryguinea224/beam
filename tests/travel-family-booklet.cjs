@@ -54,6 +54,8 @@ const model={
  generatedAt:new Date("2026-10-31T12:00:00Z"),
  filters:{},
  mapSvgText,
+ countryOfResidence:"GN",
+ worldCentroids:JSON.parse(fs.readFileSync("travel/assets/world-centroids.json","utf8")),
  trips:[
   {trip:{id:"fictif-2026",country_code:"SN",cities:["Dakar"],entry_date:"2026-07-04",
     exit_date:"2026-07-19",duration_days:16,purpose:"famille",note:"Nous avons marché sur la plage au coucher du soleil.",is_domestic:false,
@@ -73,7 +75,7 @@ async function main(){
   try{
    await page.route("https://fixture.invalid/**",route=>route.fulfill({status:200,contentType:"image/svg+xml",body:svg}));
    await page.setContent("<!doctype html><html lang='fr'><head></head><body></body></html>");
-   for(const mod of ["countries.js","dashboard-filters.js","printable-journal.js","family-booklet.js"])
+   for(const mod of ["countries.js","dashboard-filters.js","flight-connections.js","printable-journal.js","family-booklet.js"])
     await page.addScriptTag({path:path.resolve("travel",mod)});
    const count=await page.evaluate(data=>window.BEAM_FAMILY_BOOKLET.render(document,{
     ...data,generatedAt:new Date(data.generatedAt)
@@ -116,7 +118,7 @@ async function main(){
      rotatedSpreads:[...document.querySelectorAll(".spread")].filter(e=>getComputedStyle(e).transform!=="none").length,
      mapGuinea:[...document.querySelectorAll('.world path[data-country="GN"]')].map(e=>e.classList.contains("visited")),
      mapViewport:[...document.querySelectorAll(".world svg")].map(e=>e.getAttribute("viewBox")),
-     eastMapPathCount:(()=>{const east=[...document.querySelectorAll(".world-leaf")].find(e=>e.textContent.includes("2/2"));return east?.querySelectorAll("svg path").length||0})(),
+     eastMapPathCount:(()=>{const east=[...document.querySelectorAll(".world-leaf")].find(e=>e.textContent.includes("Autour de chez nous"));return east?.querySelectorAll("svg path").length||0})(),
      bookletHelp:document.querySelector(".toolbar .help")?.textContent,
      cssSelectors:[...document.styleSheets].flatMap(x=>[...x.cssRules].map(rule=>rule.selectorText).filter(Boolean)),
      justifiedText:[...document.querySelectorAll("h1,h2,h3,blockquote,.natural")].filter(e=>getComputedStyle(e).textAlign==="justify"||getComputedStyle(e).textAlignLast==="justify").length,
@@ -133,8 +135,12 @@ async function main(){
    assert.ok(audit.paperRect.height>audit.paperRect.width,"Physical A4 must be portrait");
    assert.equal(audit.rotatedSpreads,0,"Portrait layout must not rotate oversized spreads");
    assert.deepEqual(audit.mapGuinea,[true,true],"Domestic Guinea must be highlighted on both map halves");
-   assert.deepEqual(audit.mapViewport,["0 0 522 445","478 0 522 445"],"Map halves overlap");
-   assert.ok(audit.eastMapPathCount>10,"World map 2/2 must contain actual country paths");
+   assert.equal(audit.mapViewport[0],"0 0 1000 445","Page 1 shows the whole world, never cut at the fold");
+   {const [x,y,w,h]=audit.mapViewport[1].split(" ").map(Number);
+    assert.ok(w<1000&&h<=445&&x>=0&&y>=0&&x+w<=1000.1&&y+h<=445.1,"Page 2 zooms inside the world: "+audit.mapViewport[1]);
+    assert.ok(x<469&&469<x+w&&y<221&&221<y+h,"Page 2 zoom contains the residence (Guinea)");}
+   assert.ok(audit.eastMapPathCount>10,"Zoom map must contain actual country paths");
+   // The zoom page label is asserted in the DOM: its spaced capitals are not reliably extracted by pdftotext.
    assert.match(audit.bookletHelp,/Portrait, recto verso bord court/);
    for(const selector of [".inner",".half.right .leaf",".story-leaf .story-main .flag-small",".closing"])
     assert.ok(audit.cssSelectors.includes(selector),"Missing parsed print CSS rule: "+selector);
@@ -244,7 +250,7 @@ async function main(){
    }
    const text=execFileSync("pdftotext",["-layout",print,"-"],{encoding:"utf8"}).replace(/\s+/g," ");
    const visibleText=text.replace(/[·•]/g," ").replace(/\s+/g," ").toLocaleLowerCase("fr");
-   for(const token of ["Carnet d'Aminata Camara","Notre monde 1/2","Notre monde 2/2",
+   for(const token of ["Carnet d'Aminata Camara","Notre monde",
     "Guinée","Sénégal","Dalaba","Dakar","Nos prochains voyages"]){
     assert.ok(visibleText.includes(token.toLocaleLowerCase("fr")),"Missing or clipped PDF text "+token);
    }
