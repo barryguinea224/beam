@@ -106,6 +106,27 @@ function preferredMediaQuery(query){
   .order("created_at",{ascending:true}).limit(MAX_PHOTOS_PER_TRIP);
 }
 // Whitelist geometry only: copied from the existing local SVG, never injected as HTML.
+// Page 1 shows the whole world; page 2 zooms around the residence. The world is
+// never cut at a fold: a split at x=500 crossed West Africa and Europe exactly,
+// where most journeys from Conakry go, duplicating dots and cutting arcs.
+const ZOOM_ASPECT=.86;// map area of an A5 leaf, width / height
+function zoomBox(flightModel={}){
+ const C=flightModel.centroids||{},pt=code=>FLIGHTS?.point?.(C,code)||null;
+ const home=pt(flightModel.residence);
+ const dests=[...new Set(flightModel.destinations||[])].map(pt).filter(Boolean);
+ let pts=home?[home,...dests.filter(p=>Math.abs(p[0]-home[0])<=220&&Math.abs(p[1]-home[1])<=150)]:dests;
+ if(pts.length<2)pts=home?[home,...dests]:dests;
+ if(!pts.length)return null;
+ let x0=Math.min(...pts.map(p=>p[0]))-30,x1=Math.max(...pts.map(p=>p[0]))+30;
+ let y0=Math.min(...pts.map(p=>p[1]))-30,y1=Math.max(...pts.map(p=>p[1]))+30;
+ let w=Math.max(200,x1-x0),h=Math.max(170,y1-y0);
+ if(w/h>ZOOM_ASPECT)h=w/ZOOM_ASPECT;else w=h*ZOOM_ASPECT;
+ if(h>445){h=445;w=Math.min(1000,h*ZOOM_ASPECT)}
+ if(w>1000)w=1000;
+ const cx=(x0+x1)/2,cy=(y0+y1)/2;
+ const x=Math.min(Math.max(0,cx-w/2),1000-w),y=Math.min(Math.max(0,cy-h/2),445-h);
+ return [x,y,w,h].map(v=>Number(v.toFixed(1))).join(" ");
+}
 function world(parent,raw,visited,side,flightModel={}){
  const doc=parent.ownerDocument,box=node(parent,"div","world");
  if(typeof raw!=="string"||raw.length>250000||!doc.defaultView?.DOMParser){
@@ -113,9 +134,9 @@ function world(parent,raw,visited,side,flightModel={}){
  }
  const parsed=new doc.defaultView.DOMParser().parseFromString(raw,"image/svg+xml");
  if(parsed.documentElement?.localName!=="svg"){node(box,"p","fallback","Notre monde");return}
- const svg=svgEl(doc,"svg");// An overlapping 22-unit gutter on both halves keeps visited outlines visible
- // on either side of the fold (including countries crossing the central meridian).
- svg.setAttribute("viewBox",side==="west"?"0 0 522 445":"478 0 522 445");
+ const svg=svgEl(doc,"svg");
+ const viewBox=side==="west"?"0 0 1000 445":(zoomBox(flightModel)||"0 0 1000 445");
+ svg.setAttribute("viewBox",viewBox);
  svg.setAttribute("role","img");svg.setAttribute("aria-label","Carte du monde");
  let count=0;
  for(const p of parsed.documentElement.querySelectorAll("path[data-country]")){
@@ -125,7 +146,8 @@ function world(parent,raw,visited,side,flightModel={}){
   copy.setAttribute("class",visited.has(code)?"visited":"land");svg.appendChild(copy);count++;
  }
  if(count){
-  FLIGHTS?.draw(svg,flightModel.residence,flightModel.destinations,flightModel.centroids,{animate:false});
+  FLIGHTS?.draw(svg,flightModel.residence,flightModel.destinations,flightModel.centroids,
+   {animate:false,scale:Math.max(.25,Number(viewBox.split(" ")[2])/1000)});
   box.appendChild(svg);
  }else node(box,"p","fallback","Notre monde");
 }
@@ -185,7 +207,7 @@ function render(doc,model){
  node(cover.inside,"p","subtle",period);
  const countries=new Set(list.map(x=>x.trip.code));
  for(const side of ["west","east"]){
-  const map=leaf("world-leaf");node(map.inside,"p","ey","Notre monde · "+(side==="west"?"1/2":"2/2"));
+  const map=leaf("world-leaf");node(map.inside,"p","ey",side==="west"?"Notre monde":"Autour de chez nous");
   world(map.inside,model.mapSvgText,countries,side,{
    residence:model.countryOfResidence,
    destinations:list.filter(x=>!x.trip.domestic).map(x=>x.trip.code),
