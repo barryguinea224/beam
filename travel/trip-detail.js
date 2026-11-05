@@ -17,11 +17,11 @@
   function photos(rows,trip={}) {
     if (!rows.length) return '<p class="detailEmpty">Aucune photo pour ce voyage.</p>';
     return rows.map(row => {
-      const choices=[["airline","vol"],["hotel","hôtel"]].map(([kind,label]) => {
+      const choices=["airline","hotel"].map(kind => {
         const selected=trip[kind+"_media_id"]===row.id;
         return '<button type="button" class="btn ghost detailStayChoice" data-kind="'+kind+
           '" data-id="'+esc(row.id)+'" aria-pressed="'+selected+'">'+
-          (selected?'Retirer la photo du '+label:'Utiliser comme photo du '+label)+'</button>';
+          (selected?'Retirer la photo ':'Utiliser comme photo ')+(kind==="airline"?"du vol":"de l’hôtel")+'</button>';
       }).join("");
       return '<figure class="detailPhoto">' +
         (row.url ? '<img loading="lazy" alt="Photo privée du voyage" src="' + esc(row.url) + '">' :
