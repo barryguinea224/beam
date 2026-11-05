@@ -19,8 +19,7 @@
     const flags=[
       [stay.coverMediaId===row.id,"★","Couverture"],
       [!!stay.airline&&stay.airlineMediaId===row.id,"✈","Vol"],
-      [!!stay.hotel&&stay.hotelMediaId===row.id,"🏨","Hôtel"],
-      [!!captionValue(row.caption),"📝","Note"]
+      [!!stay.hotel&&stay.hotelMediaId===row.id,"🏨","Hôtel"]
     ].filter(item=>item[0]);
     return flags.length?'<span class="photoRoles" aria-hidden="true">'+
       flags.map(([,symbol,label])=>'<span class="photoRole" title="'+esc(label)+'">'+symbol+'</span>').join("")+

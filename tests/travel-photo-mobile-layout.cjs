@@ -18,7 +18,7 @@ const scenarios = [
     cards: Array.from({length:2},()=>'<figure class="photoTile">'+
       '<button class="photoTap" type="button" aria-label="Actions photo">'+
       '<img src="'+thumb+'" alt="Souvenir fictif">'+
-      '<span class="photoRoles"><span class="photoRole">★</span><span class="photoRole">📝</span></span></button>'+
+      '<span class="photoRoles"><span class="photoRole">★</span><span class="photoRole">✈</span></span></button>'+
       '<figcaption class="photoOneLine">Légende fictive</figcaption></figure>').join('')
   },
   {
