@@ -7,6 +7,7 @@
  const MAX_PHOTOS_PER_TRIP=4,MAX_TOTAL_PHOTOS=40,SIGNED_SECONDS=300;
  const COUNTRIES=root?.BEAM_COUNTRIES||(typeof require==="function"?require("./countries.js"):null);
  const FILTERS=root?.BEAM_DASHBOARD_FILTERS||(typeof require==="function"?require("./dashboard-filters.js"):null);
+ const FLIGHTS=root?.BEAM_FLIGHT_CONNECTIONS||(typeof require==="function"?require("./flight-connections.js"):null);
  if(!COUNTRIES||!FILTERS)throw new Error("Référentiels du carnet indisponibles.");
  const PURPOSES=Object.freeze({tourisme:"Tourisme",affaires:"Affaires",etudes:"Études",famille:"Famille",sante:"Santé",transit:"Transit",autre:"Autre"});
  const FLAGS=new Set(COUNTRIES.ORDER.map(code=>code.toLowerCase()));
@@ -90,7 +91,7 @@
  }
  // Reconstruct ONLY checked geometry paths from the repository's local static SVG.
  // No innerHTML, foreignObject, event handlers, styles, links or remote resources.
- function map(parent,raw,visited){
+ function map(parent,raw,visited,flightModel={}){
   const container=el(parent,"div","atlas");
   const doc=parent.ownerDocument;
   let count=0;
@@ -112,8 +113,10 @@
      svg.appendChild(shape);count++;
     }
     if(count){
+     const arcs=FLIGHTS?.draw(svg,flightModel.residence,flightModel.destinations,
+      flightModel.centroids,{animate:false})||[];
      container.appendChild(svg);
-     fitAtlasToVisited(svg);
+     fitAtlasToVisited(svg,arcs);
     }
    }
   }
@@ -122,10 +125,11 @@
  }
  // The same visited-path bounds strategy as fitMapToVisited in the app.
  // Use a stable landscape aspect ratio so Guinea + Senegal stay legible on A4.
- function fitAtlasToVisited(svg){
+ function fitAtlasToVisited(svg,arcs=[]){
   const paths=[...svg.querySelectorAll("path.atlas-visited")];
   if(!paths.length)return;
   const bounds=[];
+  for(const route of arcs)for(const [x,y] of [route.from,route.to,route.control])bounds.push({x,y,width:0,height:0});
   for(const path of paths){
    try{
     const b=path.getBBox();
@@ -312,7 +316,11 @@
   el(summaryTop,"div","eyebrow","MES VOYAGES EN IMAGES");
   el(summaryTop,"span","summary-kicker",period(list));
   el(yearbook,"h2",null,"Mon année en voyages");
-  map(yearbook,model.mapSvgText,new Set(countries));
+  map(yearbook,model.mapSvgText,new Set(countries),{
+   residence:model.countryOfResidence,
+   destinations:list.filter(t=>!t.domestic).map(t=>t.code),
+   centroids:model.worldCentroids
+  });
   const nums=el(yearbook,"div","metric-grid");
   for(const [value,label] of [[summary.length,"voyage"+(summary.length===1?"":"s")+" à l’étranger"],
     [summaryCountries,"pays à l’étranger"],

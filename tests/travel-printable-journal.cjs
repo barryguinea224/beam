@@ -71,7 +71,7 @@ assert.ok(!/\.innerHTML\s*=|document\.write\s*\(/.test(album),
 assert.match(album,/doc\.createElementNS/);
 assert.match(album,/map\(yearbook,model\.mapSvgText/);
 assert.match(album,/limitReached/, "exhaustion of photo quota must be announced");
-assert.match(album,/fitAtlasToVisited\(svg\)/, "visited countries map must zoom");
+assert.match(album,/fitAtlasToVisited\(svg,arcs\)/, "visited countries map must zoom");
 assert.match(album,/svg\.setAttribute\("viewBox",\[x,y,bw,bh\]/,
  "atlas viewBox must be derived from visited bounds");
 assert.match(album,/model\.trips\.find\(t=>typeof t\.favoritePhoto/,
@@ -140,7 +140,7 @@ assert.equal(PDF.VIEW,"travel_history_pdf");
 assert.deepEqual(PDF.FIELDS,["country_code","cities","entry_date","exit_date","duration_days","purpose"]);
 const sw=fs.readFileSync("travel/sw.js","utf8");
 assert.ok(sw.includes('"./printable-journal.js"')&&sw.includes('"./family-booklet.js"'));
-assert.match(sw,/beam-travel-shell-v1-20261105-photo-actions-v26/,"cache revision must match the rebased booklet release");
+assert.match(sw,/beam-travel-shell-v1-20261105-flight-connections-v27/,"cache revision must match the rebased booklet release");
 assert.ok(!sw.includes("storage/v1/object/sign")&&!sw.includes("signedUrl"));
 assert.match(sw,/url\.origin === self\.location\.origin/);
 assert.match(sw,/url\.search === ""/);
