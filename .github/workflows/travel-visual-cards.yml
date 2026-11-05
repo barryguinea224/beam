@@ -58,6 +58,10 @@ jobs:
         env: { PGPASSWORD: postgres }
         run: |
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 <<'SQL'
+          -- Remove the NEW stay FKs temporarily so this historic cover-only
+          -- regression can simulate the old schema on a disposable database.
+          alter table public.trips drop constraint trips_airline_same_trip_owner;
+          alter table public.trips drop constraint trips_hotel_same_trip_owner;
           alter table public.trips drop constraint trips_cover_same_trip_owner;
           alter table public.media drop constraint media_cover_identity;
           revoke update(cover_media_id) on public.trips from authenticated;
@@ -67,6 +71,15 @@ jobs:
         env: { PGPASSWORD: postgres }
         run: |
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f travel/supabase/migrations/20261030200000_travel_cover_media_identity.sql
+          # Restore both stay references only inside this synthetic replay.
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 <<'SQL'
+          alter table public.trips add constraint trips_airline_same_trip_owner
+            foreign key (airline_media_id,id,user_id) references public.media(id,trip_id,user_id)
+            on delete set null (airline_media_id);
+          alter table public.trips add constraint trips_hotel_same_trip_owner
+            foreign key (hotel_media_id,id,user_id) references public.media(id,trip_id,user_id)
+            on delete set null (hotel_media_id);
+          SQL
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f travel/supabase/tests/cover_media_integrity.sql
 
   visual-contract:

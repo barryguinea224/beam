@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="160" height="120" viewBox="0 0 160 120" role="img" aria-label="Illustration originale d'un hébergement stylisé">
+<rect width="160" height="120" rx="18" fill="#e4eee6"/>
+<path d="M36 103V33c0-4 3-7 7-7h73c4 0 7 3 7 7v70" fill="#b6d1bf" stroke="#236348" stroke-width="5" stroke-linejoin="round"/>
+<path d="M64 103V76h32v27" fill="#f7faf4" stroke="#236348" stroke-width="4"/>
+<path d="M49 42h13v14H49zm25 0h13v14H74zm25 0h13v14H99z" fill="#39795b"/>
+<path d="M25 104h110" stroke="#236348" stroke-width="6" stroke-linecap="round"/>
+</svg>
