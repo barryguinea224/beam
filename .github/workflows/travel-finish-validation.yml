@@ -75,3 +75,11 @@ jobs:
           name: bth-photo-actions-android-320-390
           path: test-artifacts/photo-sheet-android/*.png
           if-no-files-found: warn
+
+      - name: Upload loyalty programmes Android captures (fictional data, 320/360/390px)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bth-loyalty-android-320-390
+          path: test-artifacts/loyalty-android/programmes-*.png
+          if-no-files-found: warn
