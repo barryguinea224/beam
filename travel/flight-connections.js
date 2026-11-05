@@ -46,9 +46,10 @@ function draw(svg,residence,destinations,centroids,options={}){
   path.setAttribute("data-destination",route.country);
   path.style.fill="none";
   path.style.stroke="#188653";
-  path.style.strokeWidth="1.25";
+  path.style.strokeWidth="1.8";
+  path.setAttribute("vector-effect","non-scaling-stroke");
   path.style.strokeLinecap="round";
-  path.style.opacity=".7";
+  path.style.opacity=".85";
   if(animated){
    path.setAttribute("pathLength","100");
    path.style.strokeDasharray="100";
@@ -58,16 +59,18 @@ function draw(svg,residence,destinations,centroids,options={}){
  }
  // Point below destination dots: a single unobtrusive halo for the residence.
  const halo=make("circle","flightHomeHalo");
- halo.setAttribute("cx",source[0]);halo.setAttribute("cy",source[1]);halo.setAttribute("r","8");
- halo.style.fill="#1b875c";halo.style.opacity=".15";
+ halo.setAttribute("cx",source[0]);halo.setAttribute("cy",source[1]);halo.setAttribute("r","15");
+ halo.style.fill="#1b875c";halo.style.opacity=".18";
  for(const route of model){
   const p=make("circle","flightDestination");
-  p.setAttribute("cx",route.to[0]);p.setAttribute("cy",route.to[1]);p.setAttribute("r","2.6");
-  p.style.fill="#146a48";p.style.stroke="#ffffff";p.style.strokeWidth=".7";
+  p.setAttribute("cx",route.to[0]);p.setAttribute("cy",route.to[1]);p.setAttribute("r","5.5");
+  p.style.fill="#146a48";p.style.stroke="#ffffff";p.style.strokeWidth="1.4";
+  p.setAttribute("vector-effect","non-scaling-stroke");
  }
  const home=make("circle","flightResidence");
- home.setAttribute("cx",source[0]);home.setAttribute("cy",source[1]);home.setAttribute("r","4.4");
- home.style.fill="#146a48";home.style.stroke="#ffffff";home.style.strokeWidth="1.3";
+ home.setAttribute("cx",source[0]);home.setAttribute("cy",source[1]);home.setAttribute("r","8");
+ home.style.fill="#146a48";home.style.stroke="#ffffff";home.style.strokeWidth="2";
+ home.setAttribute("vector-effect","non-scaling-stroke");
  svg.appendChild(group);
  return model;
 }
