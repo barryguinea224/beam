@@ -813,7 +813,7 @@ function accountSummary(){
 function openAccountPanel(){
  if(accountState!=="active")return;
  setFiltersOpen(false);accountReturnFocus=document.activeElement;
- accountSummary();renderAvatar();refreshAvatarIfNeeded().catch(()=>{});void LOYALTY?.reload();$("#accountOverlay").classList.add("accountOpen");
+ accountSummary();renderAvatar();refreshAvatarIfNeeded().catch(()=>{});if(typeof LOYALTY!=="undefined")void LOYALTY?.reload();$("#accountOverlay").classList.add("accountOpen");
  $("#accountOverlay").setAttribute("aria-hidden","false");$("#openAccount").setAttribute("aria-expanded","true");
  $("#closeAccount").focus();armOverlayBack();
 }
@@ -907,7 +907,7 @@ function setAccountState(state){
  $("#deletionPending").classList.toggle("hidden",state!=="deleting");
  $("#accountStatusUnavailable").classList.toggle("hidden",state!=="unavailable");
  $("#accountStatusChecking").classList.toggle("hidden",state!=="loading");
- if(!active){LOYALTY?.clear();renderAccessUi();$("#accountOverlay").classList.remove("accountOpen","accountEditing");$("#accountOverlay").setAttribute?.("aria-hidden","true");clearContactFields();$("#modal").classList.remove("open");if($("#tripDetailModal").classList.contains("open"))closeTripDetail()}
+ if(!active){if(typeof LOYALTY!=="undefined")LOYALTY?.clear();renderAccessUi();$("#accountOverlay").classList.remove("accountOpen","accountEditing");$("#accountOverlay").setAttribute?.("aria-hidden","true");clearContactFields();$("#modal").classList.remove("open");if($("#tripDetailModal").classList.contains("open"))closeTripDetail()}
 }
 async function load(){
  if(!user)return;
@@ -927,7 +927,7 @@ async function load(){
  const {data,error}=await S.from("trips").select("*").eq("deleting",false).order("entry_date",{ascending:false});
  if(error){$("#appMsg").textContent="Impossible de rafraîchir vos voyages. Réessayez.";$("#appMsg").classList.remove("hidden");throw error}
  trips=data||[];render();
- void LOYALTY?.reload();
+ if(typeof LOYALTY!=="undefined")void LOYALTY?.reload();
  await loadOptionalContacts();
 }
 function layoutDebug(){if(!new URLSearchParams(location.search).has("debug"))return;setTimeout(()=>{let vv=window.visualViewport,els=[...document.querySelectorAll("body *")].filter(e=>{let r=e.getBoundingClientRect();return r.right>innerWidth+1||r.left<-1||e.scrollWidth>e.clientWidth+1}).map(e=>({tag:e.tagName,id:e.id,cls:e.className,right:Math.round(e.getBoundingClientRect().right),left:Math.round(e.getBoundingClientRect().left),sw:e.scrollWidth,cw:e.clientWidth}));let pre=document.createElement("pre");pre.style="position:relative;z-index:99999;white-space:pre-wrap;overflow-wrap:anywhere;background:#111;color:#fff;padding:12px;font:12px monospace";pre.textContent=JSON.stringify({innerWidth,screenWidth:screen.width,devicePixelRatio,visualViewport:vv&&vv.width,overflow:els},null,2);document.body.prepend(pre)},500)}
