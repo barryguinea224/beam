@@ -13,12 +13,22 @@
     return Number.isNaN(date.getTime()) ? "" :
       date.toLocaleDateString("fr-FR", {day:"numeric",month:"long",year:"numeric"});
   }
-  function photos(rows) {
+  const STAY_WARNING="Ne photographiez jamais votre carte d’embarquement ni votre confirmation de réservation : elles contiennent des numéros personnels.";
+  function photos(rows,trip={}) {
     if (!rows.length) return '<p class="detailEmpty">Aucune photo pour ce voyage.</p>';
-    return rows.map(row => '<figure class="detailPhoto">' +
-      (row.url ? '<img loading="lazy" alt="Photo privée du voyage" src="' + esc(row.url) + '">' :
-        '<div class="detailPhotoMissing">Prévisualisation indisponible</div>') +
-      '</figure>').join("");
+    return rows.map(row => {
+      const choices=[["airline","vol"],["hotel","hôtel"]].map(([kind,label]) => {
+        const selected=trip[kind+"_media_id"]===row.id;
+        return '<button type="button" class="btn ghost detailStayChoice" data-kind="'+kind+
+          '" data-id="'+esc(row.id)+'" aria-pressed="'+selected+'">'+
+          (selected?'Retirer la photo du '+label:'Utiliser comme photo du '+label)+'</button>';
+      }).join("");
+      return '<figure class="detailPhoto">' +
+        (row.url ? '<img loading="lazy" alt="Photo privée du voyage" src="' + esc(row.url) + '">' :
+          '<div class="detailPhotoMissing">Prévisualisation indisponible</div>') +
+        '<div class="detailPhotoActions">'+choices+'</div>'+
+        '<figcaption class="detailStayWarning">'+esc(STAY_WARNING)+'</figcaption></figure>';
+    }).join("");
   }
   function activities(rows) {
     if (!rows.length) return '<p class="detailEmpty">Aucune activité pour le moment.</p>';
