@@ -1,0 +1,37 @@
+name: BTH — Flight Connections v27 (geometry, Android, print)
+on:
+  pull_request:
+    branches: [feature/beam-travel-history-v1]
+    paths:
+      - "travel/**"
+      - "scripts/generate-world-centroids.cjs"
+      - "tests/travel-flight-*.cjs"
+      - ".github/workflows/travel-flight-connections.yml"
+permissions:
+  contents: read
+jobs:
+  flight-connections:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Check generated centroids and origin-only route logic
+        run: node tests/travel-flight-centroids.cjs
+      - name: Install local headless Chromium (no staging, no credentials)
+        run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Real map handlers, Android 320/360/390 px, filters, reduced-motion
+        run: node tests/travel-flight-map-mobile.cjs
+      - name: Print-only arcs in A5 booklet and journal
+        run: node tests/travel-flight-print.cjs
+      - name: Publish the three synthetic Android map screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bth-flight-connections-android-320-390
+          path: test-artifacts/flight-connections/carte-*.png
+          if-no-files-found: warn

@@ -46,7 +46,7 @@ for(const role of ["airline","hotel"]){
  assert.ok(migration.includes("trips_"+role+"_same_trip_owner"));
  assert.ok(app.includes('data-stay-role'),"photo selection controls must be present");
 }
-assert.ok(sw.includes("photo-actions-v26"),"cache revision");
+assert.ok(sw.includes("flight-connections-v27"),"cache revision");
 assert.doesNotMatch(sw,/cache\.put\(/,"no runtime caching of private signed images");
 const factual=schema.split("create view public.travel_history_pdf")[1]?.split(";")[0];
 assert.ok(factual);
