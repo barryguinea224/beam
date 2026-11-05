@@ -45,6 +45,7 @@ const clean=html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'')
 const sample='data:image/svg+xml,'+encodeURIComponent(
  '<svg xmlns="http://www.w3.org/2000/svg" width="360" height="450"><rect width="360" height="450" fill="#b5d5c1"/><circle cx="180" cy="180" r="100" fill="#498769"/></svg>');
 (async()=>{
+ fs.mkdirSync('test-artifacts/photo-sheet-android',{recursive:true});
  const browser=await chromium.launch({headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
  try{
   for(const width of [320,360,390]){
@@ -64,6 +65,11 @@ const sample='data:image/svg+xml,'+encodeURIComponent(
       document.querySelector('#photoActionOverlay').classList.add('open');
       document.querySelector('#photoActionOverlay').setAttribute('aria-hidden','false');
     },{sample});
+    // Android captures use only synthetic SVGs and invented captions, never accounts.
+    await page.locator('#photoActionOverlay').evaluate(node=>node.classList.remove('open'));
+    await page.screenshot({path:'test-artifacts/photo-sheet-android/grille-'+width+'.png'});
+    await page.locator('#photoActionOverlay').evaluate(node=>node.classList.add('open'));
+    await page.screenshot({path:'test-artifacts/photo-sheet-android/menu-'+width+'.png'});
     const m=await page.evaluate(()=>{
       const dialog=document.querySelector('#photoActionDialog');
       const overlay=document.querySelector('#photoActionOverlay');
