@@ -110,6 +110,13 @@ jobs:
           psql -X -v ON_ERROR_STOP=1 -f travel/supabase/schema.sql
           echo 'PASS canonical schema.sql replay on an empty local Supabase database'
 
+      - name: Replay stay-image migration twice (LOCAL idempotence)
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql -X -v ON_ERROR_STOP=1 -f travel/supabase/migrations/20261105100000_trips_stay_media.sql
+          psql -X -v ON_ERROR_STOP=1 -f travel/supabase/migrations/20261105100000_trips_stay_media.sql
+
       - name: Validate RLS, grants, private Storage and unscheduled worker
         shell: bash
         run: |
