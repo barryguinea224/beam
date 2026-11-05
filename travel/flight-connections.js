@@ -39,6 +39,9 @@ function draw(svg,residence,destinations,centroids,options={}){
  group.setAttribute("pointer-events","none");
  group.style.pointerEvents="none";
  const make=(tag,klass)=>{const el=doc.createElementNS(NS,tag);el.setAttribute("class",klass);el.style.pointerEvents="none";group.appendChild(el);return el};
+ // Dots are sized in map units; a zoomed viewBox passes its width / 1000 so they keep their size.
+ const k=Number.isFinite(options.scale)&&options.scale>0&&options.scale<=1?options.scale:1;
+ const R=v=>String(Number((v*k).toFixed(2)));
  const animated=options.animate===true&&!(root?.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches);
  for(const [index,route] of model.entries()){
   const path=make("path","flightArc"+(animated?" flightMotion":""));
@@ -59,16 +62,16 @@ function draw(svg,residence,destinations,centroids,options={}){
  }
  // Point below destination dots: a single unobtrusive halo for the residence.
  const halo=make("circle","flightHomeHalo");
- halo.setAttribute("cx",source[0]);halo.setAttribute("cy",source[1]);halo.setAttribute("r","15");
+ halo.setAttribute("cx",source[0]);halo.setAttribute("cy",source[1]);halo.setAttribute("r",R(15));
  halo.style.fill="#c46a2f";halo.style.opacity=".18";
  for(const route of model){
   const p=make("circle","flightDestination");
-  p.setAttribute("cx",route.to[0]);p.setAttribute("cy",route.to[1]);p.setAttribute("r","5.5");
+  p.setAttribute("cx",route.to[0]);p.setAttribute("cy",route.to[1]);p.setAttribute("r",R(5.5));
   p.style.fill="#c46a2f";p.style.stroke="#ffffff";p.style.strokeWidth="1.4";
   p.setAttribute("vector-effect","non-scaling-stroke");
  }
  const home=make("circle","flightResidence");
- home.setAttribute("cx",source[0]);home.setAttribute("cy",source[1]);home.setAttribute("r","8");
+ home.setAttribute("cx",source[0]);home.setAttribute("cy",source[1]);home.setAttribute("r",R(8));
  home.style.fill="#9c4a1c";home.style.stroke="#ffffff";home.style.strokeWidth="2";
  home.setAttribute("vector-effect","non-scaling-stroke");
  svg.appendChild(group);
