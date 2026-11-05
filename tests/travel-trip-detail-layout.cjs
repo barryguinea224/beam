@@ -16,7 +16,9 @@ async function run(){
    const page=await browser.newPage({viewport:{width,height:780},isMobile:true,hasTouch:true});
    try{
     await page.setContent(html,{waitUntil:'domcontentloaded'});
-    const images=DETAIL.photos(Array.from({length:3},(_,i)=>({id:String(i),url:sample})));
+    const images=DETAIL.photos(Array.from({length:3},(_,i)=>({id:String(i),url:sample})),{
+      canEdit:true,airline:true,hotel:true,airlineMediaId:"0",hotelMediaId:"0"
+    });
     const activities=DETAIL.activities([
      {id:'a',title:'Musée et promenade',place:'Centre-ville',happened_on:'2026-06-21'},
      {id:'b',title:'Un titre de souvenir '.repeat(10),place:'',happened_on:null}
@@ -24,9 +26,15 @@ async function run(){
     await page.evaluate(({images,activities})=>{
      document.querySelector('#tripDetailModal').classList.add('open');
      document.querySelector('#detailTitle').textContent='Paris';
-     document.querySelector('#detailFacts').innerHTML=Array.from({length:6},(_,i)=>
+     document.querySelector('#detailFacts').innerHTML=Array.from({length:4},(_,i)=>
        '<div class="detailFact"><dt>Étiquette</dt><dd>Champ '+i+' avec un texte long et explicatif</dd></div>'
-     ).join('');
+     ).join('')+
+     '<div class="detailFact detailStay"><dt>Compagnie aérienne</dt><dd>'+
+     '<img class="stayThumb" alt="" src="/travel/assets/stay-airline.svg">'+
+     '<span>Compagnie de test</span></dd></div>'+
+     '<div class="detailFact detailStay"><dt>Hôtel / hébergement</dt><dd>'+
+     '<img class="stayThumb" alt="" src="/travel/assets/stay-hotel.svg">'+
+     '<span>Hôtel fictif au très long nom pour la mise en page</span></dd></div>';
      document.querySelector('#detailPhotos').innerHTML=images;
      document.querySelector('#detailActivities').innerHTML=activities;
      document.querySelector('#detailNote').textContent='Souvenir très personnel '.repeat(12);
@@ -38,7 +46,8 @@ async function run(){
      const left=outer.left+parseFloat(pad.paddingLeft);
      const right=outer.right-parseFloat(pad.paddingRight);
      const elements=['.detailFacts','.detailFact','.detailGallery','.detailPhoto','.detailPhoto img',
-       '.detailActivity','.detailActivityText','.detailActivityForm','.detailActivityForm input']
+       '.detailActivity','.detailActivityText','.detailActivityForm','.detailActivityForm input',
+       '.detailStay','.stayThumb','.detailPhotoActions','.detailPhotoActions .btn']
        .flatMap(selector=>[...sheet.querySelectorAll(selector)].map(node=>{
         const rect=node.getBoundingClientRect();
         return {selector,left:rect.left,right:rect.right}
