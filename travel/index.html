@@ -1666,7 +1666,7 @@ $("#printJournal").onclick=async()=>{
     .select("display_name,deleting").eq("id",uid).single();
   if(stateError||!current||current.deleting)throw new Error("Profil indisponible");
   const {data:rows,error:tripError}=await S.from("trips")
-    .select("id,country_code,cities,entry_date,exit_date,duration_days,purpose,is_domestic,note,airline,hotel")
+    .select("id,country_code,cities,entry_date,exit_date,duration_days,purpose,is_domestic,note,airline,hotel,airline_media_id,hotel_media_id")
     .eq("user_id",uid).eq("deleting",false).order("entry_date",{ascending:false});
   if(tripError||!rows)throw new Error("Voyages indisponibles");
   const selected=window.BEAM_DASHBOARD_FILTERS.apply(rows,filters);
@@ -1687,24 +1687,35 @@ $("#printJournal").onclick=async()=>{
     if(activityResult.error||photoResult.error)throw new Error("Contenu indisponible");
     const media=(photoResult.data||[]).slice(0,Math.min(remaining,window.BEAM_FAMILY_BOOKLET.MAX_PHOTOS_PER_TRIP));
     remaining-=media.length;
-    const photos=[];
-    let favoritePhoto="";
-    let missingPhotos=0;
-    for(const row of media){
-     if(!row.storage_path?.startsWith(uid+"/"+trip.id+"/")){missingPhotos++;continue}
-     try{
-      const {data:signed,error:signError}=await S.storage.from("media")
-       .createSignedUrl(row.storage_path,window.BEAM_PERSONAL_JOURNAL.SIGNED_SECONDS);
-      const safe=!signError&&signed?.signedUrl
-       ?window.BEAM_VISUAL_CARDS.trustedSignedUrl(signed.signedUrl,C.supabaseUrl):"";
-      if(safe){
-       photos.push(safe); // RAM-only; no service-worker image caching.
-       if(row.is_favorite&&!favoritePhoto)favoritePhoto=safe;
+    const photos=[],byId=new Map();
+    let favoritePhoto="",missingPhotos=0;
+    // Preserve selected stay images even outside the global 60-photo mosaic quota.
+    const selectedIds=[trip.airline_media_id,trip.hotel_media_id].filter(Boolean);
+    const extra=(photoResult.data||[]).filter(row=>
+      selectedIds.includes(row.id)&&!media.some(shown=>shown.id===row.id));
+    for(const row of media.concat(extra)){
+      if(!row.storage_path?.startsWith(uid+"/"+trip.id+"/")){
+        if(media.includes(row))missingPhotos++;
+        continue;
       }
-      else missingPhotos++; // A rejected/expired signature must be visible.
-     }catch{missingPhotos++}
+      try{
+        const {data:signed,error:signError}=await S.storage.from("media")
+         .createSignedUrl(row.storage_path,window.BEAM_PERSONAL_JOURNAL.SIGNED_SECONDS);
+        const safe=!signError&&signed?.signedUrl
+         ?window.BEAM_VISUAL_CARDS.trustedSignedUrl(signed.signedUrl,C.supabaseUrl):"";
+        if(safe){
+          byId.set(row.id,safe);
+          if(media.includes(row)){
+            photos.push(safe);
+            if(row.is_favorite&&!favoritePhoto)favoritePhoto=safe;
+          }
+        }else if(media.includes(row))missingPhotos++;
+      }catch{if(media.includes(row))missingPhotos++}
     }
-    pack[position]={trip,activities:activityResult.data||[],photos,favoritePhoto,missingPhotos};
+    const airlinePhoto=byId.get(trip.airline_media_id)||"";
+    const hotelPhoto=byId.get(trip.hotel_media_id)||"";
+    pack[position]={trip,activities:activityResult.data||[],photos,favoritePhoto,
+      airlinePhoto,hotelPhoto,missingPhotos};
    }
   }
   await Promise.all(Array.from({length:Math.min(3,selected.length)},()=>worker()));
