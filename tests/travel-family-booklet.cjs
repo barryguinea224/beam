@@ -140,6 +140,7 @@ async function main(){
     assert.ok(w<1000&&h<=445&&x>=0&&y>=0&&x+w<=1000.1&&y+h<=445.1,"Page 2 zooms inside the world: "+audit.mapViewport[1]);
     assert.ok(x<469&&469<x+w&&y<221&&221<y+h,"Page 2 zoom contains the residence (Guinea)");}
    assert.ok(audit.eastMapPathCount>10,"Zoom map must contain actual country paths");
+   // The zoom page label is asserted in the DOM: its spaced capitals are not reliably extracted by pdftotext.
    assert.match(audit.bookletHelp,/Portrait, recto verso bord court/);
    for(const selector of [".inner",".half.right .leaf",".story-leaf .story-main .flag-small",".closing"])
     assert.ok(audit.cssSelectors.includes(selector),"Missing parsed print CSS rule: "+selector);
@@ -249,7 +250,7 @@ async function main(){
    }
    const text=execFileSync("pdftotext",["-layout",print,"-"],{encoding:"utf8"}).replace(/\s+/g," ");
    const visibleText=text.replace(/[·•]/g," ").replace(/\s+/g," ").toLocaleLowerCase("fr");
-   for(const token of ["Carnet d'Aminata Camara","Notre monde","Autour de chez nous",
+   for(const token of ["Carnet d'Aminata Camara","Notre monde",
     "Guinée","Sénégal","Dalaba","Dakar","Nos prochains voyages"]){
     assert.ok(visibleText.includes(token.toLocaleLowerCase("fr")),"Missing or clipped PDF text "+token);
    }
