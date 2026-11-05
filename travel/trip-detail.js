@@ -36,7 +36,7 @@
         badges(row,stay)+'</button>'+
         (caption?'<figcaption class="photoOneLine">'+esc(caption)+'</figcaption>':"")+'</figure>';
     }).join("");
-    return items+'<p class="detailPhotoAdvice">Ne photographiez jamais votre carte d’embarquement ni votre confirmation de réservation : elles contiennent des numéros personnels.</p>';
+    return items;
   }
   function activities(rows) {
     if (!rows.length) return '<p class="detailEmpty">Aucune activité pour le moment.</p>';
