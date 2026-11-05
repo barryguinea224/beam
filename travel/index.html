@@ -403,6 +403,7 @@ html.travelAccessReadOnly #photoField,html.travelAccessReadOnly #saveTrip{displa
    <button id="photoDelete" type="button" class="danger">Supprimer</button>
    <button id="photoPendingRemove" type="button" class="danger hidden">Retirer de la sélection</button>
   </div>
+  <p id="photoActionAdvice" class="photoSheetAdvice">Évitez de photographier une carte d’embarquement ou une confirmation de réservation : elles contiennent des numéros personnels.</p>
   <form id="photoNoteForm" class="hidden">
    <label for="photoNoteInput">Note de cette photo (500 caractères maximum)</label>
    <textarea id="photoNoteInput" maxlength="500" rows="3"></textarea>
@@ -1253,7 +1254,7 @@ function renderPhotoGallery(){
    '<figcaption class="photoOneLine">En attente · '+esc(entry.file.name)+'</figcaption></figure>');
  const rejected=failedPhotoSelections.map(entry=>'<div class="photoTile" role="status"><div class="photoThumbSlot"><span class="photoThumbPlaceholder">'+esc(PHOTO.INACCESSIBLE)+'</span></div><p class="photoPendingLabel">'+esc(entry.name)+'</p></div>');
  $("#photoGallery").innerHTML=saved.concat(waiting,rejected).join("")+
-  (saved.length&&editingTripId?'<p class="stayGalleryWarning">Ne photographiez jamais votre carte d’embarquement ni votre confirmation de réservation : elles contiennent des numéros personnels.</p>':"");
+  "";
  wirePhotoThumbs($("#photoGallery"));
 }
 function updateSignedThumbnail(row){

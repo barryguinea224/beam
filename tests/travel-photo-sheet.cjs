@@ -28,7 +28,7 @@ for(const field of ['airline','hotel','airline_media_id','hotel_media_id'])
 assert.match(print,/\.select\("id,storage_path,is_favorite,caption"\)/);
 assert.match(print,/photoCaptions\.push\(DETAIL\.captionValue\(row\.caption\)\)/);
 const sw=fs.readFileSync('travel/sw.js','utf8');
-assert.match(sw,/photo-actions-v25/);
+assert.match(sw,/photo-actions-v26/);
 assert.match(sw,/"\.\/photo-sheet\.css"/);
 const malicious='<img src=x onerror=alert(1)> Bonjour';
 const images=DETAIL.photos([
@@ -40,7 +40,7 @@ assert.ok(!images.includes('📝'),'a note shows as its one-line caption, never 
 assert.ok(images.includes('&lt;img src=x onerror=alert(1)&gt;'));
 assert.ok(!images.includes(malicious),'caption may not become HTML');
 assert.ok(!images.includes('detailCaptionToggle')&&!images.includes('stayPhotoChoice'));
-assert.ok(images.includes('Ne photographiez jamais votre carte'));
+assert.ok(!images.includes('carte d’embarquement'),'no advice text under the photo grid');
 const clean=html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'')
   .replace('</head>','<style>'+css+'</style></head>');
 const sample='data:image/svg+xml,'+encodeURIComponent(

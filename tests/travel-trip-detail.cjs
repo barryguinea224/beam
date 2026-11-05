@@ -31,7 +31,8 @@ const stayControls=DETAIL.photos([{id:'id" onclick="bad()',url:'https://signed.i
 assert.match(stayControls,/class="photoTap"/);
 assert.match(stayControls,/photoRoles/);
 assert.doesNotMatch(stayControls,/stayPhotoChoice|detailCaptionToggle|detailPhotoActions/);
-assert.match(stayControls,/Ne photographiez jamais votre carte/);
+assert.doesNotMatch(stayControls,/carte d’embarquement/,'the advice lives in the photo menu, not under the grid');
+assert.match(require('fs').readFileSync('travel/index.html','utf8'),/id="photoActionAdvice"[^>]*>Évitez de photographier une carte d’embarquement/);
 assert.ok(stayControls.includes('data-id="id&quot; onclick=&quot;bad()"'));
 assert.ok(!stayControls.includes('data-id="id" onclick='));
 assert.match(DETAIL.activities([]),/Aucune activité/);
