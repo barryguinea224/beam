@@ -96,7 +96,9 @@ assert.ok(js.includes('IntersectionObserver'));
 assert.ok(js.includes('.eq("id",coverId).eq("trip_id",tripId).eq("user_id",uid)'));
 assert.ok(js.includes('createSignedUrl(row.storage_path,300)'));
 assert.ok(js.includes('trustedSignedUrl(signed.signedUrl,C.supabaseUrl)'));
-assert.ok(js.includes('S.from("trips").update({cover_media_id:selected})'));
+assert.ok(js.includes('writePhotoRole("cover_media_id")'),"cover selection opens the shared photo-action handler");
+assert.ok(js.includes('S.from("trips").update({[field]:selected})'),"photo roles must persist through one owner-scoped update");
+assert.ok(js.includes('.eq("id",state.tripId).eq("user_id",user.id)'),"cover update scoped to owner and journey");
 assert.ok(js.includes('for(const field of ["cover_media_id","airline_media_id","hotel_media_id"])'),
  "deleting a selected media must reset all three roles in the browser");
 assert.ok(!js.includes('https://images.unsplash.com'));
