@@ -355,7 +355,7 @@
     ]){
      if(!name)continue;
      const line=el(logistics,"div","trip-logistics-line");
-     const img=el(line,"img");img.src=url||"/travel/assets/stay-"+role+".svg";
+     const img=el(line,"img");img.src=url||model.stayArt?.[role]||"/travel/assets/stay-"+role+".svg";
      img.alt="";img.setAttribute("referrerpolicy","no-referrer");
      el(line,"span",null,label+" : "+name);
     }

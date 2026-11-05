@@ -213,7 +213,8 @@ function render(doc,model){
    ]){
     if(!name)continue;
     const line=node(logistics,"div","stay-logistics-line");
-    const img=node(line,"img");img.src=isPrintPhoto(url)?url:"/travel/assets/stay-"+role+".svg";
+    const img=node(line,"img");
+    img.src=isPrintPhoto(url)?url:(model.stayArt?.[role]||"/travel/assets/stay-"+role+".svg");
     img.alt="";img.setAttribute("referrerpolicy","no-referrer");
     node(line,"span",null,label+" : "+name);
    }

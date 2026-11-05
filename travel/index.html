@@ -1727,12 +1727,26 @@ $("#printJournal").onclick=async()=>{
    if(response.ok)mapSvgText=await response.text();
   }catch{}
   if(accountState!=="active"||user?.id!==uid||tab.closed)throw new Error("Session expirée");
+  // Public original vector illustrations: inline small same-origin SVGs into
+  // the about:blank print document so Chrome can print them reliably offline.
+  // Never encode private images or trip data in this public illustration map.
+  const stayArt={};
+  for(const role of ["airline","hotel"]){
+    try{
+      const response=await fetch("./assets/stay-"+role+".svg",{cache:"force-cache"});
+      if(response.ok){
+        const svg=await response.text();
+        if(svg.length<5120&&svg.startsWith("<svg")&&!/<script|<image|<text[ >]/i.test(svg))
+          stayArt[role]="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg);
+      }
+    }catch{}
+  }
   // Only previously validated temporary signatures enter the RAM-only resizer.
   // JPEG canvases discard EXIF/GPS and keep each long edge <= 1500 px.
   const prepared=await window.BEAM_FAMILY_BOOKLET.preparePhotos(pack,window);
   if(accountState!=="active"||user?.id!==uid||tab.closed)throw new Error("Session expirée");
   window.BEAM_FAMILY_BOOKLET.render(tab.document,{
-   name:current.display_name,filters,trips:prepared.trips,mapSvgText,
+   name:current.display_name,filters,trips:prepared.trips,mapSvgText,stayArt,
    unoptimized:prepared.unoptimized,limitReached:remaining===0,generatedAt:new Date()
   });
  }catch{fail();$("#appMsg").textContent="Impossible de préparer le carnet imprimable. Vérifiez votre connexion et réessayez.";$("#appMsg").classList.remove("hidden")}
