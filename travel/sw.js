@@ -1,7 +1,7 @@
 // BEAM Travel History PWA — PRIVATE BY DEFAULT.
 // Cache only the audited, versioned public shell. No runtime cache writes.
 // Never cache Supabase, signed links, personal trips, photos or API responses.
-const CACHE_NAME = "beam-travel-shell-v1-20261105-photo-captions-v23";
+const CACHE_NAME = "beam-travel-shell-v1-20261105-photo-actions-v24";
 const SCOPE_PATH = "/travel/";
 const PUBLIC_SHELL = [
   "./index.html", "./config.js", "./offline-bootstrap.js", "./pwa.js",
@@ -10,8 +10,8 @@ const PUBLIC_SHELL = [
   "./access.js", "./avatar.js", "./photo-utils.js", "./photo-upload.js", "./trip-detail.js", "./visa-guide.js",
   "./countries.js", "./country-picker.js", "./factual-pdf.js", "./factual-pdf-file.js",
   "./journal-stats.js", "./dashboard-filters.js", "./dashboard-filters.css", "./printable-journal.js", "./family-booklet.js",
-  "./visual-cards.js", "./visual-cards.css",
-  "./assets/world-map.svg", "./manifest.webmanifest",
+  "./visual-cards.js", "./visual-cards.css", "./photo-sheet.css",
+  "./assets/world-map.svg", "./assets/stay-airline.svg", "./assets/stay-hotel.svg", "./manifest.webmanifest",
   "./icons/icon-192.png", "./icons/icon-512.png", "./icons/icon-maskable-512.png",
   // Keep the 30 audited popular SVGs in the offline PUBLIC shell. Other ISO
   // SVGs load from the same origin online; no private data or runtime caching.

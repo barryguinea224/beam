@@ -14,7 +14,7 @@ assert.ok(html.includes('<script src="./trip-detail.js"></script>'),'Trip detail
 assert.ok(fs.readFileSync('travel/visual-cards.js','utf8').includes('class="tripOpen"'),
  'Visual travel card helper must keep clickable tripOpen controls');
 assert.ok(html.includes('openTripDetail(b.dataset.id)'),'Tap must open a trip, not its editing form');
-assert.ok(inline.includes('S.from("media").select("id,storage_path").eq("user_id",user.id).eq("trip_id",id)'),
+assert.ok(inline.includes('S.from("media").select("id,storage_path,caption").eq("user_id",user.id).eq("trip_id",id)'),
   'Photos must be filtered by owner and trip');
 assert.ok(inline.includes('S.from("activities").select("id,title,place,happened_on").eq("user_id",user.id).eq("trip_id",id)'),
   'Activities must be filtered by owner and trip');
@@ -25,6 +25,15 @@ assert.ok(html.includes('@media print{#tripDetailModal{display:none!important}}'
 assert.ok(!html.includes('class="editTrip"'), 'Trip cards should open consultation instead of editing');
 
 assert.match(DETAIL.photos([]),/Aucune photo/);
+const stayControls=DETAIL.photos([{id:'id" onclick="bad()',url:'https://signed.invalid/p.webp'}],{
+ canEdit:true,airline:true,hotel:true,airlineMediaId:'id" onclick="bad()',hotelMediaId:null
+});
+assert.match(stayControls,/class="photoTap"/);
+assert.match(stayControls,/photoRoles/);
+assert.doesNotMatch(stayControls,/stayPhotoChoice|detailCaptionToggle|detailPhotoActions/);
+assert.match(stayControls,/Ne photographiez jamais votre carte/);
+assert.ok(stayControls.includes('data-id="id&quot; onclick=&quot;bad()"'));
+assert.ok(!stayControls.includes('data-id="id" onclick='));
 assert.match(DETAIL.activities([]),/Aucune activité/);
 const images=DETAIL.photos([
  {id:'1',url:'https://example.invalid/pic.webp?x=1&key=" onerror="alert(1)'},
@@ -119,7 +128,9 @@ async function main(){
  assert.match(els['#detailFacts'].innerHTML,/Compagnie fictive/);
  assert.match(els['#detailFacts'].innerHTML,/Hôtel \/ hébergement/);
  assert.match(els['#detailFacts'].innerHTML,/&lt;img src=x onerror=alert\(1\)&gt;/);
- assert.doesNotMatch(els['#detailFacts'].innerHTML,/<img/);
+ assert.doesNotMatch(els['#detailFacts'].innerHTML,/<img src=x/);
+ assert.match(els['#detailFacts'].innerHTML,/stay-airline\.svg/);
+ assert.match(els['#detailFacts'].innerHTML,/stay-hotel\.svg/);
  assert.match(els['#detailPhotos'].innerHTML,/signed.invalid/);
  assert.match(els['#detailActivities'].innerHTML,/Visite du musée/);
  assert.equal(calls.filter(c=>c[0]==='media'&&c[1]==='filters')[0][2][0][1],'owner');

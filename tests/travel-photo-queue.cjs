@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 const PHOTO = require('../travel/photo-utils.js');
+const DETAIL = require('../travel/trip-detail.js');
 const COUNTRIES = require('../travel/countries.js');
 const {uploadOne} = require('../travel/photo-upload.js');
 
@@ -89,7 +90,7 @@ function harness() {
     blob:new Blob(['reencoded pixels'],{type:'image/webp'}),width:800,height:1200
   })};
   const context=vm.createContext({
-    Blob,
+    Blob,DETAIL,photoTripStay:()=>({}),
     window:{BEAM_COUNTRIES:COUNTRIES,BEAM_PHOTO:{...PHOTO,...convertedPhoto},
       BEAM_PHOTO_UPLOAD:{uploadOne:params=>uploadOne({...params,idProvider:()=>('photo-'+(++serial))})},
       confirm:message=>{confirmMessages.push(message);return confirmAnswer}},
@@ -126,9 +127,7 @@ function harness() {
   function close() {return els['#close'].onclick()}
   function setConfirm(answer){confirmAnswer=answer}
   function remove(id) {
-    return els['#photoGallery'].onclick({
-      target:{closest:()=>({dataset:{pendingId:id}})}
-    });
+    return vm.runInContext('removePendingPhoto('+JSON.stringify(id)+')',context);
   }
   return {els,records,uploads,revoked,calls,context,select,save,queued,remove,close,setConfirm,confirmMessages,
     failAt:n=>{failAt=n},uploadCount:()=>uploadCount};

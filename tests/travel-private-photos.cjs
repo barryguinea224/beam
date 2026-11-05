@@ -21,7 +21,7 @@ assert.ok(uploadSource.indexOf('.from("media").insert(') <
   uploadSource.indexOf('.storage.from("media").upload('), "DB row must precede Storage upload");
 assert.ok(uploadSource.includes('contentType:"image/webp"'), "Only WebP can be uploaded");
 assert.ok(uploadSource.includes('action:"delete_photo"'), "Failed upload cleanup must use server deletion");
-assert.ok(html.includes('S.storage.from("media").download(row.storage_path)'), "Private WebP must be downloadable");
+assert.ok(html.includes('S.storage.from("media").download(path)'), "Private WebP must be downloadable");
 assert.ok(html.includes('S.functions.invoke("travel-delete",{body:{action:"delete_photo"'), "Photo deletion must be server-side");
 assert.ok(html.includes('createSignedUrl(row.storage_path,300)'), "Private gallery must use short-lived URLs");
 assert.ok(!html.includes('async function clean(file)'), "Legacy conversion path must not remain");
