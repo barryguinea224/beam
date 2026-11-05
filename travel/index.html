@@ -1650,7 +1650,7 @@ $("#printJournal").onclick=async()=>{
     .select("display_name,deleting").eq("id",uid).single();
   if(stateError||!current||current.deleting)throw new Error("Profil indisponible");
   const {data:rows,error:tripError}=await S.from("trips")
-    .select("id,country_code,cities,entry_date,exit_date,duration_days,purpose,is_domestic,note,airline,hotel")
+    .select("id,country_code,cities,entry_date,exit_date,duration_days,purpose,is_domestic,note,airline,hotel,airline_media_id,hotel_media_id")
     .eq("user_id",uid).eq("deleting",false).order("entry_date",{ascending:false});
   if(tripError||!rows)throw new Error("Voyages indisponibles");
   const selected=window.BEAM_DASHBOARD_FILTERS.apply(rows,filters);
@@ -1672,7 +1672,7 @@ $("#printJournal").onclick=async()=>{
     const media=(photoResult.data||[]).slice(0,Math.min(remaining,window.BEAM_FAMILY_BOOKLET.MAX_PHOTOS_PER_TRIP));
     remaining-=media.length;
     const photos=[];
-    let favoritePhoto="";
+    let favoritePhoto="",airlinePhoto="",hotelPhoto="";
     let missingPhotos=0;
     for(const row of media){
      if(!row.storage_path?.startsWith(uid+"/"+trip.id+"/")){missingPhotos++;continue}
@@ -1684,11 +1684,13 @@ $("#printJournal").onclick=async()=>{
       if(safe){
        photos.push(safe); // RAM-only; no service-worker image caching.
        if(row.is_favorite&&!favoritePhoto)favoritePhoto=safe;
+       if(row.id===trip.airline_media_id)airlinePhoto=safe;
+       if(row.id===trip.hotel_media_id)hotelPhoto=safe;
       }
       else missingPhotos++; // A rejected/expired signature must be visible.
      }catch{missingPhotos++}
     }
-    pack[position]={trip,activities:activityResult.data||[],photos,favoritePhoto,missingPhotos};
+    pack[position]={trip,activities:activityResult.data||[],photos,favoritePhoto,airlinePhoto,hotelPhoto,missingPhotos};
    }
   }
   await Promise.all(Array.from({length:Math.min(3,selected.length)},()=>worker()));

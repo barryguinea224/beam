@@ -33,8 +33,14 @@
   if(Number.isNaN(d.getTime())||d.toISOString().slice(0,10)!==s)return "—";
   return s.slice(8,10)+"/"+s.slice(5,7)+"/"+s.slice(0,4);
  }
- function viewTrip(trip,activities=[],photos=[]){
+ function viewTrip(trip,activities=[],photos=[],stayPhotos={}){
   if(!trip||!COUNTRIES.valid(trip.country_code))throw new Error("Pays du séjour inconnu.");
+  // These URL tokens are only derived from already-signed, same-trip photos.
+  const stayPhoto=kind=>{
+   const url=stayPhotos?.[kind+"Photo"];
+   return typeof url==="string"&&Array.isArray(photos)&&photos.includes(url)&&
+     (url.startsWith("https://")||/^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(url))?url:"";
+  };
   const days=Number(trip.duration_days);
   return Object.freeze({
    code:trip.country_code,country:COUNTRIES.NAMES[trip.country_code],
@@ -46,6 +52,7 @@
    purpose:PURPOSES[trip.purpose]||"Autre",
    domestic:trip.is_domestic===true,
    airline:clean(trip.airline).slice(0,160),hotel:clean(trip.hotel).slice(0,160),
+   airlinePhoto:stayPhoto("airline"),hotelPhoto:stayPhoto("hotel"),
    memory:clean(trip.note),
    activities:(Array.isArray(activities)?activities:[]).slice(0,50).map(a=>Object.freeze({
     title:clean(a.title).slice(0,160),place:clean(a.place).slice(0,160),date:date(a.happened_on)
@@ -203,7 +210,10 @@
   ".trip-line{font-size:10pt;color:#496c57;margin:0}",
   ".pills{display:flex;gap:2mm;flex-wrap:wrap;margin:4mm 0 7mm}",
   ".pill{font:700 9pt system-ui;border-radius:999px;padding:2mm 4mm;border:1px solid #afcab8;background:#f1f7f2;color:#27583f}",
-  ".trip-logistics{font:9pt/1.4 system-ui,sans-serif;color:#456b54;overflow-wrap:anywhere;margin:1mm 0 4mm}",
+  ".trip-logistics{display:grid;gap:1mm;font:9pt/1.3 system-ui,sans-serif;color:#456b54;overflow-wrap:anywhere;margin:1mm 0 3mm}",
+  ".trip-stay-row{display:flex;align-items:center;gap:3mm;min-width:0;break-inside:avoid}",
+  ".trip-stay-row img{display:block;width:12mm;height:9mm;object-fit:cover;flex:none;background:#e8f1e8;border-radius:2mm}",
+  ".trip-stay-row span{min-width:0;overflow-wrap:anywhere}",
   ".photo-mosaic{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:3mm;min-width:0}",
   ".photo-mosaic figure{margin:0;border-radius:3mm;overflow:hidden;break-inside:avoid;min-width:0;background:#ecf1e9}",
   ".photo-mosaic figure:first-child{grid-column:1/-1}",
@@ -242,7 +252,9 @@
  function render(doc,model){
   if(!doc?.createElement||!model||!Array.isArray(model.trips))throw new Error("Carnet indisponible.");
   const name=clean(model.name).replace(/\s+/g," ").slice(0,80);
-  const list=model.trips.map(t=>viewTrip(t.trip,t.activities,t.photos));
+  const list=model.trips.map(t=>viewTrip(t.trip,t.activities,t.photos,{
+   airlinePhoto:t.airlinePhoto,hotelPhoto:t.hotelPhoto
+  }));
   const failed=model.trips.map(t=>{
    const n=Number(t.missingPhotos);
    return Number.isInteger(n)&&n>0?Math.min(n,MAX_PHOTOS_PER_TRIP):0;
@@ -338,8 +350,21 @@
    const pills=el(hero,"div","pills");
    for(const text of [trip.purpose,trip.duration,...(trip.domestic?["Séjour national"]:[])])
     el(pills,"span","pill",text);
-   const logistics=[trip.airline&&"Compagnie : "+trip.airline,trip.hotel&&"Hébergement : "+trip.hotel].filter(Boolean);
-   if(logistics.length)el(hero,"p","trip-logistics",logistics.join(" · "));
+   if(trip.airline||trip.hotel){
+    const logistics=el(hero,"div","trip-logistics");
+    for(const [kind,label,name,url] of [
+      ["airline","Compagnie",trip.airline,trip.airlinePhoto],
+      ["hotel","Hébergement",trip.hotel,trip.hotelPhoto]
+    ]){
+      if(!name)continue;
+      const row=el(logistics,"div","trip-stay-row");
+      const img=el(row,"img");
+      img.src=url||"/travel/assets/stay-"+kind+".svg";
+      img.alt="";
+      img.referrerPolicy="no-referrer";
+      el(row,"span",null,label+" : "+name);
+    }
+   }
    if(trip.photos.length){
     const grid=el(hero,"div","photo-mosaic");
     for(const [i,url] of trip.photos.entries()){
