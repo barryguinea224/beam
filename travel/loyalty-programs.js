@@ -4,7 +4,7 @@
 "use strict";
 const PROGRAMS=Object.freeze([
  {code:"AF",name:"Flying Blue",airline:"Air France",alliance:"SkyTeam",
-  signupUrl:"https://guinea.airfrance.com/information/prepare/divertissements-wifi-presse/wifi-a-bord",
+  signupUrl:"https://guinea.airfrance.com/information/flyingblue/programme",
   aliases:["Air France","AirFrance"]},
  {code:"EK",name:"Emirates Skywards",airline:"Emirates",alliance:"Aucune",
   signupUrl:"https://www.emirates.com/english/skywards/registration/",
