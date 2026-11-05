@@ -11,6 +11,7 @@ on:
       - "travel/supabase/migrations/20261101230000_travel_access_until_readonly.sql"
       - "travel/supabase/migrations/20261102150000_travel_avatar_row_first.sql"
       - "travel/supabase/migrations/20261104160000_trips_airline_hotel.sql"
+      - "travel/supabase/migrations/20261105100000_trips_stay_media.sql"
       - "travel/supabase/tests/*.sql"
       - ".github/workflows/travel-schema-fresh-replay.yml"
       - "PRODUCTION_SETUP.md"
@@ -129,6 +130,7 @@ jobs:
             activities_quota_guards.sql
             media_server_guards.sql
             cover_media_integrity.sql
+            stay_media_integrity.sql
             deletion_retry_worker.sql
             media_storage_reserved_upload.sql
             profile_contacts_security.sql

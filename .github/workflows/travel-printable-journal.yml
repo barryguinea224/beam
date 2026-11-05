@@ -40,7 +40,7 @@ jobs:
           changes="$(git diff --name-only "origin/feature/beam-travel-history-v1" HEAD -- travel/supabase/schema.sql travel/supabase/migrations)"
           while IFS= read -r file; do
             case "$file" in
-              ""|travel/supabase/schema.sql|travel/supabase/migrations/20261101230000_travel_access_until_readonly.sql|travel/supabase/migrations/20261102150000_travel_avatar_row_first.sql|travel/supabase/migrations/20261104160000_trips_airline_hotel.sql) ;;
+              ""|travel/supabase/schema.sql|travel/supabase/migrations/20261101230000_travel_access_until_readonly.sql|travel/supabase/migrations/20261102150000_travel_avatar_row_first.sql|travel/supabase/migrations/20261104160000_trips_airline_hotel.sql|travel/supabase/migrations/20261105100000_trips_stay_media.sql) ;;
               *) echo "::error::Unexpected SQL change: $file"; exit 1 ;;
             esac
           done <<< "$changes"

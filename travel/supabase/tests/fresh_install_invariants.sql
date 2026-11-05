@@ -78,6 +78,25 @@ BEGIN
       AND column_name IN ('airline','hotel')
   ) THEN RAISE EXCEPTION 'FACTUAL_PDF_EXPOSES_OPTIONAL_STAY'; END IF;
 
+  -- Owner/trip scoped optional visual roles use the same composite FK as cover.
+  FOREACH p IN ARRAY ARRAY[
+    'trips_airline_media_same_trip_owner','trips_hotel_media_same_trip_owner'
+  ] LOOP
+    IF NOT EXISTS (
+      SELECT 1 FROM pg_constraint
+      WHERE conrelid='public.trips'::regclass AND conname=p AND contype='f'
+    ) THEN RAISE EXCEPTION 'MISSING_STAY_MEDIA_FK: %',p; END IF;
+  END LOOP;
+  IF NOT has_column_privilege('authenticated','public.trips','airline_media_id','UPDATE')
+    OR NOT has_column_privilege('authenticated','public.trips','hotel_media_id','UPDATE')
+  THEN RAISE EXCEPTION 'MISSING_STAY_MEDIA_UPDATE_GRANT'; END IF;
+  IF has_column_privilege('authenticated','public.trips','user_id','UPDATE')
+    OR has_column_privilege('authenticated','public.trips','deleting','UPDATE')
+  THEN RAISE EXCEPTION 'STAY_MEDIA_BYPASSES_PROTECTED_COLUMNS'; END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public'
+    AND table_name='travel_history_pdf' AND column_name IN ('airline_media_id','hotel_media_id'))
+  THEN RAISE EXCEPTION 'FACTUAL_PDF_CONTAINS_STAY_MEDIA'; END IF;
+
   -- RLS action-by-action allowlist. Each policy must be owner-scoped.
   IF (SELECT count(*) FROM pg_policies WHERE schemaname='public' AND tablename IN ('profiles','trips','activities','media')) <> 12
   THEN RAISE EXCEPTION 'INCORRECT_APPLICATION_RLS_POLICY_COUNT'; END IF;
