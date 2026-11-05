@@ -13,12 +13,29 @@
     return Number.isNaN(date.getTime()) ? "" :
       date.toLocaleDateString("fr-FR", {day:"numeric",month:"long",year:"numeric"});
   }
+  const MAX_CAPTION=500;
+  function captionValue(value) {
+    return typeof value==="string" ? value.trim().slice(0,MAX_CAPTION) : "";
+  }
   function photos(rows) {
     if (!rows.length) return '<p class="detailEmpty">Aucune photo pour ce voyage.</p>';
-    return rows.map(row => '<figure class="detailPhoto">' +
-      (row.url ? '<img loading="lazy" alt="Photo privée du voyage" src="' + esc(row.url) + '">' :
-        '<div class="detailPhotoMissing">Prévisualisation indisponible</div>') +
-      '</figure>').join("");
+    return rows.map(row => {
+      const id=esc(row.id),caption=captionValue(row.caption);
+      return '<figure class="detailPhoto" data-media-id="' + id + '">' +
+        (row.url ? '<img loading="lazy" alt="Photo privée du voyage" src="' + esc(row.url) + '">' :
+          '<div class="detailPhotoMissing">Prévisualisation indisponible</div>') +
+        (caption ? '<figcaption class="detailPhotoCaption">' + esc(caption) + '</figcaption>' : '') +
+        '<button type="button" class="detailCaptionToggle" data-id="' + id +
+          '" aria-expanded="false">' + (caption?'Modifier la note':'Ajouter une note') + '</button>' +
+        '<form class="detailCaptionForm hidden" data-id="' + id + '">' +
+          '<label>Note de la photo (facultatif)<textarea name="caption" rows="3" maxlength="500">' +
+          esc(caption) + '</textarea></label>' +
+          '<div class="detailCaptionActions"><small class="detailCaptionCount" aria-live="polite">' +
+          caption.length + ' / 500</small><button type="submit" class="btn">Enregistrer</button>' +
+          '<button type="button" class="btn ghost detailCaptionCancel">Annuler</button></div>' +
+          '<p class="detailCaptionMessage" role="status" aria-live="polite"></p>' +
+        '</form></figure>';
+    }).join("");
   }
   function activities(rows) {
     if (!rows.length) return '<p class="detailEmpty">Aucune activité pour le moment.</p>';
@@ -41,7 +58,7 @@
     }
     return {value:{title:cleanTitle,place:cleanPlace || null,happened_on:date || null,kind:"lieu"}};
   }
-  const api=Object.freeze({photos,activities,validateActivity,dateFR});
+  const api=Object.freeze({photos,captionValue,MAX_CAPTION,activities,validateActivity,dateFR});
   if(root)root.BEAM_TRIP_DETAIL=api;
   if(typeof module!=="undefined"&&module.exports)module.exports=api;
 })(typeof window!=="undefined"?window:undefined);
