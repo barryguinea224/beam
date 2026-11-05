@@ -4,7 +4,7 @@
 "use strict";
 const PROGRAMS=Object.freeze([
  {code:"AF",name:"Flying Blue",airline:"Air France",alliance:"SkyTeam",
-  signupUrl:"https://guinea.airfrance.com/information/flyingblue/programme",
+  signupUrl:"https://login.airfrance.com/enrol/openaccess/flyingblue?locale=fr%2Ffr&source=em",
   aliases:["Air France","AirFrance"]},
  {code:"EK",name:"Emirates Skywards",airline:"Emirates",alliance:"Aucune",
   signupUrl:"https://www.emirates.com/english/skywards/registration/",
@@ -22,7 +22,8 @@ const PROGRAMS=Object.freeze([
   signupUrl:"https://www.royalairmaroc.com/uk-en/register",
   aliases:["Royal Air Maroc","Royal Air Morocco","RAM"]},
  {code:"HC",name:"Teranga",airline:"Air Sénégal",alliance:"Aucune",
-  signupUrl:"https://flyairsenegal.com/le-programme-teranga/",
+  signupUrl:"https://teranga.flyairsenegal.com/hcloyalty/register.jsf",
+  signupNote:"Le formulaire officiel indique que le programme n’est pas actuellement actif (vérifié le 05/11/2026).",
   aliases:["Air Senegal","Air Sénégal","AirSenegal"]},
  {code:"KP",name:"ASKY Club",airline:"ASKY Airlines",alliance:"Aucune",
   signupUrl:"https://www.flyasky.com/sn/fr/explore/asky-club/join",

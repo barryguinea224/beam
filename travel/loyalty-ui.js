@@ -57,7 +57,9 @@ function init({supabase,user,isActive,canWrite,onChange}){
    const link=el("a","loyaltySignup","Créer un compte");
    link.href=p.signupUrl;link.target="_blank";link.rel="noopener noreferrer";
    link.setAttribute("aria-label","Créer un compte "+p.name+" sur le site officiel de "+p.airline);
-   card.append(label,link);missing.append(card);
+   card.append(label,link);
+   if(p.signupNote)card.append(el("small","loyaltyMeta",p.signupNote));
+   missing.append(card);
   }
   program.replaceChildren();
   for(const p of CATALOG.PROGRAMS){
