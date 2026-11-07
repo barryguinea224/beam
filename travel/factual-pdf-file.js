@@ -102,7 +102,10 @@
    const split=values.map((v,i)=>wrap(v,columns[i]));
    const lines=Math.max(...split.map(a=>a.length));
    const height=Math.max(26,lines*11+12);
-   if(y-height<77){endPage();beginPage()}
+   const stops=(trip.stops||[]).map(stop=>wrap(stop.label.replace(/^↳\s*/,""),91));
+   // Keep the voyage row and its first stage together, even at a page foot.
+   const firstStopHeight=stops.length?Math.max(22,stops[0].length*11+8):0;
+   if(y-height-firstStopHeight<77){endPage();beginPage()}
    let px=x;
    color(0.15,0.2,0.17);
    for(let i=0;i<split.length;i++){
@@ -110,6 +113,17 @@
     px+=widths[i];
    }
    y-=height;horizontal(y);
+   for(const part of stops){
+    const h=Math.max(22,part.length*11+8);
+    if(y-h<77){endPage();beginPage()}
+    color(0.17,0.34,0.25);
+    // The ↳ arrow is rendered as original vector strokes because WinAnsi
+    // Helvetica cannot encode U+21B3. Its adjacent text remains searchable.
+    command("0.17 0.34 0.25 RG 0.75 w 53 "+(y-4)+" m 53 "+(y-13)+" l 60 "+(y-13)+" l S");
+    command("56 "+(y-10)+" m 60 "+(y-13)+" l 56 "+(y-16)+" l S");
+    part.forEach((line,j)=>textAt(line,67,y-13-j*11,7.7));
+    y-=h;horizontal(y);
+   }
   }
   if(!rows.length){
    color(0.3,0.4,0.33);textAt("Aucun voyage international éligible à ce document.",42,y-30,10);

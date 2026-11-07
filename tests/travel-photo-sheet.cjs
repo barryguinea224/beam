@@ -28,7 +28,7 @@ for(const field of ['airline','hotel','airline_media_id','hotel_media_id'])
 assert.match(print,/\.select\("id,storage_path,is_favorite,caption"\)/);
 assert.match(print,/photoCaptions\.push\(DETAIL\.captionValue\(row\.caption\)\)/);
 const sw=fs.readFileSync('travel/sw.js','utf8');
-assert.match(sw,/activity-companions-v32/);
+assert.match(sw,/trip-stops-v33/);
 assert.match(sw,/"\.\/photo-sheet\.css"/);
 const malicious='<img src=x onerror=alert(1)> Bonjour';
 const images=DETAIL.photos([
