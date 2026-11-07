@@ -37,7 +37,7 @@ const expectedColumns=[
 ];
 assert.deepEqual(tripQueries[0][1].split(","),expectedColumns,
  "the real personal-booklet select must include airline + hotel (never select *)");
-assert.ok(printHandler.includes("pack[position]={trip,activities:"),
+assert.ok(printHandler.includes("pack[position]={trip,stops:trip.stops||[],activities:"),
  "the selected full trip must be passed to journal and family booklet");
 assert.ok(printHandler.includes("BEAM_FAMILY_BOOKLET.render(tab.document"),
  "both personal-print formats must consume the same trip pack");
