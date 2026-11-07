@@ -160,7 +160,9 @@ async function main(){
     .sort((a,b)=>a.n-b.n).map(x=>x.country));
    assert.deepEqual(logicalPhotos,["Guinée","Sénégal"],"Trips must run oldest to newest, regardless of physical imposition");
    assert.equal(audit.consentCount,0);
-   assert.ok(!/BEAM|passeport|numéro de pièce|adresse postale|non destiné|autorité officielle/i.test(audit.text));
+   assert.ok(!/passeport|numéro de pièce|adresse postale|non destiné|autorité officielle/i.test(audit.text));
+    assert.match(audit.text,/J'y étais by BEAM/,"requested signature must appear in the final booklet leaf");
+    assert.equal((audit.text.match(/\\bBEAM\\b/g)||[]).length,1,"BEAM may appear only in the final leaf signature");
    assert.ok(audit.text.includes("Nos prochains voyages…"));
    assert.ok(audit.text.includes("31 octobre 2026"));
    assert.deepEqual(audit.order.map(x=>x.side),["recto","verso","recto","verso"]);
