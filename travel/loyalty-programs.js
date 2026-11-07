@@ -1,4 +1,4 @@
-// BEAM Travel History — PUBLIC static directory, never user memberships.
+// J'y étais — PUBLIC static directory, never user memberships.
 // Official airline-only URLs verified 2026-11-05. No airline logos or remote SDK.
 (function(root){
 "use strict";

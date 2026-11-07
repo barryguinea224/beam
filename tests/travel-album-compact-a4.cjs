@@ -82,7 +82,7 @@ async function main(){
     assert.ok(audit.timeline[1].includes("Dakar")&&audit.timeline[1].includes("1 jour"));
     assert.ok(audit.width<=width+1,"no horizontal overflow at "+width+"px");
     assert.equal(audit.noticeTop,undefined);assert.equal(audit.noticeBottom,undefined);
-    assert.equal(audit.pageTitle,"Mon carnet de voyage");
+    assert.equal(audit.pageTitle,"J'y étais — Mon carnet de voyage");
     assert.equal(audit.hasBrand,false,"client journal must not contain brand");
     const pdf=await page.pdf({preferCSSPageSize:true,printBackground:true});
     fs.mkdirSync(resultDir,{recursive:true});

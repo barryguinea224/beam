@@ -1,5 +1,5 @@
 "use strict";
-// Contract + actual Chromium rendering for PUBLIC BTH legal pages.
+// Contract + actual Chromium rendering for PUBLIC J'y étais legal pages.
 // No auth, backend, cookies, tracking or external resources are needed.
 const assert=require("node:assert/strict");
 const fs=require("node:fs");
@@ -15,7 +15,7 @@ const pages=[
   headings:["Qui sommes-nous ?","Quelles données conservons-nous ?","Pourquoi ?",
     "Qui peut voir vos données ?","Où sont-elles stockées ?","Combien de temps ?",
     "Vos droits","Âge minimum"],
-  evidence:["BTH est un service de BEAM, basé à Conakry (Guinée)",
+  evidence:["J&#39;y étais est un service de BEAM, basé à Conakry (Guinée)",
     "aucune donnée de passeport, de visa ou de pièce d'identité",
     "s'affichent grâce à des liens temporaires qui expirent après 5 minutes",
     "Supabase","Resend","Netlify","12 mois","7 jours au maximum",
@@ -70,7 +70,7 @@ for(const [scope,html] of [["connexion",auth],["mon-compte",account]]){
 }
 assert.ok(account.indexOf("legalLinksAccount")>account.indexOf('id="accountSession"'),
  "terms and privacy should be available after the account controls");
-assert.match(sw,/beam-travel-shell-v1-20261105-trip-stops-v36/);
+assert.match(sw,/beam-travel-shell-v1-20261107-jyetais-v37/);
 for(const file of ["confidentialite.html","conditions.html","legal.css"])
  assert.ok(sw.includes('"./'+file+'"'),"public legal shell asset not audited: "+file);
 assert.doesNotMatch(sw,/cache\.put\(/,"PWA must still forbid runtime private cache writes");
@@ -150,6 +150,6 @@ async function main(){
   await browser.close();
   await new Promise(done=>host.close(done));
  }
- console.log("PASS BTH legal terms/privacy: static source assertions, mobile/desktop, login/account and public navigation");
+ console.log("PASS J'y étais legal terms/privacy: static source assertions, mobile/desktop, login/account and public navigation");
 }
 main().catch(e=>{console.error(e);process.exitCode=1});

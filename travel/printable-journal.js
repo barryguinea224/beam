@@ -1,4 +1,4 @@
-// BEAM Travel History — personal visual album. NOT the factual/official PDF.
+// J'y étais — personal visual album. NOT the factual/official PDF.
 // Only explicit trip memories and authorized signed photographs enter this DOM.
 // No HTML interpolation, Auth email, identity document or stored signed URL.
 (function(root){
@@ -286,7 +286,7 @@
   const viewport=doc.createElement("meta");viewport.setAttribute("name","viewport");
   viewport.setAttribute("content","width=device-width,initial-scale=1");
   const ref=doc.createElement("meta");ref.setAttribute("name","referrer");ref.setAttribute("content","no-referrer");
-  const title=doc.createElement("title");title.textContent="Mon carnet de voyage";
+  const title=doc.createElement("title");title.textContent="J'y étais — Mon carnet de voyage";
   const style=doc.createElement("style");style.textContent=CSS;
   doc.head.replaceChildren(charset,viewport,ref,title,style);
   doc.body.replaceChildren();
@@ -303,7 +303,7 @@
   print.addEventListener("click",()=>doc.defaultView?.print());
   const main=el(doc.body,"main");
   const cover=el(main,"section","sheet-page cover");
-  el(cover,"p","eyebrow","MES VOYAGES");
+  el(cover,"p","eyebrow","J'y étais");
   const art=el(cover,"div","cover-art");
   // Favorited photographs win across ALL filtered trips, not just the newest.
   // Fall back to any signed photograph; only then use the illustrated cover.
@@ -421,6 +421,7 @@
   el(closing,"p","eyebrow","MON CARNET PERSONNEL");
   el(closing,"h2",null,"Chaque voyage laisse une histoire.");
   el(closing,"p",null,"Carnet généré le "+generatedAt.toLocaleDateString("fr-FR",{day:"numeric",month:"long",year:"numeric"}));
+   el(closing,"p","brand-signature","J'y étais");
   // The image-load path is intentionally independent of the signed URL source.
   // Failed signatures + failed image fetches are both reflected in the toolbar.
   const images=[...doc.querySelectorAll("img")].filter(img=>img.src.startsWith("https://"));

@@ -1,7 +1,7 @@
-// BEAM Travel History PWA — PRIVATE BY DEFAULT.
+// J'y étais PWA — PRIVATE BY DEFAULT.
 // Cache only the audited, versioned public shell. No runtime cache writes.
 // Never cache Supabase, signed links, personal trips, photos or API responses.
-const CACHE_NAME = "beam-travel-shell-v1-20261105-trip-stops-v36";
+const CACHE_NAME = "beam-travel-shell-v1-20261107-jyetais-v37";
 const SCOPE_PATH = "/travel/";
 const PUBLIC_SHELL = [
   "./index.html", "./config.js", "./offline-bootstrap.js", "./pwa.js",
@@ -16,7 +16,8 @@ const PUBLIC_SHELL = [
   "./activity-durations.js", "./activity-duration.css",
   "./trip-stops.js", "./trip-stops.css",
   "./assets/world-map.svg", "./assets/world-centroids.json", "./assets/stay-airline.svg", "./assets/stay-hotel.svg", "./manifest.webmanifest",
-  "./icons/icon-192.png", "./icons/icon-512.png", "./icons/icon-maskable-512.png",
+  "./assets/brand/icon-192.png", "./assets/brand/icon-512.png", "./assets/brand/icon-maskable-512.png",
+  "./assets/brand/jyetais-logo.svg", "./assets/brand/jyetais-icon.svg",
   // Keep the 30 audited popular SVGs in the offline PUBLIC shell. Other ISO
   // SVGs load from the same origin online; no private data or runtime caching.
   ...["ae","be","bh","ca","cd","cg","ci","cn","de","dz","es","fr","gb","gf","gh","gn","gp","it","ma","ml","mq","mt","pt","re","sa","sg","sl","sn","tr","us"].map(code => "./assets/flags/" + code + ".svg")
@@ -101,11 +102,11 @@ self.addEventListener("fetch", event => {
         // app document. Works even after logout purges the shell caches.
         return new Response(`<!doctype html><html lang="fr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#174d3a"><title>BEAM · Hors ligne</title>
+<meta name="theme-color" content="#174d3a"><title>J'y étais · Hors ligne</title>
 <style>body{margin:0;background:#f7f5ef;color:#17231f;font:17px system-ui,sans-serif}
 main{max-width:520px;margin:12vh auto;padding:28px}h1{font:normal 40px Georgia,serif;line-height:1.1}
 small{color:#174d3a;font-weight:700;letter-spacing:.12em}</style></head>
-<body><main><small>BEAM · TRAVEL HISTORY</small>
+<body><main><small>J'y étais</small>
 <h1>Connexion nécessaire pour consulter votre carnet</h1>
 <p>Vos voyages et photos sont privés et indisponibles hors ligne. Reconnectez-vous à Internet pour continuer.</p>
 <button onclick="location.reload()">Réessayer</button></main></body></html>`, {

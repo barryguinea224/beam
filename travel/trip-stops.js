@@ -1,4 +1,4 @@
-// BTH travel stops: pure public formatting and safe private-list DOM helpers.
+// J'y étais travel stops: pure public formatting and safe private-list DOM helpers.
 // No user data embedded in assets or service worker.
 (function(root){
 "use strict";

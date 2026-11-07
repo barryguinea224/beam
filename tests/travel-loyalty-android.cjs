@@ -1,5 +1,5 @@
 "use strict";
-// Mobile account captures using the actual BTH account markup and UI controller.
+// Mobile account captures using the actual J'y étais account markup and UI controller.
 // Local mock Supabase only; ALL IDs, numbers and customer data are fictional.
 const fs=require("node:fs"),path=require("node:path"),assert=require("node:assert/strict");
 const {chromium}=require("playwright");

@@ -131,7 +131,7 @@ async function main(){
    assert.match(audit.text,/Compagnie : Compagnie de test/);
    assert.match(audit.text,/Hébergement : Hôtel de démonstration/);
    assert.equal(audit.coverTitle,"Carnet d\u0027Aminata Camara".replace("\\u0027","\u0027"));
-   assert.equal(audit.tabTitle,"Carnet d\u0027Aminata Camara".replace("\\u0027","\u0027"));
+   assert.equal(audit.tabTitle,"J\u0027y étais — Carnet d\u0027Aminata Camara");
    assert.ok(audit.paperRect.height>audit.paperRect.width,"Physical A4 must be portrait");
    assert.equal(audit.rotatedSpreads,0,"Portrait layout must not rotate oversized spreads");
    assert.deepEqual(audit.mapGuinea,[true,true],"Domestic Guinea must be highlighted on both map halves");
@@ -160,7 +160,9 @@ async function main(){
     .sort((a,b)=>a.n-b.n).map(x=>x.country));
    assert.deepEqual(logicalPhotos,["Guinée","Sénégal"],"Trips must run oldest to newest, regardless of physical imposition");
    assert.equal(audit.consentCount,0);
-   assert.ok(!/BEAM|passeport|numéro de pièce|adresse postale|non destiné|autorité officielle/i.test(audit.text));
+   assert.ok(!/passeport|numéro de pièce|adresse postale|non destiné|autorité officielle/i.test(audit.text));
+    assert.match(audit.text,/J'y étais by BEAM/,"requested signature must appear in the final booklet leaf");
+    assert.equal((audit.text.match(/BEAM/g)||[]).length,1,"BEAM may appear only in the final leaf signature");
    assert.ok(audit.text.includes("Nos prochains voyages…"));
    assert.ok(audit.text.includes("31 octobre 2026"));
    assert.deepEqual(audit.order.map(x=>x.side),["recto","verso","recto","verso"]);
@@ -289,7 +291,7 @@ async function main(){
     window.BEAM_FAMILY_BOOKLET.render(document,{...data,name:"Youssouf",generatedAt:new Date(data.generatedAt)});
     return [document.title,document.querySelector(".cover h1")?.textContent];
    },{...model,generatedAt:model.generatedAt.toISOString()});
-   assert.deepEqual(youssouf,["Carnet de Youssouf","Carnet de Youssouf"]);
+   assert.deepEqual(youssouf,["J'y étais — Carnet de Youssouf","Carnet de Youssouf"]);
    console.log("PASS family booklet: A4 portrait, 40 A5 landmarks, 1/2+2/2 maps, all PDF titles/countries, short-edge help, varied fillers");
   }finally{await page.close()}
  }finally{await browser.close()}

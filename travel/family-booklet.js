@@ -175,7 +175,7 @@ function render(doc,model){
  const meta=doc.createElement("meta");meta.setAttribute("charset","utf-8");
  const ref=doc.createElement("meta");ref.setAttribute("name","referrer");ref.setAttribute("content","no-referrer");
  const viewport=doc.createElement("meta");viewport.setAttribute("name","viewport");viewport.setAttribute("content","width=device-width,initial-scale=1");
- const title=doc.createElement("title");title.textContent=bookTitle;
+ const title=doc.createElement("title");title.textContent="J'y étais — "+bookTitle;
  const css=doc.createElement("style");css.textContent=CSS;
  const pageRule=doc.createElement("style");pageRule.textContent="@page{size:A4 portrait;margin:0}";
  doc.head.replaceChildren(meta,viewport,ref,title,css,pageRule);
@@ -202,7 +202,7 @@ function render(doc,model){
   privatePhoto(coverFrame,coverUrl,"Photo entière de couverture","cover-photo");
  }else cover.page.classList.add("no-photo");
  cover.inside.classList.add("feature-caption");
- node(cover.inside,"div","ey","Nos voyages, notre histoire");
+ node(cover.inside,"div","ey","J'y étais · Nos voyages, notre histoire");
  node(cover.inside,"h1",null,bookTitle);
  node(cover.inside,"p","subtle",period);
  const countries=new Set(list.flatMap(x=>[x.trip.code,...x.trip.stops.map(stop=>stop.code)]));
@@ -342,6 +342,7 @@ function render(doc,model){
  node(closing.inside,"h2",null,"Nos prochains voyages…");
  for(let i=0;i<5;i++)node(closing.inside,"div","write-line");
  node(closing.inside,"p","subtle","Créé le "+stamp);
+  node(closing.inside,"p","subtle","J'y étais by BEAM");
  leaves.forEach((p,i)=>{if(i&&i!==leaves.length-1)node(p,"span","page-number",String(i+1));});
  const display=(mode)=>{
   const simple=mode==="simple";doc.body.classList.toggle("simple-a4",simple);

@@ -1,4 +1,4 @@
-// Public BTH duration math; dates are UTC date-only values, never local-midnight.
+// Public J'y étais duration math; dates are UTC date-only values, never local-midnight.
 (function(root){
 "use strict";
 function addDays(iso,offset){

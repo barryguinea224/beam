@@ -87,7 +87,7 @@ async function main() {
         assert.equal(await page.locator('#outils .tool-card').count(), 3);
         assert.equal(await page.evaluate(() => document.querySelector('#services').nextElementSibling.id), 'outils');
         assert.deepEqual(await page.locator('#outils .tool-card h3').allInnerTexts(), [
-          'BTH : votre carnet de voyage',
+          "J'y étais : votre carnet de voyage",
           'iD : vos informations, votre décision',
           'BTdesk : simulateur de formation aux réservations'
         ]);
@@ -96,7 +96,7 @@ async function main() {
           "Partagez vos informations d'identité en toute sécurité et vérifiez la validité de votre passeport.",
           "Entraînez-vous aux réservations, à la tarification et à l'émission, avec des examens et des certificats de formation."
         ]);
-        assert.equal(await page.getByRole('link', {name:'Ouvrir BTH'}).getAttribute('href'), '/travel/');
+        assert.equal(await page.getByRole('link', {name:"Ouvrir J'y étais"}).getAttribute('href'), '/travel/');
         const identity = page.getByRole('link', {name:'Ouvrir iD'});
         assert.equal(await identity.getAttribute('href'), 'https://ididentite.com/');
         assert.equal(await identity.getAttribute('rel'), 'noopener');

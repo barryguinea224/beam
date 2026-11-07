@@ -1,4 +1,4 @@
-// BEAM Travel History · private trip detail: simple, escaped presentation helpers.
+// J'y étais · private trip detail: simple, escaped presentation helpers.
 // No public photo URLs or document data are ever created by this module.
 (function (root) {
   "use strict";

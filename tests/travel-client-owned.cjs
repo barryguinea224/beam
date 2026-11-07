@@ -15,9 +15,9 @@ for(const code of countries.ORDER){
  assert.ok(!/\b(?:href|src)\s*=\s*["']https?:\/\//i.test(image)&&!/url\(\s*["']?https?:\/\//i.test(image),"Remote SVG reference not allowed: "+code);
 }
 assert.ok(fs.existsSync("travel/assets/flags/LICENSE.flag-icons"));
-assert.equal(manifest.name,"BEAM Travel History");
-assert.equal(manifest.short_name,"BTH");
-assert.match(html,/<meta name="apple-mobile-web-app-title" content="BTH">/);
+assert.equal(manifest.name,"J'y étais");
+assert.equal(manifest.short_name,"J'y étais");
+assert.match(html,/<meta name="apple-mobile-web-app-title" content="J&#39;y étais">/);
 assert.match(html,/<aside class="authContact" aria-label="Contact">/);
 assert.match(html,/<a href="https:\/\/wa\.me\/224622095630"[^>]*>\+224 622 09 56 30<\/a>/);
 const appHeader=html.match(/<main id="app"[^>]*>[\s\S]*?<\/header>/)?.[0]||"";
@@ -32,7 +32,7 @@ for(const forbidden of ["BEAM · TRAVEL HISTORY","BEAM - Travel History PDF","BE
 }
 assert.ok(!journal.includes('"BEAM · TRAVEL HISTORY"'));
 assert.ok(!journal.includes('"BEAM · EN IMAGES"'));
-assert.ok(!journal.includes('" par BEAM Travel History"'));
+assert.ok(!journal.includes("by BEAM"),"personal journal must remain vendor-neutral");
 assert.equal(require("../travel/factual-pdf.js").filenameForName("Fatou Diallo"),"Historique-de-voyages-Fatou-Diallo.pdf");
 assert.equal(require("../travel/factual-pdf.js").filenameForName("Élodie D’Été"),"Historique-de-voyages-Elodie-D-Ete.pdf");
 console.log("PASS client-owned UI, unified profile save, offline-local 249 flag SVG, neutral PDFs and PWA names");

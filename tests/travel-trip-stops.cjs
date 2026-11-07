@@ -51,7 +51,7 @@ const rawBytes=Buffer.from(output).toString("latin1");
 assert.ok(rawBytes.startsWith("%PDF-1.4"));
 assert.ok(rawBytes.includes("Allemagne")&&rawBytes.includes("Berlin"));
 assert.ok(!rawBytes.includes("JAMAIS DANS PDF"));
-assert.match(rawBytes,/53 [0-9.]+ m 53 [0-9.]+ l 60/,"Vector ↳ arrow in native BTH PDF");
+assert.match(rawBytes,/53 [0-9.]+ m 53 [0-9.]+ l 60/,"Vector ↳ arrow in native J'y étais PDF");
 // Long document exercises multipage line placement and no split stage lines.
 const long=Array.from({length:80},(_,i)=>({...raw[0],
   entry_date:"2026-11-05",exit_date:"2026-11-15",stops:trip.stops
@@ -73,10 +73,10 @@ for(const file of ["travel/printable-journal.js","travel/family-booklet.js"]){
  assert.match(src,/trip\.stops/,"Personal carnet must contain stages");
 }
 assert.match(index,/pack\[position\]=\{trip,stops:trip\.stops/);
-assert.equal(fs.readFileSync("travel/sw.js","utf8").includes("trip-stops-v36"),true);
+assert.equal(fs.readFileSync("travel/sw.js","utf8").includes("jyetais-v37"),true);
 const sql=fs.readFileSync("travel/supabase/migrations/20261107150000_trip_stops.sql","utf8");
 assert.match(sql,/foreign key\(trip_id,user_id\)/i);
 assert.match(sql,/constraint trip_stops_no_overlap exclude using gist/i);
 assert.match(sql,/ETAPE_LIMITE_10/);
 assert.doesNotMatch(sql,/\b(?:grant|revoke)\b.*\bon public\.(?:trips|activities)\b/i);
-console.log("PASS trip stops: multistop filters, distinct countries, no duplicate days, factual 6 fields + indented stops, real queries, native BTH PDF multipage");
+console.log("PASS trip stops: multistop filters, distinct countries, no duplicate days, factual 6 fields + indented stops, real queries, native J'y étais PDF multipage");
