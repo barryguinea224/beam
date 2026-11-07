@@ -7,6 +7,7 @@
  const MAX_PHOTOS_PER_TRIP=4,MAX_TOTAL_PHOTOS=40,SIGNED_SECONDS=300;
  const COUNTRIES=root?.BEAM_COUNTRIES||(typeof require==="function"?require("./countries.js"):null);
  const FILTERS=root?.BEAM_DASHBOARD_FILTERS||(typeof require==="function"?require("./dashboard-filters.js"):null);
+ const DURATIONS=root?.BEAM_ACTIVITY_DURATIONS||(typeof require==="function"?require("./activity-durations.js"):null);
  const FLIGHTS=root?.BEAM_FLIGHT_CONNECTIONS||(typeof require==="function"?require("./flight-connections.js"):null);
  if(!COUNTRIES||!FILTERS)throw new Error("Référentiels du carnet indisponibles.");
  const PURPOSES=Object.freeze({tourisme:"Tourisme",affaires:"Affaires",etudes:"Études",famille:"Famille",sante:"Santé",transit:"Transit",autre:"Autre"});
@@ -50,13 +51,16 @@
    purpose:PURPOSES[trip.purpose]||"Autre",
    domestic:trip.is_domestic===true,
    airline:clean(trip.airline).slice(0,160),hotel:clean(trip.hotel).slice(0,160),
+   companions:clean(trip.companions).slice(0,200),
    airlinePhoto:typeof stayPhotos.airlinePhoto==="string"&&stayPhotos.airlinePhoto.startsWith("https://")?
      stayPhotos.airlinePhoto:"",
    hotelPhoto:typeof stayPhotos.hotelPhoto==="string"&&stayPhotos.hotelPhoto.startsWith("https://")?
      stayPhotos.hotelPhoto:"",
    memory:clean(trip.note),
    activities:(Array.isArray(activities)?activities:[]).slice(0,50).map(a=>Object.freeze({
-    title:clean(a.title).slice(0,160),place:clean(a.place).slice(0,160),date:date(a.happened_on)
+    title:clean(a.title).slice(0,160),place:clean(a.place).slice(0,160),
+    date:a.happened_on?(DURATIONS?.format(a.happened_on,a.duration_days||1)||date(a.happened_on)):"—",
+    durationDays:Number(a.duration_days||1)
    })).filter(a=>a.title),
    photos:entries.map(item=>item.url),photoCaptions:entries.map(item=>item.caption)
   });
@@ -353,6 +357,7 @@
    const header=el(banner,"div");
    el(header,"p","eyebrow","VOYAGE "+String(index+1).padStart(2,"0"));
    el(header,"h2",null,trip.country);
+   if(trip.companions)el(header,"p","trip-companions","avec "+trip.companions);
    el(header,"p","trip-line",[trip.cities,trip.entry+" – "+trip.exit].filter(Boolean).join(" · "));
    flag(banner,trip.code);
    const pills=el(hero,"div","pills");

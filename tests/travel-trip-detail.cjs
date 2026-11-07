@@ -16,7 +16,7 @@ assert.ok(fs.readFileSync('travel/visual-cards.js','utf8').includes('class="trip
 assert.ok(html.includes('openTripDetail(b.dataset.id)'),'Tap must open a trip, not its editing form');
 assert.ok(inline.includes('S.from("media").select("id,storage_path,caption").eq("user_id",user.id).eq("trip_id",id)'),
   'Photos must be filtered by owner and trip');
-assert.ok(inline.includes('S.from("activities").select("id,title,place,happened_on").eq("user_id",user.id).eq("trip_id",id)'),
+assert.ok(inline.includes('S.from("activities").select("id,title,place,happened_on,duration_days").eq("user_id",user.id).eq("trip_id",id)'),
   'Activities must be filtered by owner and trip');
 assert.ok(inline.includes('createSignedUrl(row.storage_path,300)'),'Photos must be signed on demand');
 assert.ok(inline.includes('DETAIL.validateActivity'),'Activity form must validate dates and title');
@@ -52,13 +52,13 @@ assert.ok(!activities.includes('<img src=x'));
 assert.match(activities,/&lt;img/);
 assert.match(activities,/&lt;script&gt;/);
 assert.ok(!activities.includes('data-id="a" onclick='),'Activity id escaped');
-assert.match(activities,/21 juin 2026/);
+assert.match(activities,/21 juin/);
 
 const trip={entry_date:'2026-06-20',exit_date:'2026-06-30'};
 assert.deepEqual(DETAIL.validateActivity({title:'  Visite  ',place:'  Tour Eiffel ',happened_on:'2026-06-21'},trip),
- {value:{title:'Visite',place:'Tour Eiffel',happened_on:'2026-06-21',kind:'lieu'}});
+ {value:{title:'Visite',place:'Tour Eiffel',happened_on:'2026-06-21',duration_days:1,kind:'lieu'}});
 assert.deepEqual(DETAIL.validateActivity({title:'Arrivée',place:'',happened_on:''},trip),
- {value:{title:'Arrivée',place:null,happened_on:null,kind:'lieu'}});
+ {value:{title:'Arrivée',place:null,happened_on:null,duration_days:1,kind:'lieu'}});
 assert.match(DETAIL.validateActivity({title:' ',place:'',happened_on:''},trip).error,/titre/);
 assert.match(DETAIL.validateActivity({title:'x'.repeat(161),place:'',happened_on:''},trip).error,/160/);
 assert.match(DETAIL.validateActivity({title:'Visite',place:'x'.repeat(161),happened_on:''},trip).error,/160/);

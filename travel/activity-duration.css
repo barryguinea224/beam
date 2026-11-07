@@ -1,0 +1,11 @@
+/* Accessible duration controls and private companions field on narrow phones. */
+.activityDurationChoices{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.activityDurationChoices button{min-width:52px;min-height:44px;padding:8px 10px}
+.activityDurationChoices button[aria-pressed="true"]{background:#245f43;color:#fff;border-color:#245f43}
+.activityDurationCustom{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.activityDurationCustom label{font-size:13px}
+.activityDurationCustom input{width:95px;max-width:100%;min-width:0}
+.activityDurationPreview{font-size:13px;margin:6px 0;color:#23543a;line-height:1.45}
+.activityDurationPreview[data-invalid="true"]{color:#9b2828}
+.trip-companions{font-size:13px;line-height:1.45;color:#305b45;overflow-wrap:anywhere}
+@media(max-width:390px){.activityDurationChoices{gap:5px}.activityDurationChoices button{padding:8px;font-size:13px}.activityDurationCustom input{width:80px}}

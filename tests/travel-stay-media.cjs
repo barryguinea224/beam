@@ -20,7 +20,7 @@ const trips=[...print.matchAll(/S\.from\("trips"\)\s*\.select\("([^"]+)"\)/g)];
 assert.equal(trips.length,1,"one explicitly projected trips query");
 assert.deepEqual(trips[0][1].split(","),[
  "id","country_code","cities","entry_date","exit_date","duration_days","purpose",
- "is_domestic","note","airline","hotel","airline_media_id","hotel_media_id"
+ "is_domestic","note","airline","hotel","companions","airline_media_id","hotel_media_id"
 ],"the REAL personal booklet query must load selected stay image IDs");
 const media=[...print.matchAll(/S\.from\("media"\)\.select\("([^"]+)"\)/g)];
 assert.equal(media.length,1);
@@ -46,7 +46,7 @@ for(const role of ["airline","hotel"]){
  assert.ok(migration.includes("trips_"+role+"_same_trip_owner"));
  assert.ok(app.includes('data-stay-role'),"photo selection controls must be present");
 }
-assert.ok(sw.includes("loyalty-v31"),"cache revision");
+assert.ok(sw.includes("activity-companions-v32"),"cache revision");
 assert.doesNotMatch(sw,/cache\.put\(/,"no runtime caching of private signed images");
 const factual=schema.split("create view public.travel_history_pdf")[1]?.split(";")[0];
 assert.ok(factual);
