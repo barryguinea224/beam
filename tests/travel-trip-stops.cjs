@@ -73,7 +73,7 @@ for(const file of ["travel/printable-journal.js","travel/family-booklet.js"]){
  assert.match(src,/trip\.stops/,"Personal carnet must contain stages");
 }
 assert.match(index,/pack\[position\]=\{trip,stops:trip\.stops/);
-assert.equal(fs.readFileSync("travel/sw.js","utf8").includes("trip-stops-v34"),true);
+assert.equal(fs.readFileSync("travel/sw.js","utf8").includes("trip-stops-v35"),true);
 const sql=fs.readFileSync("travel/supabase/migrations/20261107150000_trip_stops.sql","utf8");
 assert.match(sql,/foreign key\(trip_id,user_id\)/i);
 assert.match(sql,/constraint trip_stops_no_overlap exclude using gist/i);

@@ -282,7 +282,7 @@ async function main(){
    assert.equal(fillers.count,8);
    assert.equal(fillers.notes,1);
    assert.equal(fillers.mosaic,1);
-   assert.equal(fillers.photos,3,"all three non-hero photos get journey-local mosaic frames");
+   assert.equal(fillers.photos,1,"two photos are on the story page; only the third goes to the gallery (no duplicates)");
    assert.deepEqual([...fillers.titles].sort(),["Notes","Nos photos · 1/1","Nos prochains voyages…"].sort(),
     "mosaic stays within its trip; only decorative notes fill remaining imposed pages");
    const youssouf=await page.evaluate(data=>{
