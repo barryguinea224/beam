@@ -235,6 +235,7 @@ function render(doc,model){
   node(captionTop,"p","ey","Notre voyage");
   flag(captionTop,trip.code,true);
   node(photo.inside,"h2",null,trip.country);
+  if(trip.companions)node(photo.inside,"p","trip-companions","avec "+trip.companions);
   node(photo.inside,"p",null,natural(trip));
   if(mainCaption)node(photo.inside,"p","photo-note",mainCaption);
   const parts=splitMemory(trip.memory);
@@ -243,6 +244,7 @@ function render(doc,model){
   const media=node(story.inside,"div","media");
   flag(text,trip.code);
   node(text,"h2",null,trip.country);
+  if(trip.companions)node(text,"p","trip-companions","avec "+trip.companions);
   node(text,"p","natural",natural(trip));
   if(trip.airline||trip.hotel){
    const logistics=node(text,"div","stay-logistics");
