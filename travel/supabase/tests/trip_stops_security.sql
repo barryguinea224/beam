@@ -72,9 +72,13 @@ begin
  if not blocked then raise exception 'OUTSIDE_DATES_ALLOWED';end if;
  blocked:=false;
  begin insert into public.trip_stops(trip_id,country_code,entry_date,exit_date)
- values('a9100000-0000-4000-8000-000000000001','BE','2025-11-14','2025-11-15');
+ values('a9100000-0000-4000-8000-000000000001','BE','2025-11-13','2025-11-15');
  exception when exclusion_violation then blocked:=true;end;
  if not blocked then raise exception 'OVERLAP_ALLOWED';end if;
+ -- Same-day handoff (leave Germany and enter Belgium on the 14th) is allowed.
+ insert into public.trip_stops(trip_id,country_code,entry_date,exit_date)
+ values('a9100000-0000-4000-8000-000000000001','BE','2025-11-14','2025-11-15');
+ delete from public.trip_stops where trip_id='a9100000-0000-4000-8000-000000000001' and country_code='BE';
  blocked:=false;
  begin insert into public.trip_stops(trip_id,country_code,cities,entry_date,exit_date)
  values('a9100000-0000-4000-8000-000000000001','BE',

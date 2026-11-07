@@ -48,7 +48,9 @@ function validate(input,trip,otherStops=[]){
  if(cityList.length>10)return "Une étape peut comporter 10 villes maximum.";
  if(!formatISO(from)||!formatISO(to)||from>to)return "Vérifiez les dates de l’étape.";
  if(from<trip.entry_date||to>trip.exit_date)return "Les dates de l’étape doivent rester dans celles du voyage.";
- if(otherStops.some(s=>s.id!==input.id&&from<=s.exit_date&&to>=s.entry_date))
+ // Same rule as the database: a stage may begin the day another ends.
+ const day=d=>Date.parse(d+"T00:00:00Z")/864e5,endEx=(a,b)=>a===b?day(b)+1:day(b);
+ if(otherStops.some(s=>s.id!==input.id&&day(from)<endEx(s.entry_date,s.exit_date)&&day(s.entry_date)<endEx(from,to)))
   return "Les dates de cette étape chevauchent une autre étape.";
  if(otherStops.filter(s=>s.id!==input.id).length>=10)
   return "Ce voyage comporte déjà 10 étapes (maximum autorisé).";

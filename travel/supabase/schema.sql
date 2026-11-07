@@ -888,10 +888,14 @@ create table if not exists public.trip_stops (
  constraint trip_stops_date_order check(entry_date<=exit_date),
  constraint trip_stops_trip_owner_fk foreign key(trip_id,user_id)
    references public.trips(id,user_id) on delete cascade,
- -- Daterange [] includes both arrival and departure days: adjoining dates
- -- without a free calendar day count as overlapping.
- constraint trip_stops_no_overlap exclude using gist
-   (trip_id with =,daterange(entry_date,exit_date,'[]') with &&)
+ -- Same rule as trips.no_overlap: a stage may start the day the previous one
+ -- ends (leaving Germany and arriving in Belgium on the 14th); a one-day
+ -- stage still blocks its whole day.
+ constraint trip_stops_no_overlap exclude using gist (
+   trip_id with =,
+   (case when entry_date=exit_date then daterange(entry_date,entry_date,'[]')
+         else daterange(entry_date,exit_date,'[)') end) with &&
+ )
 );
 create index if not exists trip_stops_owner_trip_sort_idx
  on public.trip_stops(user_id,trip_id,position,entry_date);

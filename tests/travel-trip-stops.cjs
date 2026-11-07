@@ -19,6 +19,8 @@ assert.equal(STOPS.validate(trip.stops[0],trip,[]),"");
 assert.match(STOPS.validate({...trip.stops[0],country_code:"FR"},trip,[]),/différent/);
 assert.match(STOPS.validate({...trip.stops[0],entry_date:"2026-11-04"},trip,[]),/dates/);
 assert.match(STOPS.validate({...trip.stops[0],id:"second"},trip,trip.stops),/chevauch/);
+assert.equal(STOPS.validate({id:"be",country_code:"BE",cities:[],entry_date:"2026-11-14",exit_date:"2026-11-15"},trip,trip.stops),"","Same-day handoff after the German stage is allowed");
+assert.match(STOPS.validate({id:"be",country_code:"BE",cities:[],entry_date:"2026-11-13",exit_date:"2026-11-15"},trip,trip.stops),/chevauch/);
 assert.deepEqual(STOPS.codes(trip),["FR","DE"]);
 const filter={country:"DE"};
 assert.deepEqual(FILTER.apply([trip],filter),[trip],"Country filter must match country inside stops");
