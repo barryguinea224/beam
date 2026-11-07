@@ -38,7 +38,12 @@ async function json(url){
  return r.json();
 }
 async function mailbox(inbox,name){
- return json(inbox+"/api/v1/mailbox/"+encodeURIComponent(name));
+ const response=await fetch(local(inbox+"/api/v1/mailbox/"+encodeURIComponent(name)),
+   {signal:AbortSignal.timeout(6000)});
+ // Inbucket returns 404 when a mailbox has never received a message.
+ if(response.status===404)return [];
+ if(!response.ok)throw Error("Local mailbox listing HTTP "+response.status);
+ return response.json();
 }
 async function otp(api,key,email){
  const res=await fetch(api+"/auth/v1/otp",{
