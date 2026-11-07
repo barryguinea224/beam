@@ -103,6 +103,7 @@ async function main(){
     assert.equal(await page.locator(".loyaltyRow").count(),2,"No deletion before explicit confirmation");
     await page.locator("#loyaltyCancelDelete").click();
     assert.equal(await page.locator(".loyaltyRow").count(),2);
+    await last.locator(".loyaltyMoreToggle").click();
     await last.getByRole("button",{name:"Supprimer"}).click();
     await page.locator("#loyaltyConfirmDelete").click();
     await page.waitForFunction(()=>document.querySelectorAll(".loyaltyRow").length===1);

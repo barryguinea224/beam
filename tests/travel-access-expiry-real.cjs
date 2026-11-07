@@ -106,10 +106,10 @@ async function main(){
      await page.locator("#openAccount").click();
      await page.locator("#accountOverlay").waitFor({state:"visible"});
      const summary=await page.locator("#accountReadSummary").innerText();
-     assert.match(summary,entry.until?/Accès jusqu'au/:/Accès : à activer/);
+     assert.match(summary,entry.until?/Accès jusqu'au/:/À activer/);
      assert.equal(await page.locator("#editAccount").isVisible(),!entry.readonly);
      if(entry.label==="expired"){
-      await page.locator("#accountSensitive summary").click();
+      assert.equal(await page.locator("#accountSensitive").isVisible(),true);
       await page.locator("#deleteAccountOpen").click();
       await page.locator("#deleteAccountConfirm").fill("SUPPRIMER");
       await page.locator("#deleteAccountSubmit").click();
