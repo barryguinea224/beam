@@ -38,7 +38,7 @@ const projection=journal.viewTrip({...trips[0],
  [{title:"Visite du marché",place:"Dakar",happened_on:"2026-04-03",document_number:"SECRET_DOC"}],
  ["https://example.invalid/photo.webp"]);
 assert.deepEqual(Object.keys(projection).sort(),
- ["code","country","cities","entry","exit","entryISO","exitISO","duration","days","purpose","domestic","airline","hotel","companions","airlinePhoto","hotelPhoto","memory","activities","photos","photoCaptions"].sort());
+ ["code","country","cities","entry","exit","entryISO","exitISO","duration","days","purpose","domestic","airline","hotel","companions","airlinePhoto","hotelPhoto","memory","activities","stops","photos","photoCaptions"].sort());
 assert.ok(!JSON.stringify(projection).includes("SECRET_"));
 assert.equal(projection.memory,"Mon souvenir de Dakar");
 assert.equal(projection.airline,"Compagnie de test");

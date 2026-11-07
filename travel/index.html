@@ -752,8 +752,7 @@ async function fetchOwnedStops(rows,uid){
  if(!Array.isArray(rows)||!rows.length)return [];
  const {data,error}=await S.from("trip_stops")
    .select("id,trip_id,country_code,cities,entry_date,exit_date,position")
-   .eq("user_id",uid).order("position",{ascending:true})
-   .order("entry_date",{ascending:true});
+   .eq("user_id",uid).order("position",{ascending:true});
  if(error||!data)throw new Error("Impossible de charger les étapes du voyage. Vérifiez la migration SQL.");
  if(user?.id!==uid||accountState!=="active")throw new Error("Session expirée");
  const byTrip=new Map();
@@ -1189,7 +1188,8 @@ function renderTripStops(trip){
  STOPS.renderList(node,trip,writable,openTripStopEditor,requestStopDeletion);
  const add=$("#addTripStop");
  add.disabled=!writable;
- add.classList.toggle("hidden",!writable||(trip.stops?.length||0)>=10);
+ if(!writable||(trip.stops?.length||0)>=10)add.classList.add("hidden");
+ else add.classList.remove("hidden");
 }
 function resetTripStopForm(trip=null){
  const form=$("#tripStopForm");
