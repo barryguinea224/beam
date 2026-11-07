@@ -32,7 +32,7 @@ for(const forbidden of ["BEAM · TRAVEL HISTORY","BEAM - Travel History PDF","BE
 }
 assert.ok(!journal.includes('"BEAM · TRAVEL HISTORY"'));
 assert.ok(!journal.includes('"BEAM · EN IMAGES"'));
-assert.ok(!journal.includes('" par BEAM Travel History"'));
+assert.ok(!journal.includes('" par J'y étais"'));
 assert.equal(require("../travel/factual-pdf.js").filenameForName("Fatou Diallo"),"Historique-de-voyages-Fatou-Diallo.pdf");
 assert.equal(require("../travel/factual-pdf.js").filenameForName("Élodie D’Été"),"Historique-de-voyages-Elodie-D-Ete.pdf");
 console.log("PASS client-owned UI, unified profile save, offline-local 249 flag SVG, neutral PDFs and PWA names");
