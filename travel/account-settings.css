@@ -1,0 +1,56 @@
+/* J'y étais · Paramètres · présentation, sans modification des données. */
+#openAccount.accountSettingsIcon{width:48px;height:48px;min-width:48px;min-height:48px;padding:0;border:1px solid #c4d5c9;background:#fff;border-radius:50%;color:#174d3a;box-shadow:0 2px 8px #174d3a12;font-size:25px}
+#openAccount.accountSettingsIcon:hover{background:#ebf4ed;text-decoration:none}
+#openAccount.accountSettingsIcon:focus-visible{outline:3px solid #174d3a;outline-offset:3px;border-radius:50%}
+#myAccount{padding:0 16px 22px;gap:12px;background:var(--bg)}
+#myAccount>.panel{border-radius:16px;padding:18px;margin:0}
+#myAccount .accountToolbar{position:sticky;top:0;z-index:6;display:flex;align-items:center;gap:12px;background:var(--bg);border-bottom:1px solid var(--line);margin:0 -16px;padding:11px 16px;min-height:68px}
+.accountToolbar h2{font-family:Georgia,serif;font-size:clamp(23px,6.5vw,29px);font-weight:700;margin:0;line-height:1.2}
+.accountBack{width:46px;height:46px;min-width:46px;min-height:46px;border:1px solid var(--line);border-radius:50%;background:#fff;color:var(--g);display:grid;place-items:center;cursor:pointer;font-size:24px}
+#myAccount .accountSectionTitle{font-family:Georgia,serif;font-weight:700;font-size:20px;line-height:1.25;color:var(--ink);margin:0 0 14px}
+#myAccount .accountAvatarRow{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;margin:10px 0 14px}
+.accountAvatarControl{position:relative;display:flex;justify-content:center;min-width:0}
+.accountAvatarButton{background:transparent;border:0;padding:0;position:relative;width:96px;height:96px;border-radius:50%;cursor:pointer}
+.accountAvatarButton:focus-visible{outline:3px solid var(--g);outline-offset:5px}
+#accountAvatar{width:96px;height:96px;font-size:30px;overflow:hidden}
+.accountCameraBadge{position:absolute;right:-4px;bottom:-2px;border:3px solid #fff;background:#174d3a;color:#fff;border-radius:50%;width:36px;height:36px;display:grid;place-items:center;font-size:17px}
+.accountAvatarButton:disabled{cursor:default}
+.accountAvatarButton:disabled .accountCameraBadge{display:none}
+.accountActionMenu{position:absolute;top:calc(100% + 8px);left:50%;transform:translateX(-50%);width:210px;z-index:8;border-radius:13px;padding:5px;box-shadow:0 12px 32px #10251a2d;border:1px solid var(--line);background:#fff;text-align:left}
+.accountMenuItem{display:block;background:transparent;color:var(--ink);border:0;border-radius:9px;width:100%;text-align:left;min-height:44px;padding:10px 13px;cursor:pointer;font-size:14px}
+.accountMenuItem:hover,.accountMenuItem:focus-visible{background:#eaf2ec;outline:2px solid var(--g);outline-offset:-2px}
+.accountDisplayName{font-family:Georgia,serif;font-weight:700;font-size:24px;line-height:1.24;overflow-wrap:anywhere;margin:9px 0 0}
+#avatarMessage{font-size:12px;line-height:1.5;color:var(--muted);margin:4px 0 0;max-width:290px}
+#accountReadSummary.accountInfoList{display:grid;gap:0;white-space:normal;line-height:normal;margin:15px 0 0}
+.accountInfoRow{display:flex;align-items:center;gap:12px;min-width:0;min-height:58px;padding:10px 1px;border-top:1px solid var(--line)}
+.accountInfoIcon{display:grid;place-items:center;width:28px;min-width:28px;color:var(--g);font-size:20px}
+.accountInfoText{flex:1;display:flex;flex-direction:column;min-width:0;gap:3px}
+.accountInfoLabel{font-size:12px;color:#53675c;font-weight:700}
+.accountInfoValue{font-size:14px;color:var(--ink);overflow-wrap:anywhere;white-space:pre-wrap;line-height:1.4}
+.accountTextButton{flex:none;min-height:44px;padding:6px 10px;color:#135f3c;border:0;background:transparent;font-weight:750;cursor:pointer}
+.accountResidenceHelp{font-size:12px;line-height:1.5;color:#5e7065;margin:0 0 10px 40px}
+.accountProfileButtons{display:flex;gap:10px;margin:15px 0 0}
+.accountProfileButtons .btn{min-height:44px;flex:1}
+#accountOverlay:not(.accountEditing) #residencePanel{display:none}
+#accountOverlay.accountEditing #residencePanel{display:block}
+.accountEditResidence{border-top:1px solid var(--line);margin-top:16px;padding-top:13px}
+.accountSubTitle{font-family:Georgia,serif;font-size:17px;font-weight:700;margin:12px 0 8px}
+.accountSubTitle small{font-family:system-ui,sans-serif;color:var(--muted);font-size:12px;font-weight:400}
+#myAccount #travelerNameForm,#myAccount #contactDetailsForm{max-width:100%!important;margin-bottom:12px!important}
+#myAccount .account-contacts-form{padding-top:24px}
+#accountLinks .accountLinkList{display:grid}
+.accountLinkList a{display:flex;align-items:center;justify-content:space-between;gap:10px;color:var(--g);min-height:51px;border-top:1px solid var(--line);text-decoration:none;font-size:14px;font-weight:700;overflow-wrap:anywhere}
+.accountLinkList a:first-child{border-top:0}
+.accountLinkList a span:last-child{font-size:27px;line-height:1;font-weight:400}
+.accountLinkList a:hover{text-decoration:underline}
+#myAccount button:focus-visible,#myAccount a:focus-visible{outline:2px solid var(--g);outline-offset:2px}
+#accountSensitive.accountDanger{background:#fffdf7;border-color:#dfd7c9}
+#accountSensitive .mapInfo{margin:0 0 8px;line-height:1.5}
+#accountSensitive #deleteAccountOpen{border-color:#bd9483;color:#7a3322;min-height:44px}
+#accountSession.accountSession{width:100%;margin:0 0 4px}
+#accountSession #logout{width:100%;min-height:48px;border:1px solid #c6d5cb;background:#fff;color:#174d3a;font-weight:750}
+#accountSession #logout:hover{background:#eaf2ec}
+#myAccount .legalLinksAccount{order:1}
+#accountSensitive{order:2}
+#accountSession{order:3}
+@media(max-width:390px){#myAccount{padding:0 12px 18px}#myAccount .accountToolbar{margin:0 -12px;padding:10px 12px}#myAccount>.panel{padding:14px}.accountResidenceHelp{margin-left:0}.accountInfoRow{gap:8px}.accountInfoIcon{width:24px;min-width:24px}}

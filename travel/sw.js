@@ -1,7 +1,7 @@
 // J'y étais PWA — PRIVATE BY DEFAULT.
 // Cache only the audited, versioned public shell. No runtime cache writes.
 // Never cache Supabase, signed links, personal trips, photos or API responses.
-const CACHE_NAME = "beam-travel-shell-v1-20261107-jyetais-v37";
+const CACHE_NAME = "beam-travel-shell-v1-20261107-jyetais-v39-settings";
 const SCOPE_PATH = "/travel/";
 const PUBLIC_SHELL = [
   "./index.html", "./config.js", "./offline-bootstrap.js", "./pwa.js",
@@ -12,7 +12,7 @@ const PUBLIC_SHELL = [
   "./journal-stats.js", "./dashboard-filters.js", "./dashboard-filters.css", "./printable-journal.js", "./family-booklet.js",
   "./visual-cards.js", "./visual-cards.css", "./photo-sheet.css",
   "./flight-connections.js", "./flight-connections.css",
-  "./loyalty-programs.js", "./loyalty-ui.js", "./loyalty.css",
+  "./loyalty-programs.js", "./loyalty-ui.js", "./loyalty.css", "./account-settings.css",
   "./activity-durations.js", "./activity-duration.css",
   "./trip-stops.js", "./trip-stops.css",
   "./assets/world-map.svg", "./assets/world-centroids.json", "./assets/stay-airline.svg", "./assets/stay-hotel.svg", "./manifest.webmanifest",

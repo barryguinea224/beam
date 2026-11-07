@@ -176,7 +176,8 @@ async function main(){
       assert.equal(info.signed.at(-1).expires,300);
       assert.equal(info.directDeletes,0);
       assert.ok(info.functions.some(f=>f.body.action==="activate_avatar"));
-      await p.locator("#avatarRemove").click();
+      await p.locator("#avatarMenuToggle").click();
+       await p.locator("#avatarRemove").click();
       await p.waitForFunction(()=>window.__avatarCalls.getProfile().avatar_id===null);
       assert.equal((await p.locator("#travelerAvatar").innerText()).trim(),"AD");
       assert.equal((await p.locator("#accountAvatar").innerText()).trim(),"AD");

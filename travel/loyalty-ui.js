@@ -7,17 +7,44 @@ function init({supabase,user,isActive,canWrite,onChange}){
  if(!root?.document||!CATALOG)return null;
  const doc=root.document,$=id=>doc.getElementById(id);
  const program=$("loyaltyProgram"),number=$("loyaltyNumber"),tier=$("loyaltyTier"),expiry=$("loyaltyExpiry");
- let rows=[],revision=0,busy=false,editing=null,deleteTarget=null,revealed=new Set(),loaded=false;
+ let rows=[],revision=0,busy=false,editing=null,deleteTarget=null,revealed=new Set(),loaded=false,openMenuId=null;
  const el=(tag,cls,text)=>{const n=doc.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n};
  const btn=(label,action)=>{const b=el("button","btn ghost",label);b.type="button";b.addEventListener("click",action);return b};
  const status=text=>{$("loyaltyStatus").textContent=text};
  const enabled=()=>!!supabase&&!!user()?.id&&!!isActive();
+ function closeMenus(){
+  openMenuId=null;
+  doc.querySelectorAll(".loyaltyMoreMenu").forEach(m=>m.classList.add("hidden"));
+  doc.querySelectorAll(".loyaltyMoreToggle").forEach(b=>b.setAttribute("aria-expanded","false"));
+ }
+ doc.addEventListener("pointerdown",event=>{
+  if(!event.target.closest?.(".loyaltyActions"))closeMenus();
+ });
+ doc.addEventListener("keydown",event=>{
+  if(event.key==="Escape"&&openMenuId){
+   event.preventDefault();event.stopPropagation();
+   const toggle=doc.querySelector('.loyaltyMoreToggle[aria-expanded="true"]');
+   closeMenus();toggle?.focus();
+  }
+ },true);
+ // Line icons drawn with SVG (no emoji): same stroke style as the rest of the app.
+ const ICONS={
+  eye:["M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z","M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"],
+  eyeOff:["M3 3l18 18","M10.6 5.1A10.4 10.4 0 0 1 12 5c6.4 0 10 7 10 7a17.6 17.6 0 0 1-3.2 4.2","M6.6 6.6C3.7 8.5 2 12 2 12s3.6 7 10 7a9.7 9.7 0 0 0 5.4-1.6","M9.9 9.9a3 3 0 0 0 4.2 4.2"],
+  copy:["M9 9h11v11H9Z","M5 15H4V4h11v1"]
+ };
+ function icon(name){
+  const NS="http://www.w3.org/2000/svg",svg=doc.createElementNS(NS,"svg");svg.setAttribute("class","uiIcon");
+  for(const [k,v] of Object.entries({viewBox:"0 0 24 24",width:"22",height:"22",fill:"none",stroke:"currentColor","stroke-width":"2","stroke-linecap":"round","stroke-linejoin":"round","aria-hidden":"true",focusable:"false"}))svg.setAttribute(k,v);
+  for(const d of ICONS[name]){const path=doc.createElementNS(NS,"path");path.setAttribute("d",d);svg.append(path);}
+  return svg;
+ }
  function refresh(){
   const can=enabled()&&canWrite()&&!busy;
   $("loyaltyAdd").disabled=!can||rows.length>=CATALOG.PROGRAMS.length;
   $("loyaltyAdd").classList.toggle("hidden",!can);
   const list=$("loyaltyOwned"),missing=$("loyaltyAvailable");
-  list.replaceChildren();missing.replaceChildren();
+  openMenuId=null;list.replaceChildren();missing.replaceChildren();
   if(loaded&&!rows.length)list.append(el("p","mapInfo","Aucun programme enregistré pour le moment."));
   for(const row of rows){
    const p=CATALOG.BY_CODE[row.program_code];if(!p)continue;
@@ -32,21 +59,38 @@ function init({supabase,user,isActive,canWrite,onChange}){
    if(row.tier)item.append(el("small","loyaltyMeta","Statut : "+row.tier));
    if(row.miles_expiry)item.append(el("small","loyaltyMeta","Expiration des miles : "+row.miles_expiry));
    const actions=el("div","loyaltyActions");
-   const view=btn(revealed.has(row.id)?"Masquer":"Afficher",()=>{
+   const view=btn("",()=>{
     if(revealed.has(row.id))revealed.delete(row.id);else revealed.add(row.id);refresh();
    });
+   view.replaceChildren(icon(revealed.has(row.id)?"eyeOff":"eye"));
+   view.classList.add("loyaltyIconButton");
+   view.setAttribute("aria-label",revealed.has(row.id)?"Masquer":"Afficher");
+   view.title=revealed.has(row.id)?"Masquer":"Afficher";
    view.setAttribute("aria-pressed",String(revealed.has(row.id)));
-   actions.append(view,btn("Copier",async()=>{
+   const copy=btn("",async()=>{
     if(!enabled())return;
     try{
      if(!root.navigator?.clipboard?.writeText)throw Error("Clipboard unavailable");
      await root.navigator.clipboard.writeText(row.member_number);
      status("Numéro copié. Pensez à vider le presse-papiers partagé si nécessaire.");
     }catch{status("Copie indisponible sur cet appareil. Utilisez « Afficher » pour relever le numéro.");}
-   }));
-   const edit=btn("Modifier",()=>openForm(row));edit.disabled=!can;
-   const del=btn("Supprimer",()=>confirmDeletion(row));del.disabled=!can;
-   actions.append(edit,del);item.append(actions);list.append(item);
+   });
+   copy.replaceChildren(icon("copy"));
+   copy.classList.add("loyaltyIconButton");copy.setAttribute("aria-label","Copier");copy.title="Copier";
+   const more=btn("⋯",()=>{
+    const opening=menu.classList.contains("hidden");closeMenus();
+    if(opening){openMenuId=row.id;menu.classList.remove("hidden");more.setAttribute("aria-expanded","true");edit.focus();}
+   });
+   more.classList.add("loyaltyIconButton","loyaltyMoreToggle");
+   more.setAttribute("aria-label","Actions du programme "+p.name);
+   more.setAttribute("aria-expanded","false");more.setAttribute("aria-haspopup","true");
+   const menu=el("div","loyaltyMoreMenu hidden");
+   menu.setAttribute("role","group");menu.setAttribute("aria-label","Modifier ou supprimer "+p.name);
+   const edit=btn("Modifier",()=>{closeMenus();openForm(row)});edit.disabled=!can;
+   const del=btn("Supprimer",()=>{closeMenus();confirmDeletion(row)});del.disabled=!can;
+   edit.classList.add("loyaltyMoreItem");del.classList.add("loyaltyMoreItem");
+   menu.append(edit,del);actions.append(view,copy,more,menu);
+   item.append(actions);list.append(item);
   }
   const existing=new Set(rows.map(r=>r.program_code));
   for(const p of CATALOG.PROGRAMS){
@@ -75,7 +119,7 @@ function init({supabase,user,isActive,canWrite,onChange}){
  function clear(){
   revision++;rows=[];editing=null;deleteTarget=null;revealed.clear();loaded=false;busy=false;
   $("loyaltyForm").classList.add("hidden");$("loyaltyDeleteConfirm").classList.add("hidden");
-  $("loyaltyForm").reset();refresh();status("Ouvrez Mon compte pour consulter vos programmes.");
+  $("loyaltyForm").reset();refresh();status("Ouvrez Paramètres pour consulter vos programmes.");
   onChange?.();
  }
  async function reload(){

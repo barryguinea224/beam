@@ -72,6 +72,8 @@ async function main(){
     },data);
     await page.evaluate(()=>window.__loyalty.reload());
     assert.equal(await page.locator(".loyaltyRow").count(),1);
+    assert.equal(await page.locator(".loyaltyIconButton").count(),3,"Three compact actions");
+    assert.equal(await page.locator(".loyaltyMoreMenu").isVisible(),false,"No open menu by default");
     assert.ok((await page.locator(".loyaltyNumber").innerText()).includes("•••• 4821"));
     assert.ok(!(await page.locator("#loyaltyOwned").innerText()).includes("AB12-4821"),
      "No unmasked number appears before explicit reveal");
@@ -89,16 +91,19 @@ async function main(){
     await page.waitForFunction(()=>document.querySelectorAll(".loyaltyRow").length===2);
     const last=page.locator(".loyaltyRow").last();
     assert.ok((await last.innerText()).includes("•••• 9221"));
+    await last.locator(".loyaltyMoreToggle").click();
     await last.getByRole("button",{name:"Modifier"}).click();
     await page.locator("#loyaltyTier").fill("Silver");
     await page.locator("#loyaltyNumber").fill("EK-3339");
     await page.locator("#loyaltySubmit").click();
     await page.waitForFunction(()=>[...document.querySelectorAll(".loyaltyRow")].some(n=>n.textContent.includes("3339")));
+    await last.locator(".loyaltyMoreToggle").click();
     await last.getByRole("button",{name:"Supprimer"}).click();
     assert.equal(await page.locator("#loyaltyDeleteConfirm").isVisible(),true);
     assert.equal(await page.locator(".loyaltyRow").count(),2,"No deletion before explicit confirmation");
     await page.locator("#loyaltyCancelDelete").click();
     assert.equal(await page.locator(".loyaltyRow").count(),2);
+    await last.locator(".loyaltyMoreToggle").click();
     await last.getByRole("button",{name:"Supprimer"}).click();
     await page.locator("#loyaltyConfirmDelete").click();
     await page.waitForFunction(()=>document.querySelectorAll(".loyaltyRow").length===1);
@@ -107,11 +112,12 @@ async function main(){
      const rect=panel.getBoundingClientRect();
      return {windowWidth:innerWidth,documentOverflow:document.documentElement.scrollWidth-innerWidth,
       panelOverflow:panel.scrollWidth-panel.clientWidth,panelLeft:rect.left,panelRight:rect.right,
-      logos:panel.querySelectorAll("img,svg").length,
+      logos:[...panel.querySelectorAll("img,svg")].filter(x=>!x.classList.contains("uiIcon")).length,
+      uiIcons:panel.querySelectorAll("svg.uiIcon").length,
       passwordFields:panel.querySelectorAll('input[type="password"]').length};
     });
     assert.ok(audit.documentOverflow<=1&&audit.panelOverflow<=1,"Overflow at "+width+": "+JSON.stringify(audit));
-    assert.equal(audit.logos,0);assert.equal(audit.passwordFields,0);
+    assert.equal(audit.logos,0,"No airline logo or image: only the app's own line icons");assert.ok(audit.uiIcons>=2,"eye and copy are drawn as line icons");assert.equal(audit.passwordFields,0);
     // In the real app the account drawer is a fixed scrolling overlay. For an
     // isolated full-height screenshot, unfix the drawer so Chromium does not
     // stitch unrelated underlying page sections into the long image.
