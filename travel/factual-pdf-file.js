@@ -23,6 +23,9 @@
    if(code===10||code===13||code===9){out+=" ";continue}
    if(code>=32&&code<=126||code>=160&&code<=255){out+=String.fromCharCode(code);continue}
    if(cp1252[code]){out+=String.fromCharCode(cp1252[code]);continue}
+   // wrap() has already converted these punctuation glyphs to CP1252
+   // bytes. Re-encoding in textAt() must preserve (rather than reject) them.
+   if(Object.values(cp1252).includes(code)){out+=String.fromCharCode(code);continue}
    if(code<32)continue;
    const transliterated=character.normalize("NFKD").replace(/[\u0300-\u036f]/g,"");
    if(!/^[ -~]+$/.test(transliterated))throw new Error("Caractères non pris en charge par le partage PDF : utilisez l’impression Chrome.");
