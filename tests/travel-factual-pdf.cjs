@@ -206,14 +206,14 @@ assert.equal(PDF.render(off,fixtures,{
 assert.ok(!off.body.textContent.includes(undisclosed));
 assert.ok(!off.body.textContent.includes("+224612345678"));
 assert.ok(!off.body.textContent.includes("PRIVATE_ADDRESS_991"));
-assert.ok(!off.body.textContent.includes("Coordonnées déclarées"));
+assert.ok(!off.body.textContent.includes("Coordonnées"));
 const opted=new Document();
 assert.equal(PDF.render(opted,fixtures,{
  displayName:"Fatou Diallo",generatedAt,includeContacts:true,
  contacts:{email:undisclosed,phone:"+224612345678",
   postalAddress:"Conakry, Guinée",passport:"SECRET_PASSPORT_123"}
 }),1);
-assert.match(opted.body.textContent,/Coordonnées déclarées/);
+assert.match(opted.body.textContent,/Coordonnées/);
 assert.match(opted.body.textContent,/private\.person@example\.net/);
 assert.match(opted.body.textContent,/\+224 612 34 56 78/);
 assert.ok(!opted.body.textContent.includes("+224612345678"),

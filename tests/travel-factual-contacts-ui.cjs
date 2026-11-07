@@ -199,7 +199,7 @@ async function main(){
   assert.match(text,/Historique de voyages/);
   assert.ok(!text.includes("Voyages internationaux déclarés"),"Removed subtitle must be absent");
   for(const value of ["verified@example.net","+224622095630","Ratoma, Conakry",
-   "Coordonnées déclarées","SECRET_PERSONAL_MEMORY"])
+   "Coordonnées","SECRET_PERSONAL_MEMORY"])
    assert.ok(!text.includes(value),"unchecked PDF disclosed "+value);
   assert.equal(await page.locator("#includePdfContacts").isChecked(),false);
   await off.close();
@@ -207,7 +207,7 @@ async function main(){
   await page.locator("#includePdfContacts").check();
   const optin=await waitPopup(page,()=>page.locator("#pdf").click());
   text=await optin.locator("body").textContent();
-  assert.match(text,/Coordonnées déclarées/);
+  assert.match(text,/Coordonnées/);
   assert.match(text,/verified@example.net/);
   assert.match(text,/\+224 622 09 56 30/);
   assert.ok(!text.includes("+224622095630"),"HTML PDF must show grouped phone only");
