@@ -89,15 +89,15 @@ async function main(){
  assert.match(html,/BEAM_VISA_GUIDE\?\.hide\(\$\("#detailVisaGuide"\)\)/);
  // External identité link: no PII, tracking, script or new-tab target.
  const account=html.match(/<div id="accountOverlay"[\s\S]*?<div id="modal"/)?.[0] || "";
- assert.match(account,/<a href="https:\/\/ididentite\.com\/" rel="noopener">Mes informations d'identité → identité<\/a>/);
+  assert.match(account,/<a href="https:\/\/ididentite\.com\/" rel="noopener noreferrer"><span>Mes informations d'identité avec iD<\/span>/);
  const identityAnchors=[...account.matchAll(/<a\b[^>]*href="https:\/\/ididentite\.com\/"[^>]*>/g)];
  assert.equal(identityAnchors.length,1,"identity shortcut only inside Mon compte");
  for(const [opening] of identityAnchors){
-  assert.match(opening,/rel="noopener"/);
+  assert.match(opening,/rel="noopener noreferrer"/);
   assert.doesNotMatch(opening,/target=|onclick=|onmousedown=/i);
   assert.doesNotMatch(opening,/\?|#/);
  }
- assert.match(sw,/jyetais-v37/);
+ assert.match(sw,/jyetais-v38-settings/);
  assert.match(sw,/if \(url\.origin !== self\.location\.origin\) return;/);
  const precache=sw.match(/const PUBLIC_SHELL = \[([\s\S]*?)\];/)?.[1] || "";
  assert.doesNotMatch(precache,/ididentite\.com/,"the worker must never pre-cache identité");
