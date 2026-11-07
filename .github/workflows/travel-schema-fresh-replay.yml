@@ -12,6 +12,7 @@ on:
       - "travel/supabase/migrations/20261102150000_travel_avatar_row_first.sql"
       - "travel/supabase/migrations/20261104160000_trips_airline_hotel.sql"
       - "travel/supabase/migrations/20261105070000_trips_stay_media.sql"
+      - "travel/supabase/migrations/20261105150000_loyalty_memberships.sql"
       - "travel/supabase/tests/*.sql"
       - ".github/workflows/travel-schema-fresh-replay.yml"
       - "PRODUCTION_SETUP.md"
@@ -110,6 +111,14 @@ jobs:
           psql -X -v ON_ERROR_STOP=1 -f travel/supabase/schema.sql
           echo 'PASS canonical schema.sql replay on an empty local Supabase database'
 
+      - name: Replay loyalty migration on canonical schema (idempotence)
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql -X -v ON_ERROR_STOP=1 -f travel/supabase/migrations/20261105150000_loyalty_memberships.sql
+          psql -X -v ON_ERROR_STOP=1 -f travel/supabase/migrations/20261105150000_loyalty_memberships.sql
+          echo 'PASS loyalty SQL migration replays twice without changes'
+
       - name: Validate RLS, grants, private Storage and unscheduled worker
         shell: bash
         run: |
@@ -135,6 +144,7 @@ jobs:
             profile_contacts_security.sql
             trip_optional_stay.sql
             trip_stay_media_security.sql
+            loyalty_memberships_security.sql
             sql_storage_hardening.sql
           )
           for test in "${tests[@]}"; do

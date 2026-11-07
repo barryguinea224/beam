@@ -77,7 +77,7 @@ function box(){
  };
 }
 const ids=['#modal','#tripDetailModal','#detailTitle','#detailIntro','#detailFacts','#detailNote',
- '#detailStatus','#detailActivityMessage','#detailActivityForm','#detailPhotos',
+ '#detailStatus','#detailActivityMessage','#detailActivityForm','#detailLoyaltyHint','#detailPhotos',
  '#detailActivities','#detailSheet','#detailClose','#detailEdit','#activityDate','#activitySave'];
 const els=Object.fromEntries(ids.map(id=>[id,box()]));
 const calls=[];
@@ -108,6 +108,7 @@ const context=vm.createContext({
  Option:class {constructor(label,value){this.text=label;this.value=value}},
  document:{activeElement:null},
  S,user:{id:'owner'},accountState:'active',trips:[tripRecord],canWrite:()=>true,
+ LOYALTY:{hintFor:airline=>airline==='Compagnie fictive'?"Pensez à donner votre numéro Flying Blue à la réservation.":""},
  $:id=>{assert.ok(els[id], 'Missing DOM stub '+id);return els[id]},
  countryName:code=>code==='FR'?'France':code,
  esc:v=>String(v).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])),
@@ -125,6 +126,8 @@ async function main(){
  assert.equal(els['#tripDetailModal'].classList.contains('open'),true);
  assert.equal(els['#detailTitle'].textContent,'Paris');
  assert.match(els['#detailFacts'].innerHTML,/11 jours/);
+ assert.equal(els['#detailLoyaltyHint'].textContent,'Pensez à donner votre numéro Flying Blue à la réservation.');
+ assert.equal(els['#detailLoyaltyHint'].hidden,false);
  assert.match(els['#detailFacts'].innerHTML,/Compagnie aérienne/);
  assert.match(els['#detailFacts'].innerHTML,/Compagnie fictive/);
  assert.match(els['#detailFacts'].innerHTML,/Hôtel \/ hébergement/);

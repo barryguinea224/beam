@@ -1,0 +1,26 @@
+/* BTH-only loyalty UI: text badges instead of airline trademarks. */
+.loyaltyPanel{margin:14px 0 20px}
+.loyaltyPanel h3{margin:0 0 8px}
+.loyaltyFinePrint{font-size:13px;color:#284f3e;margin:8px 0 10px}
+.loyaltyAllianceNote{background:#edf4eb;border-left:3px solid #267d50;padding:10px 12px;border-radius:7px;font-size:13px;line-height:1.5;margin:10px 0}
+.loyaltyGroupTitle{font-size:14px;margin:15px 0 7px}
+.loyaltyOwned,.loyaltyAvailable{display:grid;gap:10px}
+.loyaltyRow{border:1px solid #cfdfd4;border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:7px;min-width:0}
+.loyaltyIdentity{display:flex;align-items:center;gap:10px;min-width:0}
+.loyaltyBadge{display:inline-flex;align-items:center;justify-content:center;min-width:42px;height:42px;border-radius:10px;background:#1d6546;color:white;letter-spacing:.04em;font-size:14px;font-weight:800;flex:none}
+.loyaltyIdentityText{display:flex;flex-direction:column;min-width:0;overflow-wrap:anywhere}
+.loyaltyIdentityText small,.loyaltyMeta{font-size:12px;color:#4c6b5a;overflow-wrap:anywhere}
+.loyaltyNumber{font:600 14px/1.45 ui-monospace,SFMono-Regular,Consolas,monospace;overflow-wrap:anywhere;letter-spacing:.025em}
+.loyaltyActions{display:flex;gap:7px;flex-wrap:wrap}
+.loyaltyActions .btn,.loyaltyDeleteButtons .btn{min-height:44px;padding:9px 13px}
+.loyaltyAvailableRow{display:flex;align-items:center;gap:9px;min-width:0;flex-wrap:wrap;padding:9px 0;border-bottom:1px solid #e0e8e0}
+.loyaltyAvailableRow .loyaltyBadge{min-width:36px;height:36px;font-size:12px}
+.loyaltyAvailableName{flex:1 1 125px;min-width:0;overflow-wrap:anywhere;font-size:13px}
+.loyaltySignup{padding:7px 0;min-height:44px;display:inline-flex;align-items:center;color:#12653d;font-weight:700}
+.loyaltyForm{border:1px solid #c6dcca;border-radius:12px;padding:13px;margin:14px 0;min-width:0}
+.loyaltyForm .field{margin:10px 0}
+.loyaltyForm input,.loyaltyForm select{width:100%;min-width:0}
+.loyaltyDeleteConfirm{margin:10px 0;border:1px solid #bd7f7c;border-radius:10px;padding:12px}
+.loyaltyDeleteButtons{display:flex;flex-wrap:wrap;gap:9px;margin-top:9px}
+.loyaltyTripHint{font-size:12px;line-height:1.5;color:#2e6847;background:#edf6ee;border-radius:8px;padding:9px 11px;margin:7px 0}
+@media(max-width:390px){.loyaltyRow{padding:10px}.loyaltyActions{gap:5px}.loyaltyActions .btn{padding:8px 10px;font-size:12px}}
