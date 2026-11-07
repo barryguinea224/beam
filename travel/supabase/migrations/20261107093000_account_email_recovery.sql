@@ -30,25 +30,9 @@ grant all on table private.account_email_changes to postgres;
 
 -- Vérification explicite de la forme de schéma Auth de cette version Supabase.
 -- Faire échouer la migration si le fournisseur fait évoluer ces colonnes.
-do $schema_check$
-declare required_count integer;
-begin
- select count(*) into required_count
- from information_schema.columns
- where (table_schema,table_name,column_name) in (
-  ('auth','users','id'),('auth','users','email'),
-  ('auth','users','email_confirmed_at'),('auth','users','updated_at'),
-  ('auth','identities','id'),('auth','identities','user_id'),
-  ('auth','identities','provider'),('auth','identities','provider_id'),
-  ('auth','identities','identity_data'),('auth','identities','updated_at'),
-  ('auth','sessions','user_id'),
-  ('auth','refresh_tokens','user_id'));
- if required_count<>12 then
-  raise exception using errcode='0A000',
-    message='BEAM_AUTH_SCHEMA_INCOMPATIBLE',
-    detail='Schéma Supabase Auth différent : interrompre et vérifier auth.users, auth.identities, auth.sessions et auth.refresh_tokens.';
- end if;
-end $schema_check$;
+-- The shape check runs at the start of the privileged operation, not at
+-- CREATE FUNCTION time: other isolated CI tests use minimal Auth stub tables.
+-- Production/staging calls still fail atomically on schema incompatibility.
 
 create or replace function private.beam_change_client_email(
  p_old_email text,p_new_email text,p_reason text
@@ -64,7 +48,24 @@ declare
  v_deleting boolean;
  v_identities integer;
  v_emails_taken boolean;
+ v_required_count integer;
 begin
+ -- Auth schema guard executes before touching any user data.
+ select count(*) into v_required_count
+ from information_schema.columns
+ where (table_schema,table_name,column_name) in (
+  ('auth','users','id'),('auth','users','email'),
+  ('auth','users','email_confirmed_at'),('auth','users','updated_at'),
+  ('auth','identities','id'),('auth','identities','user_id'),
+  ('auth','identities','provider'),('auth','identities','provider_id'),
+  ('auth','identities','identity_data'),('auth','identities','updated_at'),
+  ('auth','sessions','user_id'),
+  ('auth','refresh_tokens','user_id'));
+ if v_required_count<>12 then
+  raise exception using errcode='0A000',
+    message='BEAM_AUTH_SCHEMA_INCOMPATIBLE',
+    detail='Schéma Supabase Auth différent : interrompre et vérifier auth.users, auth.identities, auth.sessions et auth.refresh_tokens.';
+ end if;
  -- Aucune connexion par anon, authenticated ou service_role ne peut passer
  -- le contrôle de droits. SECURITY DEFINER accède à Auth uniquement
  -- sous le propriétaire postgres, pas sous le client.

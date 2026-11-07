@@ -24,7 +24,7 @@
 1. **Staging** : faire une sauvegarde puis appliquer, une seule fois, le fichier
    \`travel/supabase/migrations/20261107093000_account_email_recovery.sql\`
    dans le SQL Editor du projet **staging** sous postgres. La migration est
-   idempotente et son contrôle préliminaire refuse un schéma Auth incompatible.
+   idempotente ; lors de l’appel, une vérification préalable refuse un schéma Auth incompatible.
    Ne **pas** réexécuter \`schema.sql\` sur une base existante.
 2. **Test sur un compte de staging fictif** : créer un utilisateur avec un e-mail
    \`@example.com\` et une identité \`email\`, puis changer l'adresse. Vérifier :
@@ -132,7 +132,7 @@ l'application cliente n'est demandée dans cette PR.
 
 Le fonctionnement interne des tables \`auth.*\` n'est pas une interface SQL
 publique stable. **Vérifier d'abord sur staging après toute montée de version
-Supabase**, puis garder la migration de garde contre les schémas incompatibles.
+Supabase**, puis garder le contrôle de compatibilité au début de la fonction de récupération.
 
 Références officielles :
 - https://supabase.com/docs/guides/auth/identities
