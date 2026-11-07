@@ -138,7 +138,7 @@
     const postalAddress=typeof input.postalAddress==="string"?input.postalAddress.trim():"";
     if(email.length>254||!email||!email.includes("@")||/[\r\n<>]/.test(email))
       throw new Error("E-mail du compte indisponible.");
-    if(postalAddress.length>300)throw new Error("Adresse déclarée trop longue.");
+    if(postalAddress.length>300)throw new Error("Adresse trop longue.");
     return Object.freeze({email,phone,postalAddress});
   }
   function generatedDate(value){
@@ -303,7 +303,7 @@
     add(header,"p",date,"meta");
     if(contacts){
       const box=add(main,"section",null,"declared-contacts");
-      add(box,"h2","Coordonnées déclarées");
+      add(box,"h2","Coordonnées");
       for(const [label,key] of [["E-mail","email"],["Téléphone","phone"],["Adresse","postalAddress"]]){
         if(contacts[key])add(box,"p",label+" : "+(key==="phone"?formatPhone(contacts[key]):contacts[key]));
       }

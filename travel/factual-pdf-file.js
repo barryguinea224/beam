@@ -92,7 +92,7 @@
    textAt(generation,42,744,9);
    y=711;
    if(pages.length===1&&contacts){
-    color(0.09,0.302,0.227);textAt("Coordonnées déclarées",42,y,11,true);
+    color(0.09,0.302,0.227);textAt("Coordonnées",42,y,11,true);
     y-=15;
     for(const [label,key] of [["E-mail","email"],["Téléphone","phone"],["Adresse","postalAddress"]]){
      if(!contacts[key])continue;

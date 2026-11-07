@@ -73,7 +73,7 @@ async function main(){
    const consentDestination=path.join(dir,"opt-in.pdf");
    fs.writeFileSync(consentDestination,await page.pdf({printBackground:true,preferCSSPageSize:true}));
    const consentText=execFileSync("pdftotext",["-layout",consentDestination,"-"],{encoding:"utf8"});
-   assert.match(consentText,/Coordonnées déclarées/);
+   assert.match(consentText,/Coordonnées/);
    assert.match(consentText,/account.verified@example.net/);
     assert.match(consentText,/\+224 612 34 56 78/);
     assert.ok(!consentText.includes("+224612345678"),"the printed phone must be grouped");

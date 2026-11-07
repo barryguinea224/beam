@@ -55,7 +55,7 @@ for(const p of ["travel/printable-journal.js","travel/family-booklet.js"]){
 assert.doesNotMatch(read("travel/printable-journal.js"),/\.innerHTML\s*=/);
 assert.doesNotMatch(read("travel/family-booklet.js"),/\.innerHTML\s*=/);
 const sw=read("travel/sw.js");
-assert.match(sw,/trip-stops-v35/);
+assert.match(sw,/trip-stops-v36/);
 assert.match(sw,/\.\/activity-durations\.js/);
 assert.match(sw,/\.\/activity-duration\.css/);
 for(const p of ["travel/activity-durations.js","travel/trip-detail.js","travel/printable-journal.js","travel/family-booklet.js"])

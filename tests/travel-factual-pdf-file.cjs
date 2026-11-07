@@ -48,17 +48,17 @@ try{
   assert.match(text,/Dakar/);
   assert.match(text,/Sénégal/);
   assert.match(text,/Paris/);
-  assert.ok(!text.includes("Historique déclaré")&&!text.includes("Voyages internationaux déclarés")&&
+  assert.ok(!/déclaré/i.test(text)&&!text.includes("Historique déclaré")&&!text.includes("Voyages internationaux déclarés")&&
  !text.includes("Ce document présente uniquement"),"No retired prose in shared PDF");
   assert.ok(!text.includes(secret)&&!text.includes(personal));
   assert.ok(!text.includes("SECRET_PHONE_ON_TRIP"));
   if(tag==="ordinary"){
-   assert.ok(!text.includes("Coordonnées déclarées"));
+   assert.ok(!text.includes("Coordonnées"));
    assert.ok(!text.includes("private@example.net"));
    assert.ok(!text.includes("+224612345678"));
    assert.ok(!text.includes("PRIVATE_ADDRESS_332"));
   }else{
-   assert.match(text,/Coordonnées déclarées/);
+   assert.match(text,/Coordonnées/);
    assert.match(text,/private@example.net/);
    assert.match(text,/\+224 612 34 56 78/,"shared A4 PDF must show grouped phone");
    assert.ok(!text.includes("+224612345678"),"shared PDF must not print compact DB phone");
