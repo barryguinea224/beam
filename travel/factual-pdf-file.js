@@ -68,6 +68,18 @@
    command("BT /"+(bold?"F2":"F1")+" "+size+" Tf 1 0 0 1 "+
     Number(px.toFixed(2))+" "+Number(py.toFixed(2))+" Tm ("+pdfText(v)+") Tj ET");
   }
+  // Standard PDF Symbol font displays the genuine right-arrow glyph,
+  // without embedding fonts, changing existing factual fields or storing user data.
+  function textWithRightArrow(v,px,py,size=7.7){
+   const parts=String(v).split("®");
+   command("BT /F1 "+size+" Tf 1 0 0 1 "+Number(px.toFixed(2))+
+    " "+Number(py.toFixed(2))+" Tm");
+   for(const [index,part] of parts.entries()){
+    if(index)command("/F3 "+size+" Tf (\\256) Tj /F1 "+size+" Tf");
+    if(part)command("("+pdfText(part)+") Tj");
+   }
+   command("ET");
+  }
   function horizontal(py){command("0.75 0.82 0.76 RG 0.6 w 42 "+py+" m 553 "+py+" l S")}
   function beginPage(){
    operations=[];pages.push(operations);
@@ -102,7 +114,7 @@
    const split=values.map((v,i)=>wrap(v,columns[i]));
    const lines=Math.max(...split.map(a=>a.length));
    const height=Math.max(26,lines*11+12);
-   const stops=(trip.stops||[]).map(stop=>wrap(stop.label.replace(/^↳\s*/,""),91));
+   const stops=(trip.stops||[]).map(stop=>wrap(stop.label.replace(/^↳\s*/,"").replace(/→/g,"®"),91));
    // Keep the voyage row and its first stage together, even at a page foot.
    const firstStopHeight=stops.length?Math.max(22,stops[0].length*11+8):0;
    if(y-height-firstStopHeight<77){endPage();beginPage()}
@@ -121,7 +133,7 @@
     // Helvetica cannot encode U+21B3. Its adjacent text remains searchable.
     command("0.17 0.34 0.25 RG 0.75 w 53 "+(y-4)+" m 53 "+(y-13)+" l 60 "+(y-13)+" l S");
     command("56 "+(y-10)+" m 60 "+(y-13)+" l 56 "+(y-16)+" l S");
-    part.forEach((line,j)=>textAt(line,67,y-13-j*11,7.7));
+    part.forEach((line,j)=>textWithRightArrow(line,67,y-13-j*11,7.7));
     y-=h;horizontal(y);
    }
   }
@@ -135,17 +147,18 @@
   objects[1]="<< /Type /Catalog /Pages 2 0 R >>";
   objects[3]="<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>";
   objects[4]="<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>";
+  objects[5]="<< /Type /Font /Subtype /Type1 /BaseFont /Symbol >>";
   const pageIds=[];
   for(const commands of pages){
    const pageId=objects.length; // use an explicit monotonically allocated id below
    void pageId;
   }
-  let next=5;
+  let next=6;
   for(const commands of pages){
    const pg=next++,stream=next++;
    pageIds.push(pg);
    objects[pg]="<< /Type /Page /Parent 2 0 R /MediaBox [0 0 "+A4.join(" ")+
-    "] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents "+stream+" 0 R >>";
+    "] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents "+stream+" 0 R >>";
    const content=commands.join("\n")+"\n";
    objects[stream]="<< /Length "+toBytes(content).length+" >>\nstream\n"+content+"endstream";
   }
