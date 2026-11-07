@@ -100,6 +100,21 @@ et carnets. Les comptes restent sur invitation (aucune inscription libre).
   conserve des fonctions nécessaires aux politiques RLS existantes.
 - Ne jamais conserver les codes OTP du client.
 
+## Important : garder la connexion e-mail active sans inscription libre
+
+Sur les projets **hébergés**, conserver « Allow new users to sign up » **OFF**
+ET le fournisseur **Email/OTP activé**. Ces réglages sont différents :
+interdire la création de nouveaux utilisateurs ne doit **pas** interdire
+aux clients invités existants de recevoir leur code. Sur certains Supabase
+CLI, `[auth.email] enable_signup = false` désactive aussi la connexion e-mail
+(erreur `email_provider_disabled`) : ne jamais faire de `supabase config push`
+sans vérifier la configuration d'Auth et la possibilité pour un client existant
+de se connecter. La CI corrige ce réglage **uniquement dans le runner Docker
+jetable**, avec `[auth] enable_signup = false` maintenu.
+
+Voir https://github.com/supabase/cli/issues/7055 et la documentation officielle
+https://supabase.com/docs/guides/auth/general-configuration.
+
 ## Quelles tables Auth sont modifiées ? Compatibilité et limites
 
 Avec le schéma Supabase Auth vérifié pour cette migration :
