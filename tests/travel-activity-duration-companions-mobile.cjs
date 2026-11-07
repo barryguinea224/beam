@@ -51,6 +51,10 @@ async function main(){
     await page.locator("#tripDetailModal").evaluate(modal=>modal.classList.remove("open"));
     assert.equal(await page.locator("#tripCompanions").isVisible(),true,"Private companions field should be visible on the actual trip form");
     assert.equal(await page.locator("#tripCompanions").inputValue(),"Maman, Aïssatou");
+    await page.locator("#tripCompanions").scrollIntoViewIfNeeded();
+    const companionSection=page.locator("#tripCompanions").locator("..");
+    assert.equal(await companionSection.isVisible(),true);
+    await companionSection.screenshot({path:output+"/compagnons-"+width+".png",animations:"disabled"});
     await page.locator("#tripForm").screenshot({path:output+"/voyage-"+width+".png",animations:"disabled"});
     console.log("PASS BTH activities + companions mobile "+width+"px: duration choices, date guard, visible companion field, no field overflow");
    }finally{await page.close()}
