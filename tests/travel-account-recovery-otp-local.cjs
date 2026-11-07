@@ -3,8 +3,7 @@
 // Local Docker Supabase; no hosted calls, no keys in source or console output.
 const assert=require("node:assert/strict");
 const {execFileSync}=require("node:child_process");
-const uid="ab700000-0000-4000-8000-000000000001";
-const identity="ab710000-0000-4000-8000-000000000001";
+let uid=null;
 const oldEmail="recuperation-ancien@example.com",newEmail="recuperation-nouveau@example.com";
 function local(url){
  const target=new URL(url);
@@ -21,8 +20,8 @@ function loadCLI(){
  }
  const api=local(cfg.API_URL||"http://127.0.0.1:54321");
  const inbox=local(cfg.INBUCKET_URL||"http://127.0.0.1:54324");
- if(!cfg.ANON_KEY)throw Error("Local CLI ANON_KEY absent (not logged)");
- return {api,inbox,key:cfg.ANON_KEY};
+ if(!cfg.ANON_KEY||!cfg.SERVICE_ROLE_KEY)throw Error("Local CLI keys absent (not logged)");
+ return {api,inbox,key:cfg.ANON_KEY,admin:cfg.SERVICE_ROLE_KEY};
 }
 function db(sql){
  if(process.env.PGHOST!=="127.0.0.1"||process.env.PGPORT!=="54322"||
@@ -64,15 +63,22 @@ async function receive(inbox,name){
  throw Error("No local GoTrue email delivered to "+name+" mailbox");
 }
 async function main(){
- const {api,inbox,key}=loadCLI();
- db("insert into auth.users(id,email,email_confirmed_at,instance_id,aud,role,raw_app_meta_data) values ('"+uid+"','"+oldEmail+"',now(),'00000000-0000-0000-0000-000000000000','authenticated','authenticated',jsonb_build_object('provider','email','providers',jsonb_build_array('email')));"+
- "insert into auth.identities(id,user_id,provider,provider_id,identity_data,created_at,updated_at) "+
- "values('"+identity+"','"+uid+"','email','"+uid+"',"+
- "jsonb_build_object('sub','"+uid+"','email','"+oldEmail+"','email_verified',true),now(),now());"+
- "update public.profiles set display_name='Client fictif',access_until=current_date+30 where id='"+uid+"';"+
- "select private.beam_change_client_email('"+oldEmail+"','"+newEmail+"',"+
- "'Vérifié en agence avec CNI et deux voyages fictifs.');");
+ const {api,inbox,key,admin}=loadCLI();
  try{
+  // Provision a truly valid Auth user via the local Admin API, as BEAM does.
+  const created=await fetch(api+"/auth/v1/admin/users",{
+   method:"POST",
+   headers:{apikey:admin,Authorization:"Bearer "+admin,"Content-Type":"application/json"},
+   body:JSON.stringify({email:oldEmail,email_confirm:true,
+    user_metadata:{display_name:"Client fictif"}}),
+   signal:AbortSignal.timeout(7000)
+  });
+  if(!created.ok)throw Error("Local GoTrue Admin creation HTTP "+created.status);
+  uid=(await created.json()).id;
+  assert.match(uid,/^[0-9a-f-]{36}$/i);
+  db("update public.profiles set access_until=current_date+30 where id='"+uid+"';"+
+     "select private.beam_change_client_email('"+oldEmail+"','"+newEmail+"',"+
+     "'Vérifié en agence avec CNI et deux voyages fictifs.');");
   assert.equal((await mailbox(inbox,"recuperation-ancien")).length,0);
   await otp(api,key,oldEmail);
   // HTTP response for unknown emails may deliberately be neutral.
@@ -106,7 +112,7 @@ async function main(){
   assert.equal(audit,"1");
   console.log("PASS GoTrue local: old email refused, new email OTP delivered and JWT login keeps same UUID");
  }finally{
-  db("delete from private.account_email_changes where user_id='"+uid+"';"+
+  if(uid)db("delete from private.account_email_changes where user_id='"+uid+"';"+
      "delete from auth.users where id='"+uid+"';");
  }
 }
