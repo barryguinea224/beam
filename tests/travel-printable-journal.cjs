@@ -98,7 +98,7 @@ assert.match(main,/id="printJournal"/);
 assert.match(main,/src="\.\/printable-journal\.js"/);
 assert.match(main,/src="\.\/family-booklet\.js"/);
 assert.match(inline,/BEAM_FAMILY_BOOKLET\.render\(tab\.document/);
-assert.match(inline,/BEAM_DASHBOARD_FILTERS\.apply\(rows,filters\)/);
+assert.match(inline,/BEAM_DASHBOARD_FILTERS\.apply\(await fetchOwnedStops\(rows,uid\),filters\)/);
 assert.match(inline,/\.createSignedUrl\(row\.storage_path,window\.BEAM_PERSONAL_JOURNAL\.SIGNED_SECONDS\)/);
 assert.match(inline,/BEAM_VISUAL_CARDS\.trustedSignedUrl/);
 assert.match(inline,/\.eq\("user_id",uid\)\.eq\("deleting",false\)/);
@@ -125,7 +125,7 @@ assert.match(inline,/BEAM_FAMILY_BOOKLET\.preferredMediaQuery\(/,
  "family booklet must query ten ordered private photos independently of journal four-photo quota");
 assert.match(inline,/BEAM_FAMILY_BOOKLET\.preparePhotos\(pack,window\)/,
  "family booklet must resample trusted signed images only in browser RAM before print");
-assert.ok(inline.includes("pack[position]={trip,activities:activityResult.data||[],photos,favoritePhoto,"),
+assert.ok(inline.includes("pack[position]={trip,stops:trip.stops||[],activities:activityResult.data||[],photos,favoritePhoto,"),
  "failed photo signatures must reach the private print status");
 assert.ok(inline.includes("airlinePhoto,hotelPhoto,missingPhotos"),
  "stay images must reach both personal print formats");
