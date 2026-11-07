@@ -97,7 +97,7 @@ async function main(){
   assert.doesNotMatch(opening,/target=|onclick=|onmousedown=/i);
   assert.doesNotMatch(opening,/\?|#/);
  }
- assert.match(sw,/trip-stops-v36/);
+ assert.match(sw,/jyetais-v37/);
  assert.match(sw,/if \(url\.origin !== self\.location\.origin\) return;/);
  const precache=sw.match(/const PUBLIC_SHELL = \[([\s\S]*?)\];/)?.[1] || "";
  assert.doesNotMatch(precache,/ididentite\.com/,"the worker must never pre-cache identité");
@@ -105,6 +105,6 @@ async function main(){
  assert.match(sw,/if \(url\.pathname\.startsWith\("\/visas\/"\)\) return;/);
  assert.doesNotMatch(sw,/["\']\.\/visas\//,
   "worker public shell must never pre-cache visa pages or public index");
- console.log("PASS BTH -> visas: France link, unlisted country, silent failures, no-store, deadline, stale guard and SW isolation");
+ console.log("PASS J'y étais -> visas: France link, unlisted country, silent failures, no-store, deadline, stale guard and SW isolation");
 }
 main().catch(error=>{console.error(error);process.exitCode=1});

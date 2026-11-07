@@ -15,9 +15,9 @@ for(const code of countries.ORDER){
  assert.ok(!/\b(?:href|src)\s*=\s*["']https?:\/\//i.test(image)&&!/url\(\s*["']?https?:\/\//i.test(image),"Remote SVG reference not allowed: "+code);
 }
 assert.ok(fs.existsSync("travel/assets/flags/LICENSE.flag-icons"));
-assert.equal(manifest.name,"BEAM Travel History");
-assert.equal(manifest.short_name,"BTH");
-assert.match(html,/<meta name="apple-mobile-web-app-title" content="BTH">/);
+assert.equal(manifest.name,"J'y étais");
+assert.equal(manifest.short_name,"J'y étais");
+assert.match(html,/<meta name="apple-mobile-web-app-title" content="J&#39;y étais">/);
 assert.match(html,/<aside class="authContact" aria-label="Contact">/);
 assert.match(html,/<a href="https:\/\/wa\.me\/224622095630"[^>]*>\+224 622 09 56 30<\/a>/);
 const appHeader=html.match(/<main id="app"[^>]*>[\s\S]*?<\/header>/)?.[0]||"";

@@ -1,5 +1,5 @@
 "use strict";
-// BTH's REAL native factual PDF generator; all records are fictional.
+// J'y étais's REAL native factual PDF generator; all records are fictional.
 const fs=require("node:fs"),path=require("node:path"),assert=require("node:assert/strict");
 const FILE=require("../travel/factual-pdf-file.js"),PDF=require("../travel/factual-pdf.js");
 const dir="test-artifacts/trip-stops";fs.mkdirSync(dir,{recursive:true});
@@ -17,4 +17,4 @@ const many=Array.from({length:77},(_,i)=>({...trip,
 const multi=FILE.make(metadata,many);
 fs.writeFileSync(path.join(dir,"BTH_France_Allemagne_MULTIPAGE_TEST.pdf"),Buffer.from(multi));
 assert.ok(Buffer.from(multi).toString("latin1").match(/\/Type \/Page\b/g)?.length>1);
-console.log("PASS BTH native PDF generated: factual six-field trip + indented 5-day stage; multipage PDF built with no split stage lines");
+console.log("PASS J'y étais native PDF generated: factual six-field trip + indented 5-day stage; multipage PDF built with no split stage lines");

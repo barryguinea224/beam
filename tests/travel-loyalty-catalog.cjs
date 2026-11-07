@@ -32,7 +32,7 @@ for(const key of ["loyaltyPanel","loyaltyOwned","loyaltyAvailable","loyaltyNumbe
  assert.ok(main.includes('id="'+key+'"'),"Missing "+key);
 assert.match(main,/BEAM_LOYALTY_UI\?\.init/);
 assert.match(main,/LOYALTY\?\.hintFor/);
-assert.match(main,/BTH n'enregistre jamais vos mots de passe/);
+assert.match(main,/J.y étais n'enregistre jamais vos mots de passe/);
 assert.match(main,/Ethiopian, Brussels Airlines et Turkish Airlines sont dans Star Alliance/);
 assert.doesNotMatch(main,/<input[^>]+type="password"/i,"No loyalty password field");
 const ui=fs.readFileSync("travel/loyalty-ui.js","utf8");
@@ -47,7 +47,7 @@ for(const p of ["travel/factual-pdf.js","travel/factual-pdf-file.js","travel/pri
   "No loyalty member numbers in export: "+p);
 }
 const sw=fs.readFileSync("travel/sw.js","utf8");
-assert.match(sw,/trip-stops-v36/);
+assert.match(sw,/jyetais-v37/);
 for(const file of ["loyalty-programs.js","loyalty-ui.js","loyalty.css"])
  assert.ok(sw.includes('"./'+file+'"'),"Only public code/CSS in cache");
 assert.ok(!sw.includes('"./loyalty-memberships.json"')&&!sw.includes("loyalty_memberships"),"Never cache memberships");

@@ -1,5 +1,5 @@
 "use strict";
-// Fixture-only Chromium, rendering actual BTH form DOM and public CSS.
+// Fixture-only Chromium, rendering actual J'y étais form DOM and public CSS.
 // No credentials, no account sessions, no external URLs, no personal records.
 const fs=require("node:fs"),path=require("node:path"),assert=require("node:assert/strict");
 const {chromium}=require("playwright");
@@ -56,7 +56,7 @@ async function main(){
     assert.equal(await companionSection.isVisible(),true);
     await companionSection.screenshot({path:output+"/compagnons-"+width+".png",animations:"disabled"});
     await page.locator("#tripForm").screenshot({path:output+"/voyage-"+width+".png",animations:"disabled"});
-    console.log("PASS BTH activities + companions mobile "+width+"px: duration choices, date guard, visible companion field, no field overflow");
+    console.log("PASS J'y étais activities + companions mobile "+width+"px: duration choices, date guard, visible companion field, no field overflow");
    }finally{await page.close()}
   }
  }finally{await browser.close()}
