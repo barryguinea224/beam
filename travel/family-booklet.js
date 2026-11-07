@@ -205,12 +205,12 @@ function render(doc,model){
  node(cover.inside,"div","ey","Nos voyages, notre histoire");
  node(cover.inside,"h1",null,bookTitle);
  node(cover.inside,"p","subtle",period);
- const countries=new Set(list.map(x=>x.trip.code));
+ const countries=new Set(list.flatMap(x=>[x.trip.code,...x.trip.stops.map(stop=>stop.code)]));
  for(const side of ["west","east"]){
   const map=leaf("world-leaf");node(map.inside,"p","ey",side==="west"?"Notre monde":"Autour de chez nous");
   world(map.inside,model.mapSvgText,countries,side,{
    residence:model.countryOfResidence,
-   destinations:list.filter(x=>!x.trip.domestic).map(x=>x.trip.code),
+   destinations:list.filter(x=>!x.trip.domestic).flatMap(x=>[x.trip.code,...x.trip.stops.map(stop=>stop.code)]),
    centroids:model.worldCentroids
   });
   if(side==="east")node(map.inside,"h2",null,"À chaque voyage, une histoire.");
@@ -234,7 +234,9 @@ function render(doc,model){
   const captionTop=node(photo.inside,"div","caption-top");
   node(captionTop,"p","ey","Notre voyage");
   flag(captionTop,trip.code,true);
+  for(const stop of trip.stops)flag(captionTop,stop.code);
   node(photo.inside,"h2",null,trip.country);
+  if(trip.stops.length)node(photo.inside,"p","journalStops","Étapes : "+trip.stops.map(stop=>stop.label).join(" · "));
   if(trip.companions)node(photo.inside,"p","trip-companions","avec "+trip.companions);
   node(photo.inside,"p",null,natural(trip));
   if(mainCaption)node(photo.inside,"p","photo-note",mainCaption);
@@ -243,7 +245,9 @@ function render(doc,model){
   const text=node(story.inside,"div","story-main");
   const media=node(story.inside,"div","media");
   flag(text,trip.code);
+  for(const stop of trip.stops)flag(text,stop.code);
   node(text,"h2",null,trip.country);
+  if(trip.stops.length)node(text,"p","journalStops","Étapes : "+trip.stops.map(stop=>stop.label).join(" · "));
   if(trip.companions)node(text,"p","trip-companions","avec "+trip.companions);
   node(text,"p","natural",natural(trip));
   if(trip.airline||trip.hotel){

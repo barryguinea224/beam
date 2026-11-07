@@ -78,7 +78,11 @@ function box(){
 }
 const ids=['#modal','#tripDetailModal','#detailTitle','#detailIntro','#detailFacts','#detailNote',
  '#detailStatus','#detailActivityMessage','#detailActivityForm','#detailLoyaltyHint','#detailPhotos',
- '#detailActivities','#detailSheet','#detailClose','#detailEdit','#activityDate','#activitySave'];
+ '#detailActivities','#detailSheet','#detailClose','#detailEdit','#activityDate','#activitySave',
+ '#detailStops','#addTripStop','#tripStopForm','#tripStopCountry','#tripStopCities',
+ '#tripStopEntry','#tripStopExit','#tripStopFormTitle','#tripStopFormMessage',
+ '#tripStopDeleteConfirm','#tripStopDeleteYes','#tripStopDeleteNo',
+ '#tripStopDeleteText','#tripStopCancel','#tripStopSave'];
 const els=Object.fromEntries(ids.map(id=>[id,box()]));
 const calls=[];
 const tripRecord={id:'trip-1',country_code:'FR',cities:['Paris'],entry_date:'2026-06-20',
@@ -105,6 +109,8 @@ const S={
 };
 const context=vm.createContext({
  window:{BEAM_TRIP_DETAIL:DETAIL,BEAM_TRAVEL_PDF:PDF,confirm:()=>true},
+ STOPS:{renderList:()=>{},valid:()=>true,byOrder:rows=>rows||[],cities:()=>'',country:()=>''},
+ COUNTRY_NAMES:{FR:'France',DE:'Allemagne'},
  Option:class {constructor(label,value){this.text=label;this.value=value}},
  document:{activeElement:null},
  S,user:{id:'owner'},accountState:'active',trips:[tripRecord],canWrite:()=>true,

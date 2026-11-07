@@ -7,6 +7,7 @@
  const MAX_PHOTOS_PER_TRIP=4,MAX_TOTAL_PHOTOS=40,SIGNED_SECONDS=300;
  const COUNTRIES=root?.BEAM_COUNTRIES||(typeof require==="function"?require("./countries.js"):null);
  const FILTERS=root?.BEAM_DASHBOARD_FILTERS||(typeof require==="function"?require("./dashboard-filters.js"):null);
+ const STOPS=root?.BEAM_TRIP_STOPS||(typeof require==="function"?require("./trip-stops.js"):null);
  const DURATIONS=root?.BEAM_ACTIVITY_DURATIONS||(typeof require==="function"?require("./activity-durations.js"):null);
  const FLIGHTS=root?.BEAM_FLIGHT_CONNECTIONS||(typeof require==="function"?require("./flight-connections.js"):null);
  if(!COUNTRIES||!FILTERS)throw new Error("Référentiels du carnet indisponibles.");
@@ -52,6 +53,11 @@
    domestic:trip.is_domestic===true,
    airline:clean(trip.airline).slice(0,160),hotel:clean(trip.hotel).slice(0,160),
    companions:clean(trip.companions).slice(0,200),
+   stops:STOPS?.byOrder(trip.stops||[]).slice(0,10).map(stop=>Object.freeze({
+     code:stop.country_code,country:STOPS.country(stop.country_code),
+     entryISO:stop.entry_date,exitISO:stop.exit_date,
+     label:STOPS.compact(stop),cities:STOPS.cities(stop)
+   }))||[],
    airlinePhoto:typeof stayPhotos.airlinePhoto==="string"&&stayPhotos.airlinePhoto.startsWith("https://")?
      stayPhotos.airlinePhoto:"",
    hotelPhoto:typeof stayPhotos.hotelPhoto==="string"&&stayPhotos.hotelPhoto.startsWith("https://")?
@@ -268,9 +274,9 @@
    return Number.isInteger(n)&&n>0?Math.min(n,MAX_PHOTOS_PER_TRIP):0;
   });
   const initialFailed=failed.reduce((sum,n)=>sum+n,0);
-  const countries=[...new Set(list.map(t=>t.code))];
+  const countries=[...new Set(list.flatMap(t=>[t.code,...t.stops.map(stop=>stop.code)]))];
   const summary=list.filter(t=>!t.domestic);
-  const summaryCountries=new Set(summary.map(t=>t.code)).size;
+  const summaryCountries=new Set(summary.flatMap(t=>[t.code,...t.stops.map(stop=>stop.code)])).size;
   const summaryDays=summary.reduce((n,t)=>n+t.days,0);
   const domestic=list.filter(t=>t.domestic).length;
   const generatedAt=model.generatedAt instanceof Date&&!Number.isNaN(model.generatedAt.getTime())
@@ -322,7 +328,7 @@
   el(yearbook,"h2",null,"Mon année en voyages");
   map(yearbook,model.mapSvgText,new Set(countries),{
    residence:model.countryOfResidence,
-   destinations:list.filter(t=>!t.domestic).map(t=>t.code),
+   destinations:list.filter(t=>!t.domestic).flatMap(t=>[t.code,...t.stops.map(stop=>stop.code)]),
    centroids:model.worldCentroids
   });
   const nums=el(yearbook,"div","metric-grid");
@@ -357,9 +363,11 @@
    const header=el(banner,"div");
    el(header,"p","eyebrow","VOYAGE "+String(index+1).padStart(2,"0"));
    el(header,"h2",null,trip.country);
+   if(trip.stops.length)el(header,"p","journalStops","Étapes : "+trip.stops.map(stop=>stop.label).join(" · "));
    if(trip.companions)el(header,"p","trip-companions","avec "+trip.companions);
    el(header,"p","trip-line",[trip.cities,trip.entry+" – "+trip.exit].filter(Boolean).join(" · "));
    flag(banner,trip.code);
+   for(const stop of trip.stops)flag(banner,stop.code);
    const pills=el(hero,"div","pills");
    for(const text of [trip.purpose,trip.duration,...(trip.domestic?["Séjour national"]:[])])
     el(pills,"span","pill",text);

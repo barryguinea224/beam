@@ -98,7 +98,7 @@ assert.match(inline,/includeContacts\?"display_name,deleting,phone,postal_addres
  "PDF must only fetch extra contacts when opted in");
 assert.ok(inline.includes("if(!profile.display_name?.trim()){requestTravelerName();return}"),
  "Empty profile name must block PDF and request a name");
-assert.match(inline,/window\.BEAM_TRAVEL_PDF\.render\(tab\.document,data,\{/,
+assert.match(inline,/window\.BEAM_TRAVEL_PDF\.render\(tab\.document,factual,\{/,
  "Profile and opt-in data must be passed to factual PDF");
 assert.match(inline,/displayName:name,generatedAt,includeContacts,contacts/);
 assert.match(inline,/S\.auth\.getUser\(\)/, "Auth must verify email at opt-in time");

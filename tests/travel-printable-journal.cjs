@@ -38,7 +38,7 @@ const projection=journal.viewTrip({...trips[0],
  [{title:"Visite du marché",place:"Dakar",happened_on:"2026-04-03",document_number:"SECRET_DOC"}],
  ["https://example.invalid/photo.webp"]);
 assert.deepEqual(Object.keys(projection).sort(),
- ["code","country","cities","entry","exit","entryISO","exitISO","duration","days","purpose","domestic","airline","hotel","companions","airlinePhoto","hotelPhoto","memory","activities","photos","photoCaptions"].sort());
+ ["code","country","cities","entry","exit","entryISO","exitISO","duration","days","purpose","domestic","airline","hotel","companions","airlinePhoto","hotelPhoto","memory","activities","stops","photos","photoCaptions"].sort());
 assert.ok(!JSON.stringify(projection).includes("SECRET_"));
 assert.equal(projection.memory,"Mon souvenir de Dakar");
 assert.equal(projection.airline,"Compagnie de test");
@@ -98,7 +98,7 @@ assert.match(main,/id="printJournal"/);
 assert.match(main,/src="\.\/printable-journal\.js"/);
 assert.match(main,/src="\.\/family-booklet\.js"/);
 assert.match(inline,/BEAM_FAMILY_BOOKLET\.render\(tab\.document/);
-assert.match(inline,/BEAM_DASHBOARD_FILTERS\.apply\(rows,filters\)/);
+assert.match(inline,/BEAM_DASHBOARD_FILTERS\.apply\(await fetchOwnedStops\(rows,uid\),filters\)/);
 assert.match(inline,/\.createSignedUrl\(row\.storage_path,window\.BEAM_PERSONAL_JOURNAL\.SIGNED_SECONDS\)/);
 assert.match(inline,/BEAM_VISUAL_CARDS\.trustedSignedUrl/);
 assert.match(inline,/\.eq\("user_id",uid\)\.eq\("deleting",false\)/);
@@ -125,7 +125,7 @@ assert.match(inline,/BEAM_FAMILY_BOOKLET\.preferredMediaQuery\(/,
  "family booklet must query ten ordered private photos independently of journal four-photo quota");
 assert.match(inline,/BEAM_FAMILY_BOOKLET\.preparePhotos\(pack,window\)/,
  "family booklet must resample trusted signed images only in browser RAM before print");
-assert.ok(inline.includes("pack[position]={trip,activities:activityResult.data||[],photos,favoritePhoto,"),
+assert.ok(inline.includes("pack[position]={trip,stops:trip.stops||[],activities:activityResult.data||[],photos,favoritePhoto,"),
  "failed photo signatures must reach the private print status");
 assert.ok(inline.includes("airlinePhoto,hotelPhoto,missingPhotos"),
  "stay images must reach both personal print formats");
@@ -140,7 +140,7 @@ assert.equal(PDF.VIEW,"travel_history_pdf");
 assert.deepEqual(PDF.FIELDS,["country_code","cities","entry_date","exit_date","duration_days","purpose"]);
 const sw=fs.readFileSync("travel/sw.js","utf8");
 assert.ok(sw.includes('"./printable-journal.js"')&&sw.includes('"./family-booklet.js"'));
-assert.match(sw,/beam-travel-shell-v1-20261105-activity-companions-v32/,"cache revision must match the rebased booklet release");
+assert.match(sw,/beam-travel-shell-v1-20261105-trip-stops-v33/,"cache revision must match the rebased booklet release");
 assert.ok(!sw.includes("storage/v1/object/sign")&&!sw.includes("signedUrl"));
 assert.match(sw,/url\.origin === self\.location\.origin/);
 assert.match(sw,/url\.search === ""/);

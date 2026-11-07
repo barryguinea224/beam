@@ -47,7 +47,7 @@ for(const p of ["travel/factual-pdf.js","travel/factual-pdf-file.js","travel/pri
   "No loyalty member numbers in export: "+p);
 }
 const sw=fs.readFileSync("travel/sw.js","utf8");
-assert.match(sw,/activity-companions-v32/);
+assert.match(sw,/trip-stops-v33/);
 for(const file of ["loyalty-programs.js","loyalty-ui.js","loyalty.css"])
  assert.ok(sw.includes('"./'+file+'"'),"Only public code/CSS in cache");
 assert.ok(!sw.includes('"./loyalty-memberships.json"')&&!sw.includes("loyalty_memberships"),"Never cache memberships");
