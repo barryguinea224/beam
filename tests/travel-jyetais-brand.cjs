@@ -24,7 +24,7 @@ for(const file of published){
 // Supabase schema/function/table names, existing client storage keys.
 assert.match(app,/window\.BEAM_TRAVEL_CONFIG/);
 assert.match(app,/BEAM_FAMILY_BOOKLET/);
-assert.match(sw,/beam-travel-shell-v1-20261107-jyetais-v38-settings/);
+assert.match(sw,/beam-travel-shell-v1-20261107-jyetais-v39-settings/);
 assert.match(sw,/BEAM_CLEAR_PUBLIC_SHELL/);
 assert.match(app,/<img class="jyBrandLogo jyAuthLogo" src="\.\/assets\/brand\/jyetais-logo\.svg"/);
 assert.match(app,/<img class="jyBrandLogo jyHeaderLogo" src="\.\/assets\/brand\/jyetais-logo\.svg"/);

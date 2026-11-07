@@ -112,11 +112,12 @@ async function main(){
      const rect=panel.getBoundingClientRect();
      return {windowWidth:innerWidth,documentOverflow:document.documentElement.scrollWidth-innerWidth,
       panelOverflow:panel.scrollWidth-panel.clientWidth,panelLeft:rect.left,panelRight:rect.right,
-      logos:panel.querySelectorAll("img,svg").length,
+      logos:[...panel.querySelectorAll("img,svg")].filter(x=>!x.classList.contains("uiIcon")).length,
+      uiIcons:panel.querySelectorAll("svg.uiIcon").length,
       passwordFields:panel.querySelectorAll('input[type="password"]').length};
     });
     assert.ok(audit.documentOverflow<=1&&audit.panelOverflow<=1,"Overflow at "+width+": "+JSON.stringify(audit));
-    assert.equal(audit.logos,0);assert.equal(audit.passwordFields,0);
+    assert.equal(audit.logos,0,"No airline logo or image: only the app's own line icons");assert.ok(audit.uiIcons>=2,"eye and copy are drawn as line icons");assert.equal(audit.passwordFields,0);
     // In the real app the account drawer is a fixed scrolling overlay. For an
     // isolated full-height screenshot, unfix the drawer so Chromium does not
     // stitch unrelated underlying page sections into the long image.
