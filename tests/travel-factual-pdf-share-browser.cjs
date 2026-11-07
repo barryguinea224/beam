@@ -47,7 +47,7 @@ async function main(){
   },{rows,generatedAt});
   let text=await page.locator("body").textContent();
   assert.ok(!text.includes("auth@example.net")&&!text.includes("+224612345678"));
-  assert.ok(!text.includes("Coordonnées déclarées"));
+  assert.ok(!text.includes("Coordonnées"));
   await page.locator(".share-button").click();
   await page.waitForFunction(()=>window.__shareCalls.length===1);
   const a=await page.evaluate(()=>window.__shareCalls[0]);
@@ -69,7 +69,7 @@ async function main(){
    });
   },{rows,generatedAt});
   text=await page.locator("body").textContent();
-  assert.match(text,/Coordonnées déclarées/);
+  assert.match(text,/Coordonnées/);
   assert.match(text,/auth@example.net/);
   assert.match(text,/\+224 612 34 56 78/);
   assert.ok(!text.includes("+224612345678"));
