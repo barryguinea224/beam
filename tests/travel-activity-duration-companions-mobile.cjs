@@ -48,6 +48,9 @@ async function main(){
     for(const m of measurements)assert.ok(m.overflow<=2&&m.width>0&&m.width<=width+2,
       "Activity or companion field overflow at "+width+": "+JSON.stringify(m));
     await page.locator("#detailActivityForm").screenshot({path:output+"/activite-"+width+".png",animations:"disabled"});
+    await page.locator("#tripDetailModal").evaluate(modal=>modal.classList.remove("open"));
+    assert.equal(await page.locator("#tripCompanions").isVisible(),true,"Private companions field should be visible on the actual trip form");
+    assert.equal(await page.locator("#tripCompanions").inputValue(),"Maman, Aïssatou");
     await page.locator("#tripForm").screenshot({path:output+"/voyage-"+width+".png",animations:"disabled"});
     console.log("PASS BTH activities + companions mobile "+width+"px: duration choices, date guard, visible companion field, no field overflow");
    }finally{await page.close()}
