@@ -33,7 +33,7 @@ const tripQueries=[...printHandler.matchAll(/S\.from\("trips"\)\s*\.select\("([^
 assert.equal(tripQueries.length,1,"one explicit trips projection must feed both personal print formats");
 const expectedColumns=[
  "id","country_code","cities","entry_date","exit_date","duration_days",
- "purpose","is_domestic","note","airline","hotel","airline_media_id","hotel_media_id"
+ "purpose","is_domestic","note","airline","hotel","companions","airline_media_id","hotel_media_id"
 ];
 assert.deepEqual(tripQueries[0][1].split(","),expectedColumns,
  "the real personal-booklet select must include airline + hotel (never select *)");

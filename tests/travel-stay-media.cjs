@@ -20,7 +20,7 @@ const trips=[...print.matchAll(/S\.from\("trips"\)\s*\.select\("([^"]+)"\)/g)];
 assert.equal(trips.length,1,"one explicitly projected trips query");
 assert.deepEqual(trips[0][1].split(","),[
  "id","country_code","cities","entry_date","exit_date","duration_days","purpose",
- "is_domestic","note","airline","hotel","airline_media_id","hotel_media_id"
+ "is_domestic","note","airline","hotel","companions","airline_media_id","hotel_media_id"
 ],"the REAL personal booklet query must load selected stay image IDs");
 const media=[...print.matchAll(/S\.from\("media"\)\.select\("([^"]+)"\)/g)];
 assert.equal(media.length,1);
