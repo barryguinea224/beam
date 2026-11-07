@@ -14,6 +14,7 @@ on:
       - "travel/supabase/migrations/20261105070000_trips_stay_media.sql"
       - "travel/supabase/migrations/20261105150000_loyalty_memberships.sql"
       - "travel/supabase/migrations/20261107100000_activity_duration_companions.sql"
+      - "travel/supabase/migrations/20261107150000_trip_stops.sql"
       - "travel/supabase/tests/*.sql"
       - ".github/workflows/travel-schema-fresh-replay.yml"
       - "PRODUCTION_SETUP.md"
@@ -128,6 +129,14 @@ jobs:
           psql -X -v ON_ERROR_STOP=1 -f travel/supabase/migrations/20261107100000_activity_duration_companions.sql
           echo 'PASS activity + companions migration replayed twice'
 
+      - name: Replay trip stops migration twice on disposable DB
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql -X -v ON_ERROR_STOP=1 -f travel/supabase/migrations/20261107150000_trip_stops.sql
+          psql -X -v ON_ERROR_STOP=1 -f travel/supabase/migrations/20261107150000_trip_stops.sql
+          echo 'PASS BTH trip_stops migration replayed twice'
+
       - name: Validate RLS, grants, private Storage and unscheduled worker
         shell: bash
         run: |
@@ -155,6 +164,7 @@ jobs:
             trip_stay_media_security.sql
             loyalty_memberships_security.sql
             activity_duration_companions_security.sql
+            trip_stops_security.sql
             sql_storage_hardening.sql
           )
           for test in "${tests[@]}"; do

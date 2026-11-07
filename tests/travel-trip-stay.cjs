@@ -37,7 +37,7 @@ const expectedColumns=[
 ];
 assert.deepEqual(tripQueries[0][1].split(","),expectedColumns,
  "the real personal-booklet select must include airline + hotel (never select *)");
-assert.ok(printHandler.includes("pack[position]={trip,activities:"),
+assert.ok(printHandler.includes("pack[position]={trip,stops:trip.stops||[],activities:"),
  "the selected full trip must be passed to journal and family booklet");
 assert.ok(printHandler.includes("BEAM_FAMILY_BOOKLET.render(tab.document"),
  "both personal-print formats must consume the same trip pack");
@@ -47,7 +47,7 @@ assert.ok(factualHandler.includes("BEAM_TRAVEL_PDF.fetchRows(S,uid)"),
 assert.deepEqual(PDF.FIELDS,["country_code","cities","entry_date","exit_date","duration_days","purpose"],
  "neither airline nor hotel may enter the factual PDF");
 
-assert.ok(sw.includes("activity-companions-v32"));
+assert.ok(sw.includes("trip-stops-v35"));
 const sample={country_code:"FR",cities:["Paris"],entry_date:"2025-05-01",exit_date:"2025-05-03",
  duration_days:3,purpose:"tourisme",airline:"  Compagnie fictive  ",hotel:"  Hôtel fictif  "};
 const projected=JOURNAL.viewTrip(sample);

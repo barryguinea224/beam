@@ -6,7 +6,7 @@
     const domestic=rows.filter(t=>t.is_domestic&&!t.deleting).length;
     return Object.freeze({
       trips:eligible.length,
-      countries:new Set(eligible.map(t=>t.country_code)).size,
+      countries:new Set(eligible.flatMap(t=>[t.country_code,...(Array.isArray(t.stops)?t.stops.map(s=>s.country_code):[])])).size,
       days:eligible.reduce((n,t)=>n+(Number(t.duration_days)||0),0),
       domestic
     });

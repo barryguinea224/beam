@@ -4,6 +4,7 @@
 (function(root){
   "use strict";
   const VIEW="travel_history_pdf";
+  const STOPS=root?.BEAM_TRIP_STOPS||(typeof require==="function"?require("./trip-stops.js"):null);
   const FIELDS=Object.freeze(["country_code","cities","entry_date","exit_date","duration_days","purpose"]);
   const DECLARATION=""; // retired for personal documents
   const COUNTRY_NAMES=(root?.BEAM_COUNTRIES||(
@@ -20,6 +21,41 @@
     if(!client?.from||!userId)throw new Error("Session indisponible.");
     return client.from(VIEW).select(FIELDS.join(",")).eq("user_id",userId)
       .order("entry_date",{ascending:false});
+  }
+
+  // The six-field factual view is unchanged. Trip-stop rows are fetched
+  // separately with owner isolation, then attached to eligible trips only.
+  async function fetchStops(client,userId){
+    if(!client?.from||!userId)throw new Error("Session indisponible.");
+    const [parents,children]=await Promise.all([
+      client.from("trips").select("id,country_code,entry_date,exit_date")
+        .eq("user_id",userId).eq("deleting",false).eq("is_domestic",false),
+      client.from("trip_stops")
+        .select("trip_id,country_code,cities,entry_date,exit_date,position")
+        .eq("user_id",userId).order("position",{ascending:true})
+    ]);
+    if(parents.error||children.error)return {data:null,error:parents.error||children.error};
+    return {data:{parents:parents.data||[],children:children.data||[]},error:null};
+  }
+  function attachStops(rawRows,result){
+    const parents=Array.isArray(result?.parents)?result.parents:[],
+      children=Array.isArray(result?.children)?result.children:[];
+    const byId=new Map(parents.map(p=>[p.id,p]));
+    const grouped=new Map();
+    for(const s of children){
+      const parent=byId.get(s.trip_id);
+      if(!parent||!STOPS?.valid(s.country_code)||s.country_code===parent.country_code||
+        !Array.isArray(s.cities)||s.entry_date<parent.entry_date||
+        s.exit_date>parent.exit_date||s.entry_date>s.exit_date)continue;
+      const key=[parent.country_code,parent.entry_date,parent.exit_date].join("|");
+      if(!grouped.has(key))grouped.set(key,[]);
+      grouped.get(key).push(s);
+    }
+    return (Array.isArray(rawRows)?rawRows:[]).map(row=>{
+      const key=[row.country_code,row.entry_date,row.exit_date].join("|"),
+        stops=STOPS?.byOrder(grouped.get(key)||[]).slice(0,10)||[];
+      return stops.length?{...row,stops}:row;
+    });
   }
   function displayName(raw){
     const name=typeof raw==="string"?raw.trim().replace(/\s+/g," "):"";
@@ -127,12 +163,23 @@
         ? row.cities.filter(x=>typeof x==="string"&&x.trim()).join(", ") : "";
       const days=Number(row.duration_days);
       const key=typeof row.purpose==="string"?row.purpose:"";
-      return Object.freeze({
+      const entry={
         country:COUNTRY_NAMES[code],code,
         cities:cities||"—",entry:shortDate(row.entry_date),exit:shortDate(row.exit_date),
         duration:Number.isInteger(days)&&days>0?days+" jour"+(days===1?"":"s"):"—",
         purpose:purposeName(key)
-      });
+      };
+      const stops=(Array.isArray(row.stops)?row.stops:[]).filter(stop=>
+        STOPS?.valid(stop.country_code)&&stop.country_code!==code&&
+        stop.entry_date>=row.entry_date&&stop.exit_date<=row.exit_date&&
+        stop.entry_date<=stop.exit_date).slice(0,10).map(stop=>Object.freeze({
+          country:COUNTRY_NAMES[stop.country_code],code:stop.country_code,
+          cities:STOPS.cities(stop)||"—",entry:shortDate(stop.entry_date),
+          exit:shortDate(stop.exit_date),duration:STOPS.days(stop.entry_date,stop.exit_date)+
+          " jour"+(STOPS.days(stop.entry_date,stop.exit_date)===1?"":"s"),
+          label:STOPS.factual(stop)
+        }));
+      return Object.freeze(stops.length?{...entry,stops}:entry);
     });
   }
   const CSS=[
@@ -152,7 +199,8 @@
     "td{padding:9px 6px;border-bottom:1px solid #dfe5e0;overflow-wrap:anywhere;vertical-align:top}",
     "th:nth-child(1){width:20%}th:nth-child(2){width:20%}th:nth-child(3),th:nth-child(4){width:15%}",
     "th:nth-child(5){width:13%}th:nth-child(6){width:17%}",
-    "thead{display:table-header-group}tr{break-inside:avoid}",
+    "thead{display:table-header-group}tr{break-inside:avoid;page-break-inside:avoid}",
+    ".trip-stop td{padding:5px 7px 7px 25px;font-size:9.2pt;color:#354e3b;border-bottom:1px solid #e5ebe7;break-inside:avoid;page-break-inside:avoid}",
     ".code{font-size:8pt;color:#687970;display:block;margin-top:2px}",
     ".empty{padding:18px 0;color:#5e6961}",
     ".toolbar{margin:0 0 12mm;display:flex;gap:12px;align-items:center}",
@@ -272,13 +320,18 @@
         add(country,"span",trip.country);
         add(country,"span",trip.code,"code");
         for(const key of ["cities","entry","exit","duration","purpose"])add(tr,"td",trip[key]);
+        for(const stop of trip.stops||[]){
+          const child=add(tbody,"tr",null,"trip-stop");
+          const cell=add(child,"td",stop.label);
+          cell.colSpan=6;
+        }
       }
     }
     // Only the personal facts in the closed contract are displayed.
     return rows.length;
   }
   const api=Object.freeze({VIEW,FIELDS,DECLARATION,CONTACT_FIELDS,normalizePhone,formatPhone,filenameForName,contactProjection,
-    fetchRows,factualRows,render,displayName,generatedDate,purposeName});
+    fetchRows,fetchStops,attachStops,factualRows,render,displayName,generatedDate,purposeName});
   if(root)root.BEAM_TRAVEL_PDF=api;
   if(typeof module!=="undefined"&&module.exports)module.exports=api;
 })(typeof window!=="undefined"?window:undefined);

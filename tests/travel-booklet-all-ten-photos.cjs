@@ -228,10 +228,10 @@ async function main(){
    assert.match(result.blur,/blur/,"background must be from the same image and blurred");
    assert.equal(result.mosaicFit,"contain","very tall thumbnail must remain legible");
    assert.equal(result.mosaicLeaves,2);
-   assert.equal(result.mosaicCount,9);
+   assert.equal(result.mosaicCount,7,"photos 2-3 are on the story page, so the gallery holds the remaining seven");
    assert.deepEqual(result.tripMosaic,["fixture-ten","fixture-ten"]);
-   assert.deepEqual([...result.mosaicIndexes].sort((a,b)=>Number(a)-Number(b)),["2","3","4","5","6","7","8","9","10"],
-    "imposition changes DOM order, but all nine additional pictures must occur exactly once");
+   assert.deepEqual([...result.mosaicIndexes].sort((a,b)=>Number(a)-Number(b)),["4","5","6","7","8","9","10"],
+    "each photo appears exactly once: never repeated between the story page and the gallery");
    assert.deepEqual(result.resized.map(x=>Math.max(x.width,x.height)),[1500,1500]);
    for(const d of result.resized)assert.ok(d.width>0&&d.height>0);
    assert.match(result.closeText,/bord court/);

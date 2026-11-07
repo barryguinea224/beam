@@ -44,6 +44,7 @@ async function run(){
      'const $=selector=>document.querySelector(selector);',
      'const profile={country_of_residence:"GN"};',
      'const trips=window.__journeys;',
+     'const STOPS={codes:t=>[t.country_code,...(t.stops||[]).map(s=>s.country_code)]};',
      'let dashboardFilters=window.BEAM_DASHBOARD_FILTERS.normalize({});',
      'let accountState="active";',
      'const countryName=code=>({GN:"Guinée",CA:"Canada",JP:"Japon",SN:"Sénégal"}[code]||code);',
