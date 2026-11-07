@@ -131,7 +131,7 @@ async function main(){
    assert.match(audit.text,/Compagnie : Compagnie de test/);
    assert.match(audit.text,/Hébergement : Hôtel de démonstration/);
    assert.equal(audit.coverTitle,"Carnet d\u0027Aminata Camara".replace("\\u0027","\u0027"));
-   assert.equal(audit.tabTitle,"Carnet d\u0027Aminata Camara".replace("\\u0027","\u0027"));
+   assert.equal(audit.tabTitle,"J\u0027y étais — Carnet d\u0027Aminata Camara");
    assert.ok(audit.paperRect.height>audit.paperRect.width,"Physical A4 must be portrait");
    assert.equal(audit.rotatedSpreads,0,"Portrait layout must not rotate oversized spreads");
    assert.deepEqual(audit.mapGuinea,[true,true],"Domestic Guinea must be highlighted on both map halves");

@@ -73,7 +73,7 @@ async function main(){
       "#travelHero [data-beam-install-area]","#travelHero [data-beam-install-help]","#addFirstTrip"]){
      assert.equal(await page.locator(s).isVisible(),true,s+" visible in empty carnet at "+width);
     }
-    assert.match(await page.locator(".travelerTopBar").innerText(),/Mon carnet de voyage/i);
+    assert.equal(await page.locator(".travelerTopBar .jyHeaderLogo").getAttribute("alt"),"J\u0027y étais");
     assert.match(await page.locator("#openAccount").innerText(),/Mon compte/);
     for(const s of ["#travelHero .actions","#travelHero .statsWrap",
       "#travelMapPanel","#filterAnchor","#pdf","#printJournal"]){

@@ -113,7 +113,7 @@ async function main(){
       return {title:el.textContent,avatar:avatar.textContent,
         avatarBox:({width:avatar.getBoundingClientRect().width,
          height:avatar.getBoundingClientRect().height}),
-        label:header.querySelector(".travelerEy")?.textContent,
+        label:header.querySelector(".travelerEy img")?.getAttribute("alt"),
         subtitle:subtitle.textContent,
         accountText:document.querySelector("#openAccount")?.textContent,
         accountHit:(()=>{
@@ -133,7 +133,7 @@ async function main(){
     assert.equal(head.avatar,"MB","initials from first and last name");
     assert.ok(head.avatarBox.width>=55&&head.avatarBox.width<=65,"round 56–64px avatar");
     assert.ok(Math.abs(head.avatarBox.width-head.avatarBox.height)<1,"avatar must stay round");
-    assert.equal(head.label,"Mon carnet de voyage");
+    assert.equal(head.label,"J\u0027y étais");
     assert.equal(head.subtitle,"Mon histoire à travers le monde");
     assert.ok(head.accountText.includes("Mon compte")&&head.accountHit,"account link must be accessible");
     assert.ok(head.titleFits&&head.titleNotClipped,"long name must wrap, not overflow or truncate "+JSON.stringify(head));
