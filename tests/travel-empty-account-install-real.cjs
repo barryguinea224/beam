@@ -74,7 +74,7 @@ async function main(){
      assert.equal(await page.locator(s).isVisible(),true,s+" visible in empty carnet at "+width);
     }
     assert.equal(await page.locator(".travelerTopBar .jyHeaderLogo").getAttribute("alt"),"J\u0027y étais");
-    assert.match(await page.locator("#openAccount").innerText(),/Mon compte/);
+    assert.equal(await page.locator("#openAccount").getAttribute("aria-label"),"Paramètres du compte");
     for(const s of ["#travelHero .actions","#travelHero .statsWrap",
       "#travelMapPanel","#filterAnchor","#pdf","#printJournal"]){
      assert.equal(await page.locator(s).isVisible(),false,s+" must remain hidden at "+width);

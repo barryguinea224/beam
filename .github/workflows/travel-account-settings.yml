@@ -1,0 +1,37 @@
+name: "J'y étais — Paramètres Android (données fictives)"
+on:
+  pull_request:
+    branches: [feature/beam-travel-history-v1]
+    paths:
+      - "travel/index.html"
+      - "travel/account-settings.css"
+      - "travel/loyalty-ui.js"
+      - "travel/loyalty.css"
+      - "tests/travel-account-settings-android.cjs"
+      - ".github/workflows/travel-account-settings.yml"
+permissions:
+  contents: read
+jobs:
+  settings-android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 16
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install Chromium (isolated synthetic accounts)
+        run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Real logged-in app 320 360 390, profile, menus and no horizontal overflow
+        run: node tests/travel-account-settings-android.cjs
+      - name: Upload fictional Android account screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jyetais-parametres-android-320-360-390
+          if-no-files-found: warn
+          path: test-artifacts/jyetais-settings-android/*.png

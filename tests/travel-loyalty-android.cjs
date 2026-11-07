@@ -72,6 +72,8 @@ async function main(){
     },data);
     await page.evaluate(()=>window.__loyalty.reload());
     assert.equal(await page.locator(".loyaltyRow").count(),1);
+    assert.equal(await page.locator(".loyaltyIconButton").count(),3,"Three compact actions");
+    assert.equal(await page.locator(".loyaltyMoreMenu").isVisible(),false,"No open menu by default");
     assert.ok((await page.locator(".loyaltyNumber").innerText()).includes("•••• 4821"));
     assert.ok(!(await page.locator("#loyaltyOwned").innerText()).includes("AB12-4821"),
      "No unmasked number appears before explicit reveal");
@@ -89,16 +91,19 @@ async function main(){
     await page.waitForFunction(()=>document.querySelectorAll(".loyaltyRow").length===2);
     const last=page.locator(".loyaltyRow").last();
     assert.ok((await last.innerText()).includes("•••• 9221"));
+    await last.locator(".loyaltyMoreToggle").click();
     await last.getByRole("button",{name:"Modifier"}).click();
     await page.locator("#loyaltyTier").fill("Silver");
     await page.locator("#loyaltyNumber").fill("EK-3339");
     await page.locator("#loyaltySubmit").click();
     await page.waitForFunction(()=>[...document.querySelectorAll(".loyaltyRow")].some(n=>n.textContent.includes("3339")));
+    await last.locator(".loyaltyMoreToggle").click();
     await last.getByRole("button",{name:"Supprimer"}).click();
     assert.equal(await page.locator("#loyaltyDeleteConfirm").isVisible(),true);
     assert.equal(await page.locator(".loyaltyRow").count(),2,"No deletion before explicit confirmation");
     await page.locator("#loyaltyCancelDelete").click();
     assert.equal(await page.locator(".loyaltyRow").count(),2);
+    await last.locator(".loyaltyMoreToggle").click();
     await last.getByRole("button",{name:"Supprimer"}).click();
     await page.locator("#loyaltyConfirmDelete").click();
     await page.waitForFunction(()=>document.querySelectorAll(".loyaltyRow").length===1);

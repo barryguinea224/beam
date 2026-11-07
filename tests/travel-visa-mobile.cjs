@@ -6,13 +6,13 @@ const {chromium}=require("playwright");
 const root=path.resolve(__dirname,"..");
 const html=fs.readFileSync(path.join(root,"travel/index.html"),"utf8");
 const moduleSource=fs.readFileSync(path.join(root,"travel/visa-guide.js"),"utf8");
-const style=html.match(/<style>([\s\S]*?)<\/style>/)?.[1];
+const style=html.match(/<style>([\s\S]*?)<\/style>/)?.[1]+fs.readFileSync(path.join(root,"travel/account-settings.css"),"utf8");
 const startHero=html.indexOf('<section id="travelHero"'),endHero=html.indexOf('<section id="accountStatusChecking"');
 const startDetail=html.indexOf('<div id="tripDetailModal"'),endDetail=html.indexOf('<script src="https://cdn.jsdelivr.net',startDetail);
 const startAccount=html.indexOf('<div id="accountOverlay"'),endAccount=html.indexOf('<div id="modal"',startAccount);
 assert.ok(startAccount>0&&endAccount>startAccount,"read real BTH Mon compte drawer");
 const accountFragment=html.slice(startAccount,endAccount).replace(/<\/div><\/main>\s*$/,"");
-assert.ok(accountFragment.includes('id="myAccount"')&&accountFragment.includes('accountIdentityShortcut'),
+assert.ok(accountFragment.includes('id="myAccount"')&&accountFragment.includes('id="accountLinks"'),
  "account mobile test uses the real identity shortcut, not a fabricated fixture");
 assert.ok(style&&startHero>0&&endHero>startHero&&startDetail>0&&endDetail>startDetail,
  "use markup and CSS from the actual BTH application, not a separate invented layout");
@@ -50,11 +50,11 @@ async function main(){
      el.classList.add("accountOpen");
      el.setAttribute("aria-hidden","false");
     });
-    const accountLink=page.locator("#myAccount .accountIdentityShortcut a");
+    const accountLink=page.locator("#accountLinks a[href=\"https://ididentite.com/\"]");
     assert.equal(await accountLink.count(),1);
-    assert.equal(await accountLink.innerText(),"Mes informations d'identité → identité");
+    assert.equal(await accountLink.locator("span").first().innerText(),"Mes informations d'identité avec iD");
     assert.equal(await accountLink.getAttribute("href"),"https://ididentite.com/");
-    assert.equal(await accountLink.getAttribute("rel"),"noopener");
+    assert.equal(await accountLink.getAttribute("rel"),"noopener noreferrer");
     assert.equal(await accountLink.getAttribute("target"),null,"same-tab identity link");
     assert.equal(await accountLink.getAttribute("onclick"),null);
     assert.ok(await accountLink.isVisible(),"identity link must be visible in Mon compte");

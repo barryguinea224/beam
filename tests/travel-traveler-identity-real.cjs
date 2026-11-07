@@ -135,7 +135,7 @@ async function main(){
     assert.ok(Math.abs(head.avatarBox.width-head.avatarBox.height)<1,"avatar must stay round");
     assert.equal(head.label,"J\u0027y étais");
     assert.equal(head.subtitle,"Mon histoire à travers le monde");
-    assert.ok(head.accountText.includes("Mon compte")&&head.accountHit,"account link must be accessible");
+    assert.ok(head.accountHit && await page.locator("#openAccount").getAttribute("aria-label")==="Paramètres du compte","account link must be accessible");
     assert.ok(head.titleFits&&head.titleNotClipped,"long name must wrap, not overflow or truncate "+JSON.stringify(head));
     assert.ok(head.scrollWidth<=width+1,"no horizontal overflow at "+width+"px "+JSON.stringify(head));
     if(width<=390){
