@@ -13,6 +13,7 @@
     return Number.isNaN(date.getTime()) ? "" :
       date.toLocaleDateString("fr-FR", {day:"numeric",month:"long",year:"numeric"});
   }
+  const DURATIONS=root?.BEAM_ACTIVITY_DURATIONS||(typeof require==="function"?require("./activity-durations.js"):null);
   const MAX_CAPTION=500;
   const captionValue=value=>typeof value==="string"?value.trim().slice(0,MAX_CAPTION):"";
   function badges(row,stay={}){
@@ -41,23 +42,24 @@
   function activities(rows) {
     if (!rows.length) return '<p class="detailEmpty">Aucune activité pour le moment.</p>';
     return '<ul class="detailActivityList">' + rows.map(row => {
-      const meta = [row.place && esc(row.place),row.happened_on && esc(dateFR(row.happened_on))].filter(Boolean);
+      const meta = [row.place && esc(row.place),row.happened_on && esc(DURATIONS?.format(row.happened_on,row.duration_days||1)||dateFR(row.happened_on))].filter(Boolean);
       return '<li class="detailActivity"><div class="detailActivityText"><strong>' + esc(row.title) +
         '</strong>' + (meta.length ? '<p>' + meta.join(" · ") + '</p>' : '') +
         '</div><button type="button" class="btn ghost detailRemoveActivity" data-id="' + esc(row.id) +
         '" aria-label="Supprimer l’activité ' + esc(row.title) + '">Retirer</button></li>';
     }).join("") + '</ul>';
   }
-  function validateActivity({title,place,happened_on}, trip) {
+  function validateActivity({title,place,happened_on,duration_days=1}, trip) {
     const cleanTitle = String(title ?? "").trim();
     const cleanPlace = String(place ?? "").trim();
     const date = String(happened_on ?? "").trim();
     if (!cleanTitle || cleanTitle.length > 160) return {error:"Saisissez un titre de 160 caractères maximum."};
     if (cleanPlace.length > 160) return {error:"Le lieu est limité à 160 caractères."};
-    if (date && (!/^\d{4}-\d{2}-\d{2}$/.test(date) || date < trip.entry_date || date > trip.exit_date)) {
-      return {error:"La date doit être comprise entre l’entrée et la sortie du voyage."};
-    }
-    return {value:{title:cleanTitle,place:cleanPlace || null,happened_on:date || null,kind:"lieu"}};
+    const days=Number(duration_days);
+    const durationError=DURATIONS?.validate(date,days,trip);
+    if(durationError)return {error:durationError};
+    if(!DURATIONS&&(!Number.isInteger(days)||days<1||days>30))return {error:"Durée invalide."};
+    return {value:{title:cleanTitle,place:cleanPlace || null,happened_on:date || null,duration_days:days,kind:"lieu"}};
   }
   const api=Object.freeze({photos,badges,captionValue,MAX_CAPTION,activities,validateActivity,dateFR});
   if(root)root.BEAM_TRIP_DETAIL=api;

@@ -1,0 +1,35 @@
+name: BTH — activités multi-jours et compagnons (Android)
+on:
+  pull_request:
+    branches: [feature/beam-travel-history-v1]
+    paths:
+      - "travel/**"
+      - "tests/travel-activity-duration-companions*.cjs"
+      - ".github/workflows/travel-activity-companions.yml"
+permissions:
+  contents: read
+jobs:
+  activity-companions:
+    name: Dates, confidentialité, formulaires Android 320/360/390
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Unit tests and exact production queries
+        run: node tests/travel-activity-duration-companions.cjs
+      - name: Install local headless browser
+        run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Test actual form DOM and capture Android widths
+        run: node tests/travel-activity-duration-companions-mobile.cjs
+      - name: Upload synthetic screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bth-activities-companions-android-320-390
+          path: test-artifacts/activity-companions/*.png
+          if-no-files-found: warn
