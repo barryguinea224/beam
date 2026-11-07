@@ -34,7 +34,7 @@
    d) anciennes sessions et jetons de renouvellement sont détruits;
    e) une seule trace d'audit est enregistrée. Ne pas utiliser de compte réel.
    Les tests GitHub réalisent les assertions SQL et une connexion GoTrue sur une
-   base Supabase isolée, avec un e-mail fictif capturé par Inbucket local. Ils ne touchent aucun projet hébergé.
+   base Supabase isolée, avec un e-mail fictif capturé par Mailpit local. Ils ne touchent aucun projet hébergé.
 3. **Production** : après validation du fonctionnement et des accès refusés sur
    staging, faire une sauvegarde et appliquer **uniquement la même migration**
    depuis le SQL Editor du projet **production**, sous postgres. Aucune

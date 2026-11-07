@@ -200,7 +200,7 @@ jobs:
           done
           echo "PASS ${#tests[@]} reviewed local SQL regression test files"
 
-      - name: Real recovered-email GoTrue login on local Auth + Inbucket only
+      - name: Real recovered-email GoTrue login on local Auth + Mailpit only
         shell: bash
         run: |
           set -euo pipefail

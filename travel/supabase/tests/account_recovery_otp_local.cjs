@@ -19,7 +19,7 @@ function loadCLI(){
   if(match)cfg[match[1]]=match[2].replace(/^["']|["']$/g,"");
  }
  const api=local(cfg.API_URL||"http://127.0.0.1:54321");
- const inbox=local(cfg.INBUCKET_URL||"http://127.0.0.1:54324");
+ const inbox=local(cfg.MAILPIT_URL||cfg.INBUCKET_URL||"http://127.0.0.1:54324");
  if(!cfg.ANON_KEY||!cfg.SERVICE_ROLE_KEY)throw Error("Local CLI keys absent (not logged)");
  return {api,inbox,key:cfg.ANON_KEY,admin:cfg.SERVICE_ROLE_KEY};
 }
@@ -37,12 +37,14 @@ async function json(url){
  return r.json();
 }
 async function mailbox(inbox,name){
- const response=await fetch(local(inbox+"/api/v1/mailbox/"+encodeURIComponent(name)),
-   {signal:AbortSignal.timeout(6000)});
- // Inbucket returns 404 when a mailbox has never received a message.
- if(response.status===404)return [];
- if(!response.ok)throw Error("Local mailbox listing HTTP "+response.status);
- return response.json();
+ // Supabase CLI >=2.108 runs Mailpit, not the old Mailpit API.
+ // Mailpit lists all captured local messages at /api/v1/messages and
+ // message bodies at /api/v1/message/:ID. Only fixture email addresses.
+ const listing=await json(inbox+"/api/v1/messages?limit=50");
+ if(!Array.isArray(listing.messages))throw Error("Unexpected local Mailpit API response");
+ const address=name.toLowerCase()+"@example.com";
+ return listing.messages.filter(message=>Array.isArray(message.To)&&
+  message.To.some(to=>String(to.Address||"").toLowerCase()===address));
 }
 async function otp(api,key,email){
  const res=await fetch(api+"/auth/v1/otp",{
@@ -52,15 +54,15 @@ async function otp(api,key,email){
  return {ok:res.ok,status:res.status,code:res.ok?"":(await res.text()).slice(0,260)};
 }
 async function receive(inbox,name){
- for(let i=0;i<24;i++){
+ for(let i=0;i<32;i++){
   const items=await mailbox(inbox,name);
-  if(Array.isArray(items)&&items.length){
-   const id=items[0].id;
-   if(id)return json(inbox+"/api/v1/mailbox/"+encodeURIComponent(name)+"/"+encodeURIComponent(id));
+  if(items.length){
+   const id=items[0].ID;
+   if(id)return json(inbox+"/api/v1/message/"+encodeURIComponent(id));
   }
   await new Promise(resolve=>setTimeout(resolve,250));
  }
- throw Error("No local GoTrue email delivered to "+name+" mailbox");
+ throw Error("No local GoTrue email delivered to "+name+" in Mailpit");
 }
 async function main(){
  const {api,inbox,key,admin}=loadCLI();
@@ -87,7 +89,7 @@ async function main(){
   const next=await otp(api,key,newEmail);
   assert.ok(next.ok,"GoTrue refused new email OTP request: "+next.status+" "+next.code);
   const letter=await receive(inbox,"recuperation-nouveau");
-  const body=[letter.body?.text,letter.body?.html,letter.text,letter.html,letter.body]
+  const body=[letter.Text,letter.HTML]
    .filter(Boolean).map(x=>typeof x==="string"?x:JSON.stringify(x)).join("\n")
    .replaceAll("&amp;","&");
   const match=body.match(/https?:\/\/(?:localhost|127\.0\.0\.1):54321\/auth\/v1\/verify\?[^\s<>"')]+/);
