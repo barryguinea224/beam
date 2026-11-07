@@ -1,4 +1,4 @@
-// BEAM Travel History PDF V1 - strictly factual, built locally in the browser.
+// J'y étais PDF V1 - strictly factual, built locally in the browser.
 // The only source is the security_invoker view travel_history_pdf, with a closed projection.
 // Never add notes, activities, photos or an option to include private memories here.
 (function(root){
@@ -232,7 +232,7 @@
     const contacts=includeContacts?contactProjection(metadata?.contacts):null;
     doc.documentElement.lang="fr";
     const meta=doc.createElement("meta");meta.setAttribute("charset","utf-8");
-    const title=doc.createElement("title");title.textContent="Historique de voyages";
+    const title=doc.createElement("title");title.textContent="J'y étais — Historique de voyages";
     const style=doc.createElement("style");style.textContent=CSS;
     doc.head.replaceChildren(meta,title,style);
     doc.body.replaceChildren();
@@ -291,14 +291,14 @@
       if(!supportsFiles){downloadFile();return}
       try{
         Promise.resolve(win.navigator.share({
-          files:[exportFile],title:"Historique de voyages",text:"Historique de voyages"
+          files:[exportFile],title:"J'y étais — Historique de voyages",text:"Historique de voyages"
         })).catch(err=>{
           if(err?.name!=="AbortError")downloadFile();
         });
       }catch{downloadFile()}
     });
     const header=add(main,"header");
-    add(header,"h1","Historique de voyages");
+    add(header,"h1","J'y étais — Historique de voyages");
     add(header,"p",name,"traveler-name");
     add(header,"p",date,"meta");
     if(contacts){

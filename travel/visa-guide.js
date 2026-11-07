@@ -1,4 +1,4 @@
-// BEAM BTH -> public visa guide: never send any trip or account data.
+// BEAM J'y étais -> public visa guide: never send any trip or account data.
 // Single fixed, same-origin GET with no cookies, referrer, query or persistence.
 (function(root){
  "use strict";

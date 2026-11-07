@@ -1,4 +1,4 @@
-// BEAM Travel History PWA: only shell files are cached by /travel/sw.js.
+// J'y étais PWA: only shell files are cached by /travel/sw.js.
 // No trip data, Supabase request, signed URL or private photo is cached here.
 (function (root) {
   "use strict";
@@ -119,7 +119,7 @@
           const result=await event.userChoice;
           accepted=result?.outcome==="accepted";
           installNotice=accepted?
-            "Demande d’installation acceptée. Vérifiez l’icône BTH sur votre écran d’accueil.":
+            "Demande d’installation acceptée. Vérifiez l’icône J'y étais sur votre écran d’accueil.":
             "Installation non confirmée. Vous pouvez utiliser le menu de votre navigateur.";
         }catch{
           installNotice="Installation native indisponible. Consultez les étapes de votre navigateur.";
