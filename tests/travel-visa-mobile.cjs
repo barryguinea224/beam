@@ -52,7 +52,7 @@ async function main(){
     });
     const accountLink=page.locator("#accountLinks a[href=\"https://ididentite.com/\"]");
     assert.equal(await accountLink.count(),1);
-    assert.equal(await accountLink.innerText(),"Mes informations d'identité avec iD");
+    assert.equal(await accountLink.locator("span").first().innerText(),"Mes informations d'identité avec iD");
     assert.equal(await accountLink.getAttribute("href"),"https://ididentite.com/");
     assert.equal(await accountLink.getAttribute("rel"),"noopener noreferrer");
     assert.equal(await accountLink.getAttribute("target"),null,"same-tab identity link");

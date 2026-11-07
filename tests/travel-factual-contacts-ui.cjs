@@ -114,7 +114,7 @@ async function main(){
   assert.equal(await page.locator("#includePdfContacts").isChecked(),false);
   // Real 360px layout: serif heading, visible divider and no horizontal scroll.
   const design=await page.evaluate(()=>{
-   const heading=document.querySelector("#accountProfileCard .accountSubTitle");
+   const heading=document.querySelector("#contactDetailsForm .accountSubTitle");
    const contacts=document.querySelector("#contactDetailsForm");
    const before=document.querySelector("#travelerNameForm");
    const style=getComputedStyle(contacts);
