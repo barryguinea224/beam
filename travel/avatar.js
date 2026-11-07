@@ -1,4 +1,4 @@
-// Private BTH avatar: client-side centered square WebP, row-first Storage, server cleanup.
+// Private J'y étais avatar: client-side centered square WebP, row-first Storage, server cleanup.
 // Never store source images, signed URLs or EXIF outside memory/temporary DOM.
 (function(root){
 "use strict";

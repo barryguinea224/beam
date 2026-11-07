@@ -1,4 +1,4 @@
-// BEAM Travel History · private loyalty numbers. Not loaded in public exports.
+// J'y étais · private loyalty numbers. Not loaded in public exports.
 (function(root){
 "use strict";
 const CATALOG=root?.BEAM_LOYALTY_PROGRAMS||(typeof require==="function"?require("./loyalty-programs.js"):null);

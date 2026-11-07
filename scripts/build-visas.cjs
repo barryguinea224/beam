@@ -4,12 +4,12 @@
  * Local preview: node scripts/build-visas.cjs --preview
  * Strict CI check: node scripts/build-visas.cjs --check (all JSON must validate).
  * Production: node scripts/build-visas.cjs --production (exclude bad/demo,
- * never block BTH because of guide content).
+ * never block J&#39;y étais because of guide content).
  * Netlify CONTEXT=production always uses the resilient production build.
  */
 const fs = require("node:fs");
 const path = require("node:path");
-// Reuse BTH’s local ISO 3166-1 alpha-2 catalogue (249 real country/territory codes).
+// Reuse J'y étais local ISO 3166-1 alpha-2 catalogue (249 real country/territory codes).
 const ISO_COUNTRIES = require("../travel/countries.js");
 
 const MARKER = "EXEMPLE — NON VÉRIFIÉ";
@@ -296,7 +296,7 @@ function renderDestination(entry, slug, today) {
     staleBanner(entry,today),
     entry.types_visa.map((visa,index)=>renderType(visa,demo,index)).join("\n"),
     '<div class="share-area">' + link(share,"Partager cette liste sur WhatsApp",' class="button secondary share-button"') + '</div>',
-    '<p class="related-travel"><a href="/travel/">Conservez votre historique de voyages avec BTH</a></p>',
+    '<p class="related-travel"><a href="/travel/">Conservez votre historique de voyages avec J&#39;y étais</a></p>',
     '<section class="identity-support" aria-label="Accompagnement BEAM">',
     '<h2>Accompagnement BEAM</h2>',
     '<a class="button secondary identity-support-link" href="https://ididentite.com/" rel="noopener">Envoyez vos informations de passeport en toute sécurité avec iD</a>',
@@ -329,7 +329,7 @@ function renderHome(entries,today) {
         '<section class="next"><h2>Besoin d’être accompagné ?</h2>',
         '<p>BEAM peut vous aider à organiser vos démarches sans garantir une décision consulaire.</p>',
         '<div class="actions">' + link(whatsapp,"Être accompagné par BEAM",' class="button primary"') +
-        '<a class="button secondary" href="/travel/">Conservez votre historique de voyages avec BTH</a></div></section>'
+        '<a class="button secondary" href="/travel/">Conservez votre historique de voyages avec J&#39;y étais</a></div></section>'
       ].join("\n")
     });
   }
@@ -352,7 +352,7 @@ function renderHome(entries,today) {
     '<section class="list-section"><h2>Destinations</h2><ul class="destination-list">' + cards + "</ul></section>",
     '<section class="next"><h2>Votre parcours de voyageur</h2>',
     '<p>Conservez vos voyages dans un carnet personnel distinct du guide des visas.</p>',
-    '<a class="button secondary" href="/travel/">Conservez votre historique de voyages avec BTH</a></section>'
+    '<a class="button secondary" href="/travel/">Conservez votre historique de voyages avec J&#39;y étais</a></section>'
   ].join("\n");
   return shell({title:"Guide des visas depuis Conakry | BEAM",description:"Guide de visas indépendant BEAM, avec sources officielles, dates de vérification et informations indicatives.",body,demo});
 }
@@ -416,7 +416,7 @@ function buildSite({root=path.resolve(__dirname,".."),mode="preview",today=today
     }
   }
   fs.writeFileSync(path.join(destDir,"index.html"),renderHome(entries,today),"utf8");
-  // Public, data-minimal index for BTH. Never include example, draft, travel
+  // Public, data-minimal index for J&#39;y étais. Never include example, draft, travel
   // records, URLs from source fiches or other editorial fields. Regenerate from
   // scratch on every build so unpublished/removed fiches disappear immediately.
   const publicFiches=entries

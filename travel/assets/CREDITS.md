@@ -26,3 +26,6 @@ Six illustrations schématiques **originales** (aucune photographie prise sur In
 Ces dessins ne reproduisent aucune photographie tierce. Toutes les images WebP ont un poids **inférieur à 40 Ko** ; les autres destinations utilisent le fond neutre CSS.
 
 **Règle de confidentialité :** jamais de CDN de drapeaux, Wikimedia Commons, Unsplash, Google Images ou autre hôte tiers consulté lors de l'ouverture du carnet. La source des images de fond du pays et des SVG est un chemin relatif `./assets/...`. Le seul autre serveur d'images autorisé est le projet Supabase BEAM existant, et uniquement pour les couvertures privées après contrôle propriétaire et signature temporaire.
+
+## Marque « J'y étais » (`brand/`)
+Logo et icônes originaux créés pour BEAM (pin doré, trajet, avion stylisé). Les lettres du logo sont des contours vectoriels tirés de la police Poppins Bold (SIL Open Font License 1.1) : aucune police n'est chargée par l'appli.

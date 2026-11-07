@@ -1,4 +1,4 @@
-// BEAM Travel History: country visuals are local assets; covers are owned signed URLs.
+// J'y étais: country visuals are local assets; covers are owned signed URLs.
 // Never send country codes to Unsplash, flag CDNs or any analytics/image service.
 (function(root){
   "use strict";

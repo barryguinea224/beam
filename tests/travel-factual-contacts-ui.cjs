@@ -81,7 +81,7 @@ function fakeSupabase(){
 }
 async function waitPopup(page,doClick){
  const [popup]=await Promise.all([page.waitForEvent("popup",{timeout:12000}),doClick()]);
- await popup.waitForFunction(()=>document.title==="Historique de voyages",null,{timeout:12000});
+ await popup.waitForFunction(()=>document.title==="J'y étais — Historique de voyages",null,{timeout:12000});
  return popup;
 }
 async function main(){

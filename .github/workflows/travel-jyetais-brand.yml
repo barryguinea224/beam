@@ -1,0 +1,45 @@
+name: "J'y étais — identité visuelle et captures Android"
+on:
+  pull_request:
+    branches: [feature/beam-travel-history-v1]
+    paths:
+      - "travel/**"
+      - "index.html"
+      - "scripts/build-visas.cjs"
+      - "tests/travel-jyetais-*.cjs"
+      - ".github/workflows/travel-jyetais-brand.yml"
+permissions:
+  contents: read
+jobs:
+  static-brand:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: "22"}
+      - name: Manifest, SVG/PNG dimensions, retired labels, PDFs and metadata
+        run: node tests/travel-jyetais-brand.cjs
+  android-captures:
+    needs: static-brand
+    runs-on: ubuntu-latest
+    timeout-minutes: 16
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: "22"}
+      - name: Install Playwright Chromium
+        run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Real layout in simulated Android Chromium 320, 360 and 390 px
+        run: node tests/travel-jyetais-android.cjs
+      - name: Upload fictional Android screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jyetais-android-connexion-accueil-livret-320-360-390
+          if-no-files-found: warn
+          path: test-artifacts/jyetais-android/*.png

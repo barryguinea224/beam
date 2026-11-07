@@ -15,6 +15,9 @@ on:
       - "travel/supabase/migrations/20261105150000_loyalty_memberships.sql"
       - "travel/supabase/migrations/20261107100000_activity_duration_companions.sql"
       - "travel/supabase/migrations/20261107150000_trip_stops.sql"
+      - "travel/supabase/migrations/20261107093000_account_email_recovery.sql"
+      - "travel/supabase/ACCOUNT_RECOVERY.md"
+      - "travel/supabase/tests/account_recovery_otp_local.cjs"
       - "travel/supabase/tests/*.sql"
       - ".github/workflows/travel-schema-fresh-replay.yml"
       - "PRODUCTION_SETUP.md"
@@ -85,6 +88,19 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          # Only modify THIS disposable runner's config; never commit/push
+          # provider settings to hosted staging/production. Keep global
+          # signup OFF while allowing the already invited user to receive OTP.
+          python3 - <<'PY'
+          from pathlib import Path
+          cfg=Path("supabase/config.toml")
+          source=cfg.read_text()
+          assert "[auth]\nenable_signup = false" in source
+          target="[auth.email]\nenable_signup = false"
+          assert source.count(target)==1
+          cfg.write_text(source.replace(target,"[auth.email]\nenable_signup = true"))
+          print("Local Auth email provider enabled; global signup remains disabled")
+          PY
           supabase start
           pg_isready -h "$PGHOST" -p "$PGPORT" -U "$PGUSER"
 
@@ -137,6 +153,14 @@ jobs:
           psql -X -v ON_ERROR_STOP=1 -f travel/supabase/migrations/20261107150000_trip_stops.sql
           echo 'PASS BTH trip_stops migration replayed twice'
 
+      - name: Replay owner-only account recovery migration twice on local Auth
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql -X -v ON_ERROR_STOP=1 -f travel/supabase/migrations/20261107093000_account_email_recovery.sql
+          psql -X -v ON_ERROR_STOP=1 -f travel/supabase/migrations/20261107093000_account_email_recovery.sql
+          echo 'PASS recovery SQL idempotent on local Auth schema'
+
       - name: Validate RLS, grants, private Storage and unscheduled worker
         shell: bash
         run: |
@@ -165,6 +189,7 @@ jobs:
             loyalty_memberships_security.sql
             activity_duration_companions_security.sql
             trip_stops_security.sql
+            account_email_recovery_security.sql
             sql_storage_hardening.sql
           )
           for test in "${tests[@]}"; do
@@ -174,6 +199,12 @@ jobs:
             echo "::endgroup::"
           done
           echo "PASS ${#tests[@]} reviewed local SQL regression test files"
+
+      - name: Real recovered-email GoTrue login on local Auth + Mailpit only
+        shell: bash
+        run: |
+          set -euo pipefail
+          node travel/supabase/tests/account_recovery_otp_local.cjs
 
       - name: Recheck no scheduled cron jobs after all tests
         shell: bash

@@ -1,4 +1,4 @@
-// BEAM Travel History · original, deterministic connections on the local world SVG.
+// J'y étais · original, deterministic connections on the local world SVG.
 // Public geometry only. Never cache or persist the residence or trip selections.
 (function(root){
 "use strict";

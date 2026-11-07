@@ -1,4 +1,4 @@
-// BEAM Travel History factual PDF file export for Android native sharing.
+// J'y étais factual PDF file export for Android native sharing.
 // Local, deterministic A4 text PDF. No CDN, canvas, profile storage or network.
 // Reuses the exact factual view projection from factual-pdf.js; optional contact
 // data is explicitly whitelisted and never supplied by the trips view.
@@ -86,7 +86,7 @@
   function horizontal(py){command("0.75 0.82 0.76 RG 0.6 w 42 "+py+" m 553 "+py+" l S")}
   function beginPage(){
    operations=[];pages.push(operations);
-   color(0.09,0.302,0.227);textAt("Historique de voyages",42,809,18,true);
+   color(0.09,0.302,0.227);textAt("J'y étais - Historique de voyages",42,809,18,true);
    color(0.18,0.24,0.2);
    textAt(name,42,765,14,true);
    textAt(generation,42,744,9);
@@ -167,7 +167,10 @@
   }
   objects[2]="<< /Type /Pages /Kids ["+pageIds.map(n=>n+" 0 R").join(" ")+
    "] /Count "+pageIds.length+" >>";
-  let body="%PDF-1.4\n%\xE2\xE3\xCF\xD3\n";
+  const infoId=next++;
+   objects[infoId]="<< /Title ("+pdfText("J'y étais - Historique de voyages")+
+    ") /Creator ("+pdfText("J'y étais")+") /Producer ("+pdfText("J'y étais")+") >>";
+   let body="%PDF-1.4\n%\xE2\xE3\xCF\xD3\n";
   const offsets=[0];
   for(let i=1;i<next;i++){
    offsets[i]=toBytes(body).length;
@@ -176,7 +179,7 @@
   const xref=toBytes(body).length;
   body+="xref\n0 "+next+"\n0000000000 65535 f \n";
   for(let i=1;i<next;i++)body+=String(offsets[i]).padStart(10,"0")+" 00000 n \n";
-  body+="trailer\n<< /Size "+next+" /Root 1 0 R >>\nstartxref\n"+xref+"\n%%EOF\n";
+  body+="trailer\n<< /Size "+next+" /Root 1 0 R /Info "+infoId+" 0 R >>\nstartxref\n"+xref+"\n%%EOF\n";
   return toBytes(body);
  }
  const api=Object.freeze({make,wrap,win1252});

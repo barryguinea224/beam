@@ -73,7 +73,7 @@ async function main(){
       "#travelHero [data-beam-install-area]","#travelHero [data-beam-install-help]","#addFirstTrip"]){
      assert.equal(await page.locator(s).isVisible(),true,s+" visible in empty carnet at "+width);
     }
-    assert.match(await page.locator(".travelerTopBar").innerText(),/Mon carnet de voyage/i);
+    assert.equal(await page.locator(".travelerTopBar .jyHeaderLogo").getAttribute("alt"),"J\u0027y étais");
     assert.match(await page.locator("#openAccount").innerText(),/Mon compte/);
     for(const s of ["#travelHero .actions","#travelHero .statsWrap",
       "#travelMapPanel","#filterAnchor","#pdf","#printJournal"]){
@@ -96,7 +96,7 @@ async function main(){
      window.dispatchEvent(event);
     });
     await page.locator("#travelHero [data-beam-install-action]").waitFor({state:"visible"});
-    assert.equal(await page.locator("#travelHero [data-beam-install-action]").textContent(),"Installer BTH");
+    assert.equal(await page.locator("#travelHero [data-beam-install-action]").textContent(),"Installer J'y étais");
     await page.locator("#travelHero [data-beam-install-action]").click();
     assert.match(await page.locator("#travelHero [data-beam-install-status]").textContent(),/Demande d’installation acceptée/);
     // The empty account must support edit AND logout without creating any trip.
