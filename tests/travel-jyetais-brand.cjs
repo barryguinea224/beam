@@ -68,7 +68,7 @@ for(const file of ["travel/confidentialite.html","travel/conditions.html"]){
  const text=read(file);
  assert.ok(text.includes("J&#39;y étais by BEAM"),"Legal footer signature: "+file);
 }
-assert.match(read("travel/printable-journal.js"),/J'y étais by BEAM/);
+assert.match(read("travel/printable-journal.js"),/el\(closing,"p","brand-signature","J'y étais"\)/);
 assert.match(read("travel/family-booklet.js"),/J'y étais by BEAM/);
 // Both factual PDF paths must be branded J'y étais but never BEAM.
 assert.match(pdfHtml,/J'y étais — Historique de voyages/);

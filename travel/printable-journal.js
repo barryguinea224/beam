@@ -421,7 +421,7 @@
   el(closing,"p","eyebrow","MON CARNET PERSONNEL");
   el(closing,"h2",null,"Chaque voyage laisse une histoire.");
   el(closing,"p",null,"Carnet généré le "+generatedAt.toLocaleDateString("fr-FR",{day:"numeric",month:"long",year:"numeric"}));
-   el(closing,"p","brand-signature","J'y étais by BEAM");
+   el(closing,"p","brand-signature","J'y étais");
   // The image-load path is intentionally independent of the signed URL source.
   // Failed signatures + failed image fetches are both reflected in the toolbar.
   const images=[...doc.querySelectorAll("img")].filter(img=>img.src.startsWith("https://"));
