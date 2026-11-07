@@ -7,17 +7,32 @@ function init({supabase,user,isActive,canWrite,onChange}){
  if(!root?.document||!CATALOG)return null;
  const doc=root.document,$=id=>doc.getElementById(id);
  const program=$("loyaltyProgram"),number=$("loyaltyNumber"),tier=$("loyaltyTier"),expiry=$("loyaltyExpiry");
- let rows=[],revision=0,busy=false,editing=null,deleteTarget=null,revealed=new Set(),loaded=false;
+ let rows=[],revision=0,busy=false,editing=null,deleteTarget=null,revealed=new Set(),loaded=false,openMenuId=null;
  const el=(tag,cls,text)=>{const n=doc.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n};
  const btn=(label,action)=>{const b=el("button","btn ghost",label);b.type="button";b.addEventListener("click",action);return b};
  const status=text=>{$("loyaltyStatus").textContent=text};
  const enabled=()=>!!supabase&&!!user()?.id&&!!isActive();
+ function closeMenus(){
+  openMenuId=null;
+  doc.querySelectorAll(".loyaltyMoreMenu").forEach(m=>m.classList.add("hidden"));
+  doc.querySelectorAll(".loyaltyMoreToggle").forEach(b=>b.setAttribute("aria-expanded","false"));
+ }
+ doc.addEventListener("pointerdown",event=>{
+  if(!event.target.closest?.(".loyaltyActions"))closeMenus();
+ });
+ doc.addEventListener("keydown",event=>{
+  if(event.key==="Escape"&&openMenuId){
+   event.preventDefault();event.stopPropagation();
+   const toggle=doc.querySelector('.loyaltyMoreToggle[aria-expanded="true"]');
+   closeMenus();toggle?.focus();
+  }
+ },true);
  function refresh(){
   const can=enabled()&&canWrite()&&!busy;
   $("loyaltyAdd").disabled=!can||rows.length>=CATALOG.PROGRAMS.length;
   $("loyaltyAdd").classList.toggle("hidden",!can);
   const list=$("loyaltyOwned"),missing=$("loyaltyAvailable");
-  list.replaceChildren();missing.replaceChildren();
+  openMenuId=null;list.replaceChildren();missing.replaceChildren();
   if(loaded&&!rows.length)list.append(el("p","mapInfo","Aucun programme enregistré pour le moment."));
   for(const row of rows){
    const p=CATALOG.BY_CODE[row.program_code];if(!p)continue;
@@ -32,21 +47,36 @@ function init({supabase,user,isActive,canWrite,onChange}){
    if(row.tier)item.append(el("small","loyaltyMeta","Statut : "+row.tier));
    if(row.miles_expiry)item.append(el("small","loyaltyMeta","Expiration des miles : "+row.miles_expiry));
    const actions=el("div","loyaltyActions");
-   const view=btn(revealed.has(row.id)?"Masquer":"Afficher",()=>{
+   const view=btn("👁",()=>{
     if(revealed.has(row.id))revealed.delete(row.id);else revealed.add(row.id);refresh();
    });
+   view.classList.add("loyaltyIconButton");
+   view.setAttribute("aria-label",revealed.has(row.id)?"Masquer":"Afficher");
+   view.title=revealed.has(row.id)?"Masquer":"Afficher";
    view.setAttribute("aria-pressed",String(revealed.has(row.id)));
-   actions.append(view,btn("Copier",async()=>{
+   const copy=btn("⧉",async()=>{
     if(!enabled())return;
     try{
      if(!root.navigator?.clipboard?.writeText)throw Error("Clipboard unavailable");
      await root.navigator.clipboard.writeText(row.member_number);
      status("Numéro copié. Pensez à vider le presse-papiers partagé si nécessaire.");
     }catch{status("Copie indisponible sur cet appareil. Utilisez « Afficher » pour relever le numéro.");}
-   }));
-   const edit=btn("Modifier",()=>openForm(row));edit.disabled=!can;
-   const del=btn("Supprimer",()=>confirmDeletion(row));del.disabled=!can;
-   actions.append(edit,del);item.append(actions);list.append(item);
+   });
+   copy.classList.add("loyaltyIconButton");copy.setAttribute("aria-label","Copier");copy.title="Copier";
+   const more=btn("⋯",()=>{
+    const opening=menu.classList.contains("hidden");closeMenus();
+    if(opening){openMenuId=row.id;menu.classList.remove("hidden");more.setAttribute("aria-expanded","true");edit.focus();}
+   });
+   more.classList.add("loyaltyIconButton","loyaltyMoreToggle");
+   more.setAttribute("aria-label","Actions du programme "+p.name);
+   more.setAttribute("aria-expanded","false");more.setAttribute("aria-haspopup","true");
+   const menu=el("div","loyaltyMoreMenu hidden");
+   menu.setAttribute("role","group");menu.setAttribute("aria-label","Modifier ou supprimer "+p.name);
+   const edit=btn("Modifier",()=>{closeMenus();openForm(row)});edit.disabled=!can;
+   const del=btn("Supprimer",()=>{closeMenus();confirmDeletion(row)});del.disabled=!can;
+   edit.classList.add("loyaltyMoreItem");del.classList.add("loyaltyMoreItem");
+   menu.append(edit,del);actions.append(view,copy,more,menu);
+   item.append(actions);list.append(item);
   }
   const existing=new Set(rows.map(r=>r.program_code));
   for(const p of CATALOG.PROGRAMS){
@@ -75,7 +105,7 @@ function init({supabase,user,isActive,canWrite,onChange}){
  function clear(){
   revision++;rows=[];editing=null;deleteTarget=null;revealed.clear();loaded=false;busy=false;
   $("loyaltyForm").classList.add("hidden");$("loyaltyDeleteConfirm").classList.add("hidden");
-  $("loyaltyForm").reset();refresh();status("Ouvrez Mon compte pour consulter vos programmes.");
+  $("loyaltyForm").reset();refresh();status("Ouvrez Paramètres pour consulter vos programmes.");
   onChange?.();
  }
  async function reload(){

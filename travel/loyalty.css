@@ -24,3 +24,21 @@
 .loyaltyDeleteButtons{display:flex;flex-wrap:wrap;gap:9px;margin-top:9px}
 .loyaltyTripHint{font-size:12px;line-height:1.5;color:#2e6847;background:#edf6ee;border-radius:8px;padding:9px 11px;margin:7px 0}
 @media(max-width:390px){.loyaltyRow{padding:10px}.loyaltyActions{gap:5px}.loyaltyActions .btn{padding:8px 10px;font-size:12px}}
+
+/* Compact actions: three 44px buttons, one row, accessible contextual menu. */
+.loyaltyPanel{margin:0!important}
+.loyaltyRow{padding:12px;gap:8px;background:#fcfdfb}
+.loyaltyActions{display:flex;flex-wrap:nowrap;align-items:center;gap:9px;position:relative}
+.loyaltyActions .loyaltyIconButton{min-width:44px;width:44px;min-height:44px;height:44px;padding:0;display:grid;place-items:center;border-radius:12px;font-size:23px;line-height:1;background:#fff;border:1px solid #cadace;color:#174d3a}
+.loyaltyActions .loyaltyIconButton[aria-pressed="true"]{background:#e6f1e9}
+.loyaltyMoreMenu{position:absolute;right:0;top:calc(100% + 6px);z-index:5;width:min(200px,100%);border:1px solid #ccd8d0;box-shadow:0 12px 27px #12251b22;border-radius:12px;background:#fff;padding:5px}
+.loyaltyActions .loyaltyMoreItem{display:block;width:100%;text-align:left;min-height:44px;border:0;background:transparent;border-radius:8px;padding:9px 12px;color:#174d3a;font-size:14px}
+.loyaltyActions .loyaltyMoreItem:focus-visible,.loyaltyActions .loyaltyMoreItem:hover{outline:2px solid #174d3a;outline-offset:-2px;background:#edf5ef}
+.loyaltyAvailable{gap:0}
+.loyaltyAvailableRow{display:grid;grid-template-columns:36px minmax(0,1fr) auto;gap:8px;align-items:center;flex-wrap:nowrap;padding:7px 0}
+.loyaltyAvailableRow .loyaltyMeta{grid-column:2/-1;margin-top:-3px}
+.loyaltySignup{font-size:11px;min-height:44px;padding:0 7px;border:1px solid #ccded0;border-radius:9px;white-space:nowrap;text-decoration:none;text-align:center}
+.loyaltySignup:hover{text-decoration:underline;background:#eaf2ed}
+.loyaltyAllianceNote{color:#244c35}
+.loyaltyMeta,.loyaltyIdentityText small{color:#4a6254}
+@media(max-width:390px){.loyaltyRow{padding:10px}.loyaltyActions{gap:7px}.loyaltyAvailableRow{grid-template-columns:34px minmax(0,1fr) auto;gap:5px}.loyaltySignup{padding:0 5px;font-size:10px}}
