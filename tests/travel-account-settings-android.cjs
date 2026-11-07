@@ -132,6 +132,7 @@ async function main(){
     await avatarButton.click();
     assert.ok(await page.locator("#avatarMenu").isVisible());
     assert.ok(await page.locator("#avatarChange").isVisible());
+    assert.equal(await page.locator("#avatarChange").textContent(),"Changer la photo");
     assert.ok(!await page.locator("#avatarRemove").isVisible(),"No remove action without a photo");
     await page.screenshot({path:path.join(output,"menu-photo-"+width+".png"),animations:"disabled"});
     await page.locator("#loyaltyPanel .loyaltyMoreToggle").click();

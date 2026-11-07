@@ -604,7 +604,7 @@ function avatarControls(){
  const editable=accountState==="active"&&canWrite()&&!avatarBusy;
  $("#avatarChange").disabled=!editable;
  $("#avatarChange").classList.toggle("hidden",!canWrite()&&accountState==="active");
- $("#avatarChange").textContent=profile.avatar_id?"Changer la photo":"Ajouter une photo";
+ $("#avatarChange").textContent="Changer la photo";
  $("#avatarRemove").classList.toggle("hidden",!profile.avatar_id||!canWrite());
  $("#avatarRemove").disabled=!editable;
  $("#avatarPick").disabled=!editable;$("#avatarMenuToggle").disabled=!editable;if(!editable)closeAvatarMenu();
