@@ -291,7 +291,7 @@ async function main(){
     window.BEAM_FAMILY_BOOKLET.render(document,{...data,name:"Youssouf",generatedAt:new Date(data.generatedAt)});
     return [document.title,document.querySelector(".cover h1")?.textContent];
    },{...model,generatedAt:model.generatedAt.toISOString()});
-   assert.deepEqual(youssouf,["Carnet de Youssouf","Carnet de Youssouf"]);
+   assert.deepEqual(youssouf,["J'y étais — Carnet de Youssouf","Carnet de Youssouf"]);
    console.log("PASS family booklet: A4 portrait, 40 A5 landmarks, 1/2+2/2 maps, all PDF titles/countries, short-edge help, varied fillers");
   }finally{await page.close()}
  }finally{await browser.close()}
