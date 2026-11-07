@@ -82,7 +82,7 @@ async function main(){
    appHidden:document.querySelector("#app")?.classList.contains("hidden"),
    authHidden:document.querySelector("#auth")?.classList.contains("hidden")
   }));
-  assert.match(actual.title,/BEAM Travel History/);
+  assert.match(actual.title,/J.y étais/);
   assert.deepEqual(actual.globals,{personal:"object",filters:"object",factual:"object",visual:"object"});
   assert.equal(actual.journalRender,"function","journal must initialize when the REAL HTML loads");
   assert.equal(actual.clickHandler,"function","click handler must exist even without Supabase");

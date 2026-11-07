@@ -59,7 +59,7 @@ async function main(){
     });
     assert.equal(caught,true,"prevent native promotion only if a usable prompt event exists");
     assert.equal(await page.locator('[data-beam-install-action]:visible').count(),2);
-    assert.equal(await page.locator("#app [data-beam-install-action]").textContent(),"Installer BTH");
+    assert.equal(await page.locator("#app [data-beam-install-action]").textContent(),"Installer J'y étais");
     assert.equal(await page.locator("#app [data-beam-install-action]").isDisabled(),false);
     await page.locator("#app [data-beam-install-action]").click();
     await page.waitForFunction(()=>window.__nativePrompts===1);

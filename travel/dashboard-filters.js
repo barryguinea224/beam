@@ -1,4 +1,4 @@
-// BEAM Travel History — display-only dashboard filters.
+// J'y étais — display-only dashboard filters.
 // Never pass filters into the factual PDF query: it has its own audited view.
 (function(root){
   "use strict";

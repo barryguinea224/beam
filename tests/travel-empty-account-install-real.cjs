@@ -96,7 +96,7 @@ async function main(){
      window.dispatchEvent(event);
     });
     await page.locator("#travelHero [data-beam-install-action]").waitFor({state:"visible"});
-    assert.equal(await page.locator("#travelHero [data-beam-install-action]").textContent(),"Installer BTH");
+    assert.equal(await page.locator("#travelHero [data-beam-install-action]").textContent(),"Installer J'y étais");
     await page.locator("#travelHero [data-beam-install-action]").click();
     assert.match(await page.locator("#travelHero [data-beam-install-status]").textContent(),/Demande d’installation acceptée/);
     // The empty account must support edit AND logout without creating any trip.

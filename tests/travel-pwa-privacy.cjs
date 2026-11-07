@@ -28,9 +28,9 @@ assert.match(app, /await clearPwaSession\(\)/);
 assert.match(app, /forgetLocalAuth\(C\.supabaseUrl\)/);
 
 const manifest=JSON.parse(fs.readFileSync("travel/manifest.webmanifest","utf8"));
-assert.equal(manifest.name,"BEAM Travel History");
-assert.equal(manifest.short_name,"BTH");
-assert.match(app,/<meta name="apple-mobile-web-app-title" content="BTH">/);
+assert.equal(manifest.name,"J'y étais");
+assert.equal(manifest.short_name,"J'y étais");
+assert.match(app,/<meta name="apple-mobile-web-app-title" content="J&#39;y étais">/);
 assert.equal(manifest.start_url,"/travel/");
 assert.equal(manifest.scope,"/travel/");
 assert.equal(manifest.display,"standalone");
@@ -39,7 +39,7 @@ for(const [filename,size,purpose] of [
 ]){
  const icon=manifest.icons.find(x=>x.src.endsWith(filename));
  assert.ok(icon && icon.sizes===size+"x"+size && icon.purpose===purpose,filename+" manifest entry");
- const bytes=fs.readFileSync("travel/icons/"+filename);
+ const bytes=fs.readFileSync("travel/assets/brand/"+filename);
  assert.equal(bytes.subarray(0,8).toString("hex"),"89504e470d0a1a0a");
  assert.equal(bytes.readUInt32BE(16),size);
  assert.equal(bytes.readUInt32BE(20),size);
