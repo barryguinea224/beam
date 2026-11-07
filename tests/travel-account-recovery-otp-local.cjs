@@ -50,7 +50,7 @@ async function otp(api,key,email){
   method:"POST",headers:{"Content-Type":"application/json",apikey:key},
   body:JSON.stringify({email,create_user:false}),signal:AbortSignal.timeout(7000)
  });
- return {ok:res.ok,status:res.status};
+ return {ok:res.ok,status:res.status,code:res.ok?"":(await res.text()).slice(0,260)};
 }
 async function receive(inbox,name){
  for(let i=0;i<24;i++){
@@ -65,7 +65,7 @@ async function receive(inbox,name){
 }
 async function main(){
  const {api,inbox,key}=loadCLI();
- db("insert into auth.users(id,email,email_confirmed_at) values ('"+uid+"','"+oldEmail+"',now());"+
+ db("insert into auth.users(id,email,email_confirmed_at,instance_id,aud,role,raw_app_meta_data) values ('"+uid+"','"+oldEmail+"',now(),'00000000-0000-0000-0000-000000000000','authenticated','authenticated',jsonb_build_object('provider','email','providers',jsonb_build_array('email')));"+
  "insert into auth.identities(id,user_id,provider,provider_id,identity_data,created_at,updated_at) "+
  "values('"+identity+"','"+uid+"','email','"+uid+"',"+
  "jsonb_build_object('sub','"+uid+"','email','"+oldEmail+"','email_verified',true),now(),now());"+
@@ -79,7 +79,7 @@ async function main(){
   assert.equal((await mailbox(inbox,"recuperation-ancien")).length,0,
    "Old email unexpectedly received OTP");
   const next=await otp(api,key,newEmail);
-  assert.ok(next.ok,"GoTrue refused new email OTP request: "+next.status);
+  assert.ok(next.ok,"GoTrue refused new email OTP request: "+next.status+" "+next.code);
   const letter=await receive(inbox,"recuperation-nouveau");
   const body=[letter.body?.text,letter.body?.html,letter.text,letter.html,letter.body]
    .filter(Boolean).map(x=>typeof x==="string"?x:JSON.stringify(x)).join("\n")
