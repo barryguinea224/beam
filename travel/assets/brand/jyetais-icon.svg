@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512"><rect width="512" height="512" rx="112" fill="#F7F3EA"/>
+<g transform="translate(256 256) scale(1) translate(-256 -256)"><path d="M236,409.4 C198.2,333.8 128,279.8 128,188 A108,108 0 1 1 344,188 C344,279.8 273.8,333.8 236,409.4 Z" fill="#C9962E"/>
+<circle cx="236" cy="188" r="73.44000000000001" fill="#FBF8F1"/>
+<clipPath id="ph"><circle cx="236" cy="188" r="73.44000000000001"/></clipPath>
+<g clip-path="url(#ph)">
+<path d="M149.6,236.6 L205.76,164.24 L238.16,200.96 L259.76,181.52 L322.4,236.6 Z" fill="#8DB58A"/>
+<path d="M225.2,236.6 L259.76,181.52 L322.4,236.6 Z" fill="#5E9468"/>
+<rect x="128" y="233.36" width="216" height="108" fill="#5E9468"/></g>
+<circle cx="268.4" cy="153.44" r="14.040000000000001" fill="#C9962E"/><line x1="301.9" y1="64.0" x2="322.2" y2="25.9" stroke="#C9962E" stroke-width="11.9" stroke-linecap="round"/><line x1="346.6" y1="101.6" x2="375.6" y2="79.0" stroke="#C9962E" stroke-width="11.9" stroke-linecap="round"/><line x1="372.2" y1="154.0" x2="403.7" y2="146.2" stroke="#C9962E" stroke-width="11.9" stroke-linecap="round"/>
+<path d="M110,428 Q240,452 350,412" fill="none" stroke="#8DB58A" stroke-width="13" stroke-linecap="round" stroke-dasharray="24 19"/>
+<g transform="translate(392,398) rotate(-18) scale(1.9)"><path d="M-30,-3 L10,-3 L22,-16 L30,-16 L22,-3 L34,-3 Q42,0 34,3 L22,3 L30,16 L22,16 L10,3 L-30,3 L-36,10 L-41,10 L-37,0 L-41,-10 L-36,-10 Z" fill="#C9962E"/></g></g></svg>
