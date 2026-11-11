@@ -8,7 +8,7 @@ const ROOT=path.resolve(__dirname,"..");
 const BASE="https://beamguinee.com";
 const slugs=["canada","chine","france","maroc","royaume-uni","turquie"];
 const pages=["index.html","travel/index.html","acteurs.html","merci.html",
- "visas/index.html","visas/404.html",...slugs.map(s=>"visas/"+s+"/index.html")];
+ "visas/index.html","visas/404.html","visas/secrets/index.html",...slugs.map(s=>"visas/"+s+"/index.html")];
 const rootFile=rel=>path.join(ROOT,rel);
 const read=rel=>fs.readFileSync(rootFile(rel),"utf8");
 const attr=(attrs,name)=>{

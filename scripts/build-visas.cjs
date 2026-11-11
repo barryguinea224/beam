@@ -137,6 +137,26 @@ function validateEntry(entry, slug, {mode = "preview", today = todayUTC()} = {})
   }
   return entry;
 }
+
+function validateSecrets(entry, {today = todayUTC()} = {}) {
+  const at = "visas/data/secrets.json";
+  shape(entry, at, ["titre","introduction","verifie_le","chapitres"]);
+  requiredText(entry.titre, at + ".titre");
+  requiredText(entry.introduction, at + ".introduction");
+  parseDate(entry.verifie_le, at + ".verifie_le", today);
+  if(!Array.isArray(entry.chapitres) || entry.chapitres.length === 0)
+    fail(at + ".chapitres", "au moins un chapitre obligatoire");
+  for(const [i,chapter] of entry.chapitres.entries()){
+    const where = at + ".chapitres[" + i + "]";
+    shape(chapter, where, ["titre","conseils"]);
+    requiredText(chapter.titre, where + ".titre");
+    if(!Array.isArray(chapter.conseils) || chapter.conseils.length === 0)
+      fail(where + ".conseils", "au moins un conseil obligatoire");
+    for(const [j,conseil] of chapter.conseils.entries())
+      requiredText(conseil, where + ".conseils[" + j + "]");
+  }
+  return entry;
+}
 function esc(value) {
   return String(value).replace(/[&<>"']/g, c => ({"&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"}[c]));
 }
@@ -313,7 +333,36 @@ function renderDestination(entry, slug, today) {
     body,demo,footerDisclaimer:false
   });
 }
-function renderHome(entries,today) {
+
+function renderSecrets(entry) {
+  const whatsapp="https://wa.me/224622095630?text=" +
+    encodeURIComponent("Bonjour BEAM, je souhaite être accompagné pour une demande de visa depuis Conakry.");
+  const chapters=entry.chapitres.map((chapter,index)=>
+    '<section class="secrets-chapter" aria-labelledby="secret-'+(index+1)+'">' +
+    '<h2 id="secret-'+(index+1)+'">'+(index+1)+'. '+e(chapter.titre)+'</h2>' +
+    '<ul class="secrets-tips">' +
+    chapter.conseils.map(conseil=>'<li>'+e(conseil)+'</li>').join("\n") +
+    '</ul></section>'
+  ).join("\n");
+  const date=entry.verifie_le.split("-").reverse().join("/");
+  const body=[
+    '<nav class="breadcrumb" aria-label="Fil d’Ariane"><a href="/visas/">Guide des visas</a><span aria-hidden="true"> / </span><span>'+e(entry.titre)+'</span></nav>',
+    '<section class="intro visa-intro">',
+    '<h1>'+e(entry.titre)+'</h1>',
+    '<p class="lead">'+e(entry.introduction)+'</p>',
+    '<div class="hero-cta">'+link(whatsapp,"On s'occupe de tout pour vous — WhatsApp",' class="button primary"')+'</div>',
+    '<p class="notice-law notice-short">Informations indicatives · BEAM n&#39;est pas affilié aux ambassades</p>',
+    '</section>',
+    chapters,
+    '<p class="full-disclaimer secrets-verification">Vérifié par BEAM le '+e(date)+'. Les règles changent : confirmez toujours auprès de l\'ambassade ou de la compagnie.</p>'
+  ].join("\n");
+  return shell({title:entry.titre+" | Guide BEAM",description:entry.introduction,body,demo:false});
+}
+function renderHome(entries,today,secrets=null) {
+  const secretsCard=secrets
+    ? '<section class="list-section"><article class="destination-card secrets-feature">' +
+      '<h2><a href="/visas/secrets/">'+e(secrets.titre)+'</a></h2></article></section>'
+    : "";
   if (entries.length === 0) {
     const whatsapp = "https://wa.me/224622095630?text=" +
       encodeURIComponent("Bonjour BEAM, je souhaite être accompagné pour une demande de visa depuis Conakry.");
@@ -326,6 +375,7 @@ function renderHome(entries,today) {
         '<h1>Guide en préparation</h1>',
         '<p class="lead">Les fiches sont en cours de vérification. Aucune destination n’est publiée pour le moment.</p></section>',
         '<aside class="notice notice-law"><strong>Information importante</strong><p>' + e(DISCLAIMER) + '</p></aside>',
+        secretsCard,
         '<section class="next"><h2>Besoin d’être accompagné ?</h2>',
         '<p>BEAM peut vous aider à organiser vos démarches sans garantir une décision consulaire.</p>',
         '<div class="actions">' + link(whatsapp,"Être accompagné par BEAM",' class="button primary"') +
@@ -350,6 +400,7 @@ function renderHome(entries,today) {
     demo?demoBanner():"",
     '<aside class="notice notice-law"><strong>Important</strong><p>' + e(DISCLAIMER) + "</p></aside>",
     '<section class="list-section"><h2>Destinations</h2><ul class="destination-list">' + cards + "</ul></section>",
+    secretsCard,
     '<section class="next"><h2>Votre parcours de voyageur</h2>',
     '<p>Conservez vos voyages dans un carnet personnel distinct du guide des visas.</p>',
     '<a class="button secondary" href="/travel/">Conservez votre historique de voyages avec J&#39;y étais</a></section>'
@@ -367,11 +418,21 @@ function buildSite({root=path.resolve(__dirname,".."),mode="preview",today=today
     if (error.code==="ENOENT") files=[];
     else throw error;
   }
+  // Secrets is a separate static guide, never a country fiche or manifest row.
+  const countryFiles=files.filter(name=>name!=="secrets.json");
+  let secrets=null;
+  if(files.includes("secrets.json")){
+    try{
+      secrets=validateSecrets(JSON.parse(fs.readFileSync(path.join(dataDir,"secrets.json"),"utf8")),{today});
+    }catch(error){
+      if(mode!=="production") fail("secrets.json",error.message);
+      logger.warn("[visas] Page secrets exclue de la production : "+error.message);
+    }
+  }
   // No published data is a valid state: always render "Guide en préparation".
   // Strict CI still rejects every invalid JSON that is present.
-
   const entries=[],excluded=[];
-  for (const filename of files) {
+  for (const filename of countryFiles) {
     const slug=filename.slice(0,-5);
     try {
       // Filename is used in paths; validate before constructing an output path.
@@ -392,11 +453,12 @@ function buildSite({root=path.resolve(__dirname,".."),mode="preview",today=today
     }
   }
   // CI validates the complete set and never writes generated HTML.
-  if (mode==="check") return {mode,files:files.length,html:0,published:entries.length,excluded,date:today};
+  if (mode==="check") return {mode,files:countryFiles.length,html:0,published:entries.length,excluded,date:today};
 
   const destDir=path.join(root,"visas");
   fs.mkdirSync(destDir,{recursive:true});
   const outputSlugs=new Set(entries.map(({slug})=>slug));
+  if(secrets) outputSlugs.add("secrets");
   // A production build may reuse a workspace that previously rendered a
   // preview. Never leave a stale HTML file for an excluded destination.
   // Also clean old generated destinations if their JSON source was removed.
@@ -415,7 +477,7 @@ function buildSite({root=path.resolve(__dirname,".."),mode="preview",today=today
       }
     }
   }
-  fs.writeFileSync(path.join(destDir,"index.html"),renderHome(entries,today),"utf8");
+  fs.writeFileSync(path.join(destDir,"index.html"),renderHome(entries,today,secrets),"utf8");
   // Public, data-minimal index for J&#39;y étais. Never include example, draft, travel
   // records, URLs from source fiches or other editorial fields. Regenerate from
   // scratch on every build so unpublished/removed fiches disappear immediately.
@@ -434,11 +496,16 @@ function buildSite({root=path.resolve(__dirname,".."),mode="preview",today=today
     fs.mkdirSync(output,{recursive:true});
     fs.writeFileSync(path.join(output,"index.html"),renderDestination(entry,slug,today),"utf8");
   }
+  if(secrets){
+    const secretsDir=path.join(destDir,"secrets");
+    fs.mkdirSync(secretsDir,{recursive:true});
+    fs.writeFileSync(path.join(secretsDir,"index.html"),renderSecrets(secrets),"utf8");
+  }
   logger.log("[visas] "+mode+" : "+entries.length+" fiche(s) publiée(s), "+
     excluded.length+" exclue(s).");
   if (mode==="production" && excluded.length)
     logger.log("[visas] Exclusions : "+excluded.map(item=>item.filename).join(", "));
-  return {mode,files:files.length,html:entries.length+1,published:entries.length,excluded,date:today};
+  return {mode,files:countryFiles.length,html:entries.length+1+(secrets?1:0),published:entries.length,excluded,date:today};
 }
 if(require.main===module) {
   try {
@@ -448,4 +515,4 @@ if(require.main===module) {
       result.published+" publié(s), "+result.excluded.length+" exclu(s) ; mode "+result.mode);
   }catch(error){console.error("Échec du guide des visas : "+error.message);process.exitCode=1;}
 }
-module.exports={MARKER,DISCLAIMER,parseDate,https,isStale,needsReview,modeFor,containsExample,validateEntry,renderDestination,renderHome,buildSite,esc,todayUTC};
+module.exports={MARKER,DISCLAIMER,parseDate,https,isStale,needsReview,modeFor,containsExample,validateEntry,validateSecrets,renderDestination,renderSecrets,renderHome,buildSite,esc,todayUTC};

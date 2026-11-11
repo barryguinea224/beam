@@ -40,7 +40,7 @@ async function main(){
   fs.mkdirSync(path.join(root,"visas/data"),{recursive:true});
   fs.copyFileSync(path.join(repositoryRoot,"visas/style.css"),path.join(root,"visas/style.css"));
   const sourceDir=path.join(repositoryRoot,"visas/data");
-  const filenames=fs.readdirSync(sourceDir).filter(name=>name.endsWith(".json")).sort();
+  const filenames=fs.readdirSync(sourceDir).filter(name=>name.endsWith(".json")&&name!=="secrets.json").sort();
   const slugs=filenames.map(name=>name.slice(0,-5));
   assert.ok(slugs.length>=5,"expected the five already published BEAM destination fiches");
   for(const required of ["canada","chine","france","royaume-uni","turquie"])
@@ -55,6 +55,8 @@ async function main(){
    fs.copyFileSync(original,path.join(root,"visas/data",name));
    return [slug,entry];
   }));
+  fs.copyFileSync(path.join(sourceDir,"secrets.json"),path.join(root,"visas/data/secrets.json"));
+  const secrets=JSON.parse(fs.readFileSync(path.join(sourceDir,"secrets.json"),"utf8"));
   assert.ok(entries.get("france").types_visa.every(v=>v.documents.length>0),
    "the real BEAM France must retain its own document list, whatever its length");
   const built=buildSite({root,mode:"production"});
@@ -278,6 +280,27 @@ async function main(){
      const filename=section?slug:"accueil";
      await page.screenshot({path:path.join(out,filename+"-"+width+".png"),fullPage:true,animations:"disabled"});
      console.log("PASS published visa guide "+filename+" "+width+"px: no JS, no overflow, no remote resources");
+    }
+    if(width===360){
+     const response=await page.goto("http://127.0.0.1:"+server.address().port+"/visas/secrets/",{waitUntil:"networkidle"});
+     assert.equal(response.status(),200,"secrets page exists in the production build");
+     assert.equal(await page.locator("script").count(),0,"secrets page has no browser JavaScript");
+     assert.equal(await page.locator(".secrets-chapter").count(),secrets.chapitres.length);
+     assert.equal(await page.locator("h1").innerText(),secrets.titre);
+     assert.equal(await page.locator(".lead").innerText(),secrets.introduction);
+     assert.deepEqual(await page.locator(".secrets-chapter h2").allInnerTexts(),
+      secrets.chapitres.map((chapter,i)=>(i+1)+". "+chapter.titre));
+     assert.deepEqual(await page.locator(".secrets-tips li").allInnerTexts(),
+      secrets.chapitres.flatMap(chapter=>chapter.conseils));
+     assert.ok(await page.locator(".notice-law").isVisible());
+     assert.equal(await page.locator(".button.primary").innerText(),"On s'occupe de tout pour vous — WhatsApp");
+     assert.ok((await page.locator(".button.primary").getAttribute("href")).startsWith("https://wa.me/224622095630?text="));
+     assert.ok(await page.getByText("Vérifié par BEAM le 11/11/2026. Les règles changent : confirmez toujours auprès de l'ambassade ou de la compagnie.").isVisible());
+     const scroll=await page.evaluate(()=>document.documentElement.scrollWidth);
+     assert.ok(scroll<=361,"secrets page must have no horizontal overflow at 360px: "+scroll);
+     assert.deepEqual(outsiders,[],"secrets page must load no third-party assets");
+     await page.screenshot({path:path.join(out,"secrets-360.png"),fullPage:true,animations:"disabled"});
+     console.log("PASS secrets page 360px: 8 chapters, 28 tips, no JS, no overflow");
     }
    }finally{await context.close();}
   }
