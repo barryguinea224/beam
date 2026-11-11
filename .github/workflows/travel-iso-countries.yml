@@ -19,7 +19,7 @@ permissions:
 jobs:
   iso-contract:
     name: Catalogue, recherche et PDF
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
@@ -32,7 +32,7 @@ jobs:
 
   iso-mobile:
     name: Sélection ISO sur mobile
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4

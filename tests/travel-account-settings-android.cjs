@@ -116,7 +116,9 @@ async function main(){
     assert.match(await page.locator("#residenceReadSummary").textContent(),/Guinée/);
     assert.ok(await page.locator("#accountSensitive").isVisible(),"Non-empty sensitive action remains visible");
     assert.ok(await page.locator("#deleteAccountOpen").isVisible(),"Account deletion control not hidden");
-    assert.equal(await page.locator("#accountLinks a").count(),2);
+    assert.equal(await page.locator("#accountLinks a").count(),3);
+     assert.equal(await page.locator('#accountLinks a[href="/visas/secrets/"] span').first().innerText(),
+      "Les secrets des voyageurs intelligents");
     assert.ok(await page.locator("#accountSession").evaluate(el=>{
       const sensitive=document.getElementById("accountSensitive");
       return !!(sensitive.compareDocumentPosition(el)&Node.DOCUMENT_POSITION_FOLLOWING);

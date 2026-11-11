@@ -12,7 +12,7 @@ permissions:
   contents: read
 jobs:
   static-brand:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
@@ -23,7 +23,7 @@ jobs:
         run: node tests/travel-jyetais-brand.cjs
   android-captures:
     needs: static-brand
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 16
     steps:
       - uses: actions/checkout@v4

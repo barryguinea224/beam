@@ -50,6 +50,10 @@ async function main(){
      el.classList.add("accountOpen");
      el.setAttribute("aria-hidden","false");
     });
+    const secretsLink=page.locator('#accountLinks a[href="/visas/secrets/"]');
+    assert.equal(await secretsLink.count(),1);
+    assert.equal(await secretsLink.locator("span").first().innerText(),"Les secrets des voyageurs intelligents");
+    assert.equal(await secretsLink.getAttribute("target"),null,"static guide stays same tab");
     const accountLink=page.locator("#accountLinks a[href=\"https://ididentite.com/\"]");
     assert.equal(await accountLink.count(),1);
     assert.equal(await accountLink.locator("span").first().innerText(),"Mes informations d'identité avec iD");

@@ -463,7 +463,7 @@ try{
  assertTravelUnaffected();
 }finally{fs.rmSync(scratch,{recursive:true,force:true})}
 // Real sources must all be published with distinct valid ISO codes.
-const actual=fs.readdirSync(path.join(root,"visas/data")).filter(name=>name.endsWith(".json")).sort();
+const actual=fs.readdirSync(path.join(root,"visas/data")).filter(name=>name.endsWith(".json")&&name!=="secrets.json").sort();
 assert.deepEqual(actual,["canada.json","chine.json","france.json","maroc.json","royaume-uni.json","turquie.json"]);
 const expectedCodes={canada:"CA",chine:"CN",france:"FR",maroc:"MA","royaume-uni":"GB",turquie:"TR"};
 for(const name of actual){
