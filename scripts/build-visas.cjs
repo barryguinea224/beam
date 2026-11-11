@@ -354,7 +354,7 @@ function renderSecrets(entry) {
     '<p class="notice-law notice-short">Informations indicatives · BEAM n&#39;est pas affilié aux ambassades</p>',
     '</section>',
     chapters,
-    '<p class="full-disclaimer secrets-verification">Vérifié par BEAM le '+e(date)+'. Les règles changent : confirmez toujours auprès de l\'ambassade ou de la compagnie.</p>'
+    '<p class="full-disclaimer secrets-verification">'+e("Vérifié par BEAM le "+date+". Les règles changent : confirmez toujours auprès de l'ambassade ou de la compagnie.")+'</p>'
   ].join("\n");
   return shell({title:entry.titre+" | Guide BEAM",description:entry.introduction,body,demo:false});
 }

@@ -17,7 +17,7 @@ permissions:
 jobs:
   journal-contract:
     name: Statistiques étrangères et libellés
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
@@ -29,7 +29,7 @@ jobs:
       - run: node tests/travel-journal-finishes.cjs
   mobile-layout:
     name: Lisibilité mobile et absence de débordement
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4

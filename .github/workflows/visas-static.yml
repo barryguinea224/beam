@@ -21,7 +21,7 @@ permissions:
 jobs:
   schema-and-build:
     name: Strict JSON schema, resilient production & preview
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
@@ -97,7 +97,7 @@ jobs:
   six-published:
     name: Release gate — six original BEAM destination fiches
     needs: [schema-and-build]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
@@ -155,7 +155,7 @@ jobs:
   mobile:
     name: Real Chromium at 320, 360, 375 and 390px
     needs: [schema-and-build]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4

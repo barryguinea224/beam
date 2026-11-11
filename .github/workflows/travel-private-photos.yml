@@ -19,7 +19,7 @@ permissions:
 jobs:
   photo-contract:
     name: WebP, file limits, HEIC/video rejection and gallery guards
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
@@ -36,7 +36,7 @@ jobs:
 
   mobile-photo-layout:
     name: Photo picker and gallery fit 320–390px
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4

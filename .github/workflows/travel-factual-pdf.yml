@@ -23,7 +23,7 @@ permissions:
 jobs:
   pdf-contract:
     name: Liste fermée et anti-fuite
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
@@ -37,7 +37,7 @@ jobs:
 
   pdf-a4:
     name: Rendu PDF A4 multi-page
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
