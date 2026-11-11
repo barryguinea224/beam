@@ -158,3 +158,13 @@ p{margin:9px 0}
  .next{padding:18px}
 }
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+/* Public static travel secrets: readable cards without images, JS or remote assets. */
+.secrets-chapter{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px 24px;margin:18px 0;min-width:0}
+.secrets-chapter h2{padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:10px}
+.secrets-tips{padding-left:22px;margin:0}
+.secrets-tips li{padding:8px 0;line-height:1.6;overflow-wrap:anywhere}
+.secrets-verification{margin:22px 0 38px}
+.secrets-feature{min-height:0}
+.secrets-feature h2{margin:0;font-size:1.42rem}
+@media(max-width:600px){.secrets-chapter{padding:16px 14px}.secrets-tips{padding-left:20px}}

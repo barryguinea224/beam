@@ -21,7 +21,7 @@ permissions:
 jobs:
   cover-db:
     name: Même voyage, même propriétaire, suppression auto NULL
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 12
     services:
       postgres:
@@ -84,7 +84,7 @@ jobs:
 
   visual-contract:
     name: Drapeaux locaux, WebP légers, URLs signées limitées
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
@@ -96,7 +96,7 @@ jobs:
 
   visual-mobile:
     name: Cartes et contrastes sur Android 320-390px
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4

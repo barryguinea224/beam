@@ -20,7 +20,7 @@ permissions:
 jobs:
   dashboard-contract:
     name: Filtres combinés et PDF non filtré
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 6
     steps:
       - uses: actions/checkout@v4
@@ -34,7 +34,7 @@ jobs:
 
   dashboard-android:
     name: Contraste, contours et tactile Android 320–390 px
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
