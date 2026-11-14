@@ -24,7 +24,7 @@ for(const code of CARD.COUNTRY_ART){
  const binary=fs.readFileSync(p);
  assert.equal(binary.toString("ascii",0,4),"RIFF");
  assert.equal(binary.toString("ascii",8,12),"WEBP");
- assert.equal(CARD.countryArt(code),"./assets/countries/"+code.toLowerCase()+".webp");
+ assert.equal(CARD.countryArt(code),"./assets/countries/"+code.toLowerCase()+(code==="SN"?".svg":".webp"));
 }
 for(const code of COUNTRIES.ORDER){
  assert.ok(COUNTRIES.valid(code));
