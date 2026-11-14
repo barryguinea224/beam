@@ -1064,8 +1064,10 @@ $("#offlineToggle").onchange=async event=>{
    if(navigator.onLine&&!offlineMode&&uid)void storeOfflineCopy(uid);
   }
   if(offlineMode&&!value){
+   offlineMode=false;document.documentElement.classList.remove("travelOfflinePreview");
+   document.documentElement.classList.add("beamOffline");
    $("#accountOverlay").classList.remove("accountOpen");
-   $("#app").classList.add("hidden");$("#offline").style.display="block";
+   $("#app").classList.add("hidden");
    $("#offline").querySelector("p").textContent="La copie locale est désactivée. Reconnectez-vous pour voir vos voyages.";
   }
  }catch{status.textContent="Impossible de modifier la copie locale sur cet appareil."}
