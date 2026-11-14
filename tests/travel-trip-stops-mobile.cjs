@@ -16,6 +16,8 @@ async function main(){
    try{
     await page.setContent(noScript,{waitUntil:"domcontentloaded"});
     await page.addStyleTag({content:css});
+    await page.addStyleTag({content:fs.readFileSync("travel/date-range-picker.css","utf8")});
+    await page.addScriptTag({path:path.resolve("travel/date-range-picker.js")});
     await page.addScriptTag({path:path.resolve("travel/countries.js")});
     await page.addScriptTag({path:path.resolve("travel/trip-stops.js")});
     await page.evaluate(()=>{
@@ -35,6 +37,13 @@ async function main(){
      document.getElementById("tripStopCities").value="Berlin";
      document.getElementById("tripStopEntry").value="2026-11-10";
      document.getElementById("tripStopExit").value="2026-11-14";
+     const picker=window.BEAM_DATE_RANGE_PICKER.mount({
+      container:document.getElementById("tripStopDatePicker"),
+      entryInput:document.getElementById("tripStopEntry"),
+      exitInput:document.getElementById("tripStopExit"),
+      min:trip.entry_date,max:trip.exit_date,existing:trip.stops
+     });
+     picker.sync();
     });
     assert.match(await page.locator("#detailStops").innerText(),/Allemagne/);
     assert.match(await page.locator("#detailStops").innerText(),/Berlin/);
