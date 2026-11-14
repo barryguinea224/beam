@@ -436,6 +436,7 @@ html.travelAccessReadOnly #photoField,html.travelAccessReadOnly #saveTrip{displa
  <h4 class="loyaltyGroupTitle">Découvrir d’autres programmes</h4>
  <div id="loyaltyAvailable" class="loyaltyAvailable" aria-label="Inscriptions officielles"></div>
 </section><nav class="legalLinks legalLinksAccount" aria-label="Informations légales"><a href="./confidentialite.html">Confidentialité</a><span aria-hidden="true">·</span><a href="./conditions.html">Conditions d’utilisation</a></nav><section id="accountSensitive" class="panel accountCard accountDanger" aria-labelledby="accountSensitiveTitle"><h3 id="accountSensitiveTitle" class="accountSectionTitle">Zone sensible</h3><p id="deleteAccountInfo" class="mapInfo">Vous pouvez supprimer définitivement votre compte et ses données de voyage, y compris les photos privées. Cette action est irréversible.</p><div class="actions"><button id="deleteAccountOpen" type="button" class="btn ghost" aria-describedby="deleteAccountInfo">Supprimer mon compte</button></div><form id="deleteAccountForm" class="hidden" aria-labelledby="deleteAccountConfirmTitle"><h3 id="deleteAccountConfirmTitle">Confirmer la suppression</h3><p>Votre compte, vos voyages, activités, souvenirs et photos seront définitivement supprimés. Ils ne pourront pas être restaurés.</p><div class="field"><label for="deleteAccountConfirm">Saisissez <strong>SUPPRIMER</strong> pour confirmer</label><input id="deleteAccountConfirm" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="9" pattern="SUPPRIMER" required></div><div class="actions"><button id="deleteAccountSubmit" type="submit" class="btn" style="background:#a8271d" disabled>Supprimer définitivement</button><button id="deleteAccountCancel" type="button" class="btn ghost">Annuler</button></div></form><p id="deleteAccountMessage" class="notice hidden" role="status" aria-live="polite"></p></section><section id="accountSession" class="accountSession"><button id="logout" type="button" class="btn ghost">Se déconnecter</button></section></section></div></div><footer class="jyAppFooter">J&#39;y étais by BEAM</footer></main>
+<button id="addFloating" type="button" hidden aria-label="Ajouter un voyage" title="Ajouter un voyage">+</button>
 <div id="modal" class="modal"><form id="tripForm" class="sheet"><div class="top"><h2 id="tripTitle">Ajouter un voyage</h2><button type="button" id="close" class="btn ghost">Fermer</button></div><div class="two"><div class="field"><label>Pays</label><label for="tripCountrySearch">Rechercher un pays ou territoire</label><input id="tripCountrySearch" type="search" autocomplete="off" placeholder="Ex. ara, etats, congo…" aria-controls="tripCountrySelect"><select id="tripCountrySelect" name="country_code" aria-label="Pays sélectionné" required><option value="">Choisir un pays</option></select></div><div class="field"><label>Ville(s)</label><input name="cities" required placeholder="Ex. Labé, Kankan"></div></div><div id="tripDurationChoices" class="dayModeChoices" role="group" aria-label="Durée du voyage"><button type="button" data-trip-mode="day" aria-pressed="false">Une journée</button><button type="button" data-trip-mode="multi" aria-pressed="true">Plusieurs jours</button></div><div id="tripDateFields"><span id="tripEntryLabel" class="drp-sr">Arrivée dans le pays</span><input id="tripEntryDate" name="entry_date" type="hidden"><span id="tripExitField" class="drp-sr">Départ du pays</span><input id="tripExitDate" name="exit_date" type="hidden"><div id="tripDatePicker" aria-label="Calendrier du voyage"></div></div><div class="field"><label>Voyage intérieur ?</label><select name="is_domestic" id="isDomestic"><option value="false">Non</option><option value="true">Oui</option></select><small id="domesticHint">Vous pouvez corriger cette proposition.</small></div><div class="field"><label>Motif</label><select name="purpose"><option value="tourisme">Tourisme</option><option value="affaires">Affaires</option><option value="etudes">Études</option><option value="famille">Famille</option><option value="sante">Santé</option><option value="transit">Transit</option><option value="autre">Autre</option></select></div><div class="two" id="stayDetails"><div class="field"><label for="tripAirline">Compagnie aérienne (facultatif)</label><input id="tripAirline" name="airline" type="text" maxlength="160" autocomplete="off" placeholder="Ex. Air France"><small>Nom uniquement, sans billet ni numéro de réservation.</small></div><div class="field"><label for="tripHotel">Hôtel / hébergement (facultatif)</label><input id="tripHotel" name="hotel" type="text" maxlength="160" autocomplete="off" placeholder="Ex. Hôtel Bellevue"><small>Nom uniquement, sans justificatif ni numéro de réservation.</small></div></div>
 <div class="field"><label for="tripCompanions">Voyagé avec (facultatif)</label><input id="tripCompanions" name="companions" type="text" maxlength="200" autocomplete="off" placeholder="Ex. Maman, Aïssatou, mon frère Ibrahima"><small>Prénoms ou liens seulement, sans nom complet ni numéro de téléphone.</small></div>
 <div id="photoField" class="field"><label for="photos">Photos privées</label><p id="photoInfo" class="photoHelp">15 photos maximum par voyage · 8 Mo maximum par photo. JPEG, PNG ou WebP uniquement. Les images sont converties en WebP sans données GPS avant l'envoi.</p><input id="photos" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" multiple aria-describedby="photoInfo photoUsage photoLoadStatus"><p id="photoLoadStatus" class="photoHelp hidden" role="status" aria-live="polite"><span class="photoSpinner" aria-hidden="true"></span>Chargement de vos photos…</p><p id="photoUsage" class="photoHelp" role="status" aria-live="polite">0 / 10 photos enregistrées</p><div id="photoGallery" class="photoGrid" aria-label="Photos enregistrées et en attente"></div><p id="photoMessage" class="notice hidden" role="alert"></p><button id="photoRetry" type="button" class="btn ghost hidden">Réessayer</button></div><div class="field"><label>Souvenir / note privée</label><textarea name="note"></textarea></div><p id="tripMsg" class="notice hidden"></p><section id="tripOverlapOffer" class="tripOverlapOffer hidden" role="status" aria-live="polite" aria-label="Excursion pendant un voyage"><p id="tripOverlapText"></p><div class="tripOverlapActions"><button id="tripOverlapStop" type="button" class="btn">L'ajouter comme excursion à ce voyage</button><button id="tripOverlapActivity" type="button" class="btn">L'ajouter comme activité</button><button id="tripOverlapEditDates" type="button" class="btn ghost">Modifier les dates</button></div><p id="tripOverlapFeedback" class="tripOverlapFeedback" aria-live="polite"></p></section><button id="saveTrip" class="btn">Enregistrer</button></form></div>
@@ -528,6 +529,7 @@ function canWrite(){return accountState==="active"&&accessState().canWrite}
 function renderAccessUi(){
  const on=accountState==="active",status=accessState(),banner=$("#accessBanner");
  document.documentElement.classList.toggle("travelAccessReadOnly",on&&!status.canWrite);
+ updateFloatingAdd();
  coverControls();
  banner.classList.toggle("hidden",!on||(!status.warning&&status.canWrite));
  banner.dataset.expired=String(!status.canWrite);
@@ -1210,6 +1212,46 @@ $("#stopDurationChoices").onclick=event=>{
  if(button)setStopMode(button.dataset.stopMode);
 };
 function proposeDomestic(code){if(!profile.country_of_residence||!code)return false;return code===profile.country_of_residence}function setDomesticProposal(code){$("#isDomestic").value=String(proposeDomestic(code));$("#domesticHint").textContent=profile.country_of_residence?"Proposition selon votre résidence actuelle. Vous pouvez la corriger.":"Aucune résidence enregistrée : vérifiez ce choix."}function openNewTrip(){if(accountState!=="active"||!canWrite())return;editingTripId=null;editingOriginalCountry=null;const city=$("#tripForm").elements.namedItem("cities");delete city.dataset.autoProposed;delete city.dataset.manualCorrection;$("#tripForm").reset();tripPicker.clear();setTripMode("multi");tripPicker.setExisting(trips);countrySelectors.trip.reset("");setDomesticProposal("");$("#tripTitle").textContent="Ajouter un voyage";$("#saveTrip").textContent="Enregistrer";resetPhotoUI(null);$("#tripMsg").classList.add("hidden");$("#modal").classList.add("open")}function openEditTrip(id){if(accountState!=="active"||!canWrite())return;const city=$("#tripForm").elements.namedItem("cities");delete city.dataset.autoProposed;delete city.dataset.manualCorrection;let x=trips.find(t=>t.id===id);if(!x)return;editingTripId=id;editingOriginalCountry=x.country_code;let f=$("#tripForm");countrySelectors.trip.reset(x.country_code);f.country_code.value=x.country_code;f.cities.value=x.cities.join(", ");tripPicker.setMode("multi");f.entry_date.value=x.entry_date;f.exit_date.value=x.exit_date;tripPicker.sync();setTripMode(DAY.modeFor(x));tripPicker.setExisting(trips,id);f.purpose.value=x.purpose;f.airline.value=x.airline||"";f.hotel.value=x.hotel||"";f.companions.value=x.companions||"";f.note.value=x.note||"";f.is_domestic.value=String(!!x.is_domestic);$("#domesticHint").textContent="Classification enregistrée pour ce voyage. Elle reste stable tant que le pays ne change pas.";$("#tripTitle").textContent="Modifier le voyage";$("#saveTrip").textContent="Enregistrer les modifications";resetPhotoUI(id);$("#tripMsg").classList.add("hidden");$("#modal").classList.add("open");refreshMedia(id).catch(()=>showPhotoMessage("Impossible de charger les photos. Réessayez en rouvrant le voyage."))}$("#tripForm").country_code.onchange=e=>{let code=e.target.value;if(!editingTripId||code!==editingOriginalCountry)setDomesticProposal(code)};$("#add").onclick=openNewTrip;
+const floatingAdd=$("#addFloating");
+let largeAddIsPast=false;
+function overlayBlocksFloatingAdd(){
+ return $("#modal").classList.contains("open")||
+  $("#tripDetailModal").classList.contains("open")||
+  $("#accountOverlay").classList.contains("accountOpen")||
+  $("#discardConfirm").classList.contains("accountOpen")||
+  $("#photoActionOverlay").classList.contains("open")||
+  $("#filterPanel").classList.contains("filterOpen")||
+  $("#pdfDialog").open;
+}
+function updateFloatingAdd(){
+ // This action is deliberately unavailable until the main button has passed ABOVE the viewport.
+ floatingAdd.hidden=!largeAddIsPast||!user||!canWrite()||
+  $("#app").classList.contains("hidden")||overlayBlocksFloatingAdd();
+}
+const largeAddObserver=new IntersectionObserver(entries=>{
+ const entry=entries.find(item=>item.target===$("#add"));
+ if(!entry)return;
+ largeAddIsPast=!entry.isIntersecting&&entry.boundingClientRect.bottom<=0;
+ updateFloatingAdd();
+},{threshold:0});
+largeAddObserver.observe($("#add"));
+for(const selector of ["#app","#modal","#tripDetailModal","#accountOverlay",
+ "#discardConfirm","#photoActionOverlay","#filterPanel","#pdfDialog"]){
+ new MutationObserver(updateFloatingAdd).observe($(selector),{
+  attributes:true,attributeFilter:["class","open","aria-hidden"]
+ });
+}
+// If a fast flick skips the observed button entirely, reconcile its actual position.
+window.addEventListener("scroll",()=>{
+ const rect=$("#add").getBoundingClientRect();
+ largeAddIsPast=rect.bottom<=0;
+ updateFloatingAdd();
+},{passive:true});
+floatingAdd.onclick=()=>{
+ if(floatingAdd.hidden||!canWrite())return;
+ openNewTrip(); // same guarded form and reset path as the main add button
+ updateFloatingAdd();
+};
 $("#welcomeName").onclick=()=>{if(!canWrite())return;openAccountPanel();$("#editAccount").click();$("#travelerName").focus()};
 $("#welcomeTrip").onclick=openNewTrip;
 $("#welcomePdf").onclick=()=>{

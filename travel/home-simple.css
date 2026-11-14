@@ -108,3 +108,15 @@
 /* Override legacy mobile display:contents/block rules for the old hero wrapper. */
 #travelHero>.travelerIdentity:first-child{display:flex!important;align-items:center!important;gap:10px}
 #travelMapPanel{z-index:0!important}
+
+/* Fixed add shortcut shown only after the main add action scrolls above view. */
+#addFloating{
+ position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom, 0px));
+ z-index:35;width:56px;height:56px;border:0;border-radius:50%;
+ display:grid;place-items:center;background:var(--g);color:white;
+ box-shadow:0 4px 14px rgba(11,43,29,.24);font:400 36px/1 system-ui,sans-serif;
+ cursor:pointer;touch-action:manipulation;
+}
+#addFloating:focus-visible{outline:3px solid #d0b36c;outline-offset:3px}
+#addFloating[hidden],html.travelAccessReadOnly #addFloating,html.beamOffline #addFloating{display:none!important}
+@media(display-mode:standalone){.jyAppFooter{display:none!important}}
