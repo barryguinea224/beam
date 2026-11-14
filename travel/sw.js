@@ -1,7 +1,7 @@
 // J'y étais PWA — PRIVATE BY DEFAULT.
 // Cache only the audited, versioned public shell. No runtime cache writes.
 // Never cache Supabase, signed links, personal trips, photos or API responses.
-const CACHE_NAME = "beam-travel-shell-v1-20261114-jyetais-v48-profile-cover-15-photos";
+const CACHE_NAME = "beam-travel-shell-v1-20261114-jyetais-v49-top-cover-accords-country-svg";
 const SCOPE_PATH = "/travel/";
 const PUBLIC_SHELL = [
   "./index.html", "./config.js", "./offline-bootstrap.js", "./pwa.js",
@@ -17,7 +17,7 @@ const PUBLIC_SHELL = [
   "./activity-durations.js", "./activity-duration.css",
   "./trip-stops.js", "./trip-stops.css", "./day-excursions.js", "./trip-lifecycle.js", "./day-excursions.css", "./date-range-picker.js", "./date-range-picker.css",
   "./assets/fonts/Poppins-Regular.woff2", "./assets/fonts/Poppins-SemiBold.woff2", "./assets/fonts/Poppins-Bold.woff2", "./assets/fonts/OFL.txt",
-  "./assets/countries/sn.svg", "./assets/world-map.svg", "./assets/world-centroids.json", "./assets/stay-airline.svg", "./assets/stay-hotel.svg", "./manifest.webmanifest",
+  "./assets/countries/fr.svg", "./assets/countries/ma.svg", "./assets/countries/gn.svg", "./assets/countries/sa.svg", "./assets/countries/tr.svg", "./assets/countries/sn.svg", "./assets/world-map.svg", "./assets/world-centroids.json", "./assets/stay-airline.svg", "./assets/stay-hotel.svg", "./manifest.webmanifest",
   "./assets/brand/icon-192.png", "./assets/brand/icon-512.png", "./assets/brand/icon-maskable-512.png",
   "./assets/brand/jyetais-logo.svg", "./assets/brand/jyetais-icon.svg",
   // Keep the 30 audited popular SVGs in the offline PUBLIC shell. Other ISO
