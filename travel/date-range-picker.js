@@ -44,8 +44,12 @@
  function summary(mode,entry,exit){
   if(!entry)return mode==="day"?"Choisissez une date.":"Choisissez votre arrivée, puis votre départ.";
   if(mode==="day")return "Le "+shortDate(entry);
-  if(!exit)return "Arrivée le "+shortDate(entry)+" · Choisissez le départ.";
-  return "Du "+shortDate(entry)+" au "+shortDate(exit)+" · "+duration(entry,exit)+" jours";
+  if(!exit)return "Arrivée le "+shortDate(entry)+" — touchez maintenant la date de départ";
+  if(entry===exit)return "Le "+shortDate(entry);
+  const start=entry.slice(0,7)===exit.slice(0,7)?String(Number(entry.slice(8,10))):
+   entry.slice(0,4)===exit.slice(0,4)?String(Number(entry.slice(8,10)))+" "+SHORT[Number(entry.slice(5,7))-1]:shortDate(entry);
+  const days=duration(entry,exit);
+  return "Du "+start+" au "+shortDate(exit)+" · "+days+" jour"+(days===1?"":"s");
  }
  function mount({container,entryInput,exitInput,mode="multi",min="",max="",existing=[],excludeId=null}){
   if(!container||!entryInput||!exitInput)throw Error("Le calendrier requiert deux champs de dates.");

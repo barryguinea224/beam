@@ -36,12 +36,30 @@ async function main(){
      assert.equal(await page.locator("#tripEntryDate").inputValue(),entry);
      assert.equal(await page.locator("#tripExitDate").inputValue(),exit);
     }
+    // First press is not a complete journey, even with an enabled save button.
+    await page.locator("#tripCountrySelect").selectOption("SN");
+    await page.locator('#tripForm input[name="cities"]').fill("Dakar");
+    await choose("#tripDatePicker","2026-11-05");
+    await values("2026-11-05","");
+    assert.equal(await page.locator("#tripDatePicker .drp-summary").innerText(),
+      "Arrivée le 5 nov. 2026 — touchez maintenant la date de départ");
+    assert.equal(await page.locator("#saveTrip").isEnabled(),true,"save stays enabled for explanation");
+    await page.locator("#saveTrip").click();
+    assert.equal(await page.locator("#tripMsg").innerText(),"Choisissez la date de départ du pays.");
+    assert.equal(await page.evaluate(()=>window.__excursionFixture.tripInserts.length),0,"partial period must not be inserted");
+    assert.equal(await page.locator("#saveTrip").isEnabled(),true,"save remains usable after validation");
+    await choose("#tripDatePicker","2026-11-05");
+    await values("2026-11-05","2026-11-05");
+    assert.equal(await page.locator("#tripDatePicker .drp-summary").innerText(),"Le 5 nov. 2026");
+    assert.equal(await page.locator("#tripMsg").isHidden(),true,"fixing the date clears the validation message");
+
     // Range with both ends and the continuous eight-day highlight.
     await choose("#tripDatePicker","2026-11-03");
     await values("2026-11-03","");
+    await values("2026-11-03","");
     await choose("#tripDatePicker","2026-11-10");
     await values("2026-11-03","2026-11-10");
-    assert.match(await page.locator("#tripDatePicker .drp-summary").innerText(),/Du 3 nov\. 2026 au 10 nov\. 2026 · 8 jours/);
+    assert.match(await page.locator("#tripDatePicker .drp-summary").innerText(),/Du 3 au 10 nov\. 2026 · 8 jours/);
     assert.equal(await page.locator("#tripDatePicker .drp-selected").count(),8);
     assert.match(await page.locator('#tripDatePicker [data-date="2026-11-03"]').getAttribute("class"),/drp-start/);
     assert.match(await page.locator('#tripDatePicker [data-date="2026-11-10"]').getAttribute("class"),/drp-end/);
@@ -127,7 +145,12 @@ async function main(){
     await page.locator("#tripStopCountry").selectOption("DE");
     await page.locator("#tripStopCities").fill("Berlin");
     await choose("#tripStopDatePicker","2026-11-10");
+    assert.equal(await page.locator("#tripStopExit").inputValue(),"");
+    await page.locator("#tripStopSave").click();
+    assert.equal(await page.locator("#tripStopFormMessage").innerText(),"Choisissez la date de départ du pays.");
+    assert.equal(await page.evaluate(()=>window.__excursionFixture.stopInserts.length),0,"incomplete stage stays unsaved");
     await choose("#tripStopDatePicker","2026-11-11");
+    assert.equal(await page.locator("#tripStopFormMessage").innerText(),"");
     await page.locator("#tripStopSave").click();
     await page.waitForFunction(()=>window.__excursionFixture.stopInserts.length===1);
     const stop=await page.evaluate(()=>window.__excursionFixture.stopInserts[0]);
@@ -139,8 +162,22 @@ async function main(){
      stop:document.querySelector("#tripStopForm").scrollWidth-document.querySelector("#tripStopForm").clientWidth
     }));
     assert.ok(audit.viewport<=1&&audit.trip<=2&&audit.stop<=2,"Android "+width+" overflow: "+JSON.stringify(audit));
+    // Two presses on the same day in "Plusieurs jours" save as a valid excursion.
+    await page.locator("#detailClose").click();
+    await page.locator("#add").click();
+    await page.locator("#tripCountrySelect").selectOption("SN");
+    await page.locator('#tripForm input[name="cities"]').fill("Dakar");
+    await choose("#tripDatePicker","2027-09-08");
+    await choose("#tripDatePicker","2027-09-08");
+    await values("2027-09-08","2027-09-08");
+    assert.equal(await page.locator("#tripDatePicker .drp-summary").innerText(),"Le 8 sept. 2027");
+    await page.locator("#saveTrip").click();
+    await page.waitForFunction(()=>window.__excursionFixture.tripInserts.length===2);
+    const sameDay=await page.evaluate(()=>window.__excursionFixture.tripInserts[1]);
+    assert.equal(sameDay.entry_date,"2027-09-08");
+    assert.equal(sameDay.exit_date,"2027-09-08");
     assert.deepEqual(errors,[],"Browser errors "+width+": "+errors);
-    console.log("PASS range picker Android "+width+" px, keyboard, interval/day/year/edit/limit/stage/Supabase/no-overflow");
+    console.log("PASS range picker Android "+width+" px, first tap guard, double-tap single day, compact formats, stage, Supabase and no overflow");
    }finally{await context.close()}
   }
  }finally{await browser.close();await new Promise(resolve=>server.close(resolve))}

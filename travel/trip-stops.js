@@ -63,6 +63,7 @@ function renderList(target,trip,editable,onEdit,onRemove){
  const doc=target.ownerDocument,list=byOrder(trip?.stops);
  if(!list.length){const p=doc.createElement("p");p.className="detailEmpty";p.textContent="Aucune étape ajoutée.";target.append(p);return;}
  for(const stop of list){
+  const length=days(stop.entry_date,stop.exit_date);
   const item=doc.createElement("div");item.className="tripStopRow";
   const flag=doc.createElement("span");flag.className="tripStopFlag";flag.setAttribute("aria-hidden","true");
   flag.textContent=String.fromCodePoint(...stop.country_code.split("").map(ch=>127397+ch.charCodeAt(0)));
@@ -70,7 +71,7 @@ function renderList(target,trip,editable,onEdit,onRemove){
   const name=doc.createElement("strong");name.textContent=country(stop.country_code);
   const location=doc.createElement("span");location.textContent=(cities(stop)||"Ville non précisée")+
    " · "+(stop.entry_date===stop.exit_date?short(stop.entry_date,true):date(stop.entry_date)+" → "+date(stop.exit_date))+
-   " · "+(stop.entry_date===stop.exit_date?"Excursion · 1 jour":days(stop.entry_date,stop.exit_date)+" jours");
+   " · "+(stop.entry_date===stop.exit_date?"Excursion · 1 jour":length+" jour"+(length===1?"":"s"));
   info.append(name,location);item.append(flag,info);
   if(editable){
    const buttons=doc.createElement("div");buttons.className="tripStopActions";
