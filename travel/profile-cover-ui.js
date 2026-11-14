@@ -45,11 +45,18 @@
    if(!uid||!isActive()||!client)return;
    const token=++epoch;
    try{
-    const {data,error}=await client.from("media")
-      .select("id,trip_id,user_id,storage_path,is_favorite,caption,created_at")
-      .eq("user_id",uid).order("created_at",{ascending:true});
-    if(token!==epoch||getUser()?.id!==uid||!isActive())return;
-    rows=!error&&Array.isArray(data)?data.filter(m=>m.user_id===uid):[];
+    const next=[];
+    for(let offset=0;offset<25000;offset+=500){
+      const {data,error}=await client.from("media")
+       .select("id,trip_id,user_id,storage_path,is_favorite,caption,position,created_at")
+       .eq("user_id",uid).order("created_at",{ascending:true}).range(offset,offset+499);
+      if(error||!Array.isArray(data))throw Error("Photos privées indisponibles");
+      if(token!==epoch||getUser()?.id!==uid||!isActive())return;
+      next.push(...data.filter(m=>m.user_id===uid));
+      if(data.length<500)break;
+      if(offset>=24500)throw Error("Photo catalogue exceeds safe pagination limit");
+    }
+    rows=next;
    }catch{if(token!==epoch||getUser()?.id!==uid)return;rows=[]}
    if(token!==epoch||getUser()?.id!==uid||!isActive())return;
    await paint();

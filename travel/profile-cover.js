@@ -13,8 +13,12 @@
      String(b.entry_date).localeCompare(String(a.entry_date))||String(a.id).localeCompare(String(b.id)));
   const ownedByTrip=new Map();
   for(const m of owned){if(!ownedByTrip.has(m.trip_id))ownedByTrip.set(m.trip_id,[]);ownedByTrip.get(m.trip_id).push(m)}
-  for(const list of ownedByTrip.values())list.sort((a,b)=>String(a.created_at||"").localeCompare(String(b.created_at||""))||
-   String(a.id).localeCompare(String(b.id)));
+  for(const list of ownedByTrip.values())list.sort((a,b)=>{
+   const ap=Number.isFinite(Number(a.position))?Number(a.position):Number.MAX_SAFE_INTEGER;
+   const bp=Number.isFinite(Number(b.position))?Number(b.position):Number.MAX_SAFE_INTEGER;
+   return ap-bp||String(a.created_at||"").localeCompare(String(b.created_at||""))||
+     String(a.id).localeCompare(String(b.id));
+  });
   for(const trip of completed){
    const images=ownedByTrip.get(trip.id)||[];
    const favorite=images.find(m=>m.is_favorite===true);
