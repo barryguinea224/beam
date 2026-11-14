@@ -86,7 +86,7 @@ assert.ok(album.includes('FR.word(summaryDays,"jour","jours")'),
  "number of days must be singular when value is one");
 const source=fs.readFileSync("travel/printable-journal.js","utf8");
 assert.match(source,/img\.naturalWidth>0/, "complete=true is not proof of successful photo loading");
-assert.match(source,/photos n'ont pas pu être chargées/, "missing photo count must be visible");
+assert.match(source,/FR\.count\(n,"photo"\).*FR\.word\(n,"n'a","n'ont"\)/,"missing-photo count must use shared singular and plural rules");
 assert.match(source,/img\.remove\(\)/, "broken photo must be replaced by a printable placeholder");
 assert.match(source,/setTimeout\(\(\)=>settle\(false\),30000\)/, "slow mobile photo wait must be bounded");
 assert.match(source,/initialFailed\+results\.filter\(x=>!x\)\.length/,
