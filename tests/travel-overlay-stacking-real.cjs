@@ -85,8 +85,11 @@ async function assertTopmost(page,selector,width,label){
    label+" "+width+"px : blocked at "+JSON.stringify(point));
 }
 async function assertControl(page,selector,width){
- await page.locator(selector).scrollIntoViewIfNeeded();
- const state=await page.locator(selector).evaluate(el=>{
+ // The day-grid selector matches multiple visible buttons; choose one while
+ // retaining the same center-point overlap test for the actual control.
+ const control=page.locator(selector).first();
+ await control.scrollIntoViewIfNeeded();
+ const state=await control.evaluate(el=>{
   const b=el.getBoundingClientRect(),x=b.left+b.width/2,y=b.top+b.height/2;
   const hit=document.elementFromPoint(x,y);
   return {inside:hit===el||el.contains(hit),hit:hit?.tagName+"#"+hit?.id};
