@@ -17,6 +17,7 @@ on:
       - "travel/supabase/migrations/20261107150000_trip_stops.sql"
       - "travel/supabase/migrations/20261107093000_account_email_recovery.sql"
       - "travel/supabase/migrations/20261114100000_trips_future_dates.sql"
+      - "travel/supabase/migrations/20261114200000_cover_and_15_photos.sql"
       - "travel/supabase/ACCOUNT_RECOVERY.md"
       - "travel/supabase/tests/account_recovery_otp_local.cjs"
       - "travel/supabase/tests/*.sql"
@@ -173,6 +174,14 @@ jobs:
           test "$before" = "$after"
           echo 'PASS future-trip migration idempotence and unchanged view ACL'
 
+      - name: Replay profile cover + 15 photos migration twice (local DB only)
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql -X -v ON_ERROR_STOP=1 -f travel/supabase/migrations/20261114200000_cover_and_15_photos.sql
+          psql -X -v ON_ERROR_STOP=1 -f travel/supabase/migrations/20261114200000_cover_and_15_photos.sql
+          echo "PASS idempotent owner cover FK and quota function, no remote database"
+
       - name: Validate RLS, grants, private Storage and unscheduled worker
         shell: bash
         run: |
@@ -192,6 +201,7 @@ jobs:
             avatar_security.sql
             activities_quota_guards.sql
             media_server_guards.sql
+            profile_cover_15_security.sql
             cover_media_integrity.sql
             deletion_retry_worker.sql
             media_storage_reserved_upload.sql

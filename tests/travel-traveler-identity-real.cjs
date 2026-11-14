@@ -130,7 +130,7 @@ async function main(){
     assert.equal(head.title,"Mariama Djouldé Doumbouya Camara Binta Barry",
      "full real profile name must be visible, never replaced or ellipsized");
     assert.equal(head.avatar,"MB","initials from first and last name");
-    assert.ok(head.avatarBox.width>=46&&head.avatarBox.width<=58,"round compact avatar");
+    assert.ok(head.avatarBox.width>=56&&head.avatarBox.width<=68,"round profile cover avatar");
     assert.ok(Math.abs(head.avatarBox.width-head.avatarBox.height)<1,"avatar must stay round");
     assert.equal(head.logoInHeader,false,"no decorative logo on profile header");
     assert.equal(head.subtitle,"","no explanatory subtitle on home");
@@ -182,8 +182,8 @@ async function main(){
         typography.rect.right<=typography.block.right+1,
         "title must remain within the avatar-aligned text column: "+JSON.stringify(typography));
       assert.ok(typography.avatar.right<typography.rect.left &&
-        Math.abs(typography.avatar.center-typography.identity.center)<2,
-        "avatar must remain left-aligned and vertically centered: "+JSON.stringify(typography));
+        typography.avatar.center<typography.identity.center,
+        "avatar must overlap cover and remain left aligned: "+JSON.stringify(typography));
       assert.ok(typography.scrollWidth<=width+1,
         "sample name must not produce horizontal overflow at "+width+"px");
       console.log("PASS local Poppins traveler name at "+width+"px",JSON.stringify(typography));

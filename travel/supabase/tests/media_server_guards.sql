@@ -30,13 +30,13 @@ begin
     raise exception 'quota trigger function callable by browser roles';
   end if;
 
-  for i in 1..10 loop
+  for i in 1..15 loop
     mid:=gen_random_uuid();
     insert into public.media(id,trip_id,user_id,storage_path,kind,bytes)
     values(mid,tid,uid,uid::text||'/'||tid::text||'/'||mid::text||'.webp','photo',1024);
   end loop;
-  if (select count(*) from public.media where trip_id=tid)<>10 then
-    raise exception 'ten media inserts should be accepted';
+  if (select count(*) from public.media where trip_id=tid)<>15 then
+    raise exception 'fifteen media inserts should be accepted';
   end if;
 
   caught:=false;
@@ -47,7 +47,7 @@ begin
   exception when check_violation then
     caught:=true;
   end;
-  if not caught then raise exception 'eleventh photo was accepted'; end if;
+  if not caught then raise exception 'sixteenth photo was accepted'; end if;
 
   caught:=false;
   begin

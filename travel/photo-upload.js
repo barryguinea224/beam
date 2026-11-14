@@ -12,7 +12,7 @@
     });
     if (reservationError) {
       if (/PHOTO_LIMIT_REACHED/.test(reservationError.message || "")) {
-        throw new Error("Ce voyage possède déjà 10 photos. Supprimez-en une avant d’en ajouter.");
+        throw new Error("Ce voyage possède déjà 15 photos. Supprimez-en une avant d’en ajouter.");
       }
       throw new Error("Impossible de réserver cette photo. Aucun fichier n’a été envoyé.");
     }

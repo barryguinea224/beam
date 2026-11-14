@@ -20,7 +20,7 @@
   }
   function countryArt(raw){
     const code=codeOf(raw);
-    return COUNTRY_SET.has(code)?"./assets/countries/"+code.toLowerCase()+".webp":"";
+    return COUNTRY_SET.has(code)?"./assets/countries/"+code.toLowerCase()+(code==="SN"?".svg":".webp"):"";
   }
   function flag(raw){
     const code=codeOf(raw);

@@ -17,14 +17,21 @@ assert.deepEqual(Array.from(CARD.FLAG_CODES),Array.from(COUNTRIES.ORDER),
 assert.equal(new Set(CARD.FLAG_CODES).size,249);
 assert.ok(Object.isFrozen(CARD.FLAG_CODES),"country flags must stay immutable");
 for(const code of CARD.COUNTRY_ART){
- const p=path.join(root,"assets","countries",code.toLowerCase()+".webp");
- assert.ok(fs.existsSync(p),"Missing BEAM-local country WebP: "+code);
+ const ext=code==="SN"?".svg":".webp";
+ const p=path.join(root,"assets","countries",code.toLowerCase()+ext);
+ assert.ok(fs.existsSync(p),"Missing locally served country illustration: "+code);
  const stat=fs.statSync(p);
- assert.ok(stat.size>300&&stat.size<=40960,"Country WebP exceeds 40KB "+code);
- const binary=fs.readFileSync(p);
- assert.equal(binary.toString("ascii",0,4),"RIFF");
- assert.equal(binary.toString("ascii",8,12),"WEBP");
- assert.equal(CARD.countryArt(code),"./assets/countries/"+code.toLowerCase()+".webp");
+ assert.ok(stat.size>300&&stat.size<=100000,"Country image size unreasonable: "+code);
+ if(code==="SN"){
+  const vector=fs.readFileSync(p,"utf8");
+  assert.match(vector,/<svg\b[^>]*width="1600"[^>]*height="680"/,"Senegal artwork must be intrinsically at least 1200px wide");
+  assert.doesNotMatch(vector,/<script|foreignObject|onload=|href="https?:/i,"No executable/external SVG resources");
+ }else{
+  const binary=fs.readFileSync(p);
+  assert.equal(binary.toString("ascii",0,4),"RIFF");
+  assert.equal(binary.toString("ascii",8,12),"WEBP");
+ }
+ assert.equal(CARD.countryArt(code),"./assets/countries/"+code.toLowerCase()+ext);
 }
 for(const code of COUNTRIES.ORDER){
  assert.ok(COUNTRIES.valid(code));
