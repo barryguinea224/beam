@@ -23,6 +23,7 @@ const edges={
  "country-picker.js":["countries.js"],
  "factual-pdf.js":["countries.js"],
  "visual-cards.js":["countries.js"],
+ "dashboard-filters.js":["trip-lifecycle.js"],
  "factual-pdf-file.js":["factual-pdf.js"],
  "printable-journal.js":["countries.js","dashboard-filters.js","visual-cards.js"],
  "family-booklet.js":["countries.js","printable-journal.js"]
@@ -45,6 +46,10 @@ const broken=modules.slice();
 const i=broken.indexOf("dashboard-filters.js"),j=broken.indexOf("printable-journal.js");
 [broken[i],broken[j]]=[broken[j],broken[i]];
 assert.throws(()=>verifyOrder(broken),/printable-journal\.js is loaded before dashboard-filters\.js/);
+const brokenLifecycle=modules.slice();
+const lifeIndex=brokenLifecycle.indexOf("trip-lifecycle.js"),filtersIndex=brokenLifecycle.indexOf("dashboard-filters.js");
+[brokenLifecycle[lifeIndex],brokenLifecycle[filtersIndex]]=[brokenLifecycle[filtersIndex],brokenLifecycle[lifeIndex]];
+assert.throws(()=>verifyOrder(brokenLifecycle),/dashboard-filters\.js is loaded before trip-lifecycle\.js/);
 for(const s of scripts){
  if(!s.src||(!s.src.startsWith("./")&&!s.src.startsWith("/travel/")))continue;
  assert.ok(!/\b(?:async|defer)\b/i.test(s.attrs),"load-order-sensitive module must be synchronous: "+s.src);

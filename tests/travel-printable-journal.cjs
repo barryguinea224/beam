@@ -149,5 +149,14 @@ assert.ok(!/\.from\("media"\)\.remove|storage\.from\("media"\)\.remove/.test(pri
 const visual=fs.readFileSync("travel/visual-cards.js","utf8");
 assert.ok(visual.includes("Séjour national"));
 assert.ok(main.includes('<option value="">Tous les types</option>'));
-assert.ok(main.includes('function countryCounts(){let m=new Map();const api=window.BEAM_DASHBOARD_FILTERS;'));
+assert.match(main,/function countryState\(\)\{\s*const api=window\.BEAM_DASHBOARD_FILTERS,visited=new Map\(\),planned=new Map\(\),asOf=LIFE\.today\(\);/,
+ "the live map country state must use BEAM_DASHBOARD_FILTERS with distinct visited and planned counts");
+assert.match(main,/for\(const trip of api\.apply\(trips,\{\.\.\.dashboardFilters,country:""\}\)\)/,
+ "country state must apply the shared dashboard filters without self-filtering the country map");
+assert.match(main,/for\(const code of LIFE\.visitedCodes\(trip,asOf\)\)visited\.set\(/,
+ "visited map counts must use only already visited countries");
+assert.match(main,/for\(const code of LIFE\.plannedCodes\(trip,asOf\)\)planned\.set\(/,
+ "planned map counts must use only future countries");
+assert.match(main,/function countryCounts\(\)\{return countryState\(\)\.visited\}/,
+ "country counts must exclude future-only visits");
 console.log("PASS separate private journal, filter snapshot, safe allowlist, signed-only URLs, no SW caching, factual PDF isolated");
