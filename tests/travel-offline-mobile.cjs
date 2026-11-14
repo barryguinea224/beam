@@ -93,6 +93,15 @@ async function main(){
    try{
     await seed(page,url);
     const snapshot=await stored(page);
+    if(!snapshot){
+     const debug=await page.evaluate(async()=>({
+      dbs:await indexedDB.databases(),
+      owner:localStorage.getItem("jyetais.offline.owner"),
+      current:await window.JYETAIS_OFFLINE.readLast(),
+      documentTitle:document.querySelector("#dashboardTitle")?.textContent
+     }));
+     throw new Error("No raw IndexedDB snapshot: "+JSON.stringify(debug));
+    }
     const raw=JSON.stringify(snapshot);
     assert.equal(snapshot.ownerId,A);
     assert.equal(snapshot.trips.length,1);
