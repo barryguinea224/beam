@@ -18,7 +18,7 @@ async function main(){
  try{
   const page=await browser.newPage();
   await page.setContent("<!doctype html><html lang='fr'><head></head><body></body></html>");
-  for(const file of ["countries.js","dashboard-filters.js","flight-connections.js","printable-journal.js","family-booklet.js"])
+  for(const file of ["countries.js","fr-accords.js","dashboard-filters.js","flight-connections.js","printable-journal.js","family-booklet.js"])
    await page.addScriptTag({path:path.resolve("travel",file)});
   await page.evaluate(input=>window.BEAM_PERSONAL_JOURNAL.render(document,{...input,generatedAt:new Date(input.generatedAt)}),model);
   let results=await page.evaluate(()=>({
