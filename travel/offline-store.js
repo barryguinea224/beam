@@ -95,12 +95,26 @@ async function clear(){
 }
 async function bind(uid){
  if(!id(uid)){await clear();return false}
- const previous=owner();
- // A missing owner marker is NOT sufficient evidence to re-use an orphaned DB.
- if(previous!==uid)await clear();
- if(!enabled())return false;
- try{root.localStorage.setItem(OWNER_KEY,uid)}catch{return false}
- return true;
+ // Make the owner transition atomic with every read/write/delete on this page.
+ // An earlier read must NEVER delete the next owner's freshly written cache.
+ return serial(async()=>{
+  const previous=owner();
+  if(previous!==uid){
+   try{root.localStorage.removeItem(OWNER_KEY)}catch{}
+   await dropDB();
+  }
+  if(!enabled())return false;
+  try{root.localStorage.setItem(OWNER_KEY,uid)}catch{return false}
+  return true;
+ });
+}
+async function clearIfOwner(uid){
+ return serial(async()=>{
+  if(owner()!==uid)return false;
+  try{root.localStorage.removeItem(OWNER_KEY)}catch{}
+  await dropDB();
+  return true;
+ });
 }
 async function readFor(uid){
  if(!enabled()||!id(uid)||owner()!==uid)return null;
@@ -108,9 +122,12 @@ async function readFor(uid){
  try{stored=await serial(readRaw)}catch{return null}
  if(!stored)return null;
  if(stored.ownerId!==uid||!fresh(stored)){
-  await clear();
+  // A concurrent account switch may already have installed a new owner.
+  // A stale read must not erase that new owner's database.
+  await clearIfOwner(uid);
   return null;
  }
+ if(owner()!==uid||!enabled())return null;
  // Re-project even when an old/corrupted record gained additional properties.
  return project(uid,stored.profile?.display_name,stored.trips,stored.activities,
   Date.parse(stored.updatedAt));
