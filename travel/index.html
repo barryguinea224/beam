@@ -549,7 +549,9 @@ function syncOfflineActions(){
  const blocked=offlineMode;
  for(const selector of ["#add","#pdf","#printJournal","#generatePdf"]){
   const el=$(selector);if(!el)continue;
-  el.disabled=blocked;el.title=blocked?"Disponible avec une connexion":"";
+  const journalUnavailable=selector==="#printJournal"&&typeof window.BEAM_FAMILY_BOOKLET?.render!=="function";
+  el.disabled=blocked||journalUnavailable;
+  el.title=blocked?"Disponible avec une connexion":journalUnavailable?"Le carnet imprimable est temporairement indisponible ; vos voyages restent accessibles.":"";
  }
  $("#offlineActionNote").hidden=!blocked;
  document.documentElement.classList.toggle("travelOfflinePreview",blocked);

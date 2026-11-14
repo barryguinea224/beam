@@ -70,6 +70,7 @@ async function stored(page){
   const request=indexedDB.open("jyetais-offline");
   const db=await new Promise((resolve,reject)=>{request.onsuccess=()=>resolve(request.result);
    request.onerror=()=>reject(request.error)});
+  if(!db.objectStoreNames.contains("journeys")){db.close();return null}
   const raw=await new Promise((resolve,reject)=>{
    const tx=db.transaction("journeys","readonly"),get=tx.objectStore("journeys").get("current");
    get.onsuccess=()=>resolve(get.result);get.onerror=()=>reject(get.error);
@@ -177,7 +178,13 @@ async function main(){
      return row?.ownerId==="22222222-2222-4222-8222-222222222222";
     });
     assert.equal(await page.locator("body").textContent().then(t=>t.includes("Voyageuse Fictive")),false);
-    assert.equal((await stored(page)).ownerId,B);
+    await page.waitForFunction(async()=>{const req=indexedDB.open("jyetais-offline");
+     const db=await new Promise(resolve=>req.onsuccess=()=>resolve(req.result));
+     if(!db.objectStoreNames.contains("journeys")){db.close();return false}
+     const row=await new Promise(resolve=>{const g=db.transaction("journeys").objectStore("journeys").get("current");g.onsuccess=()=>resolve(g.result)});
+     db.close();return row?.ownerId==="22222222-2222-4222-8222-222222222222";
+    },null,{timeout:10000});
+    assert.equal((await stored(page))?.ownerId,B);
     await page.locator("#openAccount").click();
     await page.locator("#logout").click();
     await page.waitForFunction(async()=>!((await indexedDB.databases())
