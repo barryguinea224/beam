@@ -4,6 +4,7 @@
 "use strict";
 const COUNTRIES=root?.BEAM_COUNTRIES||(typeof require==="function"?require("./countries.js"):null);
 const JOURNAL=root?.BEAM_PERSONAL_JOURNAL||(typeof require==="function"?require("./printable-journal.js"):null);
+const LIFE=root?.BEAM_TRIP_LIFECYCLE||(typeof require==="function"?require("./trip-lifecycle.js"):null);
 const FLIGHTS=root?.BEAM_FLIGHT_CONNECTIONS||(typeof require==="function"?require("./flight-connections.js"):null);
 // The family booklet alone supports all ten stored media items per trip.
 const MAX_PHOTOS_PER_TRIP=10,MAX_TOTAL_PHOTOS=60,PRINT_EDGE=1500,PRINT_JPEG_QUALITY=.72;
@@ -159,7 +160,9 @@ const photoCaption=value=>typeof value==="string"?value.trim().slice(0,500):"";
 const previewCaption=value=>value.length>105?value.slice(0,104)+"…":value;
 function render(doc,model){
  if(!doc?.createElement||!Array.isArray(model?.trips)||!model.trips.length)throw Error("Aucun voyage à imprimer.");
- const list=model.trips.map((data,i)=>{
+ const asOf=LIFE.today(model.generatedAt instanceof Date?model.generatedAt:new Date());
+  const upcoming=model.trips.filter(x=>LIFE.state(x.trip,asOf)==="upcoming");
+  const list=model.trips.filter(x=>LIFE.state(x.trip,asOf)!=="upcoming").map((data,i)=>{
   const trip=JOURNAL.viewTrip(data.trip,data.activities,data.photos,{
    airlinePhoto:data.airlinePhoto,hotelPhoto:data.hotelPhoto
   },data.photoCaptions);
@@ -342,7 +345,11 @@ function render(doc,model){
  const closing=leaf("closing");
  node(closing.inside,"p","ey","À écrire ensemble");
  node(closing.inside,"h2",null,"Nos prochains voyages…");
- for(let i=0;i<5;i++)node(closing.inside,"div","write-line");
+ for(const item of upcoming.slice(0,5)){
+    const t=item.trip,place=COUNTRIES.NAMES?.[t.country_code]||t.country_code||"Destination";
+    node(closing.inside,"p","futureTripLine",place+" · "+String(t.entry_date||""));
+  }
+  for(let i=upcoming.length;i<5;i++)node(closing.inside,"div","write-line");
  node(closing.inside,"p","subtle","Créé le "+stamp);
   node(closing.inside,"p","subtle","J'y étais by BEAM");
  leaves.forEach((p,i)=>{if(i&&i!==leaves.length-1)node(p,"span","page-number",String(i+1));});
