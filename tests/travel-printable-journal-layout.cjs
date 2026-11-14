@@ -37,7 +37,8 @@ async function main(){
     });
    try{
     await page.setContent('<!doctype html><html lang="fr"><head><base href="http://127.0.0.1/travel/"></head><body></body></html>');
-    await page.addScriptTag({path:path.resolve("travel/countries.js")});
+    await page.addScriptTag({path:path.resolve("travel/fr-accords.js")});
+     await page.addScriptTag({path:path.resolve("travel/countries.js")});
     await page.addScriptTag({path:path.resolve("travel/dashboard-filters.js")});
     await page.addScriptTag({path:path.resolve("travel/printable-journal.js")});
     await page.evaluate(({signedUrl,missingUrls,PRIVATE_EMAIL,PASSPORT,mapSvgText})=>{

@@ -88,7 +88,7 @@
 #app .btn{border-radius:var(--home-button-radius)}
 @media(max-width:420px){
  #app>.w{padding-left:14px;padding-right:14px}
- #travelHero{padding-top:9px!important}
+ #travelHero{padding-top:0!important}
  #travelHero .travelerIdentity{gap:9px}
  #travelerAvatar{width:48px;height:48px;min-width:48px}
  #homeStats{font-size:12px}

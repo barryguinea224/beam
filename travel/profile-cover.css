@@ -27,3 +27,16 @@
  #travelHero #openAccount{margin-top:24px}
  #coverPickerGrid{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
+
+/* Full-bleed cover: the only element allowed beneath a standalone phone status bar.
+   Profile controls remain after the >= safe-area + 80px photo band. */
+html,body{margin:0;padding-top:0}
+#app{margin:0;padding-top:0}
+#app>.w,#app>.w.emptyTravel{padding-top:0!important}
+#travelHero,#app .w.emptyTravel #travelHero{margin-top:0!important;padding-top:0!important}
+#travelHero .profileCover{margin-top:0;padding-top:0;min-height:max(106px,calc(env(safe-area-inset-top,0px) + 80px))}
+@media(max-width:420px){
+ #app>.w,#app>.w.emptyTravel{padding-top:0!important}
+ #travelHero,#app .w.emptyTravel #travelHero{padding-top:0!important}
+ #travelHero .profileCover{margin-top:0;min-height:max(106px,calc(env(safe-area-inset-top,0px) + 80px))}
+}

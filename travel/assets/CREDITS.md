@@ -12,20 +12,18 @@ La liste des voyages ne charge **aucune illustration depuis un domaine tiers**. 
 
 ## Illustrations de destination — créations originales BEAM
 
-Cinq illustrations schématiques **originales** (aucune photographie prise sur Internet) sont servies en WebP, résolution **480 × 204 px**, sans métadonnées GPS/EXIF. Le Sénégal dispose désormais d'une nouvelle illustration vectorielle originale, SVG de **1600 × 680 unités** (intrinsèquement nette à toutes les résolutions). Elles sont destinées uniquement à l'interface du carnet, **jamais au PDF factuel**.
+Les six illustrations de destination sont des créations vectorielles originales produites pour J'y étais. Elles partagent une scène panoramique **1600 × 680**, un ciel en dégradé et un sujet en silhouette, sans photographie, nom, logo, drapeau ou copie de monument protégé. Chaque SVG est inférieur à **40 Ko** et n'est utilisé que dans l'interface du carnet, **jamais dans le PDF ambassade**.
 
-| Fichier | Pays | Sujet original | Attribution et droits |
+| Fichier | Pays | Sujet original | Licence |
 |---|---|---|---|
-| `countries/fr.webp` | France | Tour Eiffel schématisée **de jour** | Illustration originale BEAM, droits BEAM |
-| `countries/ma.webp` | Maroc | Architecture traditionnelle marocaine | Illustration originale BEAM, droits BEAM |
-| `countries/gn.webp` | Guinée | Littoral et palmiers | Illustration originale BEAM, droits BEAM |
-| `countries/sa.webp` | Arabie saoudite | Architecture et paysage désertique | Illustration originale BEAM, droits BEAM |
-| `countries/tr.webp` | Turquie | Silhouettes d'Istanbul | Illustration originale BEAM, droits BEAM |
-| `countries/sn.svg` | Sénégal | Baobab et paysage du Sénégal, redessinés en SVG vectoriel 1600 × 680 | Illustration originale créée pour BEAM ; licence CC0 1.0 (libre réutilisation, sans attribution obligatoire) |
+| `countries/fr.svg` | France | Toits et cheminées d'une ville générique | CC0 1.0 |
+| `countries/ma.svg` | Maroc | Porte en arc et palmiers | CC0 1.0 |
+| `countries/gn.svg` | Guinée | Collines du Fouta-Djalon et cascade | CC0 1.0 |
+| `countries/sa.svg` | Arabie saoudite | Dunes et palmier | CC0 1.0 |
+| `countries/tr.svg` | Turquie | Coupoles et minarets génériques | CC0 1.0 |
+| `countries/sn.svg` | Sénégal | Baobab et paysage | CC0 1.0 |
 
-Ces dessins ne reproduisent aucune photographie tierce. Les cinq WebP restants mesurent **480 × 204 px** (donc **moins de 1200 px de large** : France, Maroc, Guinée, Arabie saoudite, Turquie) et pèsent moins de 40 Ko. L'ancien `countries/sn.webp` a été remplacé par `sn.svg`. Les autres destinations utilisent le fond neutre CSS.
-
-L'illustration SVG du Sénégal est un dessin original sans photographie tierce : autorisation de réutilisation selon la [dédicace Creative Commons CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/). Aucun chargement de Wikimedia ou d'un autre serveur n'est effectué par les clients.
+Les cinq anciennes images WebP 480 × 204 ont été retirées. Les SVG sont dédiés au domaine public via [Creative Commons CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/), sans attribution obligatoire. Les autres destinations gardent le fond neutre CSS ; aucune image externe n'est demandée.
 
 **Règle de confidentialité :** jamais de CDN de drapeaux, Wikimedia Commons, Unsplash, Google Images ou autre hôte tiers consulté lors de l'ouverture du carnet. La source des images de fond du pays et des SVG est un chemin relatif `./assets/...`. Le seul autre serveur d'images autorisé est le projet Supabase BEAM existant, et uniquement pour les couvertures privées après contrôle propriétaire et signature temporaire.
 

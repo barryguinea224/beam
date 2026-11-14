@@ -120,7 +120,7 @@ const context=vm.createContext({
  COUNTRY_NAMES:{FR:'France',DE:'Allemagne'},
  Option:class {constructor(label,value){this.text=label;this.value=value}},
  document:{activeElement:null},
- S,DAY,LIFE,setStopMode:()=>{},stopPicker:{clear(){},setBounds(){},setMode(){},setExisting(){},sync(){}},user:{id:'owner'},accountState:'active',trips:[tripRecord],canWrite:()=>true,
+ S,DAY,LIFE,FR:require("../travel/fr-accords.js"),setStopMode:()=>{},stopPicker:{clear(){},setBounds(){},setMode(){},setExisting(){},sync(){}},user:{id:'owner'},accountState:'active',trips:[tripRecord],canWrite:()=>true,
  LOYALTY:{hintFor:airline=>airline==='Compagnie fictive'?"Pensez à donner votre numéro Flying Blue à la réservation.":""},
  $:id=>{assert.ok(els[id], 'Missing DOM stub '+id);return els[id]},
  countryName:code=>code==='FR'?'France':code,

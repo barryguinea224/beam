@@ -6,6 +6,7 @@ const path=require("node:path");
 const root=path.resolve("travel");
 const ctx=vm.createContext({window:{},URL});
 vm.runInContext(fs.readFileSync(path.join(root,"countries.js"),"utf8"),ctx);
+vm.runInContext(fs.readFileSync(path.join(root,"fr-accords.js"),"utf8"),ctx);
 vm.runInContext(fs.readFileSync(path.join(root,"visual-cards.js"),"utf8"),ctx);
 const CARD=ctx.window.BEAM_VISUAL_CARDS;
 const COUNTRIES=ctx.window.BEAM_COUNTRIES;
@@ -17,21 +18,15 @@ assert.deepEqual(Array.from(CARD.FLAG_CODES),Array.from(COUNTRIES.ORDER),
 assert.equal(new Set(CARD.FLAG_CODES).size,249);
 assert.ok(Object.isFrozen(CARD.FLAG_CODES),"country flags must stay immutable");
 for(const code of CARD.COUNTRY_ART){
- const ext=code==="SN"?".svg":".webp";
- const p=path.join(root,"assets","countries",code.toLowerCase()+ext);
- assert.ok(fs.existsSync(p),"Missing locally served country illustration: "+code);
- const stat=fs.statSync(p);
- assert.ok(stat.size>300&&stat.size<=100000,"Country image size unreasonable: "+code);
- if(code==="SN"){
-  const vector=fs.readFileSync(p,"utf8");
-  assert.match(vector,/<svg\b[^>]*width="1600"[^>]*height="680"/,"Senegal artwork must be intrinsically at least 1200px wide");
-  assert.doesNotMatch(vector,/<script|foreignObject|onload=|href="https?:/i,"No executable/external SVG resources");
- }else{
-  const binary=fs.readFileSync(p);
-  assert.equal(binary.toString("ascii",0,4),"RIFF");
-  assert.equal(binary.toString("ascii",8,12),"WEBP");
- }
- assert.equal(CARD.countryArt(code),"./assets/countries/"+code.toLowerCase()+ext);
+ const p=path.join(root,"assets","countries",code.toLowerCase()+".svg");
+ assert.ok(fs.existsSync(p),"Missing local SVG landscape "+code);
+ assert.ok(fs.statSync(p).size<40960,"Vector must be smaller than 40KB: "+code);
+ const vector=fs.readFileSync(p,"utf8");
+ assert.match(vector,/<svg\b[^>]*width="1600"[^>]*height="680"/,"All landscapes must be intrinsically 1600×680");
+ assert.match(vector,/viewBox="0 0 1600 680"/,"Scalable 1600×680 viewBox");
+ assert.doesNotMatch(vector,/<script|foreignObject|\sonload=|href="https?:|<image\b/i,"No script, raster image, or external resources");
+ assert.equal(CARD.countryArt(code),"./assets/countries/"+code.toLowerCase()+".svg");
+ if(code!=="SN")assert.ok(!fs.existsSync(path.join(root,"assets","countries",code.toLowerCase()+".webp")),"No obsolete low-res image: "+code);
 }
 for(const code of COUNTRIES.ORDER){
  assert.ok(COUNTRIES.valid(code));
@@ -56,7 +51,7 @@ assert.equal(CARD.flag("NZ"),"./assets/flags/nz.svg","New Zealand is now a local
 assert.equal(CARD.flag("JP"),"./assets/flags/jp.svg","Japan is now a local SVG");
 assert.equal(CARD.countryArt("NZ"),"","No network request for missing destination art");
 assert.equal(CARD.flag("ZZ"),"");assert.equal(CARD.countryArt("ZZ"),"");
-assert.equal(CARD.countryArt("FR"),"./assets/countries/fr.webp");
+assert.equal(CARD.countryArt("FR"),"./assets/countries/fr.svg");
 assert.equal(CARD.flag("FR"),"./assets/flags/fr.svg");
 const id="60000000-0000-4000-8000-000000000001";
 const trip={id,country_code:"FR",cities:["Paris",'<img src=x onerror=alert(1)>'],
@@ -66,7 +61,7 @@ const html=CARD.markup(trip,"France","Tourisme","1 → 10 juin 2026");
 assert.ok(html.includes('class="tripOpen'));
 assert.ok(html.includes('loading="lazy"'));
 assert.ok(html.includes('src="./assets/flags/fr.svg"'));
-assert.ok(html.includes('src="./assets/countries/fr.webp"'));
+assert.ok(html.includes('src="./assets/countries/fr.svg"'));
 assert.ok(html.includes("France"));
 assert.ok(html.includes("Tourisme"));
 assert.ok(!html.includes('<img src=x'),"Untrusted cities must not become markup");
@@ -76,7 +71,7 @@ assert.ok(!html.includes("70000000-0000-4000-8000-000000000001"),
 const fallback=CARD.markup({...trip,country_code:"NZ",cities:["Auckland"]},"Nouvelle-Zélande","Tourisme","juin 2026");
 assert.ok(!fallback.includes("journeyBackdrop"),"Unsupported country uses CSS fallback");
 assert.ok(fallback.includes('<img class="journeyFlag" src="./assets/flags/nz.svg"'),
- "A country without a WebP backdrop must still show its local flag");
+ "A country without a local backdrop must still show its local flag");
 assert.ok(fallback.includes("NZ"));
 const japan=CARD.markup({...trip,country_code:"JP",cities:["Tokyo"]},"Japon","Tourisme","octobre 2026");
 assert.ok(japan.includes('<img class="journeyFlag" src="./assets/flags/jp.svg"'),
@@ -114,4 +109,4 @@ const css=fs.readFileSync(path.join(root,"visual-cards.css"),"utf8");
 assert.ok(!/url\s*\(/i.test(css),"Card CSS must never fetch third-party backgrounds");
 const pdf=fs.readFileSync(path.join(root,"factual-pdf.js"),"utf8");
 assert.ok(!/cover_media_id|storage_path|photo/.test(pdf.split("const FIELDS=")[1].split(";")[0]));
-console.log("PASS visual cards: 249 ISO SVG files and card icons incl. JP/NZ, safe WebP, signed URL host, escaped HTML, owner media query, unchanged factual PDF");
+console.log("PASS visual cards: 249 ISO SVG files and card icons incl. JP/NZ, local original SVG, signed URL host, escaped HTML, owner media query, unchanged factual PDF");

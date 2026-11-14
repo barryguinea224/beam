@@ -1,6 +1,7 @@
 // Public J'y étais duration math; dates are UTC date-only values, never local-midnight.
 (function(root){
 "use strict";
+const FR=root?.BEAM_FR_ACCORDS||(typeof require==="function"?require("./fr-accords.js"):null);
 function addDays(iso,offset){
  if(typeof iso!=="string"||!/^\d{4}-\d{2}-\d{2}$/.test(iso))return "";
  const d=new Date(iso+"T12:00:00Z");
@@ -22,7 +23,7 @@ function format(iso,duration=1){
  const sameMonth=iso.slice(0,7)===end.slice(0,7);
  const crossYear=iso.slice(0,4)!==end.slice(0,4);
  const start=sameMonth?String(Number(iso.slice(8,10))):stamp(iso,crossYear);
- return start+" → "+stamp(end,crossYear)+" · "+days+" jours";
+ return start+" → "+stamp(end,crossYear)+" · "+FR.count(days,"jour");
 }
 function validate(date,duration,trip){
  const days=Number(duration);

@@ -16,7 +16,8 @@ async function main(){
    try{
     await page.setContent(offline,{waitUntil:"domcontentloaded"});
     await page.addStyleTag({content:css});
-    await page.addScriptTag({path:path.resolve("travel/activity-durations.js")});
+    await page.addScriptTag({path:path.resolve("travel/fr-accords.js")});
+     await page.addScriptTag({path:path.resolve("travel/activity-durations.js")});
     await page.evaluate(()=>{
      const add=document.getElementById("modal");add.classList.add("open");
      const input=document.getElementById("tripCompanions");

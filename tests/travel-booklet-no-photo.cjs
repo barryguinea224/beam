@@ -81,7 +81,7 @@ async function main(){
   const page=await browser.newPage({viewport:{width:950,height:850}});
   try{
    await page.setContent("<!doctype html><html lang=fr><head></head><body></body></html>");
-   for(const mod of ["countries.js","dashboard-filters.js","printable-journal.js","family-booklet.js"])
+   for(const mod of ["countries.js","fr-accords.js","dashboard-filters.js","printable-journal.js","family-booklet.js"])
     await page.addScriptTag({path:path.resolve("travel",mod)});
    const withPhoto=await page.evaluate(()=>{
     const c=document.createElement("canvas");c.width=800;c.height=550;

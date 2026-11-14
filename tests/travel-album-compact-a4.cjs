@@ -29,7 +29,7 @@ async function main(){
    });
    try{
     await page.setContent('<!doctype html><html lang="fr"><head><base href="http://127.0.0.1/travel/"></head><body></body></html>');
-    for(const script of ["countries.js","dashboard-filters.js","printable-journal.js"])
+    for(const script of ["countries.js","fr-accords.js","dashboard-filters.js","printable-journal.js"])
      await page.addScriptTag({path:path.resolve("travel",script)});
     await page.evaluate(({url,world})=>{
      const lab={id:"fic-gn",country_code:"GN",cities:["Labé"],entry_date:"2026-08-05",
