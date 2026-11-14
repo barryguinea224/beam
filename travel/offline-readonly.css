@@ -28,8 +28,7 @@ html.travelOfflinePreview #accountSensitive,html.travelOfflinePreview #accountLi
 html.travelOfflinePreview #loyaltyPanel,html.travelOfflinePreview #accountCoverSection,
 html.travelOfflinePreview #contactDetailsForm,html.travelOfflinePreview #avatarMenuToggle,
 html.travelOfflinePreview #editAccount,html.travelOfflinePreview #changeResidence,
-html.travelOfflinePreview #residencePanel,html.travelOfflinePreview #logout,
-html.travelOfflinePreview #detailPhotos .photoTap,
+html.travelOfflinePreview #residencePanel,html.travelOfflinePreview #detailPhotos .photoTap,
 html.travelOfflinePreview .detailRemoveActivity{display:none!important}
 html.travelOfflinePreview #myAccount{padding-bottom:max(18px,env(safe-area-inset-bottom))}
 html.travelOfflinePreview .offlineCountryIllustration{
