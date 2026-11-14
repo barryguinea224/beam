@@ -22,9 +22,9 @@ for(const code of CARD.COUNTRY_ART){
  assert.ok(fs.existsSync(p),"Missing local SVG landscape "+code);
  assert.ok(fs.statSync(p).size<40960,"Vector must be smaller than 40KB: "+code);
  const vector=fs.readFileSync(p,"utf8");
- assert.match(vector,/<svg\\b[^>]*width="1600"[^>]*height="680"/,"All landscapes must be intrinsically 1600×680");
+ assert.match(vector,/<svg\b[^>]*width="1600"[^>]*height="680"/,"All landscapes must be intrinsically 1600×680");
  assert.match(vector,/viewBox="0 0 1600 680"/,"Scalable 1600×680 viewBox");
- assert.doesNotMatch(vector,/<script|foreignObject|\\sonload=|href="https?:|<image\\b/i,"No script, raster image, or external resources");
+ assert.doesNotMatch(vector,/<script|foreignObject|\sonload=|href="https?:|<image\b/i,"No script, raster image, or external resources");
  assert.equal(CARD.countryArt(code),"./assets/countries/"+code.toLowerCase()+".svg");
  assert.ok(!fs.existsSync(path.join(root,"assets","countries",code.toLowerCase()+".webp")),"No obsolete low-res image: "+code);
 }
