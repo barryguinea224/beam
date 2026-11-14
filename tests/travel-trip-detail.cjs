@@ -4,6 +4,7 @@ const fs=require('node:fs');
 const vm=require('node:vm');
 const DETAIL=require('../travel/trip-detail.js');
 const PDF=require('../travel/factual-pdf.js');
+const DAY=require('../travel/day-excursions.js');
 
 const html=fs.readFileSync('travel/index.html','utf8');
 const inline=html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
@@ -82,7 +83,9 @@ const ids=['#modal','#tripDetailModal','#detailTitle','#detailIntro','#detailFac
  '#detailStops','#addTripStop','#tripStopForm','#tripStopCountry','#tripStopCities',
  '#tripStopEntry','#tripStopExit','#tripStopFormTitle','#tripStopFormMessage',
  '#tripStopDeleteConfirm','#tripStopDeleteYes','#tripStopDeleteNo',
- '#tripStopDeleteText','#tripStopCancel','#tripStopSave'];
+ '#tripStopDeleteText','#tripStopCancel','#tripStopSave',
+  '#tripOverlapEditDates','#tripOverlapStop','#tripOverlapActivity',
+  '#tripOverlapOffer','#tripOverlapText','#tripOverlapFeedback','#tripEntryDate'];
 const els=Object.fromEntries(ids.map(id=>[id,box()]));
 const calls=[];
 const tripRecord={id:'trip-1',country_code:'FR',cities:['Paris'],entry_date:'2026-06-20',
@@ -113,7 +116,7 @@ const context=vm.createContext({
  COUNTRY_NAMES:{FR:'France',DE:'Allemagne'},
  Option:class {constructor(label,value){this.text=label;this.value=value}},
  document:{activeElement:null},
- S,user:{id:'owner'},accountState:'active',trips:[tripRecord],canWrite:()=>true,
+ S,DAY,user:{id:'owner'},accountState:'active',trips:[tripRecord],canWrite:()=>true,
  LOYALTY:{hintFor:airline=>airline==='Compagnie fictive'?"Pensez à donner votre numéro Flying Blue à la réservation.":""},
  $:id=>{assert.ok(els[id], 'Missing DOM stub '+id);return els[id]},
  countryName:code=>code==='FR'?'France':code,
