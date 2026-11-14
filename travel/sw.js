@@ -1,10 +1,10 @@
 // J'y étais PWA — PRIVATE BY DEFAULT.
-// Cache only audited public assets; the shell itself never contains private data.
+// Cache only the audited, versioned public shell. No runtime cache writes.
 // Never cache Supabase, signed links, personal trips, photos or API responses.
-const CACHE_NAME = "beam-travel-shell-v1-20261114-jyetais-v51-offline-readonly";
+const CACHE_NAME = "beam-travel-shell-v1-20261114-jyetais-v50-fab-share-first";
 const SCOPE_PATH = "/travel/";
 const PUBLIC_SHELL = [
-  "./index.html", "./config.js", "./offline-bootstrap.js", "./pwa.js", "./offline-store.js", "./offline-readonly.css",
+  "./index.html", "./config.js", "./offline-bootstrap.js", "./pwa.js",
   // Public legal documents: never any account/session data.
   "./confidentialite.html", "./conditions.html", "./legal.css",
   "./access.js", "./fr-accords.js", "./avatar.js", "./photo-utils.js", "./photo-upload.js", "./trip-detail.js", "./visa-guide.js",
@@ -92,20 +92,15 @@ self.addEventListener("fetch", event => {
         // security update wins without always re-downloading unchanged files.
         return await fetch(request, {cache:"no-cache"});
       } catch {
-        // The install-time HTML is a public, data-free shell. Private journeys
-        // exist ONLY in the user's 30-day IndexedDB copy, never in CacheStorage.
-        const cache = await caches.open(CACHE_NAME);
-        if (isBareHome || url.pathname === SCOPE_PATH + "index.html") {
-          const shellUrl = new URL("./index.html", self.registration.scope).href;
-          const cachedShell = await cache.match(shellUrl, {ignoreSearch:false});
-          if (cachedShell) return cachedShell;
-        }
+        // Only the two explicitly audited PUBLIC legal pages may be opened
+        // from the install-time cache while offline; the app HTML remains private.
         if (url.pathname === SCOPE_PATH + "confidentialite.html" ||
             url.pathname === SCOPE_PATH + "conditions.html") {
+          const cache = await caches.open(CACHE_NAME);
           const cachedPublicLegal = await cache.match(request, {ignoreSearch:false});
           if (cachedPublicLegal) return cachedPublicLegal;
         }
-        // If the public shell is missing, return a neutral, fresh fallback:
+        // Serve a fresh PUBLIC offline-only page, never a previously rendered
         // app document. Works even after logout purges the shell caches.
         return new Response(`<!doctype html><html lang="fr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">

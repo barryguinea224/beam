@@ -96,8 +96,6 @@
 #offline h1{font-size:clamp(30px,8vw,44px);line-height:1.16}
 html.beamOffline #offline{display:block}
 html.beamOffline #auth,html.beamOffline #app,html.beamOffline #modal,html.beamOffline #tripDetailModal{display:none!important}
-html.beamOffline.travelOfflinePreview #app{display:block!important}
-html.beamOffline.travelOfflinePreview #offline{display:none!important}
 
 /* Account cards and non-overlapping session controls. */
 #myAccount{display:flex;flex-direction:column;gap:14px}
@@ -345,16 +343,11 @@ html.travelAccessReadOnly #photoField,html.travelAccessReadOnly #saveTrip{displa
 .detailMomentActions{display:flex;gap:9px;flex-wrap:wrap;margin:8px 0}
 .detailMomentActions .btn,#detailAddMoment{min-height:44px;white-space:normal}
 @media(max-width:390px){.upcomingTripsSection{padding:10px}.detailMomentActions>*{flex:1 1 100%;max-width:100%}}
-</style><link rel="stylesheet" href="./photo-sheet.css"><link rel="stylesheet" href="./loyalty.css"><link rel="stylesheet" href="./account-settings.css"><link rel="stylesheet" href="./activity-duration.css"><link rel="stylesheet" href="./trip-stops.css"><link rel="stylesheet" href="./day-excursions.css"><link rel="stylesheet" href="./date-range-picker.css"><link rel="stylesheet" href="./flight-connections.css"><link rel="stylesheet" href="./visual-cards.css"><link rel="stylesheet" href="./dashboard-filters.css"><link rel="stylesheet" href="./home-simple.css"><link rel="stylesheet" href="./profile-cover.css"><link rel="stylesheet" href="./offline-readonly.css">
+</style><link rel="stylesheet" href="./photo-sheet.css"><link rel="stylesheet" href="./loyalty.css"><link rel="stylesheet" href="./account-settings.css"><link rel="stylesheet" href="./activity-duration.css"><link rel="stylesheet" href="./trip-stops.css"><link rel="stylesheet" href="./day-excursions.css"><link rel="stylesheet" href="./date-range-picker.css"><link rel="stylesheet" href="./flight-connections.css"><link rel="stylesheet" href="./visual-cards.css"><link rel="stylesheet" href="./dashboard-filters.css"><link rel="stylesheet" href="./home-simple.css"><link rel="stylesheet" href="./profile-cover.css">
 <script src="/travel/offline-bootstrap.js"></script></head><body>
 <section id="offline" role="status" aria-live="polite"><div class="ey">J&#39;y étais</div><h1>Connexion nécessaire pour consulter votre carnet</h1><p>Vos voyages et photos sont privés et indisponibles hors ligne. Reconnectez-vous à Internet pour continuer.</p></section>
 <section id="auth" class="auth hidden"><img class="jyBrandLogo jyAuthLogo" src="./assets/brand/jyetais-logo.svg" alt="J&#39;y étais"><p class="jyAuthSignature">J&#39;y étais by BEAM</p><h1>Gardez vos voyages.<br>Retrouvez votre histoire.</h1><p class="sub">Un espace personnel pour vos destinations, dates, activités, souvenirs et photos.</p><form id="login"><div class="field"><label for="email">E-mail</label><input id="email" type="email" autocomplete="email" required></div><button class="btn">Recevoir un code</button></form><div id="otpBox" class="hidden"><p class="sub">Si cette adresse est autorisée, vous recevrez un code à 6 chiffres par e-mail.</p><form id="otpForm"><div class="field"><label for="otp">Code à 6 chiffres</label><input id="otp" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" aria-describedby="otpHelp" required><small id="otpHelp">Pas de code après 2 minutes ? Vérifiez vos spams, ou <a href="https://wa.me/224622095630" target="_blank" rel="noopener noreferrer">écrivez-nous sur WhatsApp</a>.</small></div><button class="btn">Continuer avec le code</button></form><div class="actions"><button id="resend" type="button" class="btn ghost" disabled>Renvoyer un code · 60 s</button></div></div><p id="loginMsg" class="notice hidden" role="status" aria-live="polite"></p><p class="sub" id="accessHelp">Ce carnet est réservé aux clients BEAM. <a href="https://wa.me/224622095630" target="_blank" rel="noopener noreferrer">Contactez-nous sur WhatsApp</a>.</p><div class="beamInstall" data-beam-install-area><button class="beamInstallButton" type="button" data-beam-install-action hidden>Installer J'y étais</button><details class="beamInstallHelp" data-beam-install-help><summary>Comment installer J'y étais</summary><p data-beam-install-steps>Depuis le menu de votre navigateur, cherchez « Installer l’application » ou « Ajouter à l’écran d’accueil », si cette option est proposée.</p></details><p class="beamInstallStatus" role="status" aria-live="polite" data-beam-install-status></p></div><aside class="authContact" aria-label="Contact"><strong>Contact</strong><p>WhatsApp : <a href="https://wa.me/224622095630" target="_blank" rel="noopener noreferrer">+224 622 09 56 30</a></p></aside><nav class="legalLinks legalLinksAuth" aria-label="Informations légales"><a href="./confidentialite.html">Confidentialité</a><span aria-hidden="true">·</span><a href="./conditions.html">Conditions d’utilisation</a></nav></section>
-<main id="app" class="hidden"><div id="offlineBanner" role="status" aria-live="polite" hidden></div>
-<section id="offlineSkeleton" aria-label="Chargement du carnet" hidden>
- <div class="skeletonBar" aria-hidden="true"></div><div class="skeletonMap" aria-hidden="true"></div>
- <div class="skeletonTrip" aria-hidden="true"></div><div class="skeletonTrip" aria-hidden="true"></div>
- <div class="skeletonTrip" aria-hidden="true"></div>
-</section><div class="w"><header class="top" aria-label="Actions du carnet"><div id="headerActions" class="headerActions"></div></header>
+<main id="app" class="hidden"><div class="w"><header class="top" aria-label="Actions du carnet"><div id="headerActions" class="headerActions"></div></header>
 <section id="accessBanner" class="hidden" role="status" aria-live="polite" aria-label="Durée d'accès"></section>
 <section id="welcomeCard" class="hidden" aria-labelledby="welcomeTitle"><h2 id="welcomeTitle">Votre carnet</h2><div class="welcomeSteps"><button id="welcomeName" class="welcomeStep" type="button"><span class="check" aria-hidden="true"></span><span>Ajouter mon nom</span></button><button id="welcomeTrip" class="welcomeStep" type="button"><span class="check" aria-hidden="true"></span><span>Ajouter un voyage</span></button><button id="welcomePdf" class="welcomeStep" type="button"><span class="check" aria-hidden="true"></span><span>PDF ambassade</span></button></div><p id="welcomeHint" role="status" aria-live="polite"></p></section>
 <section id="travelHero" class="hero" aria-label="Mon profil"><div id="profileCover" class="profileCover" role="img" aria-label="Couverture de votre carnet"><img id="profileCoverImage" alt="" referrerpolicy="no-referrer" hidden></div><div class="travelerIdentity">
@@ -372,18 +365,11 @@ html.travelAccessReadOnly #photoField,html.travelAccessReadOnly #saveTrip{displa
 </section>
 <section id="accountStatusUnavailable" class="panel hidden" role="alert"><h2>État du compte indisponible</h2><p>Impossible de vérifier si votre compte est en cours de suppression. Les modifications restent désactivées. Réessayez, ou déconnectez-vous puis reconnectez-vous.</p><button id="retryAccountStatus" type="button" class="btn ghost">Réessayer</button></section>
 <p id="appMsg" class="notice hidden"></p><div id="filterAnchor" class="filterAnchor"><button id="toggleFilters" class="btn ghost" type="button" aria-expanded="false" aria-controls="filterPanel">Filtrer les voyages</button><div id="activeFilterChips" class="activeFilterChips" aria-label="Filtres actifs"></div><section id="filterPanel" class="panel" aria-labelledby="filterTitle" role="dialog" aria-modal="false" aria-hidden="true" tabindex="-1"><div class="top"><h2 id="filterTitle">Filtrer mon carnet</h2><button id="closeFilters" class="btn ghost" type="button" aria-label="Fermer les filtres">✕</button></div><div class="dashboardFilters"><div class="field"><label for="filterCountry">Pays</label><select id="filterCountry"><option value="">Tous les pays</option></select></div><div class="field"><label for="filterYear">Année d’entrée</label><select id="filterYear"><option value="">Toutes les années</option></select></div><div class="field"><label for="filterPurpose">Motif</label><select id="filterPurpose"><option value="">Tous les motifs</option><option value="tourisme">Tourisme</option><option value="affaires">Affaires</option><option value="etudes">Études</option><option value="famille">Famille</option><option value="sante">Santé</option><option value="transit">Transit</option><option value="autre">Autre</option></select></div><div class="field"><label for="filterScope">Type de voyage</label><select id="filterScope"><option value="">Tous les types</option><option value="foreign">Voyages à l’étranger</option><option value="domestic">Séjours nationaux</option></select></div></div><div class="dashboardFiltersActions"><button id="applyFilters" type="button" class="btn">Voir les voyages</button><button id="resetFilters" type="button" class="btn ghost">Tout afficher</button><p id="filterStatus" role="status" aria-live="polite">Tous les voyages sont affichés.</p></div></section></div><section id="travelMapPanel" class="panel" aria-labelledby="travelMapTitle"><h2 id="travelMapTitle">Ma carte</h2><div class="map" id="map" aria-live="polite">Chargement de la carte…</div><p id="mapInfo" class="mapInfo hidden"></p><span id="plannedLegend" class="travelMapLegend hidden">À venir</span><div id="countryList" class="countryList" aria-label="Pays visités et prévus"></div></section>
-<section id="homeActions" aria-label="Actions"><button id="add" class="btn" type="button">+ Ajouter un voyage</button><div id="secondaryActions"><button id="pdf" type="button">PDF ambassade</button><button id="printJournal" type="button">Mon carnet</button></div><p id="offlineActionNote" role="status" hidden>Disponible avec une connexion</p></section>
+<section id="homeActions" aria-label="Actions"><button id="add" class="btn" type="button">+ Ajouter un voyage</button><div id="secondaryActions"><button id="pdf" type="button">PDF ambassade</button><button id="printJournal" type="button">Mon carnet</button></div></section>
 <dialog id="pdfDialog" aria-labelledby="pdfDialogTitle"><div class="pdfDialogHeader"><h2 id="pdfDialogTitle">PDF ambassade</h2><button id="pdfDialogClose" type="button" aria-label="Fermer la fenêtre PDF">Fermer</button></div><label class="pdfContactChoice" for="includePdfContacts"><input id="includePdfContacts" type="checkbox" autocomplete="off" disabled> Inclure mes coordonnées dans ce PDF</label><p id="pdfExclusionNote" class="pdfExclusionNote hidden">Les voyages à venir ou en cours n’apparaissent pas dans le PDF.</p><button id="generatePdf" class="btn" type="button">Générer le PDF</button></dialog>
 <div id="travelPanels" class="grid"><section class="panel" id="travelTripsPanel"><h2>Mes voyages</h2><div id="trips"></div></section></div><div id="discardConfirm" class="accountOverlay" aria-hidden="true"><section class="panel" role="alertdialog" aria-modal="true" aria-labelledby="discardTitle" aria-describedby="discardDescription" tabindex="-1"><h2 id="discardTitle">Abandonner les modifications ?</h2><p id="discardDescription">Les informations non enregistrées seront perdues.</p><div class="actions"><button type="button" id="discardStay" class="btn ghost">Continuer la modification</button><button type="button" id="discardLeave" class="btn">Abandonner</button></div></section></div>
 <div id="accountOverlay" class="accountOverlay" aria-hidden="true"><section id="myAccount" class="panel" role="dialog" aria-modal="true" aria-labelledby="myAccountTitle" tabindex="-1">
 <header class="accountToolbar"><button id="closeAccount" type="button" class="accountBack" aria-label="Retour"><span aria-hidden="true">←</span></button><h2 id="myAccountTitle">Paramètres</h2></header>
-<section id="offlineSetting" aria-labelledby="offlineSettingTitle">
- <label id="offlineSettingTitle" for="offlineToggle">Consulter mes voyages sans connexion
-  <input id="offlineToggle" type="checkbox" role="switch" checked>
- </label>
- <p>Une copie de vos voyages (sans photos ni coordonnées) reste sur ce téléphone jusqu'à votre déconnexion.</p>
- <p id="offlineSettingStatus" role="status" aria-live="polite"></p>
-</section>
 <section id="accountProfileCard" class="panel accountCard" aria-labelledby="accountProfileTitle"><h3 id="accountProfileTitle" class="accountSectionTitle">Profil</h3>
 <div class="accountAvatarRow"><div class="accountAvatarControl"><button id="avatarMenuToggle" type="button" class="accountAvatarButton" aria-label="Actions sur la photo de profil" aria-expanded="false" aria-controls="avatarMenu"><span id="accountAvatar" aria-label="Photo de profil ou initiales">V</span><span class="accountCameraBadge" aria-hidden="true">📷</span></button><div id="avatarMenu" class="accountActionMenu hidden" role="group" aria-label="Actions sur la photo"><button id="avatarChange" class="accountMenuItem" type="button">Changer la photo</button><button id="avatarRemove" class="accountMenuItem hidden" type="button">Retirer la photo</button></div></div>
 <input id="avatarPick" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" aria-label="Choisir une photo de profil">
@@ -529,7 +515,7 @@ html.travelAccessReadOnly #photoField,html.travelAccessReadOnly #saveTrip{displa
   <p id="photoActionStatus" role="status" aria-live="polite"></p>
  </section>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./config.js"></script><script src="./pwa.js"></script><script src="./access.js"></script><script src="./fr-accords.js"></script><script src="./photo-utils.js"></script><script src="./photo-upload.js"></script><script src="./avatar.js"></script><script src="./activity-durations.js"></script><script src="./trip-detail.js"></script><script src="./loyalty-programs.js"></script><script src="./loyalty-ui.js"></script><script src="./visa-guide.js"></script><script src="./countries.js"></script><script src="./trip-stops.js"></script><script src="./day-excursions.js"></script><script src="./date-range-picker.js"></script><script src="./country-picker.js"></script><script src="./factual-pdf.js"></script><script src="./factual-pdf-file.js"></script><script src="./trip-lifecycle.js"></script><script src="./journal-stats.js"></script><script src="./dashboard-filters.js"></script><script src="./visual-cards.js"></script><script src="./profile-cover.js"></script><script src="./profile-cover-ui.js"></script><script src="./offline-store.js"></script><script src="./flight-connections.js"></script><script src="./printable-journal.js"></script><script src="./family-booklet.js"></script><script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./config.js"></script><script src="./pwa.js"></script><script src="./access.js"></script><script src="./fr-accords.js"></script><script src="./photo-utils.js"></script><script src="./photo-upload.js"></script><script src="./avatar.js"></script><script src="./activity-durations.js"></script><script src="./trip-detail.js"></script><script src="./loyalty-programs.js"></script><script src="./loyalty-ui.js"></script><script src="./visa-guide.js"></script><script src="./countries.js"></script><script src="./trip-stops.js"></script><script src="./day-excursions.js"></script><script src="./date-range-picker.js"></script><script src="./country-picker.js"></script><script src="./factual-pdf.js"></script><script src="./factual-pdf-file.js"></script><script src="./trip-lifecycle.js"></script><script src="./journal-stats.js"></script><script src="./dashboard-filters.js"></script><script src="./visual-cards.js"></script><script src="./profile-cover.js"></script><script src="./profile-cover-ui.js"></script><script src="./flight-connections.js"></script><script src="./printable-journal.js"></script><script src="./family-booklet.js"></script><script>
 const C=window.BEAM_TRAVEL_CONFIG||{},ok=C.supabaseUrl&&!C.supabaseUrl.includes("YOUR_")&&C.supabaseAnonKey&&!C.supabaseAnonKey.includes("YOUR_"),S=ok&&typeof supabase!=="undefined"?supabase.createClient(C.supabaseUrl,C.supabaseAnonKey):null,$=s=>document.querySelector(s);let user,trips=[],accountState="loading";
 const LOYALTY=window.BEAM_LOYALTY_UI?.init({supabase:S,user:()=>user,isActive:()=>accountState==="active",canWrite:()=>canWrite(),onChange:()=>renderLoyaltyHint()});
 function view(id){$("#auth").classList.add("hidden");$("#app").classList.add("hidden");$(id).classList.remove("hidden");document.title="J'y étais"}
@@ -537,62 +523,15 @@ let profile={country_of_residence:null,display_name:null,access_until:null,avata
 const FR=window.BEAM_FR_ACCORDS;
 const AVATAR=window.BEAM_TRAVEL_AVATAR;
 let avatarSigned=null,avatarSignedUntil=0,avatarBusy=false;
-const ACCESS=window.BEAM_TRAVEL_ACCESS,OFFLINE=window.JYETAIS_OFFLINE;
-let offlineMode=false,offlineSnapshot=null,offlineActivities=[];
-function setSkeleton(visible){
- document.documentElement.classList.toggle("travelSkeleton",!!visible);
- $("#offlineSkeleton").hidden=!visible;
-}
-function updateOfflineSettings(){$("#offlineToggle").checked=OFFLINE.enabled()}
-function syncOfflineActions(){
- const blocked=offlineMode;
- for(const selector of ["#add","#pdf","#printJournal","#generatePdf"]){
-  const el=$(selector);if(!el)continue;
-  el.disabled=blocked;el.title=blocked?"Disponible avec une connexion":"";
- }
- $("#offlineActionNote").hidden=!blocked;
- document.documentElement.classList.toggle("travelOfflinePreview",blocked);
- updateFloatingAdd();
-}
-function showOfflineCopy(snapshot){
- if(!snapshot||!snapshot.ownerId)return false;
- offlineMode=true;offlineSnapshot=snapshot;
- offlineActivities=snapshot.activities||[];
- avatarSigned=null;avatarSignedUntil=0;
- clearProfileCover();
- user={id:snapshot.ownerId};
- profile={display_name:snapshot.profile?.display_name||"",country_of_residence:null,
-  access_until:null,avatar_id:null,cover_media_id:null};
- trips=snapshot.trips||[];
- dashboardFilters=window.BEAM_DASHBOARD_FILTERS.normalize(window.BEAM_DASHBOARD_FILTERS.EMPTY);
- setAccountState("active");view("#app");setSkeleton(false);
- const date=new Date(snapshot.updatedAt);
- const label=new Intl.DateTimeFormat("fr-FR",{day:"numeric",month:"short",year:"numeric",timeZone:"UTC"}).format(date);
- $("#offlineBanner").textContent=(navigator.onLine?"Copie locale":"Hors ligne")+" · voyages du "+label;
- $("#offlineBanner").hidden=false;
- render();syncOfflineActions();updateOfflineSettings();
- return true;
-}
-async function storeOfflineCopy(uid){
- if(!navigator.onLine||offlineMode||user?.id!==uid||accountState!=="active"||!OFFLINE.enabled())return;
- try{
-  const result=await S.from("activities")
-   .select("id,trip_id,title,place,happened_on,duration_days")
-   .eq("user_id",uid).order("created_at",{ascending:true});
-  if(result.error||!Array.isArray(result.data)||user?.id!==uid||offlineMode)return;
-  const safeTrips=trips.map(t=>({...t,status:LIFE.state(t)}));
-  await OFFLINE.save(uid,profile.display_name,safeTrips,result.data);
- }catch{/* Online reading remains available without local storage. */}
-}
+const ACCESS=window.BEAM_TRAVEL_ACCESS;
 function accessState(){return ACCESS.state(profile.access_until)}
-function canWrite(){return !offlineMode&&accountState==="active"&&accessState().canWrite}
+function canWrite(){return accountState==="active"&&accessState().canWrite}
 function renderAccessUi(){
  const on=accountState==="active",status=accessState(),banner=$("#accessBanner");
- document.documentElement.classList.toggle("travelAccessReadOnly",on&&!status.canWrite&&!offlineMode);
+ document.documentElement.classList.toggle("travelAccessReadOnly",on&&!status.canWrite);
  updateFloatingAdd();
  coverControls();
- banner.classList.toggle("hidden",offlineMode||!on||(!status.warning&&status.canWrite));
- if(offlineMode){banner.replaceChildren();return}
+ banner.classList.toggle("hidden",!on||(!status.warning&&status.canWrite));
  banner.dataset.expired=String(!status.canWrite);
  if(!on||(!status.warning&&status.canWrite)){banner.replaceChildren();return}
  const label=status.date?ACCESS.formatDate(status.date):"";
@@ -947,7 +886,7 @@ function render(){
     ?(upcoming.length?'<section class="upcomingTripsSection" aria-label="À venir"><h3>À venir</h3><div class="upcomingTripsList">'+upcoming.map(tripCard).join("")+'</div></section>':"")+
      (other.length?'<div class="completedTripsList">'+other.map(tripCard).join("")+'</div>':"")
     :(trips.length?"<p>Aucun voyage ne correspond aux filtres.</p>":'<div class="emptyTrips"><p>Aucun voyage pour le moment.</p><button type="button" id="addFirstTrip" class="btn">+ Ajouter mon premier voyage</button></div>');
-  renderFilterChips();applyMapState();scheduleMap();scheduleCoverImages();syncOfflineActions();
+  renderFilterChips();applyMapState();scheduleMap();scheduleCoverImages();
 }
 function positionHeaderActions(){
  // Actions stay below the map.
@@ -1023,7 +962,7 @@ function accountSummary(){
 function openAccountPanel(){
  if(accountState!=="active")return;
  setFiltersOpen(false);accountReturnFocus=document.activeElement;
- accountSummary();renderAvatar();if(!offlineMode){refreshAvatarIfNeeded().catch(()=>{});if(typeof LOYALTY!=="undefined")void LOYALTY?.reload()}updateOfflineSettings();$("#accountOverlay").classList.add("accountOpen");
+ accountSummary();renderAvatar();refreshAvatarIfNeeded().catch(()=>{});if(typeof LOYALTY!=="undefined")void LOYALTY?.reload();$("#accountOverlay").classList.add("accountOpen");
  $("#accountOverlay").setAttribute("aria-hidden","false");$("#openAccount").setAttribute("aria-expanded","true");
  closeAvatarMenu();closeAvatarMenu();$("#closeAccount").focus();armOverlayBack();
 }
@@ -1053,24 +992,6 @@ function closeAccountPanel(force=false){
  disarmOverlayBack();if(accountReturnFocus?.isConnected)accountReturnFocus.focus();return true;
 }
 $("#openAccount").onclick=openAccountPanel;
-$("#offlineToggle").onchange=async event=>{
- const check=event.target,value=check.checked,uid=user?.id,status=$("#offlineSettingStatus");
- check.disabled=true;status.textContent=value?"Activation…":"Effacement de la copie…";
- try{
-  await OFFLINE.setEnabled(value,uid);
-  if(!value){offlineSnapshot=null;offlineActivities=[];status.textContent="Copie effacée de ce téléphone."}
-  else {
-   status.textContent="Consultation hors ligne activée.";
-   if(navigator.onLine&&!offlineMode&&uid)void storeOfflineCopy(uid);
-  }
-  if(offlineMode&&!value){
-   $("#accountOverlay").classList.remove("accountOpen");
-   $("#app").classList.add("hidden");$("#offline").style.display="block";
-   $("#offline").querySelector("p").textContent="La copie locale est désactivée. Reconnectez-vous pour voir vos voyages.";
-  }
- }catch{status.textContent="Impossible de modifier la copie locale sur cet appareil."}
- finally{check.disabled=false;updateOfflineSettings()}
-};
 $("#closeAccount").onclick=()=>closeAccountPanel();
 $("#changeResidence").onclick=()=>{$("#editAccount").click();$("#residenceSearch").focus()};
 $("#editAccount").onclick=()=>{
@@ -1139,70 +1060,29 @@ function setAccountState(state){
  if(!active){if($("#pdfDialog").open)$("#pdfDialog").close();if(typeof LOYALTY!=="undefined")LOYALTY?.clear();renderAccessUi();$("#accountOverlay").classList.remove("accountOpen","accountEditing");$("#accountOverlay").setAttribute?.("aria-hidden","true");clearContactFields();$("#modal").classList.remove("open");if($("#tripDetailModal").classList.contains("open"))closeTripDetail()}
 }
 async function load(){
- if(!user||!S)return;
- const uid=user.id;
- if(!offlineMode){setAccountState("loading");setSkeleton(true)}
+ if(!user)return;
+ setAccountState("loading");
  const {data:current,error:stateError}=await S.from("profiles")
-   .select("country_of_residence,display_name,deleting,access_until,avatar_id,cover_media_id").eq("id",uid).single();
- if(stateError||!current){if(!offlineMode){setSkeleton(false);setAccountState("unavailable")}return}
- if(current.deleting===true){
-  // A server-side deletion lock revokes previously saved offline access as well.
-  await OFFLINE.clear();offlineMode=false;offlineSnapshot=null;offlineActivities=[];
-  trips=[];setSkeleton(false);setAccountState("deleting");return;
- }
+   .select("country_of_residence,display_name,deleting,access_until,avatar_id,cover_media_id").eq("id",user.id).single();
+ if(stateError||!current){setAccountState("unavailable");return}
  profile=current;
+ if(current.deleting===true){
+   trips=[];
+   setAccountState("deleting");
+   return;
+ }
  countrySelectors.residence.reset(profile.country_of_residence||"");
  $("#travelerName").value=profile.display_name||"";
+ setAccountState("active");renderAccessUi();await refreshAvatar();
  const {data,error}=await S.from("trips").select("*").eq("deleting",false).order("entry_date",{ascending:false});
  if(error){$("#appMsg").textContent="Impossible de rafraîchir vos voyages. Réessayez.";$("#appMsg").classList.remove("hidden");throw error}
- const fresh=await fetchOwnedStops(data||[],uid);
- if(user?.id!==uid)return; // A newer session must never receive the old owner's result.
- trips=fresh;offlineMode=false;offlineSnapshot=null;offlineActivities=[];
- $("#offlineBanner").hidden=true;document.documentElement.classList.remove("travelOfflinePreview");
- setSkeleton(false);setAccountState("active");renderAccessUi();render();
- await refreshAvatar();
+ trips=await fetchOwnedStops(data||[],user.id);render();
  void refreshProfileCover();
  if(typeof LOYALTY!=="undefined")void LOYALTY?.reload();
- void storeOfflineCopy(uid);
  await loadOptionalContacts();
 }
 function layoutDebug(){if(!new URLSearchParams(location.search).has("debug"))return;setTimeout(()=>{let vv=window.visualViewport,els=[...document.querySelectorAll("body *")].filter(e=>{let r=e.getBoundingClientRect();return r.right>innerWidth+1||r.left<-1||e.scrollWidth>e.clientWidth+1}).map(e=>({tag:e.tagName,id:e.id,cls:e.className,right:Math.round(e.getBoundingClientRect().right),left:Math.round(e.getBoundingClientRect().left),sw:e.scrollWidth,cw:e.clientWidth}));let pre=document.createElement("pre");pre.style="position:relative;z-index:99999;white-space:pre-wrap;overflow-wrap:anywhere;background:#111;color:#fff;padding:12px;font:12px monospace";pre.textContent=JSON.stringify({innerWidth,screenWidth:screen.width,devicePixelRatio,visualViewport:vv&&vv.width,overflow:els},null,2);document.body.prepend(pre)},500)}
-async function init(){
- layoutDebug();
- try{await OFFLINE.prune()}catch{}
- if(!navigator.onLine){
-  // Offline access requires a last verified local owner marker and a fresh copy.
-  const saved=await OFFLINE.readLast().catch(()=>null);
-  if(saved)showOfflineCopy(saved);
-  return;
- }
- setSkeleton(true);view("#app");
- if(!ok||!S){
-  setSkeleton(false);view("#auth");
-  $("#loginMsg").textContent="Configuration Supabase requise.";
-  $("#loginMsg").classList.remove("hidden");return;
- }
- let session=null;
- try{({data:{session}}=await S.auth.getSession())}catch{}
- user=session?.user;
- if(!user){
-  await OFFLINE.clear().catch(()=>{});
-  setSkeleton(false);view("#auth");
-  const pending=pendingAuth();if(pending?.email)showOtp(pending.email);
-  return;
- }
- let saved=null;
- try{
-  // A different Supabase user evicts the previous DB BEFORE any stored trip is shown.
-  await OFFLINE.bind(user.id);
-  saved=await OFFLINE.readFor(user.id);
- }catch{}
- if(saved)showOfflineCopy(saved);
- else {setAccountState("loading");view("#app");setSkeleton(true)}
- try{await load()}catch{
-  if(!offlineMode){setSkeleton(false);setAccountState("unavailable")}
- }
-}
+async function init(){if(!navigator.onLine)return;layoutDebug();if(!ok||!S){view("#auth");$("#loginMsg").textContent="Configuration Supabase requise.";$("#loginMsg").classList.remove("hidden");return}let {data:{session}}=await S.auth.getSession();user=session?.user;if(user){setAccountState("loading");view("#app");await load()}else {view("#auth");let p=pendingAuth();if(p?.email)showOtp(p.email)}}
 const AUTH_STATE_KEY="beam.travel.auth.pending";
 const ACCESS_NOTICE="Si cette adresse est autorisée, vous recevrez un code à 6 chiffres par e-mail.";
 function pendingAuth(){try{return JSON.parse(sessionStorage.getItem(AUTH_STATE_KEY)||"null")}catch{return null}}
@@ -1257,9 +1137,6 @@ $("#resend").onclick=async()=>{
   await sendAccess(email);
 };
 async function clearPwaSession(){
- await OFFLINE.clear().catch(()=>{});offlineMode=false;offlineSnapshot=null;offlineActivities=[];
- document.documentElement.classList.remove("travelOfflinePreview");
- $("#offlineBanner").hidden=true;setSkeleton(false);
  clearPending();user=null;trips=[];stopEditingId=null;stopDeleteTarget=null;profile={country_of_residence:null,display_name:null,access_until:null,avatar_id:null,cover_media_id:null};clearProfileCover();flightIntroDone=false;lastFlightRoutes=[];
  avatarSigned=null;avatarSignedUntil=0;avatarBusy=false;renderAvatar();avatarMessage("Photo facultative · recadrage carré et WebP privé.");
  clearContactFields();dashboardFilters=window.BEAM_DASHBOARD_FILTERS.normalize(window.BEAM_DASHBOARD_FILTERS.EMPTY);
@@ -1285,7 +1162,7 @@ async function clearPwaSession(){
 }
 $("#logout").onclick=async()=>{
  $("#logout").disabled=true;
- if(!offlineMode&&S){try{await S.auth.signOut({scope:"local"})}catch{}}
+ try{await S.auth.signOut({scope:"local"})}catch{}
  await clearPwaSession();
  // A fresh page cannot re-display previously loaded private trips.
  location.replace(location.pathname);
@@ -1394,7 +1271,7 @@ let coverLoadEpoch=0,coverObserver=null;
 function scheduleCoverImages(){
  const epoch=++coverLoadEpoch;
  if(coverObserver){coverObserver.disconnect();coverObserver=null}
- if(accountState!=="active"||!S||!user||offlineMode)return;
+ if(accountState!=="active"||!S||!user)return;
  const nodes=[...document.querySelectorAll("#trips .tripOpen[data-id]")].filter(btn=>
    trips.some(t=>t.id===btn.dataset.id && !!t.cover_media_id));
  if(!nodes.length)return;
@@ -1713,7 +1590,7 @@ function openTripDetail(id){
    ...(trip.companions?.trim()?[fact("Voyagé avec",trip.companions)]:[])
  ].join("");
  renderLoyaltyHint(trip);
- $("#detailNote").textContent=offlineMode?"Souvenirs disponibles avec une connexion.":(trip.note?.trim()||"Aucun souvenir ajouté.");
+ $("#detailNote").textContent=trip.note?.trim()||"Aucun souvenir ajouté.";
  $("#detailStatus").classList.add("hidden");
  $("#detailActivityMessage").classList.add("hidden");
  $("#detailActivityForm").reset();
@@ -1731,27 +1608,13 @@ function openTripDetail(id){
  $("#detailActivities").innerHTML='<p class="detailEmpty">Chargement des activités…</p>';
  $("#tripDetailModal").classList.add("open");
  // Read a fixed public index only; never transmit the country or trip data.
- if(!offlineMode)void window.BEAM_VISA_GUIDE?.showForCountry(trip.country_code,$("#detailVisaGuide"));
+ void window.BEAM_VISA_GUIDE?.showForCountry(trip.country_code,$("#detailVisaGuide"));
  $("#detailSheet").scrollTop=0;
  $("#detailClose").focus();
- if(offlineMode){
-  const code=window.BEAM_VISUAL_CARDS.codeOf(trip.country_code);
-  const art=window.BEAM_VISUAL_CARDS.countryArt(code)||"./assets/world-map.svg";
-  const photoBox=$("#detailPhotos");photoBox.replaceChildren();
-  const illustration=document.createElement("img");
-  illustration.className="offlineCountryIllustration";illustration.alt="Illustration du pays";
-  illustration.src=art;photoBox.append(illustration);
-  const note=document.createElement("p");note.className="detailEmpty";
-  note.textContent="Photos disponibles avec une connexion.";photoBox.append(note);
-  detailActivitiesRows=offlineActivities.filter(row=>row.trip_id===id);
-  $("#detailActivities").innerHTML=DETAIL.activities(detailActivitiesRows);
- }else refreshTripDetail(id).catch(()=>{
-  if(detailTripId===id)detailMessage("Impossible de charger cette fiche. Réessayez en la rouvrant.");
- });
+ refreshTripDetail(id).catch(()=>{if(detailTripId===id)detailMessage("Impossible de charger cette fiche. Réessayez en la rouvrant.")});
 }
 async function refreshTripDetail(id){
  const token=++detailRequest;
- if(offlineMode)return;
  const [photos,activities]=await Promise.all([
    S.from("media").select("id,storage_path,caption").eq("user_id",user.id).eq("trip_id",id).order("created_at",{ascending:true}),
    S.from("activities").select("id,title,place,happened_on,duration_days").eq("user_id",user.id).eq("trip_id",id).order("created_at",{ascending:true})
@@ -2705,33 +2568,9 @@ $("#generatePdf").onclick=async()=>{
  }
 };if(S)S.auth.onAuthStateChange((event,s)=>{
  if(event==="SIGNED_OUT"){clearPwaSession().then(()=>view("#auth")).catch(()=>view("#auth"));return}
- if(s?.user&&user&&s.user.id!==user.id){
-  // Fail closed on a cross-account Auth transition, even if IndexedDB is slow.
-  view("#auth");$("#trips").replaceChildren();trips=[];offlineMode=false;
-  void OFFLINE.clear().then(async()=>{
-   user=s.user;await OFFLINE.bind(user.id);
-   setAccountState("loading");view("#app");setSkeleton(true);await load();
-  }).catch(()=>view("#auth"));
-  return;
- }
- if(s?.user&&!user&&navigator.onLine){
-  clearPending();user=s.user;
-  void OFFLINE.bind(user.id).then(async()=>{
-   const saved=await OFFLINE.readFor(user.id);
-   if(saved)showOfflineCopy(saved);
-   else {setAccountState("loading");view("#app");setSkeleton(true)}
-   await load();
-  }).catch(()=>{setSkeleton(false);view("#auth")});
- }
+ if(s?.user&&!user&&navigator.onLine){clearPending();user=s.user;setAccountState("loading");view("#app");setTimeout(load,0)}
 });
-init().catch(()=>{setSkeleton(false);if(!navigator.onLine)document.documentElement.classList.add("beamOffline")});
-window.addEventListener("offline",()=>{
- if(!user?.id)return;
- void OFFLINE.readFor(user.id).then(snapshot=>{
-  if(snapshot)showOfflineCopy(snapshot);
-  else {document.documentElement.classList.remove("travelOfflinePreview");$("#offline").style.display="block"}
- }).catch(()=>{document.documentElement.classList.remove("travelOfflinePreview")});
-});
+if(navigator.onLine)init();
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&accountState==="active"){renderAccessUi();refreshAvatarIfNeeded().catch(()=>{})}});
 window.addEventListener("focus",()=>{if(accountState==="active"){renderAccessUi();refreshAvatarIfNeeded().catch(()=>{})}});
 setInterval(()=>{if(accountState==="active")renderAccessUi()},60000);
