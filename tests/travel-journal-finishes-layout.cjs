@@ -10,13 +10,14 @@ async function main(){
    const page=await browser.newPage({viewport:{width,height:740},isMobile:true,hasTouch:true});
    try{
     await page.setContent(html);
+    await page.addStyleTag({content:fs.readFileSync("travel/home-simple.css","utf8")});
     await page.evaluate(()=>{
      document.querySelector("#app").classList.remove("hidden");
-     for(const selector of ["#travelHero","#residencePanel","#travelPanels","#myAccount"])document.querySelector(selector).classList.remove("hidden");
+     for(const selector of ["#travelHero","#travelMapPanel","#homeActions","#residencePanel","#travelPanels","#myAccount"])document.querySelector(selector).classList.remove("hidden");
      document.querySelector("#nd").textContent="1286";
      document.querySelector("#nt").textContent="12345";
      document.querySelector("#nc").textContent="249";
-     document.querySelector("#domesticCount").textContent="+ 14 séjours intérieurs";
+     assert.equal(document.querySelector("#homeStats").querySelectorAll("span[id]").length,6);
      const select=document.querySelector("#residence");
      const option=document.createElement("option");option.value="AE";option.textContent="Émirats arabes unis";select.appendChild(option);select.value="AE";
      document.querySelector("#countryList").innerHTML='<button class="countryChip">Guinée</button> <button class="countryChip">Arabie saoudite</button>';
@@ -24,7 +25,7 @@ async function main(){
     const m=await page.evaluate(()=>{
      const vw=window.innerWidth;
      const overflow=document.documentElement.scrollWidth-vw;
-     const metrics=[".statsWrap",".stats",".stat","#residencePanel","#residence","#countryList",".countryChip"].map(sel=>{
+     const metrics=["#homeStats","#travelMapPanel","#homeActions","#residencePanel","#residence","#countryList",".countryChip"].map(sel=>{
       const boxes=[...document.querySelectorAll(sel)].map(el=>el.getBoundingClientRect());
       return {sel,maxRight:Math.max(...boxes.map(x=>x.right)),minLeft:Math.min(...boxes.map(x=>x.left))};
      });

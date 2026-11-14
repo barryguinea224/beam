@@ -67,8 +67,8 @@ async function readStats(page){
  return page.evaluate(()=>{
   const text=id=>document.getElementById(id).textContent.trim();
   return {voyages:text("nt"),pays:text("nc"),jours:text("nd"),
-   context:text("statsScopeLabel"),domestic:text("domesticCount"),
-   labels:["ntl","ncl","ndl"].map(text)};
+   labels:["ntl","ncl","ndl"].map(text),
+   compact:document.getElementById("homeStats").textContent.trim()};
  });
 }
 async function main(){
@@ -97,15 +97,14 @@ async function main(){
     const stats=await readStats(page);
     assert.deepEqual([stats.voyages,stats.pays,stats.jours],["2","2","12"],
       "two foreign trips must produce EXACT current headline, ignoring domestic");
-    assert.equal(stats.context,"Voyages à l’étranger");
-    assert.equal(stats.domestic,"· + 1 séjour national");
-    assert.deepEqual(stats.labels,["Voyages","Pays","Jours"]);
+    assert.deepEqual(stats.labels,["voyages","pays","jours"]);
+    assert.match(stats.compact,/2 voyages.*2 pays.*12 jours/s);
     const head=await page.evaluate(()=>{
       const name="Mariama Djouldé Doumbouya Camara Binta Barry";
       const el=document.querySelector("#dashboardTitle");
       const avatar=document.querySelector("#travelerAvatar");
       const identity=document.querySelector("#travelHero .travelerIdentity");
-      const header=document.querySelector("#travelHero .travelerTopBar");
+      const header=document.querySelector("#travelHero");
       const subtitle=document.querySelector(".travelerSubtitle");
       const map=document.querySelector("#travelMapPanel");
       const titleBox=el.getBoundingClientRect(),nameBox=el.parentElement.getBoundingClientRect(),
@@ -113,8 +112,8 @@ async function main(){
       return {title:el.textContent,avatar:avatar.textContent,
         avatarBox:({width:avatar.getBoundingClientRect().width,
          height:avatar.getBoundingClientRect().height}),
-        label:header.querySelector(".travelerEy img")?.getAttribute("alt"),
-        subtitle:subtitle.textContent,
+        logoInHeader:!!header.querySelector(".travelerEy img"),
+        subtitle:subtitle?.textContent||"",
         accountText:document.querySelector("#openAccount")?.textContent,
         accountHit:(()=>{
          const b=document.querySelector("#openAccount").getBoundingClientRect();
@@ -131,10 +130,10 @@ async function main(){
     assert.equal(head.title,"Mariama Djouldé Doumbouya Camara Binta Barry",
      "full real profile name must be visible, never replaced or ellipsized");
     assert.equal(head.avatar,"MB","initials from first and last name");
-    assert.ok(head.avatarBox.width>=55&&head.avatarBox.width<=65,"round 56–64px avatar");
+    assert.ok(head.avatarBox.width>=46&&head.avatarBox.width<=58,"round compact avatar");
     assert.ok(Math.abs(head.avatarBox.width-head.avatarBox.height)<1,"avatar must stay round");
-    assert.equal(head.label,"J\u0027y étais");
-    assert.equal(head.subtitle,"Mon histoire à travers le monde");
+    assert.equal(head.logoInHeader,false,"no decorative logo on profile header");
+    assert.equal(head.subtitle,"","no explanatory subtitle on home");
     assert.ok(head.accountHit && await page.locator("#openAccount").getAttribute("aria-label")==="Paramètres du compte","account link must be accessible");
     assert.ok(head.titleFits&&head.titleNotClipped,"long name must wrap, not overflow or truncate "+JSON.stringify(head));
     assert.ok(head.scrollWidth<=width+1,"no horizontal overflow at "+width+"px "+JSON.stringify(head));
@@ -170,13 +169,13 @@ async function main(){
         el.className=previousClasses.join(" ");
         return result;
       });
-      const expectedSize=Math.max(20,Math.min(28,width*0.056));
-      assert.match(typography.fontFamily,/Georgia/i,"Georgia must remain the title font");
-      assert.equal(typography.fontWeight,"700","traveler name must be bold");
+      const expectedSize=Math.max(20,Math.min(25,width*0.058));
+      assert.match(typography.fontFamily,/Poppins/,"locally hosted Poppins must style the traveler title");
+      assert.equal(typography.fontWeight,"600","traveler name must use Poppins semi-bold");
       assert.ok(Math.abs(typography.fontSize-expectedSize)<0.12,
-        "title must respect clamp(20px,5.6vw,28px): "+JSON.stringify(typography));
-      assert.ok(Math.abs(typography.lineHeight/typography.fontSize-1.15)<0.02,
-        "title line height must be 1.15: "+JSON.stringify(typography));
+         "title must respect clamp(20px,5.8vw,25px): "+JSON.stringify(typography));
+      assert.ok(Math.abs(typography.lineHeight/typography.fontSize-1.25)<0.02,
+        "title line height must be 1.25: "+JSON.stringify(typography));
       assert.ok(typography.lines>=0.98&&typography.lines<=2.03,
         "sample traveler name must fit within two visible lines at "+width+"px: "+JSON.stringify(typography));
       assert.ok(typography.rect.left>=typography.block.left-1 &&
@@ -187,7 +186,7 @@ async function main(){
         "avatar must remain left-aligned and vertically centered: "+JSON.stringify(typography));
       assert.ok(typography.scrollWidth<=width+1,
         "sample name must not produce horizontal overflow at "+width+"px");
-      console.log("PASS Georgia bold sample traveler name at "+width+"px",JSON.stringify(typography));
+      console.log("PASS local Poppins traveler name at "+width+"px",JSON.stringify(typography));
     }
     if(width===360)assert.ok(head.mapTop<780,
      "map must begin within first screen at 360px: "+JSON.stringify(head));
@@ -197,14 +196,13 @@ async function main(){
     const national=await readStats(page);
     assert.deepEqual([national.voyages,national.pays,national.jours],["1","1","3"],
        "National must switch to 1 stay, 1 country, 3 days");
-    assert.equal(national.context,"Séjours nationaux");
-    assert.equal(national.domestic,"");
+    assert.deepEqual(national.labels,["voyage","pays","jours"]);
+    assert.match(national.compact,/1 voyage.*1 pays.*3 jours/s);
     await page.locator("#filterScope").selectOption("");
     const reset=await readStats(page);
     assert.deepEqual([reset.voyages,reset.pays,reset.jours],["2","2","12"],
       "the foreign-only default counters must be restored after removing National");
-    assert.equal(reset.context,"Voyages à l’étranger");
-    assert.equal(reset.domestic,"· + 1 séjour national");
+    assert.deepEqual(reset.labels,["voyages","pays","jours"]);
     console.log("PASS traveler identity real dashboard at "+width+"px",
      JSON.stringify({before:stats,after:national,reset,mapTop:head.mapTop}));
     await page.locator("#closeFilters").click();

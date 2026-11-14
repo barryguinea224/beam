@@ -82,7 +82,8 @@ async function main(){
  assert.equal(stale.children.length,0,"late response must not re-open a closed link");
 
  // Genuine static anchors, no target=_blank, no inline onclick and no PII.
- assert.match(html,/<a id="dashboardVisaGuide" href="\/visas\/">Guide des visas<\/a>/);
+ assert.doesNotMatch(html,/id="dashboardVisaGuide"/,"visa guide no longer belongs to the home header");
+ assert.match(html,/<section id="accountLinks"[\s\S]*?<a href="\/visas\/"><span>Guide des visas<\/span>/,"visa guide must remain in account useful links");
  assert.match(html,/<p id="detailVisaGuide" class="detailVisaGuide" hidden><\/p>/);
  assert.match(html,/<script src="\.\/visa-guide\.js"><\/script>/);
  assert.match(html,/BEAM_VISA_GUIDE\?\.showForCountry\(trip\.country_code,\$\("#detailVisaGuide"\)\)/);
