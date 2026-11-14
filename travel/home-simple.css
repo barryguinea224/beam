@@ -102,3 +102,12 @@
  #travelMapPanel .map{min-height:170px;max-height:270px}
  #homeActions{margin-bottom:4px}
 }
+
+/* The filter popup must remain within the viewport even after the map-first layout. */
+@media(min-width:900px){
+ #filterPanel.filterOpen{
+  position:fixed;inset:auto;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:min(440px,calc(100vw - 36px));max-height:calc(100dvh - 40px);
+  overflow:auto;box-shadow:0 0 0 100vmax #10241ab0;
+ }
+}

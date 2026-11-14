@@ -69,38 +69,38 @@ async function main(){
    try{
     await page.goto("http://127.0.0.1:"+host.address().port+"/travel/",{waitUntil:"load"});
     await page.locator("#welcomeCard").waitFor({state:"visible",timeout:15000});
-    for(const s of ["#travelHero",".travelerTopBar","#openAccount",
-      "#travelHero [data-beam-install-area]","#travelHero [data-beam-install-help]","#addFirstTrip"]){
+    for(const s of ["#travelHero","#travelerAvatar","#openAccount","#addFirstTrip"]){
      assert.equal(await page.locator(s).isVisible(),true,s+" visible in empty carnet at "+width);
     }
-    assert.equal(await page.locator(".travelerTopBar .jyHeaderLogo").getAttribute("alt"),"J\u0027y étais");
+    assert.equal(await page.locator(".jyHeaderLogo").count(),0,"no decorative header logo");
     assert.equal(await page.locator("#openAccount").getAttribute("aria-label"),"Paramètres du compte");
-    for(const s of ["#travelHero .actions","#travelHero .statsWrap",
+    for(const s of ["#homeActions","#homeStats",
       "#travelMapPanel","#filterAnchor","#pdf","#printJournal"]){
      assert.equal(await page.locator(s).isVisible(),false,s+" must remain hidden at "+width);
     }
     const positions=await page.evaluate(()=>{
      const rect=s=>document.querySelector(s).getBoundingClientRect();
-     return {top:rect(".travelerTopBar").bottom,install:rect("#travelHero [data-beam-install-area]").bottom,
+     return {top:rect("#travelHero .travelerIdentity").bottom,
       welcome:rect("#welcomeCard").top,overflow:document.documentElement.scrollWidth>innerWidth+1};
     });
-    assert.ok(positions.top<positions.welcome&&positions.install<=positions.welcome+1,
-     "topbar and installation must precede welcome at "+width+": "+JSON.stringify(positions));
+    assert.ok(positions.top<positions.welcome,
+     "traveler identity must precede welcome at "+width+": "+JSON.stringify(positions));
     assert.equal(positions.overflow,false,"no horizontal overflow at "+width);
-    // Native install only when the browser offers it; help remains otherwise.
-    assert.equal(await page.locator("#travelHero [data-beam-install-action]").isVisible(),false);
+    // Installation controls are in Paramètres › Liens utiles, not the uncluttered home.
+    await page.locator("#openAccount").click();
+    assert.equal(await page.locator("#accountLinks [data-beam-install-area]").isVisible(),true);
+    assert.equal(await page.locator("#accountLinks [data-beam-install-action]").isVisible(),false);
     await page.evaluate(()=>{
      const event=new Event("beforeinstallprompt",{cancelable:true});
      event.prompt=()=>Promise.resolve();
      event.userChoice=Promise.resolve({outcome:"accepted"});
      window.dispatchEvent(event);
     });
-    await page.locator("#travelHero [data-beam-install-action]").waitFor({state:"visible"});
-    assert.equal(await page.locator("#travelHero [data-beam-install-action]").textContent(),"Installer J'y étais");
-    await page.locator("#travelHero [data-beam-install-action]").click();
-    assert.match(await page.locator("#travelHero [data-beam-install-status]").textContent(),/Demande d’installation acceptée/);
+    await page.locator("#accountLinks [data-beam-install-action]").waitFor({state:"visible"});
+    assert.equal(await page.locator("#accountLinks [data-beam-install-action]").textContent(),"Installer J'y étais");
+    await page.locator("#accountLinks [data-beam-install-action]").click();
+    assert.match(await page.locator("#accountLinks [data-beam-install-status]").textContent(),/Demande d’installation acceptée/);
     // The empty account must support edit AND logout without creating any trip.
-    await page.locator("#openAccount").click();
     await page.locator("#accountOverlay.accountOpen").waitFor({state:"visible"});
     await page.locator("#editAccount").click();
     assert.equal(await page.locator("#travelerName").isVisible(),true);
