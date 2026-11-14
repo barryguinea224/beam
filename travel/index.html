@@ -514,11 +514,12 @@ html.travelAccessReadOnly #photoField,html.travelAccessReadOnly #saveTrip{displa
   <p id="photoActionStatus" role="status" aria-live="polite"></p>
  </section>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./config.js"></script><script src="./pwa.js"></script><script src="./access.js"></script><script src="./photo-utils.js"></script><script src="./photo-upload.js"></script><script src="./avatar.js"></script><script src="./activity-durations.js"></script><script src="./trip-detail.js"></script><script src="./loyalty-programs.js"></script><script src="./loyalty-ui.js"></script><script src="./visa-guide.js"></script><script src="./countries.js"></script><script src="./trip-stops.js"></script><script src="./day-excursions.js"></script><script src="./date-range-picker.js"></script><script src="./country-picker.js"></script><script src="./factual-pdf.js"></script><script src="./factual-pdf-file.js"></script><script src="./trip-lifecycle.js"></script><script src="./journal-stats.js"></script><script src="./dashboard-filters.js"></script><script src="./visual-cards.js"></script><script src="./profile-cover.js"></script><script src="./profile-cover-ui.js"></script><script src="./flight-connections.js"></script><script src="./printable-journal.js"></script><script src="./family-booklet.js"></script><script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./config.js"></script><script src="./pwa.js"></script><script src="./access.js"></script><script src="./fr-accords.js"></script><script src="./photo-utils.js"></script><script src="./photo-upload.js"></script><script src="./avatar.js"></script><script src="./activity-durations.js"></script><script src="./trip-detail.js"></script><script src="./loyalty-programs.js"></script><script src="./loyalty-ui.js"></script><script src="./visa-guide.js"></script><script src="./countries.js"></script><script src="./trip-stops.js"></script><script src="./day-excursions.js"></script><script src="./date-range-picker.js"></script><script src="./country-picker.js"></script><script src="./factual-pdf.js"></script><script src="./factual-pdf-file.js"></script><script src="./trip-lifecycle.js"></script><script src="./journal-stats.js"></script><script src="./dashboard-filters.js"></script><script src="./visual-cards.js"></script><script src="./profile-cover.js"></script><script src="./profile-cover-ui.js"></script><script src="./flight-connections.js"></script><script src="./printable-journal.js"></script><script src="./family-booklet.js"></script><script>
 const C=window.BEAM_TRAVEL_CONFIG||{},ok=C.supabaseUrl&&!C.supabaseUrl.includes("YOUR_")&&C.supabaseAnonKey&&!C.supabaseAnonKey.includes("YOUR_"),S=ok&&typeof supabase!=="undefined"?supabase.createClient(C.supabaseUrl,C.supabaseAnonKey):null,$=s=>document.querySelector(s);let user,trips=[],accountState="loading";
 const LOYALTY=window.BEAM_LOYALTY_UI?.init({supabase:S,user:()=>user,isActive:()=>accountState==="active",canWrite:()=>canWrite(),onChange:()=>renderLoyaltyHint()});
 function view(id){$("#auth").classList.add("hidden");$("#app").classList.add("hidden");$(id).classList.remove("hidden");document.title="J'y étais"}
 let profile={country_of_residence:null,display_name:null,access_until:null,avatar_id:null,cover_media_id:null};
+const FR=window.BEAM_FR_ACCORDS;
 const AVATAR=window.BEAM_TRAVEL_AVATAR;
 let avatarSigned=null,avatarSignedUntil=0,avatarBusy=false;
 const ACCESS=window.BEAM_TRAVEL_ACCESS;
@@ -800,7 +801,7 @@ function applyMapState(){
     p.setAttribute("role","button");
     p.setAttribute("aria-disabled",enabled?"false":"true");
     p.setAttribute("aria-pressed",active?"true":"false");
-    p.setAttribute("aria-label",countryName(code)+(n?" · "+n+" voyage"+(n===1?"":"s"):(planned?" · À venir":" · aucun voyage")));
+    p.setAttribute("aria-label",countryName(code)+(n?" · "+FR.count(n,"voyage"):(planned?" · À venir":" · aucun voyage")));
   });
   renderFlightConnections();fitMapToVisited();
 }
@@ -859,14 +860,14 @@ function render(){
  setDashboardTitle(name);updateWelcome(name);renderAccessUi();
  const national=dashboardFilters.scope==="domestic";
  $("#nt").textContent=stats.trips;
- $("#ntl").textContent=stats.trips===1?"voyage":"voyages";
+ $("#ntl").textContent=FR.word(stats.trips,"voyage","voyages");
  $("#nc").textContent=stats.countries;
  $("#ncl").textContent="pays";
  $("#nd").textContent=stats.days;
- $("#ndl").textContent=stats.days===1?"jour":"jours";
+ $("#ndl").textContent=FR.word(stats.days,"jour","jours");
 
 
- $("#filterStatus").textContent=active?visible.length+" voyage"+(visible.length===1?"":"s")+" correspondant"+(visible.length===1?"":"s")+" aux filtres.":"Tous les voyages sont affichés.";
+ $("#filterStatus").textContent=active?FR.count(visible.length,"voyage")+" "+FR.word(visible.length,"correspondant","correspondants")+" aux filtres.":"Tous les voyages sont affichés.";
  $("#resetFilters").disabled=!active;
   $("#pdfExclusionNote").classList.toggle("hidden",!trips.some(t=>!LIFE.completed(t,asOf)));
  $("#mapInfo").textContent="";
@@ -875,7 +876,7 @@ function render(){
   $("#countryList").innerHTML=codes.sort((a,b)=>countryName(a).localeCompare(countryName(b),"fr")).map(code=>{
     const n=counts.get(code)||0,planned=country.planned.get(code)||0;
     const display=n?String(n):("À venir"+(planned>1?" · "+planned:""));
-    return `<button type="button" class="countryChip" data-country="${esc(code)}" aria-pressed="${dashboardFilters.country===code}" aria-label="${esc(countryName(code))}, ${n?n+" voyage"+(n===1?"":"s"):"À venir"}">${esc(countryName(code))} <b>${display}</b></button>`;
+    return `<button type="button" class="countryChip" data-country="${esc(code)}" aria-pressed="${dashboardFilters.country===code}" aria-label="${esc(countryName(code))}, ${n?FR.count(n,"voyage"):"À venir"}">${esc(countryName(code))} <b>${display}</b></button>`;
   }).join("");
   const tripCard=x=>window.BEAM_VISUAL_CARDS.markup(x,countryName(x.country_code),window.BEAM_TRAVEL_PDF.purposeName(x.purpose),tripDates(x.entry_date,x.exit_date));
   const upcoming=visible.filter(t=>LIFE.state(t,asOf)==="upcoming"),other=visible.filter(t=>LIFE.state(t,asOf)!=="upcoming");
@@ -1540,7 +1541,7 @@ function openTripDetail(id){
    ...(DAY.single(trip)?[fact("Date",DAY.short(trip.entry_date))]:[
      fact("Entrée",DETAIL.dateFR(trip.entry_date)),
      fact("Sortie",DETAIL.dateFR(trip.exit_date))]),
-   fact("Durée",DAY.single(trip)?"Excursion · 1 jour":trip.duration_days+" jour"+(trip.duration_days===1?"":"s")),
+   fact("Durée",DAY.single(trip)?"Excursion · 1 jour":FR.count(trip.duration_days,"jour")),
    fact("Motif",window.BEAM_TRAVEL_PDF.purposeName(trip.purpose)),
    ...(trip.airline?.trim()?[stayFact("Compagnie aérienne",trip.airline,"airline")]:[]),
    ...(trip.hotel?.trim()?[stayFact("Hôtel / hébergement",trip.hotel,"hotel")]:[]),
@@ -1711,7 +1712,7 @@ function updatePhotoUsage(){
  $("#photoLoadStatus").classList.toggle("hidden",mediaReady||mediaError);
  $("#photoUsage").classList.toggle("hidden",!mediaReady);
  $("#photoRetry").classList.toggle("hidden",!mediaError);
- if(mediaReady)$("#photoUsage").textContent=saved+" / "+PHOTO.MAX_PHOTOS+" photos enregistrées · "+waiting+" en attente · "+remaining+" place"+(remaining===1?"":"s")+" disponible"+(remaining===1?"":"s");
+ if(mediaReady)$("#photoUsage").textContent=FR.count(saved,"photo")+" "+FR.word(saved,"enregistrée","enregistrées")+" / "+PHOTO.MAX_PHOTOS+" · "+FR.count(waiting,"photo")+" en attente · "+FR.count(remaining,"place")+" "+FR.word(remaining,"disponible","disponibles");
  $("#photos").disabled=!mediaReady||mediaBusy||photoSelecting||savingTrip||remaining<=0||accountState!=="active"||!canWrite();
  $("#saveTrip").disabled=mediaBusy||photoSelecting||savingTrip||accountState!=="active"||!canWrite();
 }
@@ -1776,7 +1777,7 @@ function resetPhotoUI(tripId){
 $("#close").onclick=()=>{
  if(savingTrip||mediaBusy||photoSelecting)return;
  const count=pendingPhotos.length;
- if(count&&!window.confirm(count+" photo"+(count===1?"":"s")+" pas encore enregistrée"+(count===1?"":"s")+". Fermer sans les enregistrer ?"))return;
+ if(count&&!window.confirm(FR.count(count,"photo")+" pas encore "+FR.word(count,"enregistrée","enregistrées")+". Fermer sans les enregistrer ?"))return;
  resetPhotoUI(null);editingTripId=null;$("#modal").classList.remove("open");
 };
 async function refreshMedia(tripId){
@@ -1844,7 +1845,7 @@ $("#photos").onchange=async()=>{
    pendingPhotos.push(...added);
    failedPhotoSelections.push(...rejected);
    renderPhotoGallery();
-   if(rejected.length)showPhotoMessage(rejected.length+" photo(s) inaccessible(s). "+PHOTO.INACCESSIBLE);
+   if(rejected.length)showPhotoMessage(FR.count(rejected.length,"photo")+" "+FR.word(rejected.length,"inaccessible","inaccessibles")+". "+PHOTO.INACCESSIBLE);
  }catch(e){showPhotoMessage(PHOTO.message(e))}
  finally{photoSelecting=false;updatePhotoUsage()}
 };
@@ -1953,8 +1954,8 @@ $("#tripForm").onsubmit=async e=>{
      if(failures.length){
        $("#tripTitle").textContent="Modifier le voyage";
        $("#saveTrip").textContent="Enregistrer les modifications";
-       msg.textContent="Voyage enregistré. "+(selected.length-failures.length)+" photo(s) envoyée(s), "+
-         failures.length+" photo(s) non envoyée(s) : "+
+       msg.textContent="Voyage enregistré. "+FR.count(selected.length-failures.length,"photo")+" "+FR.word(selected.length-failures.length,"envoyée","envoyées")+", "+
+         FR.count(failures.length,"photo")+" non "+FR.word(failures.length,"envoyée","envoyées")+" : "+
          failures.map(item=>"« "+item.name+" » — "+item.message).join(" ; ")+
          (failures.some(item=>item.cleanupUnconfirmed)?
           " Ne relancez pas les photos concernées par un nettoyage non confirmé.":
