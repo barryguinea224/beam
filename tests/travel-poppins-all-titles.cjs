@@ -89,7 +89,8 @@ async function run(){
     }else{
      assert.match(addFont,/Georgia/,"Baseline should show the reported Georgia regression");
      assert.match(detailFont,/Georgia/,"Baseline detail title should show Georgia");
-     assert.match(accountFont,/Georgia/,"Baseline account name should show Georgia");
+     // In v46 the account name already computed Poppins via a scoped override;
+     // v47 removes that dependency at the CSS source.
     }
     assert.deepEqual(errors,[],"Browser errors in "+phase);
     assert.deepEqual(externalFonts,[],"No external font requests in "+phase);
