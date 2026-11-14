@@ -1,7 +1,7 @@
 // J'y étais PWA — PRIVATE BY DEFAULT.
 // Cache only the audited, versioned public shell. No runtime cache writes.
 // Never cache Supabase, signed links, personal trips, photos or API responses.
-const CACHE_NAME = "beam-travel-shell-v1-20261114-jyetais-v46-home-simple";
+const CACHE_NAME = "beam-travel-shell-v1-20261114-jyetais-v47-poppins-all-headings";
 const SCOPE_PATH = "/travel/";
 const PUBLIC_SHELL = [
   "./index.html", "./config.js", "./offline-bootstrap.js", "./pwa.js",
@@ -105,7 +105,7 @@ self.addEventListener("fetch", event => {
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#174d3a"><title>J'y étais · Hors ligne</title>
 <style>body{margin:0;background:#f7f5ef;color:#17231f;font:17px system-ui,sans-serif}
-main{max-width:520px;margin:12vh auto;padding:28px}h1{font:normal 40px Georgia,serif;line-height:1.1}
+main{max-width:520px;margin:12vh auto;padding:28px}h1{font:normal 40px Poppins,system-ui,sans-serif;line-height:1.1}
 small{color:#174d3a;font-weight:700;letter-spacing:.12em}</style></head>
 <body><main><small>J'y étais</small>
 <h1>Connexion nécessaire pour consulter votre carnet</h1>

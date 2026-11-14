@@ -1,4 +1,7 @@
-/* BTH public legal pages: the app palette, no private data or external fonts. */
+/* Public legal pages: self-hosted Poppins and no external font requests. */
+@font-face{font-family:Poppins;src:url("./assets/fonts/Poppins-Regular.woff2") format("woff2");font-style:normal;font-weight:400;font-display:swap}
+@font-face{font-family:Poppins;src:url("./assets/fonts/Poppins-SemiBold.woff2") format("woff2");font-style:normal;font-weight:600;font-display:swap}
+@font-face{font-family:Poppins;src:url("./assets/fonts/Poppins-Bold.woff2") format("woff2");font-style:normal;font-weight:700;font-display:swap}
 :root{--g:#174d3a;--bg:#f7f5ef;--ink:#17231f;--muted:#66736e;--line:#dfe4df}
 *,*::before,*::after{box-sizing:border-box}
 html{color-scheme:light;scroll-behavior:smooth}
@@ -12,7 +15,7 @@ header{border-bottom:1px solid var(--line);background:#fff}
 .back{font-size:14px;font-weight:650;white-space:nowrap}
 main{max-width:870px;margin:0 auto;padding:46px 24px 80px}
 .eyebrow{margin:0 0 14px;color:var(--g);text-transform:uppercase;letter-spacing:.15em;font-size:12px;font-weight:800}
-h1,h2{font-family:Georgia,"Times New Roman",serif;font-weight:500;letter-spacing:-.018em}
+h1,h2{font-family:Poppins,system-ui,sans-serif;font-weight:500;letter-spacing:-.018em}
 h1{font-size:clamp(34px,7vw,57px);line-height:1.13;margin:0 0 14px;overflow-wrap:anywhere}
 .intro{color:var(--muted);font-size:16px;margin:0 0 24px}
 .date{font-size:13px;color:var(--muted);margin:0 0 32px}
