@@ -25,10 +25,10 @@ assert.deepEqual(STOPS.codes(trip),["FR","DE"]);
 const filter={country:"DE"};
 assert.deepEqual(FILTER.apply([trip],filter),[trip],"Country filter must match country inside stops");
 assert.ok(FILTER.options([trip]).countries.includes("DE"));
-assert.equal(FILTER.summary([trip],{}).countries,2);
-assert.equal(FILTER.summary([trip],{}).days,11,"Five stage days must not be counted again");
-assert.equal(STATS.summarize([trip]).countries,2);
-assert.equal(STATS.summarize([trip]).days,11);
+assert.equal(FILTER.summary([trip],{},'2026-11-16').countries,2);
+assert.equal(FILTER.summary([trip],{},'2026-11-16').days,11,"Five stage days must not be counted again");
+assert.equal(STATS.summarize([trip],'2026-11-16').countries,2);
+assert.equal(STATS.summarize([trip],'2026-11-16').days,11);
 const print=JOURNAL.viewTrip(trip,[]);
 assert.equal(print.stops[0].label,"Allemagne (10 → 14 nov.)");
 const raw=[{country_code:"FR",cities:["Paris"],entry_date:"2026-11-05",
@@ -73,7 +73,7 @@ for(const file of ["travel/printable-journal.js","travel/family-booklet.js"]){
  assert.match(src,/trip\.stops/,"Personal carnet must contain stages");
 }
 assert.match(index,/pack\[position\]=\{trip,stops:trip\.stops/);
-assert.equal(fs.readFileSync("travel/sw.js","utf8").includes("jyetais-v42-excursions-ranges"),true);
+assert.equal(fs.readFileSync("travel/sw.js","utf8").includes("jyetais-v43-future-journeys"),true);
 const sql=fs.readFileSync("travel/supabase/migrations/20261107150000_trip_stops.sql","utf8");
 assert.match(sql,/foreign key\(trip_id,user_id\)/i);
 assert.match(sql,/constraint trip_stops_no_overlap exclude using gist/i);
