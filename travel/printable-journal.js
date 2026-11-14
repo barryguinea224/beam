@@ -406,8 +406,7 @@
     flag(ribbon,trip.code);
     el(ribbon,"span",null,trip.country);
    }
-   if(failed[index])el(hero,"p","photo-missing",failed[index]+" photo"+
-    (failed[index]===1?"":"s")+" indisponible"+(failed[index]===1?"":"s")+" lors de la préparation.");
+   if(failed[index])el(hero,"p","photo-missing",FR.count(failed[index],"photo")+" "+FR.word(failed[index],"indisponible","indisponibles")+" lors de la préparation.");
    const story=spread?el(main,"section","sheet-page trip-story"):
     el(hero,"div","trip-story trip-story-inline");
    el(story,"p","eyebrow","MES SOUVENIRS · "+trip.country.toUpperCase());
@@ -444,7 +443,7 @@
   const images=[...doc.querySelectorAll("img")].filter(img=>img.src.startsWith("https://"));
   const seen=new Map(),photoCount=[...new Set(images.map(img=>img.src))].length;
   let loaded=0,loadedPhotos=0;
-  const plural=n=>n===1?"1 photo n'a pas pu être chargée":n+" photos n'ont pas pu être chargées";
+  const plural=n=>FR.count(n,"photo")+" "+FR.word(n,"n'a","n'ont")+" pas pu être "+FR.word(n,"chargée","chargées");
   const quota=Boolean(model.limitReached);
   const quotaText=quota?" · Limite de 40 photos atteinte (photos supplémentaires non incluses).":"";
   function finish(results){
