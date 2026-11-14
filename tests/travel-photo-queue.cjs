@@ -42,8 +42,11 @@ function element(id) {
 }
 function harness() {
   const ids=['#photos','#photoGallery','#photoUsage','#photoLoadStatus','#photoRetry','#photoMessage','#saveTrip',
-    '#modal','#tripForm','#tripMsg','#tripTitle','#appMsg','#close'];
+    '#modal','#tripForm','#tripMsg','#tripTitle','#appMsg','#close','#tripEntryDate','#tripExitDate'];
   const els=Object.fromEntries(ids.map(id=>[id,element(id)]));
+  // The isolated photo harness supplies complete date sources, just like a saved journey.
+  els['#tripEntryDate'].value='2026-06-20';
+  els['#tripExitDate'].value='2026-06-30';
   const records=[],uploads=[],revoked=[],calls=[];
   let created=0,uploadCount=0,failAt=0,serial=0,confirmAnswer=true;
   const confirmMessages=[];
