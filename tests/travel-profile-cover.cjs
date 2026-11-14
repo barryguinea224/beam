@@ -12,6 +12,7 @@ assert.equal(COVER.decide({cover_media_id:"recent-first"},[old,recent],rows,"202
 assert.equal(COVER.decide({cover_media_id:"unowned"},[old,recent],rows,"2026-11-14",owner).photo.id,"recent-first");
 assert.equal(COVER.decide({},[old,recent],rows,"2026-11-14",owner).photo.id,"recent-first","Newest completed trip wins");
 assert.equal(COVER.decide({},[old],rows,"2026-11-14",owner).source,"favorite");
+assert.equal(COVER.decide({},[recent,old],[photo("old-fav","old",owner,true)],"2026-11-14",owner).source,"country","Do not substitute an older trip photo for latest country art");
 assert.equal(COVER.decide({},[recent],[], "2026-11-14",owner).source,"country");
 assert.equal(COVER.decide({},[],[], "2026-11-14",owner).source,"solid");
 assert.equal(COVER.safeUrl("https://attacker.invalid/fake","https://fixture.invalid"),"");

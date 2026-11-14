@@ -19,11 +19,12 @@
    return ap-bp||String(a.created_at||"").localeCompare(String(b.created_at||""))||
      String(a.id).localeCompare(String(b.id));
   });
-  for(const trip of completed){
-   const images=ownedByTrip.get(trip.id)||[];
+  const last=completed[0];
+  if(last){
+   const images=ownedByTrip.get(last.id)||[];
    const favorite=images.find(m=>m.is_favorite===true);
-   if(favorite)return {source:"favorite",photo:favorite,countryCode:trip.country_code};
-   if(images[0])return {source:"recent",photo:images[0],countryCode:trip.country_code};
+   if(favorite)return {source:"favorite",photo:favorite,countryCode:last.country_code};
+   if(images[0])return {source:"recent",photo:images[0],countryCode:last.country_code};
   }
   const code=completed[0]?.country_code||"";
   if(code&&VISUAL?.countryArt(code))return {source:"country",photo:null,countryCode:code,url:VISUAL.countryArt(code)};
