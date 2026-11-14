@@ -49,7 +49,7 @@ async function main(){
  };
  const ctx=vm.createContext({
   DETAIL:require("../travel/trip-detail.js"),photoTripStay:()=>({}),
-  window:{BEAM_PHOTO:{MAX_PHOTOS:10,validateSelection:async()=>[]}},
+  window:{BEAM_PHOTO:{MAX_PHOTOS:15,validateSelection:async()=>[]}},
   S:db,user:{id:"owner-1"},accountState:"active",editingTripId:"trip-1",
   trips:[{id:"trip-1",cover_media_id:null}],esc:s=>String(s),
   $:selector=>{assert.ok(els[selector],"Missing selector "+selector);return els[selector]},
@@ -70,7 +70,7 @@ async function main(){
  await first;
  assert.equal(signedRequests.length,2,"thumbnail URLs are still requested concurrently");
  assert.equal(els["#photos"].disabled,false,"picker enabled before any thumbnail signature resolves");
- assert.equal(els["#photoUsage"].textContent,"2 enregistrées + 0 en attente / 10 · 8 places disponibles");
+ assert.equal(els["#photoUsage"].textContent,"2 / 15 photos enregistrées · 0 en attente · 13 places disponibles");
  assert.equal(els["#photoUsage"].classList.contains("hidden"),false);
  assert.equal(els["#photoLoadStatus"].classList.contains("hidden"),true);
  assert.equal((els["#photoGallery"].innerHTML.match(/Chargement de la miniature…/g)||[]).length,2);
@@ -96,15 +96,15 @@ async function main(){
  await retried;
  assert.equal(els["#photoRetry"].classList.contains("hidden"),true);
  assert.equal(els["#photos"].disabled,false);
- assert.match(els["#photoUsage"].textContent,/1 enregistrée \+ 0 en attente \/ 10 · 9 places disponibles/);
+ assert.match(els["#photoUsage"].textContent,/1 \/ 15 photos enregistrées · 0 en attente · 14 places disponibles/);
  assert.equal(signedRequests.length,3,"retry signs only the returned media");
- // Server-enforced max 10 is retained by the existing quota tests; client must enforce zero spare slots.
+ // Server-enforced max 15 is retained by the existing quota tests; client must enforce zero spare slots.
  vm.runInContext('editingTripId="trip-3";resetPhotoUI("trip-3")',ctx);
  const full=vm.runInContext('refreshMedia("trip-3")',ctx);
- mediaRequests[3].resolve({data:Array.from({length:10},(_,i)=>({id:"q-"+i,storage_path:"q/"+i})),error:null});
+ mediaRequests[3].resolve({data:Array.from({length:15},(_,i)=>({id:"q-"+i,storage_path:"q/"+i})),error:null});
  await full;
- assert.equal(els["#photos"].disabled,true,"ten persisted photos exhaust the client-side quota");
+ assert.equal(els["#photos"].disabled,true,"fifteen persisted photos exhaust the client-side quota");
  assert.match(els["#photoUsage"].textContent,/0 places disponibles/);
- console.log("PASS photo list-first: slow signatures, exact quota before thumbnails, placeholders, error/retry, 10-photo cap");
+ console.log("PASS photo list-first: slow signatures, exact quota before thumbnails, placeholders, error/retry, 15-photo cap");
 }
 main().catch(err=>{console.error(err);process.exitCode=1});

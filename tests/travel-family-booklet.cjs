@@ -20,14 +20,14 @@ for(const [count,stacks] of Object.entries(expected)){
   Array.from({length:Number(count)},(_,i)=>i+1));
  assert.equal(result.length,Number(count)/2,"Two printed A5 leaves per A4 side");
 }
-assert.equal(BOOK.MAX_PHOTOS_PER_TRIP,10);
+assert.equal(BOOK.MAX_PHOTOS_PER_TRIP,15);
 assert.equal(BOOK.MAX_TOTAL_PHOTOS,60);
 assert.equal(BOOK.PRINT_EDGE,1500);
 const calls=[];
 const query={order(field,{ascending}){calls.push([field,ascending]);return this},
  limit(value){calls.push(["limit",value]);return this}};
 assert.equal(BOOK.preferredMediaQuery(query),query);
-assert.deepEqual(calls,[["is_favorite",false],["position",true],["created_at",true],["limit",10]]);
+assert.deepEqual(calls,[["is_favorite",false],["position",true],["created_at",true],["limit",15]]);
 assert.throws(()=>BOOK.imposedOrder(6),/multiple|imposable/);
 assert.equal(BOOK.splitMemory("abc").join(""),"abc");
 const source=fs.readFileSync("travel/family-booklet.js","utf8");

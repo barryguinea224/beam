@@ -51,7 +51,7 @@ async function main(){
  assert.equal(success.calls[2][3],"image/webp");
 
  const quota=fake({reserveError:{message:"PHOTO_LIMIT_REACHED",code:"23514"}});
- await assert.rejects(uploadOne({...quota,...sample}),/10 photos/);
+ await assert.rejects(uploadOne({...quota,...sample}),/15 photos/);
  assert.deepEqual(quota.calls.map(x=>x[0]),["convert","reserve"]);
 
  const refused=fake({uploadError:{message:"simulated storage rejection"}});

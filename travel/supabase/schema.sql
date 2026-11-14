@@ -13,6 +13,7 @@ create table public.profiles (
   home_city text not null default 'Conakry' check(char_length(home_city)<=80),
   country_of_residence char(2) check(country_of_residence ~ '^[A-Z]{2}$'),
   access_until date, -- NULL means read-only until the owner sets a valid date
+  cover_media_id uuid, -- Chosen home cover; NULL enables automatic fallback
   deleting boolean not null default false,
   deletion_requested_at timestamptz,
   deletion_claimed_until timestamptz,
@@ -90,6 +91,12 @@ create table public.media (
       '/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}[.]webp$')
   )
 );
+
+-- A profile cover is also owner-scoped; its row is cleared on media deletion.
+alter table public.media add constraint media_id_user_unique unique(id,user_id);
+alter table public.profiles add constraint profiles_cover_owner_fk
+  foreign key(cover_media_id,id) references public.media(id,user_id)
+  on delete set null(cover_media_id);
 
 -- A cover must be a photo from exactly the same trip and owner.
 -- Delete of a photo resets ONLY cover_media_id; trip identity is unchanged.
@@ -179,7 +186,7 @@ begin
 
   select count(*) into existing_count
   from public.media m where m.trip_id=new.trip_id;
-  if existing_count >= 10 then
+  if existing_count >= 15 then
     raise exception using errcode='23514',message='PHOTO_LIMIT_REACHED';
   end if;
 
@@ -245,7 +252,7 @@ alter table public.media enable row level security;
 create policy "profil lecture" on public.profiles for select to authenticated using(id=auth.uid());
 create policy "profil modification" on public.profiles for update to authenticated using(id=auth.uid() and private.account_accepts_writes(auth.uid())) with check(id=auth.uid() and private.account_accepts_writes(auth.uid()));
 revoke update on public.profiles from authenticated;
-grant update(display_name,nationality,home_city,country_of_residence,phone,postal_address) on public.profiles to authenticated;
+grant update(display_name,nationality,home_city,country_of_residence,phone,postal_address,cover_media_id) on public.profiles to authenticated;
 revoke insert,delete on public.profiles from authenticated;
 -- Reads: owner only. Writes: owner AND account not being deleted (db_write_barrier.sql).
 create policy "voyages lecture" on public.trips for select to authenticated using(user_id=auth.uid());

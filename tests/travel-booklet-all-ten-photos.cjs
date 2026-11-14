@@ -8,8 +8,8 @@ const BOOK=require("../travel/family-booklet.js");
 const dir=path.resolve("test-artifacts/family-booklet");
 fs.mkdirSync(dir,{recursive:true});
 const map=fs.readFileSync("travel/assets/world-map.svg","utf8");
-const trip={id:"fixture-ten",country_code:"GN",cities:["Kindia"],entry_date:"2026-07-01",
- exit_date:"2026-07-10",duration_days:10,purpose:"tourisme",note:"Dix photographies.",
+const trip={id:"fixture-fifteen",country_code:"GN",cities:["Kindia"],entry_date:"2026-07-01",
+ exit_date:"2026-07-10",duration_days:10,purpose:"tourisme",note:"Quinze photographies.",
  is_domestic:true};
 
 const edgeColors={
@@ -116,7 +116,7 @@ async function main(){
     await page.addScriptTag({path:path.resolve("travel",mod)});
    const result=await page.evaluate(async data=>{
     const originals=new Map(),signed=[];
-    for(let i=0;i<10;i++){
+    for(let i=0;i<15;i++){
      const wide=i===5,tall=i===0;
      const canvas=document.createElement("canvas");
      canvas.width=wide?4200:tall?1000:2000;
@@ -211,9 +211,9 @@ async function main(){
    assert.equal(result.count,8,"8 logical A5 leaves including two journey-local mosaic leaves");
    assert.equal(result.paperCount,4,"A4 portrait imposition must remain four physical sides");
    assert.equal(result.unoptimized,0,"all signed fixtures must be compressed in memory");
-   assert.equal(result.requests.length,10,"unique signed image fetched once each");
+   assert.equal(result.requests.length,15,"each of fifteen signed photos fetched exactly once");
    assert.ok(result.requests.every(x=>x.cache==="no-store"&&x.credentials==="omit"));
-   assert.equal(result.unique,10,"all 10 distinct photos must survive");
+   assert.equal(result.unique,15,"all 15 distinct photos must survive");
    assert.ok(result.photos.every(x=>x.prefix.startsWith("data:image/jpeg;base64,")&&x.length<2200000),
     "no signed URL may remain in prepared print HTML; bounded JPEG payloads");
    assert.equal(result.heroSrc,result.favorite,"PHOTO 6 favorite wins as full hero");
@@ -228,9 +228,9 @@ async function main(){
    assert.match(result.blur,/blur/,"background must be from the same image and blurred");
    assert.equal(result.mosaicFit,"contain","very tall thumbnail must remain legible");
    assert.equal(result.mosaicLeaves,2);
-   assert.equal(result.mosaicCount,7,"photos 2-3 are on the story page, so the gallery holds the remaining seven");
-   assert.deepEqual(result.tripMosaic,["fixture-ten","fixture-ten"]);
-   assert.deepEqual([...result.mosaicIndexes].sort((a,b)=>Number(a)-Number(b)),["4","5","6","7","8","9","10"],
+   assert.equal(result.mosaicCount,12,"photos 2-3 are on the story page, so photos 4-15 occupy two mosaic pages");
+   assert.deepEqual(result.tripMosaic,["fixture-fifteen","fixture-fifteen"]);
+   assert.deepEqual([...result.mosaicIndexes].sort((a,b)=>Number(a)-Number(b)),["4","5","6","7","8","9","10","11","12","13","14","15"],
     "each photo appears exactly once: never repeated between the story page and the gallery");
    assert.deepEqual(result.resized.map(x=>Math.max(x.width,x.height)),[1500,1500]);
    for(const d of result.resized)assert.ok(d.width>0&&d.height>0);
@@ -284,17 +284,17 @@ async function main(){
    const portraitBytes=fs.statSync(portraitPdf).size;
    assert.ok(portraitBytes<12*1024*1024,"portrait favorite PDF must be WhatsApp-shareable");
    const bytes=fs.statSync(filename).size;
-   assert.ok(bytes<12*1024*1024,"WhatsApp-shareable 10 photo booklet must stay under 12 MiB, got "+bytes);
+   assert.ok(bytes<12*1024*1024,"WhatsApp-shareable 15 photo booklet must stay under 12 MiB, got "+bytes);
    const info=execFileSync("pdfinfo",[filename],{encoding:"utf8"});
    assert.match(info,/Pages:\s+4\b/);
    assert.match(info,/Page size:\s+[\d.]+ x [\d.]+ pts \(A4\)/);
    const images=execFileSync("pdfimages",["-list",filename],{encoding:"utf8"}).split("\n")
      .filter(line=>/^\s*\d+\s+\d+\s+image\s+/.test(line));
-   assert.ok(images.length>=10,"all ten unique photos must be embedded in the actual PDF (found "+images.length+")");
+   assert.ok(images.length>=15,"all fifteen unique photos must be embedded in the actual PDF (found "+images.length+")");
    const text=execFileSync("pdftotext",["-layout",filename,"-"],{encoding:"utf8"});
    for(const word of ["Nos photos","1/2","2/2","Kindia","Carnet d'Aminata Camara"])
     assert.ok(text.includes(word),"missing printed content: "+word);
-   console.log("PASS 10 private photos embedded, 1500px resampling, portrait+wide contain, two local mosaics, A4 booklet, PDF "+bytes+" bytes");
+   console.log("PASS 15 private photos embedded, 1500px resampling, portrait+wide contain, two local mosaics, A4 booklet, PDF "+bytes+" bytes");
   }finally{await page.close()}
  }finally{await browser.close()}
 }

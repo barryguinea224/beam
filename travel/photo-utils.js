@@ -2,7 +2,7 @@
 // NEVER upload the original file: only the canvas-generated WebP blob.
 (function (root) {
   "use strict";
-  const MAX_PHOTOS = 10;
+  const MAX_PHOTOS = 15;
   const MAX_SOURCE_BYTES = 8 * 1024 * 1024;
   const MAX_OUTPUT_BYTES = 8 * 1024 * 1024;
   const MAX_SIDE = 1800;
@@ -14,7 +14,7 @@
     if (error?.name==="NotFoundError" || error?.name==="NotReadableError" || error?.code==="PHOTO_INACCESSIBLE") return INACCESSIBLE;
     if ([UNSUPPORTED,TOO_LARGE,INACCESSIBLE].includes(error?.message) ||
         (typeof error?.message==="string" && (
-          error.message.startsWith("10 photos maximum par voyage.") ||
+          error.message.startsWith("15 photos maximum par voyage.") ||
           error.message==="Attendez que les photos du voyage soient chargées."
         ))) return error.message;
     return "Impossible de lire cette photo. Réessayez depuis votre Galerie.";
@@ -56,7 +56,7 @@
     }
     const selection = Array.from(files);
     if (existingCount + selection.length > MAX_PHOTOS) {
-      throw new Error("10 photos maximum par voyage. Supprimez une photo ou sélectionnez-en moins.");
+      throw new Error("15 photos maximum par voyage. Supprimez une photo ou sélectionnez-en moins.");
     }
     for (const file of selection) await validateFile(file);
     return selection;
