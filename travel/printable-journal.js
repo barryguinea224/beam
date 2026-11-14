@@ -5,6 +5,7 @@
  "use strict";
  const NOTICE=""; // retired personal-document notice
  const MAX_PHOTOS_PER_TRIP=4,MAX_TOTAL_PHOTOS=40,SIGNED_SECONDS=300;
+ const FR=root?.BEAM_FR_ACCORDS||(typeof require==="function"?require("./fr-accords.js"):null);
  const COUNTRIES=root?.BEAM_COUNTRIES||(typeof require==="function"?require("./countries.js"):null);
  const FILTERS=root?.BEAM_DASHBOARD_FILTERS||(typeof require==="function"?require("./dashboard-filters.js"):null);
  const STOPS=root?.BEAM_TRIP_STOPS||(typeof require==="function"?require("./trip-stops.js"):null);
@@ -53,7 +54,7 @@
    cities:Array.isArray(trip.cities)?trip.cities.filter(c=>typeof c==="string"&&c.trim()).slice(0,15).join(", "):"",
    entry:date(trip.entry_date),exit:date(trip.exit_date),
    entryISO:clean(trip.entry_date),exitISO:clean(trip.exit_date),
-   duration:Number.isInteger(days)&&days>0?days+" jour"+(days===1?"":"s"):"—",
+   duration:Number.isInteger(days)&&days>0?FR.count(days,"jour"):"—",
    days:Number.isInteger(days)&&days>0?days:0,
    purpose:PURPOSES[trip.purpose]||"Autre",
    domestic:trip.is_domestic===true,
@@ -328,7 +329,7 @@
   el(coverDetails,"p","cover-caption",filterLabel(model.filters));
   const flags=el(coverDetails,"div","flag-strip");
   for(const code of countries.slice(0,24))flag(flags,code);
-  el(coverDetails,"p","cover-caption",list.length+" voyage"+(list.length===1?"":"s")+" raconté"+(list.length===1?"":"s"));
+  el(coverDetails,"p","cover-caption",FR.count(list.length,"voyage")+" "+FR.word(list.length,"raconté","racontés"));
   
   const yearbook=el(main,"section","sheet-page summary");
   const summaryTop=el(yearbook,"div","summary-title");
@@ -341,14 +342,14 @@
    centroids:model.worldCentroids
   });
   const nums=el(yearbook,"div","metric-grid");
-  for(const [value,label] of [[summary.length,"voyage"+(summary.length===1?"":"s")+" à l’étranger"],
+  for(const [value,label] of [[summary.length,FR.word(summary.length,"voyage","voyages")+" à l’étranger"],
     [summaryCountries,"pays à l’étranger"],
-    [summaryDays,"jour"+(summaryDays===1?"":"s")+" à l’étranger"]]){
+    [summaryDays,FR.word(summaryDays,"jour","jours")+" à l’étranger"]]){
    const block=el(nums,"div","metric");
    el(block,"strong",null,String(value));el(block,"span",null,label);
   }
   el(yearbook,"p","domestic-summary",domestic?
-   "+ "+domestic+" séjour"+(domestic===1?" national":"s nationaux"):
+   "+ "+FR.count(domestic,"séjour")+" "+FR.word(domestic,"national","nationaux"):
    "Mes voyages internationaux");
   el(yearbook,"h3",null,"Ma chronologie");
   const timeline=el(yearbook,"div","timeline");
@@ -451,7 +452,7 @@
    const failures=initialFailed+results.filter(x=>!x).length;
    print.disabled=false;
    status.textContent=failures?"Prêt pour l’impression · "+plural(failures)+quotaText:
-    "Prêt pour l’impression · "+loadedPhotos+" photo"+(loadedPhotos===1?"":"s")+" chargée"+(loadedPhotos===1?"":"s")+quotaText;
+    "Prêt pour l’impression · "+FR.count(loadedPhotos,"photo")+" "+FR.word(loadedPhotos,"chargée","chargées")+quotaText;
   }
   function loadImage(img){
    return new Promise(resolve=>{
