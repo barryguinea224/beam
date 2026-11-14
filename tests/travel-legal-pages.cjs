@@ -36,7 +36,7 @@ const pages=[
 const css=fs.readFileSync(path.join(root,"legal.css"),"utf8");
 assert.match(css,/#174d3a/);
 assert.match(css,/#f7f5ef/);
-assert.match(css,/Georgia/);
+assert.match(css,/font-family:Poppins,system-ui,sans-serif/);
 for(const info of pages){
  const h=fs.readFileSync(path.join(root,info.file),"utf8");
  assert.match(h,/^<!doctype html>/i,"standalone valid HTML: "+info.file);
@@ -70,7 +70,7 @@ for(const [scope,html] of [["connexion",auth],["mon-compte",account]]){
 }
 assert.ok(account.indexOf("legalLinksAccount")>account.indexOf('id="loyaltyPanel"') && account.indexOf("legalLinksAccount")<account.indexOf('id="accountSession"'),
  "terms and privacy should be available after the account controls");
-assert.match(sw,/beam-travel-shell-v1-20261114-jyetais-v46-home-simple/);
+assert.match(sw,/beam-travel-shell-v1-20261114-jyetais-v47-poppins-all-headings/);
 for(const file of ["confidentialite.html","conditions.html","legal.css"])
  assert.ok(sw.includes('"./'+file+'"'),"public legal shell asset not audited: "+file);
 assert.doesNotMatch(sw,/cache\.put\(/,"PWA must still forbid runtime private cache writes");
@@ -121,7 +121,7 @@ async function main(){
      });
      assert.ok(values.scrollWidth<=values.innerWidth+1,
        "horizontal overflow at "+width+"px on "+info.file+": "+JSON.stringify(values));
-     assert.match(values.font,/Georgia/);
+     assert.match(values.font,/Poppins/);
      assert.equal(values.background,"rgb(247, 245, 239)");
      assert.equal(values.external,0);
      assert.equal(values.linkCount,3);
