@@ -107,6 +107,7 @@ async function main(){
       mockLoaded:!!window.__offFixture,
       supabaseLoaded:!!window.supabase,
       online:navigator.onLine,
+      loadDiagnostic:await (async()=>{try{await load();return "success"}catch(e){return String(e.stack||e)}})(),
       shellScripts:[...document.querySelectorAll("script[src]")].map(x=>x.src.split("/").pop())
      }));
      throw new Error("No raw IndexedDB snapshot: "+JSON.stringify(debug)+" PAGEERRORS="+JSON.stringify(errors));
