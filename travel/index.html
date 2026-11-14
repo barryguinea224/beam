@@ -719,6 +719,150 @@ $("#avatarRemove").onclick=async()=>{
  }finally{avatarBusy=false;avatarControls()}
 };
 
+/* Private cover: owner-only media metadata, signed URLs only in memory.
+   No Storage/CDN caching and no photo URLs in HTML attributes until authorized. */
+function clearProfileCover(){
+ ++coverEpoch;++coverGridEpoch;coverMediaRows=[];coverGridShown=24;
+ const img=$("#profileCoverImage");
+ if(img){img.onload=null;img.onerror=null;img.removeAttribute("src");img.hidden=true;img.dataset.isPrivate="false";}
+ $("#coverPickerGrid")?.replaceChildren();
+ if($("#coverPicker"))$("#coverPicker").hidden=true;
+ if($("#coverGridStatus"))$("#coverGridStatus").textContent="";
+}
+function coverAccessControls(){
+ const writable=canWrite()&&!coverBusy;
+ $("#coverPickerOpen").disabled=!writable;
+ $("#coverAuto").disabled=!writable||!profile.cover_media_id;
+ $("#coverReadonly").hidden=canWrite();
+ for(const btn of $("#coverPickerGrid").querySelectorAll("button.coverOption"))btn.disabled=!writable;
+}
+function coverStatus(message){$("#coverStatus").textContent=message||""}
+function applyProfileCover(url,privateSource,epoch){
+ if(epoch!==coverEpoch||accountState!=="active")return;
+ const img=$("#profileCoverImage");
+ img.onload=()=>{if(epoch===coverEpoch)img.hidden=false};
+ img.onerror=()=>{if(epoch===coverEpoch){img.hidden=true;img.removeAttribute("src");img.dataset.isPrivate="false"}};
+ if(url){img.hidden=true;img.dataset.isPrivate=privateSource?"true":"false";img.src=url}
+ else{img.hidden=true;img.removeAttribute("src");img.dataset.isPrivate="false";}
+}
+async function ownedCoverRows(uid){
+ const rows=[];
+ // PostgREST defaults to 1000 rows; paginate rather than silently omitting
+ // photos on long accounts. Reading remains protected by media owner RLS.
+ for(let offset=0;offset<20000;offset+=500){
+  const {data,error}=await S.from("media")
+   .select("id,trip_id,user_id,storage_path,is_favorite,created_at")
+   .eq("user_id",uid).order("created_at",{ascending:true}).range(offset,offset+499);
+  if(error||!Array.isArray(data))throw Error("Photos privées indisponibles");
+  rows.push(...data.filter(row=>row.user_id===uid));
+  if(data.length<500)break;
+ }
+ return rows;
+}
+async function signedOwnedCover(row,uid){
+ if(!row||row.user_id!==uid||!row.storage_path)return "";
+ const {data,error}=await S.storage.from("media").createSignedUrl(row.storage_path,300);
+ return error?"":COVER.safeUrl(data?.signedUrl,C.supabaseUrl);
+}
+async function refreshProfileCover(){
+ const epoch=++coverEpoch,uid=user?.id;
+ if(!uid||!S||accountState!=="active"){clearProfileCover();return}
+ coverAccessControls();
+ try{
+  const rows=await ownedCoverRows(uid);
+  if(epoch!==coverEpoch||uid!==user?.id||accountState!=="active")return;
+  coverMediaRows=rows;
+  const completedDate=LIFE.today();
+  const resolve=async choice=>{
+   if(choice.photo)return signedOwnedCover(choice.photo,uid);
+   return choice.url||"";
+  };
+  let choice=COVER.decide(profile,trips,rows,completedDate,uid);
+  let url=await resolve(choice);
+  if(!url&&choice.source==="manual"){
+   choice=COVER.decide({...profile,cover_media_id:null},trips,rows,completedDate,uid);
+   url=await resolve(choice);
+  }
+  if(epoch!==coverEpoch||uid!==user?.id||accountState!=="active")return;
+  applyProfileCover(url,!!choice.photo,epoch);
+  if(!$("#coverPicker").hidden)await renderCoverGrid();
+  coverAccessControls();
+ }catch{
+  if(epoch!==coverEpoch)return;
+  // Never display a stale private URL if RLS/Storage reads fail.
+  coverMediaRows=[];
+  applyProfileCover("",false,epoch);
+  coverStatus("Impossible de charger la couverture privée. Réessayez dans Paramètres.");
+ }
+}
+async function setProfileCover(mediaId){
+ if(coverBusy||!user||!S||accountState!=="active")return false;
+ if(!canWrite()){
+  coverStatus("Votre accès est expiré ou non activé. Votre carnet reste consultable.");
+  coverAccessControls();return false;
+ }
+ const uid=user.id;coverBusy=true;coverAccessControls();coverStatus("Enregistrement…");
+ try{
+  if(mediaId!==null){
+   // Verify the proposed media owner independently of client-supplied ids.
+   const {data:owned,error:photoError}=await S.from("media")
+    .select("id,user_id,trip_id,storage_path").eq("id",mediaId).eq("user_id",uid).maybeSingle();
+   if(photoError||!owned||owned.id!==mediaId||owned.user_id!==uid)throw Error("Photo non autorisée");
+  }
+  const {data,error}=await S.from("profiles").update({cover_media_id:mediaId})
+    .eq("id",uid).select("cover_media_id").single();
+  if(error||!data||data.cover_media_id!==mediaId||uid!==user?.id)throw Error("Enregistrement refusé");
+  profile.cover_media_id=mediaId;
+  coverStatus(mediaId?"Photo de couverture enregistrée.":"Choix automatique rétabli.");
+  if(mediaId!==null)$("#coverPicker").hidden=true;
+  void refreshProfileCover();
+  return true;
+ }catch{coverStatus(canWrite()?"Impossible de changer la couverture. Vérifiez votre connexion.":"Votre accès est expiré ou non activé.");return false}
+ finally{coverBusy=false;coverAccessControls()}
+}
+async function renderCoverGrid(){
+ const epoch=++coverGridEpoch,uid=user?.id,grid=$("#coverPickerGrid");
+ if($("#coverPicker").hidden||!uid)return;
+ grid.replaceChildren();
+ const rows=coverMediaRows.slice(0,coverGridShown);
+ $("#coverGridStatus").textContent=rows.length?
+  "Choisissez une photo de voyage.":"Aucune photo enregistrée dans vos voyages.";
+ $("#coverGridMore").hidden=coverGridShown>=coverMediaRows.length;
+ coverAccessControls();
+ const entries=rows.map(row=>{
+  const button=document.createElement("button");
+  button.type="button";button.className="coverOption";button.dataset.mediaId=row.id;
+  button.setAttribute("aria-label","Utiliser cette photo comme couverture");
+  button.setAttribute("aria-pressed",String(profile.cover_media_id===row.id));
+  button.disabled=!canWrite()||coverBusy;
+  grid.append(button);
+  return {row,button};
+ });
+ // Sign only the grid page shown. No signed URL may be stored persistently.
+ await Promise.all(entries.map(async({row,button})=>{
+  try{
+   const url=await signedOwnedCover(row,uid);
+   if(!url||epoch!==coverGridEpoch||uid!==user?.id||!button.isConnected)return;
+   const img=document.createElement("img");img.alt="";img.loading="lazy";
+   img.referrerPolicy="no-referrer";img.dataset.isPrivate="true";img.src=url;
+   button.append(img);
+  }catch{/* Stay as a neutral tile */}
+ }));
+}
+$("#coverPickerOpen").onclick=()=>{
+ if(!canWrite()){coverStatus("Votre accès est expiré ou non activé.");return}
+ const panel=$("#coverPicker");panel.hidden=!panel.hidden;
+ if(!panel.hidden){coverGridShown=24;void renderCoverGrid();$("#coverGridClose").focus()}
+};
+$("#coverGridClose").onclick=()=>{$("#coverPicker").hidden=true;$("#coverPickerOpen").focus()};
+$("#coverGridMore").onclick=()=>{coverGridShown+=24;void renderCoverGrid()};
+$("#coverAuto").onclick=()=>void setProfileCover(null);
+$("#coverPickerGrid").onclick=e=>{
+ const button=e.target.closest?.("button.coverOption[data-media-id]");
+ if(!button||button.disabled)return;
+ void setProfileCover(button.dataset.mediaId);
+};
+
 function tripDates(a,b){if(a===b)return window.BEAM_DAY_EXCURSIONS.short(a);let A=new Date(a+"T12:00:00"),B=new Date(b+"T12:00:00"),sameMonth=A.getMonth()===B.getMonth()&&A.getFullYear()===B.getFullYear(),sameYear=A.getFullYear()===B.getFullYear();if(sameMonth)return A.getDate()+" → "+B.toLocaleDateString("fr-FR",{day:"numeric",month:"long",year:"numeric"});if(sameYear)return A.toLocaleDateString("fr-FR",{day:"numeric",month:"short"})+" → "+B.toLocaleDateString("fr-FR",{day:"numeric",month:"short",year:"numeric"});return A.toLocaleDateString("fr-FR",{day:"numeric",month:"short",year:"numeric"})+" → "+B.toLocaleDateString("fr-FR",{day:"numeric",month:"short",year:"numeric"})}
 function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 let mapReady=false,mapLoading=false,worldCentroids=null,centroidPromise=null,centroidFailed=false,flightIntroDone=false,lastFlightRoutes=[];
