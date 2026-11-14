@@ -1283,7 +1283,7 @@ function openTripStopEditor(stop=null){
  $("#tripStopCities").value=STOPS.cities(stop);
  $("#tripStopEntry").value=stop?.entry_date||trip.entry_date;
  $("#tripStopExit").value=stop?.exit_date||trip.exit_date;
- stopPicker.sync();setStopMode(stop?.entry_date===stop?.exit_date||trip.entry_date===trip.exit_date?"day":"multi");
+ stopPicker.sync();setStopMode((!!stop&&stop.entry_date===stop.exit_date)||trip.entry_date===trip.exit_date?"day":"multi");
  stopPicker.setExisting(trip.stops||[],stopEditingId);
  $("#tripStopCountry").focus();
 }
