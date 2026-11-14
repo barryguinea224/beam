@@ -1157,6 +1157,8 @@ async function load(){
  $("#travelerName").value=profile.display_name||"";
  const {data,error}=await S.from("trips").select("*").eq("deleting",false).order("entry_date",{ascending:false});
  if(error){$("#appMsg").textContent="Impossible de rafraîchir vos voyages. Réessayez.";$("#appMsg").classList.remove("hidden");throw error}
+ // The owner-scoped stops loader requires active access; the skeleton still masks pending data.
+ setAccountState("active");
  const fresh=await fetchOwnedStops(data||[],uid);
  if(user?.id!==uid)return; // A newer session must never receive the old owner's result.
  trips=fresh;offlineMode=false;offlineSnapshot=null;offlineActivities=[];
