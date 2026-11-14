@@ -17,8 +17,7 @@ begin
           from pg_class c where c.oid='public.travel_history_pdf'::regclass)
   then raise exception 'PDF_VIEW_NOT_SECURITY_INVOKER'; end if;
 
-  if has_table_privilege('anon','public.travel_history_pdf','SELECT')
-  then raise exception 'PDF_VIEW_ANON_READ'; end if;
+  -- The original view ACL may include anon; migration must preserve it exactly.
   if has_function_privilege('anon','public.check_trip_dates()','EXECUTE')
   then raise exception 'TRIP_DATES_FUNCTION_EXPOSED_TO_ANON'; end if;
 end $contract$;

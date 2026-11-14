@@ -11,6 +11,7 @@ const logic=inline.slice(first,last);
 const mapSvg=fs.readFileSync("travel/assets/world-map.svg","utf8");
 const centroids=JSON.parse(fs.readFileSync("travel/assets/world-centroids.json","utf8"));
 const filtersJs=fs.readFileSync("travel/dashboard-filters.js","utf8");
+const lifeJs=fs.readFileSync("travel/trip-lifecycle.js","utf8");
 const flightsJs=fs.readFileSync("travel/flight-connections.js","utf8");
 const css=fs.readFileSync("travel/flight-connections.css","utf8");
 const html=app.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,"");
@@ -29,7 +30,8 @@ async function run(){
    try{
     await page.setContent(html,{waitUntil:"domcontentloaded"});
     await page.addStyleTag({content:css});
-    await page.addScriptTag({content:filtersJs});
+    await page.addScriptTag({content:lifeJs});
+     await page.addScriptTag({content:filtersJs});
     await page.addScriptTag({content:flightsJs});
     await page.evaluate(({mapSvg,centroids,journeys})=>{
      document.querySelector("#app").classList.remove("hidden");
@@ -45,6 +47,7 @@ async function run(){
      'const profile={country_of_residence:"GN"};',
      'const trips=window.__journeys;',
      'const STOPS={codes:t=>[t.country_code,...(t.stops||[]).map(s=>s.country_code)]};',
+      'const LIFE=window.BEAM_TRIP_LIFECYCLE;',
      'let dashboardFilters=window.BEAM_DASHBOARD_FILTERS.normalize({});',
      'let accountState="active";',
      'const countryName=code=>({GN:"Guinée",CA:"Canada",JP:"Japon",SN:"Sénégal"}[code]||code);',
