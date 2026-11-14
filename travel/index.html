@@ -1127,7 +1127,7 @@ $("#stopDurationChoices").onclick=event=>{
  const button=event.target.closest("button[data-stop-mode]");
  if(button)setStopMode(button.dataset.stopMode);
 };
-function proposeDomestic(code){if(!profile.country_of_residence||!code)return false;return code===profile.country_of_residence}function setDomesticProposal(code){$("#isDomestic").value=String(proposeDomestic(code));$("#domesticHint").textContent=profile.country_of_residence?"Proposition selon votre résidence actuelle. Vous pouvez la corriger.":"Aucune résidence enregistrée : vérifiez ce choix."}function openNewTrip(){if(accountState!=="active"||!canWrite())return;editingTripId=null;editingOriginalCountry=null;const city=$("#tripForm").elements.namedItem("cities");delete city.dataset.autoProposed;delete city.dataset.manualCorrection;$("#tripForm").reset();tripPicker.sync();setTripMode("multi");tripPicker.setExisting(trips);countrySelectors.trip.reset("");setDomesticProposal("");$("#tripTitle").textContent="Ajouter un voyage";$("#saveTrip").textContent="Enregistrer";resetPhotoUI(null);$("#tripMsg").classList.add("hidden");$("#modal").classList.add("open")}function openEditTrip(id){if(accountState!=="active"||!canWrite())return;const city=$("#tripForm").elements.namedItem("cities");delete city.dataset.autoProposed;delete city.dataset.manualCorrection;let x=trips.find(t=>t.id===id);if(!x)return;editingTripId=id;editingOriginalCountry=x.country_code;let f=$("#tripForm");countrySelectors.trip.reset(x.country_code);f.country_code.value=x.country_code;f.cities.value=x.cities.join(", ");tripPicker.setMode("multi");f.entry_date.value=x.entry_date;f.exit_date.value=x.exit_date;tripPicker.sync();setTripMode(DAY.modeFor(x));tripPicker.setExisting(trips,id);f.purpose.value=x.purpose;f.airline.value=x.airline||"";f.hotel.value=x.hotel||"";f.companions.value=x.companions||"";f.note.value=x.note||"";f.is_domestic.value=String(!!x.is_domestic);$("#domesticHint").textContent="Classification enregistrée pour ce voyage. Elle reste stable tant que le pays ne change pas.";$("#tripTitle").textContent="Modifier le voyage";$("#saveTrip").textContent="Enregistrer les modifications";resetPhotoUI(id);$("#tripMsg").classList.add("hidden");$("#modal").classList.add("open");refreshMedia(id).catch(()=>showPhotoMessage("Impossible de charger les photos. Réessayez en rouvrant le voyage."))}$("#tripForm").country_code.onchange=e=>{let code=e.target.value;if(!editingTripId||code!==editingOriginalCountry)setDomesticProposal(code)};$("#add").onclick=openNewTrip;
+function proposeDomestic(code){if(!profile.country_of_residence||!code)return false;return code===profile.country_of_residence}function setDomesticProposal(code){$("#isDomestic").value=String(proposeDomestic(code));$("#domesticHint").textContent=profile.country_of_residence?"Proposition selon votre résidence actuelle. Vous pouvez la corriger.":"Aucune résidence enregistrée : vérifiez ce choix."}function openNewTrip(){if(accountState!=="active"||!canWrite())return;editingTripId=null;editingOriginalCountry=null;const city=$("#tripForm").elements.namedItem("cities");delete city.dataset.autoProposed;delete city.dataset.manualCorrection;$("#tripForm").reset();tripPicker.clear();setTripMode("multi");tripPicker.setExisting(trips);countrySelectors.trip.reset("");setDomesticProposal("");$("#tripTitle").textContent="Ajouter un voyage";$("#saveTrip").textContent="Enregistrer";resetPhotoUI(null);$("#tripMsg").classList.add("hidden");$("#modal").classList.add("open")}function openEditTrip(id){if(accountState!=="active"||!canWrite())return;const city=$("#tripForm").elements.namedItem("cities");delete city.dataset.autoProposed;delete city.dataset.manualCorrection;let x=trips.find(t=>t.id===id);if(!x)return;editingTripId=id;editingOriginalCountry=x.country_code;let f=$("#tripForm");countrySelectors.trip.reset(x.country_code);f.country_code.value=x.country_code;f.cities.value=x.cities.join(", ");tripPicker.setMode("multi");f.entry_date.value=x.entry_date;f.exit_date.value=x.exit_date;tripPicker.sync();setTripMode(DAY.modeFor(x));tripPicker.setExisting(trips,id);f.purpose.value=x.purpose;f.airline.value=x.airline||"";f.hotel.value=x.hotel||"";f.companions.value=x.companions||"";f.note.value=x.note||"";f.is_domestic.value=String(!!x.is_domestic);$("#domesticHint").textContent="Classification enregistrée pour ce voyage. Elle reste stable tant que le pays ne change pas.";$("#tripTitle").textContent="Modifier le voyage";$("#saveTrip").textContent="Enregistrer les modifications";resetPhotoUI(id);$("#tripMsg").classList.add("hidden");$("#modal").classList.add("open");refreshMedia(id).catch(()=>showPhotoMessage("Impossible de charger les photos. Réessayez en rouvrant le voyage."))}$("#tripForm").country_code.onchange=e=>{let code=e.target.value;if(!editingTripId||code!==editingOriginalCountry)setDomesticProposal(code)};$("#add").onclick=openNewTrip;
 $("#welcomeName").onclick=()=>{if(!canWrite())return;openAccountPanel();$("#editAccount").click();$("#travelerName").focus()};
 $("#welcomeTrip").onclick=openNewTrip;
 $("#welcomePdf").onclick=()=>{
@@ -1258,6 +1258,7 @@ function resetTripStopForm(trip=null){
  if(!form)return;
  stopEditingId=null;stopDeleteTarget=null;
  form.reset();
+ stopPicker.clear();
  form.classList.add("hidden");
  $("#tripStopDeleteConfirm").classList.add("hidden");
  stopMessage("");
@@ -1333,7 +1334,7 @@ $("#tripOverlapEditDates").onclick=()=>{
 };
 function closeEditorForExcursion(){
  $("#modal").classList.remove("open");
- $("#tripForm").reset();resetPhotoUI(null);
+ $("#tripForm").reset();tripPicker.clear();resetPhotoUI(null);
  editingTripId=null;editingOriginalCountry=null;
  clearTripOverlap();
 }
@@ -1853,7 +1854,7 @@ $("#tripForm").onsubmit=async e=>{
        return;
      }
    }
-   form.reset();resetPhotoUI(null);$("#modal").classList.remove("open");
+   form.reset();tripPicker.clear();resetPhotoUI(null);$("#modal").classList.remove("open");
    $("#appMsg").textContent=wasEditing?"Voyage modifié"+(selected.length?" avec ses photos.":"."):"Voyage ajouté"+(selected.length?" avec ses photos.":".");
    $("#appMsg").classList.remove("hidden");editingTripId=null;
    try{await load()}catch{}

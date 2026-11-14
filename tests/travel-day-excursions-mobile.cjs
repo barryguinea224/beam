@@ -167,8 +167,8 @@ async function start(){
     await page.locator('#tripForm input[name="cities"]').fill("Bruxelles");
     await choose("2026-11-14");
     await choose("2026-11-16");
-    const diagnose=await page.evaluate(()=>({entry:document.querySelector("#tripEntryDate").value,exit:document.querySelector("#tripExitDate").value,tripMode,editingTripId,selectedCountry:document.querySelector("#tripCountrySelect").value,rows:window.__excursionFixture.rows.map(r=>({id:r.id,entry_date:r.entry_date,exit_date:r.exit_date})),potential:!!DAY.conflict({country_code:"BE",entry_date:document.querySelector("#tripEntryDate").value,exit_date:document.querySelector("#tripExitDate").value},trips,editingTripId)}));
-    console.log("DEBUG multi after excursion",JSON.stringify(diagnose));
+    assert.equal(await page.locator("#tripEntryDate").inputValue(),"2026-11-14");
+    assert.equal(await page.locator("#tripExitDate").inputValue(),"2026-11-16");
     await page.locator("#saveTrip").click();
     await page.locator("#tripOverlapOffer").waitFor({state:"visible"});
     assert.equal(await page.locator("#tripOverlapStop").innerText(),"L'ajouter comme étape à ce voyage");
