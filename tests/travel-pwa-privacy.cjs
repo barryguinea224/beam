@@ -66,7 +66,7 @@ function fixture(){
          map.set(url,new Response("PUBLIC_STATIC"));
        }
      },
-     match:async request=>map.get(typeof request==="string"?request:request.url)||null,
+     match:async request=>map.get(typeof request==="string"?request:request.url)?.clone()||null,
      put:async()=>{throw new Error("Forbidden runtime cache write")}
    };
  };
