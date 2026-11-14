@@ -16,7 +16,7 @@
 .drp-days{row-gap:3px;padding-bottom:3px}
 .drp-day,.drp-blank{height:44px;min-width:44px;position:relative}
 .drp-day{border:1px solid transparent;border-radius:9px;background:#fff;color:#213d2d;cursor:pointer;font-size:14px;font-weight:700;touch-action:manipulation}
-.drp-day:hover:not(:disabled){background:#eff5ee}
+.drp-day:hover:not(:disabled):not(.drp-selected){background:#eff5ee}
 .drp-day.drp-booked:not(.drp-selected):not(:disabled){background:#eef3ed}
 .drp-day.drp-booked::after{content:"";position:absolute;left:calc(50% - 3px);bottom:3px;width:6px;height:6px;border-radius:50%;background:#88a78f}
 .drp-day.drp-selected{border-radius:0;background:#d4e9d9;color:#11432e}
