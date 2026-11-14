@@ -22,6 +22,7 @@ function short(iso,year=false){
 function interval(from,to){
  const sameMonth=from?.slice(0,7)===to?.slice(0,7);
  const yearChange=from?.slice(0,4)!==to?.slice(0,4);
+ if(from===to)return short(from,true);
  return (sameMonth?String(Number(from.slice(8,10))):short(from,yearChange))+" → "+short(to,yearChange);
 }
 function byOrder(rows){
@@ -68,9 +69,8 @@ function renderList(target,trip,editable,onEdit,onRemove){
   const info=doc.createElement("div");info.className="tripStopInfo";
   const name=doc.createElement("strong");name.textContent=country(stop.country_code);
   const location=doc.createElement("span");location.textContent=(cities(stop)||"Ville non précisée")+
-   " · "+date(stop.entry_date)+" → "+date(stop.exit_date)+
-   " · "+days(stop.entry_date,stop.exit_date)+" jour"+
-   (days(stop.entry_date,stop.exit_date)===1?"":"s");
+   " · "+(stop.entry_date===stop.exit_date?short(stop.entry_date,true):date(stop.entry_date)+" → "+date(stop.exit_date))+
+   " · "+(stop.entry_date===stop.exit_date?"Excursion · 1 jour":days(stop.entry_date,stop.exit_date)+" jours");
   info.append(name,location);item.append(flag,info);
   if(editable){
    const buttons=doc.createElement("div");buttons.className="tripStopActions";

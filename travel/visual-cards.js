@@ -30,7 +30,7 @@
     const id=typeof trip.id==="string"&&UUID.test(trip.id)?trip.id:"";
     const country=esc(countryLabel),cities=esc((trip.cities||[]).join(", "));
     const dates=esc(dateLabel),purpose=esc(purposeLabel);
-    const days=Number(trip.duration_days);
+    const days=Number(trip.duration_days),isDay=trip.entry_date===trip.exit_date;
     const safeDays=Number.isInteger(days)&&days>=0?days:"—";
     // Decorative media is always public, local and anonymous; private cover URLs
     // are inserted LATER by the authenticated session, never serialized in markup.
@@ -46,7 +46,7 @@
        '</span>'+
        '<span class="journeyCountry">'+country+'</span>'+
        '<span class="journeyCities">'+cities+'</span>'+
-       '<span class="journeyFooter">'+dates+' · '+safeDays+' jours · '+purpose+'</span>'+
+       '<span class="journeyFooter">'+dates+' · '+(isDay?"Excursion · 1 jour":safeDays+" jours")+' · '+purpose+'</span>'+
        '<span class="journeyLink">Voir la fiche →</span>'+
      '</span></button></article>';
   }

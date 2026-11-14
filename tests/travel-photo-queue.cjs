@@ -5,6 +5,7 @@ const vm = require('node:vm');
 const PHOTO = require('../travel/photo-utils.js');
 const DETAIL = require('../travel/trip-detail.js');
 const COUNTRIES = require('../travel/countries.js');
+const DAY = require('../travel/day-excursions.js');
 const {uploadOne} = require('../travel/photo-upload.js');
 
 const html = fs.readFileSync('travel/index.html', 'utf8');
@@ -90,7 +91,7 @@ function harness() {
     blob:new Blob(['reencoded pixels'],{type:'image/webp'}),width:800,height:1200
   })};
   const context=vm.createContext({
-    Blob,DETAIL,photoTripStay:()=>({}),
+    Blob,DETAIL,DAY,tripMode:'multi',photoTripStay:()=>({}),
     window:{BEAM_COUNTRIES:COUNTRIES,BEAM_PHOTO:{...PHOTO,...convertedPhoto},
       BEAM_PHOTO_UPLOAD:{uploadOne:params=>uploadOne({...params,idProvider:()=>('photo-'+(++serial))})},
       confirm:message=>{confirmMessages.push(message);return confirmAnswer}},
