@@ -2731,7 +2731,17 @@ $("#generatePdf").onclick=async()=>{
  if(event==="SIGNED_OUT"){clearPwaSession().then(()=>view("#auth")).catch(()=>view("#auth"));return}
  if(s?.user&&user&&s.user.id!==user.id){
   // Fail closed on a cross-account Auth transition, even if IndexedDB is slow.
-  view("#auth");$("#trips").replaceChildren();trips=[];offlineMode=false;
+  view("#auth");
+  if($("#tripDetailModal").classList.contains("open"))closeTripDetail();
+  $("#modal").classList.remove("open");
+  $("#accountOverlay").classList.remove("accountOpen","accountEditing");
+  $("#photoActionOverlay").classList.remove("open");
+  if($("#pdfDialog").open)$("#pdfDialog").close();
+  for(const selector of ["#trips","#detailPhotos","#detailFacts","#detailActivities","#detailNote","#photoGallery","#loyaltyOwned"])
+   $(selector)?.replaceChildren();
+  for(const img of document.querySelectorAll('img[data-is-private="true"]'))img.removeAttribute("src");
+  clearProfileCover();clearContactFields();try{LOYALTY?.clear()}catch{}
+  trips=[];offlineMode=false;offlineSnapshot=null;offlineActivities=[];user=null;
   void OFFLINE.clear().then(async()=>{
    user=s.user;await OFFLINE.bind(user.id);
    setAccountState("loading");view("#app");setSkeleton(true);await load();
