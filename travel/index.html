@@ -1039,7 +1039,7 @@ function setAccountState(state){
  $("#deletionPending").classList.toggle("hidden",state!=="deleting");
  $("#accountStatusUnavailable").classList.toggle("hidden",state!=="unavailable");
  $("#accountStatusChecking").classList.toggle("hidden",state!=="loading");
- if(!active){if(typeof LOYALTY!=="undefined")LOYALTY?.clear();renderAccessUi();$("#accountOverlay").classList.remove("accountOpen","accountEditing");$("#accountOverlay").setAttribute?.("aria-hidden","true");clearContactFields();$("#modal").classList.remove("open");if($("#tripDetailModal").classList.contains("open"))closeTripDetail()}
+ if(!active){if($("#pdfDialog").open)$("#pdfDialog").close();if(typeof LOYALTY!=="undefined")LOYALTY?.clear();renderAccessUi();$("#accountOverlay").classList.remove("accountOpen","accountEditing");$("#accountOverlay").setAttribute?.("aria-hidden","true");clearContactFields();$("#modal").classList.remove("open");if($("#tripDetailModal").classList.contains("open"))closeTripDetail()}
 }
 async function load(){
  if(!user)return;
@@ -2413,13 +2413,32 @@ $("#printJournal").onclick=async()=>{
  finally{journalPrintBusy=false;button.disabled=false;button.textContent="Mon carnet"}
 };
 
-$("#pdf").onclick=async()=>{
+function openPdfDialog(){
+ $("#includePdfContacts").checked=false;
+ const dialog=$("#pdfDialog");
+ if(!dialog.open)dialog.showModal();
+ $("#generatePdf").focus();
+}
+function closePdfDialog(){
+ const dialog=$("#pdfDialog");
+ if(dialog.open)dialog.close();
+ $("#includePdfContacts").checked=false;
+ $("#pdf").focus();
+}
+$("#pdfDialogClose").onclick=closePdfDialog;
+$("#pdfDialog").addEventListener("close",()=>{$("#includePdfContacts").checked=false;});
+$("#pdf").onclick=()=>{
+ if(accountState!=="active"||!S||!user||savingTravelerName||!trips.length)return;
+ openPdfDialog();
+};
+$("#generatePdf").onclick=async()=>{
  if(accountState!=="active"||!S||!user||savingTravelerName||!trips.length)return;
  const includeContacts=$("#includePdfContacts").checked===true;
  // Consent is a one-shot choice; never retain it for the next PDF generation.
  $("#includePdfContacts").checked=false;
+ $("#pdfDialog").close();
  if(!profile.display_name?.trim()){requestTravelerName();return}
- const uid=user.id,button=$("#pdf");
+ const uid=user.id,button=$("#generatePdf");
  // Open synchronously from the click, before the async RLS query, to avoid mobile popup blockers.
  const tab=window.open("","_blank");
  if(!tab){
@@ -2476,7 +2495,7 @@ $("#pdf").onclick=async()=>{
    status.textContent="Impossible de préparer le PDF factuel. Vérifiez votre connexion et réessayez.";
    status.classList.remove("hidden");
  }finally{
-   button.disabled=false;button.textContent="PDF ambassade";
+   button.disabled=false;button.textContent="Générer le PDF";
  }
 };if(S)S.auth.onAuthStateChange((event,s)=>{
  if(event==="SIGNED_OUT"){clearPwaSession().then(()=>view("#auth")).catch(()=>view("#auth"));return}
