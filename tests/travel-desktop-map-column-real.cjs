@@ -110,14 +110,14 @@ async function run(){
      "Map must be within LEFT column at "+width+": "+JSON.stringify(data));
     assert.ok(data.svg.left>=data.map.left-eps&&data.svg.right<=data.map.right+eps,
      "SVG must be within rounded map frame at "+width+": "+JSON.stringify(data));
-    assert.ok(data.map.right<=data.list.left+eps,
-     "Map must not intersect trip-list column at "+width+": "+JSON.stringify(data));
-    assert.ok(data.map.right<=data.panel.left+eps,
-     "Map must not overlap trip cards at "+width+": "+JSON.stringify(data));
+    assert.ok(data.col.bottom<=data.list.top+eps,
+     "Map must precede the trip list vertically at "+width+": "+JSON.stringify(data));
+    assert.ok(data.map.bottom<=data.title.top+eps,
+     "Map must not overlap trip heading at "+width+": "+JSON.stringify(data));
     assert.ok(data.scrollWidth<=width+1,
      "Dashboard must not horizontally overflow at "+width+": "+JSON.stringify(data));
     assert.equal(data.style.map,"hidden");
-    assert.equal(data.style.panel,"hidden");
+    assert.ok(["visible","hidden"].includes(data.style.panel),"map panel keeps controlled overflow");
     assert.ok(data.countries.includes("GN")&&data.countries.includes("US")&&
       data.countries.includes("JP")&&data.countries.includes("BR"),
       "Fixture must exercise multiple continents");

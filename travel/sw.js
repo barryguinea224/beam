@@ -1,7 +1,7 @@
 // J'y étais PWA — PRIVATE BY DEFAULT.
 // Cache only the audited, versioned public shell. No runtime cache writes.
 // Never cache Supabase, signed links, personal trips, photos or API responses.
-const CACHE_NAME = "beam-travel-shell-v1-20261114-jyetais-v45-period-finish";
+const CACHE_NAME = "beam-travel-shell-v1-20261114-jyetais-v47-poppins-all-headings";
 const SCOPE_PATH = "/travel/";
 const PUBLIC_SHELL = [
   "./index.html", "./config.js", "./offline-bootstrap.js", "./pwa.js",
@@ -9,12 +9,13 @@ const PUBLIC_SHELL = [
   "./confidentialite.html", "./conditions.html", "./legal.css",
   "./access.js", "./avatar.js", "./photo-utils.js", "./photo-upload.js", "./trip-detail.js", "./visa-guide.js",
   "./countries.js", "./country-picker.js", "./factual-pdf.js", "./factual-pdf-file.js",
-  "./journal-stats.js", "./dashboard-filters.js", "./dashboard-filters.css", "./printable-journal.js", "./family-booklet.js",
+  "./journal-stats.js", "./dashboard-filters.js", "./dashboard-filters.css", "./home-simple.css", "./printable-journal.js", "./family-booklet.js",
   "./visual-cards.js", "./visual-cards.css", "./photo-sheet.css",
   "./flight-connections.js", "./flight-connections.css",
   "./loyalty-programs.js", "./loyalty-ui.js", "./loyalty.css", "./account-settings.css",
   "./activity-durations.js", "./activity-duration.css",
   "./trip-stops.js", "./trip-stops.css", "./day-excursions.js", "./trip-lifecycle.js", "./day-excursions.css", "./date-range-picker.js", "./date-range-picker.css",
+  "./assets/fonts/Poppins-Regular.woff2", "./assets/fonts/Poppins-SemiBold.woff2", "./assets/fonts/Poppins-Bold.woff2", "./assets/fonts/OFL.txt",
   "./assets/world-map.svg", "./assets/world-centroids.json", "./assets/stay-airline.svg", "./assets/stay-hotel.svg", "./manifest.webmanifest",
   "./assets/brand/icon-192.png", "./assets/brand/icon-512.png", "./assets/brand/icon-maskable-512.png",
   "./assets/brand/jyetais-logo.svg", "./assets/brand/jyetais-icon.svg",
@@ -104,7 +105,7 @@ self.addEventListener("fetch", event => {
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#174d3a"><title>J'y étais · Hors ligne</title>
 <style>body{margin:0;background:#f7f5ef;color:#17231f;font:17px system-ui,sans-serif}
-main{max-width:520px;margin:12vh auto;padding:28px}h1{font:normal 40px Georgia,serif;line-height:1.1}
+main{max-width:520px;margin:12vh auto;padding:28px}h1{font:normal 40px Poppins,system-ui,sans-serif;line-height:1.1}
 small{color:#174d3a;font-weight:700;letter-spacing:.12em}</style></head>
 <body><main><small>J'y étais</small>
 <h1>Connexion nécessaire pour consulter votre carnet</h1>

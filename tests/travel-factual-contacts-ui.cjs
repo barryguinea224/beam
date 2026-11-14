@@ -112,7 +112,7 @@ async function main(){
   assert.equal(await page.locator("#accountEmail").inputValue(),"login@example.net");
   assert.equal(await page.locator("#accountEmail").getAttribute("readonly"),"");
   assert.equal(await page.locator("#includePdfContacts").isChecked(),false);
-  // Real 360px layout: serif heading, visible divider and no horizontal scroll.
+  // Real 360px layout: local Poppins heading, visible divider and no horizontal scroll.
   const design=await page.evaluate(()=>{
    const heading=document.querySelector("#contactDetailsForm .accountSubTitle");
    const contacts=document.querySelector("#contactDetailsForm");
@@ -129,7 +129,7 @@ async function main(){
    };
   });
   assert.match(design.title,/Mes coordonnées/);
-  assert.match(design.family,/Georgia|serif/i,"account title should match existing serif heading");
+  assert.match(design.family,/Poppins/i,"account title must use the locally hosted Poppins family");
   assert.equal(design.borderStyle,"solid");
   assert.ok(design.borderWidth>=1&&design.paddingTop>=20&&design.gap>=0,
    "a real divider and generous spacing must separate the account forms");
@@ -194,7 +194,11 @@ async function main(){
   assert.equal(await page.locator("#accountOverlay").getAttribute("aria-hidden"),"true");
   assert.equal(await page.locator("#pdf").isVisible(),true,"PDF button visible on mobile");
   // Unchecked PDF must neither reread extra columns nor call getUser().
-  const off=await waitPopup(page,()=>page.locator("#pdf").click());
+  await page.locator("#pdf").click();
+  assert.equal(await page.locator("#pdfDialog").isVisible(),true);
+  assert.equal(await page.locator("#includePdfContacts").isVisible(),true);
+  assert.equal(await page.locator("#includePdfContacts").isChecked(),false);
+  const off=await waitPopup(page,()=>page.locator("#generatePdf").click());
   let text=await off.locator("body").textContent();
   assert.match(text,/Historique de voyages/);
   assert.ok(!text.includes("Voyages internationaux déclarés"),"Removed subtitle must be absent");
@@ -204,8 +208,10 @@ async function main(){
   assert.equal(await page.locator("#includePdfContacts").isChecked(),false);
   await off.close();
 
+  await page.locator("#pdf").click();
+  assert.equal(await page.locator("#includePdfContacts").isChecked(),false);
   await page.locator("#includePdfContacts").check();
-  const optin=await waitPopup(page,()=>page.locator("#pdf").click());
+  const optin=await waitPopup(page,()=>page.locator("#generatePdf").click());
   text=await optin.locator("body").textContent();
   assert.match(text,/Coordonnées/);
   assert.match(text,/verified@example.net/);

@@ -213,14 +213,16 @@ async function main(){
      const box=id=>{const r=document.querySelector(id).getBoundingClientRect();
       return {top:r.top,left:r.left,bottom:r.bottom,width:r.width,height:r.height}};
      return {add:box("#add"),pdf:box("#pdf"),journal:box("#printJournal"),
-      consent:box(".pdfContactChoice"),map:box("#travelMapPanel"),
+      consentVisible:!!document.querySelector(".pdfContactChoice").getClientRects().length,
+       map:box("#travelMapPanel"),
       overflow:document.documentElement.scrollWidth-innerWidth};
     });
     assert.ok(layout.overflow<=1,"real mobile page has horizontal overflow at "+width);
     assert.ok(Math.abs(layout.pdf.top-layout.journal.top)<=2,"PDF/journal must share a row at "+width);
     assert.ok(Math.abs(layout.pdf.height-layout.journal.height)<=2,"PDF/journal buttons must have equal height at "+width);
     assert.ok(layout.add.width>=layout.pdf.width+layout.journal.width-4,"Add button must span both columns at "+width);
-    assert.ok(layout.consent.top>=layout.pdf.bottom-2,"PDF consent must appear below its action at "+width);
+    assert.equal(layout.consentVisible,false,"PDF consent must remain inside the closed dialog at "+width);
+     assert.ok(layout.map.top<layout.add.top,"world map comes before actions at "+width);
     assert.ok(layout.map.top<850,"map must be visible without scrolling at "+width);
    }else{
     const branded=await page.locator("#app > .w > header").textContent();
@@ -253,7 +255,7 @@ async function main(){
     assert.equal(long.fullText,expectedTitle,"the full declared name must be visible, unchanged");
     assert.ok(!long.fullText.includes("…")&&!long.fullText.endsWith("..."),"no ellipsis or substituted initials");
     assert.ok(Math.abs(long.fontSize-shortFont)<0.15,
-       "the selected compact Georgia title size must be consistent for short and long names");
+       "Poppins title size must be consistent for short and long names");
     assert.ok(long.titleHeight<=long.lineHeight*3+2,"long name must fit in at most three visible lines");
     assert.ok(long.lineCount<=3,"long title may wrap onto two or three lines");
     assert.equal(long.overflow,"visible","do not clip the client's title");

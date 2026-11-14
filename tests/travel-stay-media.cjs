@@ -13,7 +13,7 @@ const booklet=fs.readFileSync("travel/family-booklet.js","utf8");
 const journal=fs.readFileSync("travel/printable-journal.js","utf8");
 const sw=fs.readFileSync("travel/sw.js","utf8");
 const from=app.indexOf('$("#printJournal").onclick=async()=>');
-const until=app.indexOf('$("#pdf").onclick=async()=>',from);
+const until=app.indexOf('$("#pdf").onclick=()=>',from);
 assert.ok(from>0&&until>from,"personal and factual print handlers must stay separate");
 const print=app.slice(from,until);
 const trips=[...print.matchAll(/S\.from\("trips"\)\s*\.select\("([^"]+)"\)/g)];
@@ -46,7 +46,7 @@ for(const role of ["airline","hotel"]){
  assert.ok(migration.includes("trips_"+role+"_same_trip_owner"));
  assert.ok(app.includes('data-stay-role'),"photo selection controls must be present");
 }
-assert.ok(sw.includes("jyetais-v45-period-finish"),"cache revision");
+assert.ok(sw.includes("jyetais-v47-poppins-all-headings"),"cache revision");
 assert.doesNotMatch(sw,/cache\.put\(/,"no runtime caching of private signed images");
 const factual=schema.split("create view public.travel_history_pdf")[1]?.split(";")[0];
 assert.ok(factual);
