@@ -16,12 +16,10 @@
   for(const list of ownedByTrip.values())list.sort((a,b)=>String(a.created_at||"").localeCompare(String(b.created_at||""))||
    String(a.id).localeCompare(String(b.id)));
   for(const trip of completed){
-   const favorite=(ownedByTrip.get(trip.id)||[]).find(m=>m.is_favorite===true);
+   const images=ownedByTrip.get(trip.id)||[];
+   const favorite=images.find(m=>m.is_favorite===true);
    if(favorite)return {source:"favorite",photo:favorite,countryCode:trip.country_code};
-  }
-  for(const trip of completed){
-   const first=(ownedByTrip.get(trip.id)||[])[0];
-   if(first)return {source:"recent",photo:first,countryCode:trip.country_code};
+   if(images[0])return {source:"recent",photo:images[0],countryCode:trip.country_code};
   }
   const code=completed[0]?.country_code||"";
   if(code&&VISUAL?.countryArt(code))return {source:"country",photo:null,countryCode:code,url:VISUAL.countryArt(code)};
