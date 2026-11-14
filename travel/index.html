@@ -1310,7 +1310,11 @@ function showTripOverlap(payload,match,allowConvert=true){
  $("#tripOverlapText").textContent=DAY.message(match);
  $("#tripOverlapStop").classList.toggle("hidden",!allowConvert||match.kind!=="stop");
  $("#tripOverlapActivity").classList.toggle("hidden",!allowConvert||match.kind!=="activity");
- $("#tripOverlapFeedback").textContent=payload.entry_date!==payload.exit_date&&allowConvert
+ $("#tripOverlapStop").textContent=match.kind==="stop"&&match.fullyContained&&
+  payload.entry_date!==payload.exit_date?
+  "L'ajouter comme étape à ce voyage":"L'ajouter comme excursion à ce voyage";
+ $("#tripOverlapFeedback").textContent=!match.fullyContained&&
+  payload.entry_date!==payload.exit_date&&allowConvert
   ?"Seule la date du "+DAY.short(match.date)+" sera enregistrée comme excursion ou activité.":"";
  $("#tripOverlapOffer").classList.remove("hidden");
  $("#tripOverlapOffer").scrollIntoView({block:"nearest",behavior:"smooth"});
@@ -1331,7 +1335,7 @@ $("#tripOverlapStop").onclick=async()=>{
  const trip=trips.find(t=>t.id===pending.match.trip.id);
  if(!trip)return;
  const payload={country_code:pending.payload.country_code,cities:pending.payload.cities,
-  entry_date:pending.match.date,exit_date:pending.match.date,position:(trip.stops?.length||0)+1};
+  ...pending.match.stopDates,position:(trip.stops?.length||0)+1};
  const validation=STOPS.validate(payload,trip,trip.stops||[]);
  if(validation){$("#tripOverlapFeedback").textContent=validation;return;}
  overlapSaving=true;
@@ -1343,7 +1347,7 @@ $("#tripOverlapStop").onclick=async()=>{
   await refreshOwnedTripStops(user.id);
   closeEditorForExcursion();
   openTripDetail(trip.id);
-  detailMessage("Excursion enregistrée.");
+  detailMessage(payload.entry_date===payload.exit_date?"Excursion enregistrée.":"Étape enregistrée.");
  }catch(error){
   $("#tripOverlapFeedback").textContent=stopError(error);
  }finally{

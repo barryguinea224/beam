@@ -154,6 +154,29 @@ async function start(){
     assert.doesNotMatch(await page.locator("#detailStops").innerText(),/12 nov\. 2026 → 12 nov/);
     await page.locator("#detailClose").click();
 
+    // An entirely contained multi-day foreign period becomes a full stop,
+    // never a one-day approximation.
+    await page.locator("#add").click();
+    assert.equal(await page.locator('[data-trip-mode="multi"]').getAttribute("aria-pressed"),"true");
+    await page.locator("#tripCountrySelect").selectOption("BE");
+    await page.locator('#tripForm input[name="cities"]').fill("Bruxelles");
+    await page.locator("#tripEntryDate").fill("2026-11-14");
+    await page.locator("#tripExitDate").fill("2026-11-16");
+    await page.locator("#saveTrip").click();
+    await page.locator("#tripOverlapOffer").waitFor({state:"visible"});
+    assert.equal(await page.locator("#tripOverlapStop").innerText(),"L'ajouter comme étape à ce voyage");
+    assert.equal(await page.locator("#tripOverlapFeedback").innerText(),"",
+     "contained period must not warn that it will be shortened to one day");
+    await page.locator("#tripOverlapStop").click();
+    await page.waitForFunction(()=>window.__excursionFixture.stopInserts.length===2);
+    const multiStop=await page.evaluate(()=>window.__excursionFixture.stopInserts[1]);
+    assert.equal(multiStop.country_code,"BE");
+    assert.equal(multiStop.entry_date,"2026-11-14");
+    assert.equal(multiStop.exit_date,"2026-11-16");
+    await page.locator("#tripDetailModal.open").waitFor();
+    assert.match(await page.locator("#detailStops").innerText(),/14\/11\/2026 → 16\/11\/2026/);
+    await page.locator("#detailClose").click();
+
     // Same country: activity editor opens with the selected day (no auto-save).
     await openDay("FR","Lyon","2026-11-13");
     await page.locator("#saveTrip").click();
