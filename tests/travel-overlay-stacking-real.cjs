@@ -85,6 +85,7 @@ async function assertTopmost(page,selector,width,label){
    label+" "+width+"px : blocked at "+JSON.stringify(point));
 }
 async function assertControl(page,selector,width){
+ await page.locator(selector).scrollIntoViewIfNeeded();
  const state=await page.locator(selector).evaluate(el=>{
   const b=el.getBoundingClientRect(),x=b.left+b.width/2,y=b.top+b.height/2;
   const hit=document.elementFromPoint(x,y);
@@ -131,7 +132,12 @@ async function run(){
     await page.locator("#modal.open").waitFor();
     await assertTopmost(page,"#tripForm",width,"Ajouter voyage");
     await assertControl(page,'#tripForm input[name="cities"]',width);
-    await assertControl(page,'#tripForm input[name="exit_date"]',width);
+    // The native exit_date is intentionally hidden; test the visible
+    // month/year controls and interactive calendar instead of a hidden node.
+    await assertControl(page,"#tripDatePicker .drp-month",width);
+    await assertControl(page,"#tripDatePicker .drp-year",width);
+    await assertControl(page,"#tripDatePicker .drp-day:not(:disabled)",width);
+    await assertControl(page,"#tripDatePicker .drp-clear",width);
     if(width===950)await page.screenshot({
      path:path.join(out,"ajouter-voyage-950.png"),fullPage:false,animations:"disabled"});
     await page.locator("#close").click();
@@ -145,7 +151,12 @@ async function run(){
     assert.match(await page.locator("#tripTitle").textContent(),/Modifier le voyage/);
     await assertTopmost(page,"#tripForm",width,"Modifier voyage");
     await assertControl(page,'#tripForm input[name="cities"]',width);
-    await assertControl(page,'#tripForm input[name="exit_date"]',width);
+    // The native exit_date is intentionally hidden; test the visible
+    // month/year controls and interactive calendar instead of a hidden node.
+    await assertControl(page,"#tripDatePicker .drp-month",width);
+    await assertControl(page,"#tripDatePicker .drp-year",width);
+    await assertControl(page,"#tripDatePicker .drp-day:not(:disabled)",width);
+    await assertControl(page,"#tripDatePicker .drp-clear",width);
     await page.locator("#close").click();
     await page.locator("#modal:not(.open)").waitFor({state:"hidden"});
     // Account drawer and contextual filter sheet must also cover page content.

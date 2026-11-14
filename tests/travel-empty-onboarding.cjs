@@ -85,8 +85,17 @@ async function main(){
   await cities.fill("New york");
   await cities.blur();
   assert.equal(await cities.inputValue(),"New York");
-  await page.locator('#tripForm [name="entry_date"]').fill("2026-07-01");
-  await page.locator('#tripForm [name="exit_date"]').fill("2026-07-06");
+  // The range picker is now the visible input; the hidden fields remain the
+  // canonical form payload (and must never be filled by bypassing the UI).
+  async function chooseDate(value){
+   await page.locator("#tripDatePicker .drp-year").selectOption(value.slice(0,4));
+   await page.locator("#tripDatePicker .drp-month").selectOption(String(Number(value.slice(5,7))-1));
+   await page.locator('#tripDatePicker button[data-date="'+value+'"]').click();
+  }
+  await chooseDate("2026-07-01");
+  await chooseDate("2026-07-06");
+  assert.equal(await page.locator('#tripForm [name="entry_date"]').inputValue(),"2026-07-01");
+  assert.equal(await page.locator('#tripForm [name="exit_date"]').inputValue(),"2026-07-06");
   await page.locator("#saveTrip").click();
   await page.locator("#trips .tripOpen").first().waitFor({state:"visible",timeout:10000}).catch(async error=>{
    const details=await page.evaluate(()=>({tripMsg:document.querySelector("#tripMsg")?.textContent,
