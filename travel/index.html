@@ -557,11 +557,27 @@ function syncOfflineActions(){
 }
 function showOfflineCopy(snapshot){
  if(!snapshot||!snapshot.ownerId)return false;
+ // A page that loses connectivity may still contain transient signed photos,
+ // private notes, contacts and an open editing sheet. Revoke them in DOM first.
+ if($("#tripDetailModal").classList.contains("open"))closeTripDetail();
+ if($("#pdfDialog").open)$("#pdfDialog").close();
+ $("#modal").classList.remove("open");
+ $("#accountOverlay").classList.remove("accountOpen","accountEditing");
+ $("#accountOverlay").setAttribute("aria-hidden","true");
+ $("#photoActionOverlay").classList.remove("open");
+ for(const id of ["#detailPhotos","#detailFacts","#detailActivities","#detailNote",
+  "#photoGallery","#trips","#loyaltyOwned"]){$(id)?.replaceChildren()}
+ for(const img of document.querySelectorAll('img[data-is-private="true"]'))img.removeAttribute("src");
+ clearContactFields();
+ try{LOYALTY?.clear()}catch{}
+ try{resetPhotoUI(null)}catch{}
  offlineMode=true;offlineSnapshot=snapshot;
  offlineActivities=snapshot.activities||[];
  avatarSigned=null;avatarSignedUntil=0;
  clearProfileCover();
- user={id:snapshot.ownerId};
+ // Preserve the actual authenticated user object on a connected warm start,
+ // so account email and Auth state are not lost to the read-only preview.
+ if(user?.id!==snapshot.ownerId)user={id:snapshot.ownerId};
  profile={display_name:snapshot.profile?.display_name||"",country_of_residence:null,
   access_until:null,avatar_id:null,cover_media_id:null};
  trips=snapshot.trips||[];
@@ -1174,6 +1190,7 @@ async function load(){
 function layoutDebug(){if(!new URLSearchParams(location.search).has("debug"))return;setTimeout(()=>{let vv=window.visualViewport,els=[...document.querySelectorAll("body *")].filter(e=>{let r=e.getBoundingClientRect();return r.right>innerWidth+1||r.left<-1||e.scrollWidth>e.clientWidth+1}).map(e=>({tag:e.tagName,id:e.id,cls:e.className,right:Math.round(e.getBoundingClientRect().right),left:Math.round(e.getBoundingClientRect().left),sw:e.scrollWidth,cw:e.clientWidth}));let pre=document.createElement("pre");pre.style="position:relative;z-index:99999;white-space:pre-wrap;overflow-wrap:anywhere;background:#111;color:#fff;padding:12px;font:12px monospace";pre.textContent=JSON.stringify({innerWidth,screenWidth:screen.width,devicePixelRatio,visualViewport:vv&&vv.width,overflow:els},null,2);document.body.prepend(pre)},500)}
 async function init(){
  layoutDebug();
+ if(navigator.onLine){setSkeleton(true);view("#app")}
  try{await OFFLINE.prune()}catch{}
  if(!navigator.onLine){
   // Offline access requires a last verified local owner marker and a fresh copy.
@@ -1741,7 +1758,7 @@ function openTripDetail(id){
  $("#detailClose").focus();
  if(offlineMode){
   const code=window.BEAM_VISUAL_CARDS.codeOf(trip.country_code);
-  const art=window.BEAM_VISUAL_CARDS.countryArt(code)||"./assets/world-map.svg";
+  const art=window.BEAM_VISUAL_CARDS.countryArt(code)||window.BEAM_VISUAL_CARDS.flag(code)||"./assets/world-map.svg";
   const photoBox=$("#detailPhotos");photoBox.replaceChildren();
   const illustration=document.createElement("img");
   illustration.className="offlineCountryIllustration";illustration.alt="Illustration du pays";
