@@ -94,7 +94,7 @@ assert.match(inline,/stats=api\.summary\(visible,dashboardFilters,asOf\)/,
  "headline statistics must receive selected scope");
 assert.match(inline,/national=dashboardFilters\.scope==="domestic"/,
  "only explicit national scope changes headline to domestic stays");
-assert.match(inline,/active\?visible\.length\+/,
+assert.match(inline,/active\?FR\.count\(visible\.length,"voyage"\)/,
  "filter status must reflect displayed trip count, not foreign headline");
 assert.match(inline,/const name=typeof profile\.display_name/,
  "title must use loaded profile");
@@ -115,7 +115,7 @@ for(const id of ["filterCountry","filterYear","filterPurpose","filterScope","res
 assert.ok(app.includes('<script src="./dashboard-filters.js"></script>'));
 const sw=fs.readFileSync("travel/sw.js","utf8");
 assert.ok(sw.includes("./dashboard-filters.js")&&sw.includes("./dashboard-filters.css"));
-assert.match(sw,/beam-travel-shell-v1-20261114-jyetais-v48-profile-cover-15-photos/);
+assert.match(sw,/beam-travel-shell-v1-20261114-jyetais-v49-top-cover-accords-country-svg/);
 assert.ok(!sw.includes('beam-travel-shell-v1-20261030'),
  "PWA cache must not regress to the old static shell");
 
