@@ -70,7 +70,7 @@ async function main(){
  await first;
  assert.equal(signedRequests.length,2,"thumbnail URLs are still requested concurrently");
  assert.equal(els["#photos"].disabled,false,"picker enabled before any thumbnail signature resolves");
- assert.equal(els["#photoUsage"].textContent,"2 enregistrées + 0 en attente / 15 · 13 places disponibles");
+ assert.equal(els["#photoUsage"].textContent,"2 / 15 photos enregistrées · 0 en attente · 13 places disponibles");
  assert.equal(els["#photoUsage"].classList.contains("hidden"),false);
  assert.equal(els["#photoLoadStatus"].classList.contains("hidden"),true);
  assert.equal((els["#photoGallery"].innerHTML.match(/Chargement de la miniature…/g)||[]).length,2);
@@ -96,7 +96,7 @@ async function main(){
  await retried;
  assert.equal(els["#photoRetry"].classList.contains("hidden"),true);
  assert.equal(els["#photos"].disabled,false);
- assert.match(els["#photoUsage"].textContent,/1 enregistrée \+ 0 en attente \/ 10 · 14 places disponibles/);
+ assert.match(els["#photoUsage"].textContent,/1 \/ 15 photos enregistrées · 0 en attente · 14 places disponibles/);
  assert.equal(signedRequests.length,3,"retry signs only the returned media");
  // Server-enforced max 15 is retained by the existing quota tests; client must enforce zero spare slots.
  vm.runInContext('editingTripId="trip-3";resetPhotoUI("trip-3")',ctx);
