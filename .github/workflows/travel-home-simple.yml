@@ -5,6 +5,11 @@ on:
     paths:
       - "travel/index.html"
       - "travel/home-simple.css"
+      - "travel/account-settings.css"
+      - "travel/visual-cards.css"
+      - "travel/photo-sheet.css"
+      - "travel/legal.css"
+      - "tests/travel-poppins-all-titles.cjs"
       - "travel/sw.js"
       - "travel/assets/fonts/**"
       - "tests/travel-home-simple-mobile.cjs"
@@ -27,6 +32,7 @@ jobs:
       - name: Verify syntax and local fonts
         run: |
           node --check tests/travel-home-simple-mobile.cjs
+          node --check tests/travel-poppins-all-titles.cjs
           node tests/travel-dashboard-filters.cjs
           node tests/travel-factual-pdf.cjs
           test -s travel/assets/fonts/Poppins-Regular.woff2
@@ -42,6 +48,11 @@ jobs:
           mkdir -p test-artifacts/home-simple
           git show "${{ github.event.pull_request.base.sha }}:travel/index.html" > test-artifacts/home-simple/baseline.html
           node tests/travel-home-simple-mobile.cjs test-artifacts/home-simple/baseline.html
+          mkdir -p test-artifacts/title-comparison/baseline-v46
+          for file in index.html home-simple.css account-settings.css visual-cards.css photo-sheet.css legal.css; do
+            git show cc3c3283f673bd6a08a9e93a4438cbf907f147cc:"travel/$file" > "test-artifacts/title-comparison/baseline-v46/$file"
+          done
+          node tests/travel-poppins-all-titles.cjs
           node tests/travel-factual-contacts-ui.cjs
       - name: Upload Android 360 px before and after
         if: always()
@@ -54,4 +65,6 @@ jobs:
             test-artifacts/home-simple/apres-haut-360.png
             test-artifacts/home-simple/apres-voyages-360.png
             test-artifacts/home-simple/apres-fenetre-pdf-360.png
+            test-artifacts/title-comparison/avant-*-360.png
+            test-artifacts/title-comparison/apres-*-360.png
           if-no-files-found: warn
