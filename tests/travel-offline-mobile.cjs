@@ -98,9 +98,18 @@ async function main(){
       dbs:await indexedDB.databases(),
       owner:localStorage.getItem("jyetais.offline.owner"),
       current:await window.JYETAIS_OFFLINE.readLast(),
-      documentTitle:document.querySelector("#dashboardTitle")?.textContent
+      documentTitle:document.querySelector("#dashboardTitle")?.textContent,
+      authHidden:document.querySelector("#auth")?.className,
+      appHidden:document.querySelector("#app")?.className,
+      checking:document.querySelector("#accountStatusChecking")?.className,
+      unavailable:document.querySelector("#accountStatusUnavailable")?.className,
+      loginMessage:document.querySelector("#loginMsg")?.textContent,
+      mockLoaded:!!window.__offFixture,
+      supabaseLoaded:!!window.supabase,
+      online:navigator.onLine,
+      shellScripts:[...document.querySelectorAll("script[src]")].map(x=>x.src.split("/").pop())
      }));
-     throw new Error("No raw IndexedDB snapshot: "+JSON.stringify(debug));
+     throw new Error("No raw IndexedDB snapshot: "+JSON.stringify(debug)+" PAGEERRORS="+JSON.stringify(errors));
     }
     const raw=JSON.stringify(snapshot);
     assert.equal(snapshot.ownerId,A);
