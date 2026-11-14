@@ -32,6 +32,7 @@ begin
   insert into public.media(id,trip_id,user_id,storage_path,kind,bytes)
    values(mid,tid,uid,uid::text||'/'||tid::text||'/'||mid::text||'.webp','photo',1024);
  exception when sqlstate '23514' then
+  if sqlerrm <> 'PHOTO_LIMIT_REACHED' then raise exception 'WRONG_QUOTA_ERROR: %',sqlerrm;end if;
   rejected:=true;
  end;
  if not rejected then raise exception 'SIXTEENTH_PHOTO_ALLOWED'; end if;
@@ -63,21 +64,39 @@ begin
  if (select cover_media_id from public.profiles where id=own_uid) is not null
  then raise exception 'DELETED_COVER_STILL_REFERENCED';end if;
 end $ownership$;
--- Active and expired clients: RLS already enforces read-only access.
+-- Assign a remaining owner photo, then verify that expiration cannot clear it.
+update public.profiles p set cover_media_id=(
+ select m.id from public.media m where m.user_id=p.id limit 1
+) where p.id='dc100000-0000-4000-8000-000000000001';
 update public.profiles set access_until=current_date-1
 where id='dc100000-0000-4000-8000-000000000001';
+do $valid$
+begin
+ if private.account_accepts_writes('dc100000-0000-4000-8000-000000000001') then
+  raise exception 'EXPIRED_ACCOUNT_ACCEPTS_WRITES';
+ end if;
+end $valid$;
 set local role authenticated;
 select set_config('request.jwt.claim.sub','dc100000-0000-4000-8000-000000000001',true);
 do $readonly$
-declare affected int;
+declare affected int:=0;
 begin
- if private.account_accepts_writes(auth.uid()) then
-  raise exception 'EXPIRED_ACCOUNT_ACCEPTS_WRITES';
- end if;
- update public.profiles set cover_media_id=null where id=auth.uid();
- get diagnostics affected=row_count;
+ begin
+  update public.profiles set cover_media_id=null where id=auth.uid();
+  get diagnostics affected=row_count;
+ exception when insufficient_privilege or check_violation then
+  affected:=0;
+ end;
  if affected<>0 then raise exception 'READONLY_COVER_MODIFIED';end if;
 end $readonly$;
 reset role;
+do $verify$
+begin
+ if not exists (select 1 from public.profiles
+  where id='dc100000-0000-4000-8000-000000000001'
+   and cover_media_id is not null) then
+  raise exception 'READONLY_COVER_WAS_CLEARED';
+ end if;
+end $verify$;
 rollback;
 \echo 'PASS 15th accepted / 16th rejected, owner FK, cascade null, expired RLS'
