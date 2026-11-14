@@ -249,7 +249,8 @@ assert.match(css,/@page\{size:A4/);
 assert.ok(!css.includes("page-notice")&&!css.includes("declaration"),"No notice CSS");
 assert.match(css,/@media print/);
 assert.ok(!/url\s*\(/i.test(css),"PDF must not load assets from any domain");
-const button=all.find(x=>x.tagName==="BUTTON");
+const button=all.find(x=>x.tagName==="BUTTON"&&x.className==="print-button");
+assert.equal(all.filter(x=>x.tagName==="BUTTON")[0].textContent,"Envoyer (WhatsApp, e-mail…)");
 assert.ok(button&&!button.disabled);
 assert.equal(document.prints,0,"PDF must not auto-print");
 button.listeners.click();
@@ -259,7 +260,7 @@ const empty=new Document();
 assert.equal(PDF.render(empty,[],{displayName:"Fatou Diallo",generatedAt}),0);
 assert.equal(empty.body.textContent.includes("Aucun voyage international"),false,"Personal PDF has no explanatory prose");
 assert.match(empty.body.textContent,/PaysVille\(s\)EntréeSortieDuréeMotif/);
-assert.ok(nodes(empty.body).find(x=>x.tagName==="BUTTON").disabled,
+assert.ok(nodes(empty.body).find(x=>x.tagName==="BUTTON"&&x.className==="print-button").disabled,
  "Cannot print an empty travel history");
 
 console.log("BEAM factual PDF PASS: view filters, narrow query, no private data or images, disclaimer, isolated print document");
