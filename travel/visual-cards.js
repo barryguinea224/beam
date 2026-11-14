@@ -49,7 +49,7 @@
        '</span>'+
        '<span class="journeyCountry">'+country+'</span>'+
        '<span class="journeyCities">'+cities+'</span>'+
-       '<span class="journeyFooter">'+dates+' · '+(isDay?"Excursion · 1 jour":safeDays+" jours")+' · '+purpose+'</span>'+
+       '<span class="journeyFooter">'+dates+' · '+(isDay?"Excursion · 1 jour":safeDays+" jour"+(safeDays===1?"":"s"))+' · '+purpose+'</span>'+
        '<span class="journeyLink">Voir la fiche →</span>'+
      '</span></button></article>';
   }

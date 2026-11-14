@@ -841,7 +841,7 @@ function render(){
  $("#nc").textContent=stats.countries;
  $("#ncl").textContent="Pays";
  $("#nd").textContent=stats.days;
- $("#ndl").textContent="Jours";
+ $("#ndl").textContent=stats.days===1?"Jour":"Jours";
  $("#statsScopeLabel").textContent=national?"Séjours nationaux":"Voyages à l’étranger";
  $("#domesticCount").textContent=!national&&stats.domestic?" · + "+stats.domestic+" séjour"+(stats.domestic===1?" national":"s nationaux"):"";
  $("#filterStatus").textContent=active?visible.length+" voyage"+(visible.length===1?"":"s")+" correspondant"+(visible.length===1?"":"s")+" aux filtres.":"Tous les voyages sont affichés.";
@@ -1148,6 +1148,10 @@ const DAY=window.BEAM_DAY_EXCURSIONS;
 const RANGE=window.BEAM_DATE_RANGE_PICKER;
 const tripPicker=RANGE.mount({container:$("#tripDatePicker"),entryInput:$("#tripEntryDate"),exitInput:$("#tripExitDate")});
 const stopPicker=RANGE.mount({container:$("#tripStopDatePicker"),entryInput:$("#tripStopEntry"),exitInput:$("#tripStopExit")});
+$("#tripDateFields").addEventListener("change",()=>{
+ const message=$("#tripMsg");
+ if(message.textContent==="Choisissez la date de départ du pays.")message.classList.add("hidden");
+});
 let tripMode="multi",overlapPending=null,overlapSaving=false;
 function clearTripOverlap(){
  overlapPending=null;
@@ -1438,6 +1442,10 @@ $("#tripStopForm").onsubmit=async e=>{
  if(!detailTripId||!user||stopBusy||!canWrite())return;
  const uid=user.id,trip=trips.find(t=>t.id===detailTripId);
  if(!trip)return;
+ const stageRange=stopPicker.state();
+ if(stageRange.mode==="multi"&&stageRange.entry&&!stageRange.exit){
+  stopMessage("Choisissez la date de départ du pays.");return;
+ }
  const fields=new FormData(e.currentTarget);
  const payload={
   country_code:String(fields.get("country_code")||""),
@@ -1854,6 +1862,11 @@ $("#tripForm").onsubmit=async e=>{
  e.preventDefault();
  if(accountState!=="active"||!canWrite()||savingTrip||mediaBusy||photoSelecting)return;
  const form=e.currentTarget,btn=$("#saveTrip"),msg=$("#tripMsg"),wasEditing=!!editingTripId;
+ const period=tripPicker.state();
+ if(tripMode==="multi"&&period.entry&&!period.exit){
+  msg.textContent="Choisissez la date de départ du pays.";
+  msg.classList.remove("hidden");return;
+ }
  savingTrip=true;btn.disabled=true;btn.textContent="Enregistrement…";msg.classList.add("hidden");
  try{
    const selected=pendingPhotos.slice();
