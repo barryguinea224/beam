@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="680" viewBox="0 0 1600 680" role="img" aria-label="Paysage original du Sénégal avec baobab">
+<defs>
+ <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#8ec5ce"/><stop offset=".53" stop-color="#f6bd80"/><stop offset="1" stop-color="#f8d09a"/></linearGradient>
+ <linearGradient id="sand" x2="0" y2="1"><stop stop-color="#d79e5d"/><stop offset="1" stop-color="#b97041"/></linearGradient>
+ <linearGradient id="trunk" x2=".15" y2="1"><stop stop-color="#54482e"/><stop offset=".5" stop-color="#433a2b"/><stop offset="1" stop-color="#262d24"/></linearGradient>
+ <linearGradient id="ground" x2="0" y2="1"><stop stop-color="#75824c"/><stop offset="1" stop-color="#355b42"/></linearGradient>
+ <radialGradient id="sun"><stop stop-color="#ffe9b4"/><stop offset="1" stop-color="#f7d390" stop-opacity="0"/></radialGradient>
+</defs>
+<path fill="url(#sky)" d="M0 0h1600v680H0z"/>
+<circle cx="1195" cy="230" r="235" fill="url(#sun)"/><circle cx="1195" cy="231" r="57" fill="#ffe2a0" opacity=".75"/>
+<path d="M0 430Q160 402 342 425T700 417q190-32 360-3t540-6v272H0z" fill="#d9aa68"/>
+<path d="M0 468q220-31 400 4t388-20q248-32 446 19t366-8v218H0z" fill="url(#sand)"/>
+<path d="M0 522q229-62 470-14t450 1q230-39 411 6t269-10v175H0z" fill="url(#ground)"/>
+<path d="M0 600q220-49 407-14t441 4q220-30 409 18t343-9v81H0z" fill="#36543c" opacity=".76"/>
+<!-- Distant tree silhouettes -->
+<g fill="#4b674a" opacity=".65">
+ <path d="M137 465h11v-58h-11zM102 404q8-21 42-21t43 21q-32 26-85 0ZM133 395l-40-24 6-6 44 18 33-25 5 6-32 34z"/>
+ <path d="M1343 442h10v-55h-10zM1309 386q8-20 41-22t40 22q-28 22-81 0ZM1344 384l-30-24 5-4 32 18 23-19 7 7-26 23z"/>
+ <path d="M1484 462h7v-37h-7zM1462 425q11-15 25-14t27 14q-27 18-52 0Z"/>
+</g>
+<!-- Large sharply drawn baobab -->
+<g fill="none" stroke-linecap="round" stroke-linejoin="round">
+ <path stroke="#423b2b" stroke-width="66" d="M736 583Q725 485 735 382Q746 321 729 259"/>
+ <path stroke="url(#trunk)" stroke-width="74" d="M736 584Q750 466 726 371Q712 330 729 260"/>
+ <path stroke="#423b2b" stroke-width="39" d="M731 348Q673 306 641 250L587 196M725 369Q809 316 861 264L913 200M734 301Q701 247 685 201L669 147"/>
+ <path stroke="#423b2b" stroke-width="22" d="M640 249L571 236 523 193M659 274L612 273 552 290M857 265L928 273 991 257M866 253L874 205 905 171M687 200L634 174 612 141M667 152L674 106M589 199L560 155 511 139M520 195L479 181M914 200L939 152 983 137"/>
+ <path stroke="#574a32" stroke-width="10" d="M737 484L757 443M719 447L700 415M730 323L754 292"/>
+</g>
+<g fill="#53684a">
+ <path d="M468 169q30-35 62-23 31-34 64-18 31-27 61 6 28-10 49 21-22 24-61 24-30 26-66 8-32 21-62 4-28 7-47-22z"/>
+ <path d="M622 126q24-25 54-21 33-29 60-9 31-22 51 1 30-2 39 30-28 20-64 13-25 18-51-1-31 16-54 1z"/>
+ <path d="M826 163q16-35 51-30 30-30 63-18 44-23 73 17 36-5 50 28-25 26-56 23-32 22-59-1-31 16-52-3-45 11-70-16z"/>
+</g>
+<g fill="#6f8152" opacity=".63"><ellipse cx="535" cy="150" rx="45" ry="14"/><ellipse cx="687" cy="112" rx="53" ry="15"/><ellipse cx="953" cy="148" rx="61" ry="17"/></g>
+<!-- Ground grasses and soft shadow -->
+<ellipse cx="748" cy="609" rx="239" ry="33" fill="#1d4736" opacity=".45"/>
+<g stroke="#566d43" stroke-width="5" stroke-linecap="round" opacity=".9">
+ <path d="M280 603l-21-39m21 39 12-42m-12 42 36-31M1122 613l-19-40m19 40 21-40m-21 40 40-27M1358 584l-17-31m17 31 15-32M192 548l-22-27m22 27 18-31"/>
+</g>
+</svg>
