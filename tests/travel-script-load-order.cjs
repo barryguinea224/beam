@@ -21,6 +21,7 @@ assert.equal(new Set(modules).size,modules.length,"duplicate script tags may exe
 const edges={
  "photo-upload.js":["photo-utils.js"],
  "country-picker.js":["countries.js"],
+ "date-range-picker.js":[],
  "factual-pdf.js":["countries.js"],
  "visual-cards.js":["countries.js"],
  "dashboard-filters.js":["trip-lifecycle.js"],
@@ -40,6 +41,8 @@ function verifyOrder(order){
  }
 }
 verifyOrder(modules);
+assert.ok(modules.includes("date-range-picker.js")&&modules.indexOf("date-range-picker.js")<modules.length-1,
+ "calendar dependency must precede the main inline script");
 // The assertion must genuinely detect a reversed order; don't let it be a
 // cosmetic test that remains green when the source regression is restored.
 const broken=modules.slice();
@@ -64,6 +67,6 @@ const journal=fs.readFileSync(path.join(__dirname,"..","travel","printable-journ
 assert.match(journal,/BEAM_DASHBOARD_FILTERS/, "the journal's filter dependency must remain explicitly checked");
 assert.match(journal,/BEAM_COUNTRIES/, "the journal's country dependency must remain explicitly checked");
 const sw=fs.readFileSync(path.join(__dirname,"..","travel","sw.js"),"utf8");
-assert.match(sw,/beam-travel-shell-v1-20261114-jyetais-v43-future-journeys/);
+assert.match(sw,/beam-travel-shell-v1-20261114-jyetais-v44-period-calendar/);
 assert.ok(sw.includes('"./printable-journal.js"')&&sw.includes('"./dashboard-filters.js"')&&sw.includes('"./visual-cards.js"'));
 console.log("PASS real index.html script dependency graph and PWA shell version");

@@ -1,0 +1,50 @@
+name: "J'y étais — calendrier de dates (Android 320–390)"
+on:
+  pull_request:
+    branches: [feature/beam-travel-history-v1]
+    paths:
+      - "travel/index.html"
+      - "travel/date-range-picker.*"
+      - "travel/sw.js"
+      - "tests/travel-date-range-picker*.cjs"
+      - "tests/travel-day-excursions-mobile.cjs"
+      - ".github/workflows/travel-date-range-picker.yml"
+permissions:
+  contents: read
+jobs:
+  calendrier:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Vérifications syntaxiques et règles de dates
+        run: |
+          node --check travel/date-range-picker.js
+          node --check tests/travel-date-range-picker.cjs
+          node --check tests/travel-date-range-picker-mobile.cjs
+          node tests/travel-date-range-picker.cjs
+          node tests/travel-day-excursions.cjs
+          node tests/travel-script-load-order.cjs
+      - name: Installer Chromium isolé
+        run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Vraie interface et faux Supabase (320 360 390 px)
+        run: |
+          node tests/travel-date-range-picker-mobile.cjs
+          node tests/travel-day-excursions-mobile.cjs
+      - name: Captures fictives du calendrier 360 px
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jyetais-calendrier-360px
+          path: |
+            test-artifacts/date-range-picker/periode-selectionnee-360.png
+            test-artifacts/date-range-picker/une-journee-360.png
+            test-artifacts/date-range-picker/choix-annee-360.png
+          if-no-files-found: warn

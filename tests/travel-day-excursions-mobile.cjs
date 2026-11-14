@@ -26,7 +26,10 @@ function fictionalSupabase(){
  const original={id:"11111111-1111-4111-8111-111111111111",country_code:"FR",cities:["Paris"],
   entry_date:"2026-11-08",exit_date:"2026-11-18",duration_days:11,
   purpose:"tourisme",is_domestic:false,deleting:false,note:"Souvenir fictif"};
- const rows=[original],stops=[];
+ const upcoming={id:"55555555-5555-4555-8555-555555555555",country_code:"MA",cities:["Rabat"],
+  entry_date:"2027-04-12",exit_date:"2027-04-16",duration_days:5,
+  purpose:"tourisme",is_domestic:false,deleting:false,note:"Voyage prévu fictif"};
+ const rows=[original,upcoming],stops=[];
  const store=window.__excursionFixture={rows,stops,tripInserts:[],stopInserts:[],activityInserts:[],force23P01:false};
  const profile={display_name:"Voyageuse Fictive",country_of_residence:"GN",
   access_until:"2099-12-31",deleting:false,avatar_id:null};
@@ -115,15 +118,20 @@ async function start(){
    try{
     await page.goto("http://127.0.0.1:"+server.address().port+"/travel/",{waitUntil:"load"});
     await page.waitForFunction(()=>document.querySelector("#dashboardTitle")?.textContent==="Voyageuse Fictive");
+    async function choose(date){
+     await page.locator("#tripDatePicker .drp-year").selectOption(date.slice(0,4));
+     await page.locator("#tripDatePicker .drp-month").selectOption(String(Number(date.slice(5,7))-1));
+     await page.locator('#tripDatePicker button[data-date="'+date+'"]').click();
+    }
     async function openDay(country,city,date){
      await page.locator("#add").click();
      assert.equal(await page.locator('[data-trip-mode="multi"]').getAttribute("aria-pressed"),"true");
      await page.locator('[data-trip-mode="day"]').click();
-     assert.equal(await page.locator("#tripEntryLabel").innerText(),"Date");
+     assert.equal(await page.locator("#tripEntryLabel").textContent(),"Date");
      assert.equal(await page.locator("#tripExitField").isVisible(),false);
      await page.locator("#tripCountrySelect").selectOption(country);
      await page.locator('#tripForm input[name="cities"]').fill(city);
-     await page.locator("#tripEntryDate").fill(date);
+     await choose(date);
     }
     // Difference from the foreign parent becomes a private trip_stop.
     await openDay("DE","Berlin","2026-11-12");
@@ -160,8 +168,10 @@ async function start(){
     assert.equal(await page.locator('[data-trip-mode="multi"]').getAttribute("aria-pressed"),"true");
     await page.locator("#tripCountrySelect").selectOption("BE");
     await page.locator('#tripForm input[name="cities"]').fill("Bruxelles");
-    await page.locator("#tripEntryDate").fill("2026-11-14");
-    await page.locator("#tripExitDate").fill("2026-11-16");
+    await choose("2026-11-14");
+    await choose("2026-11-16");
+    assert.equal(await page.locator("#tripEntryDate").inputValue(),"2026-11-14");
+    assert.equal(await page.locator("#tripExitDate").inputValue(),"2026-11-16");
     await page.locator("#saveTrip").click();
     await page.locator("#tripOverlapOffer").waitFor({state:"visible"});
     assert.equal(await page.locator("#tripOverlapStop").innerText(),"L'ajouter comme étape à ce voyage");
@@ -233,4 +243,5 @@ async function start(){
   }
  }finally{await browser.close();await new Promise(resolve=>server.close(resolve))}
 }
-start().catch(error=>{console.error(error);process.exitCode=1});
+module.exports={serve,fictionalSupabase};
+if(require.main===module)start().catch(error=>{console.error(error);process.exitCode=1});
