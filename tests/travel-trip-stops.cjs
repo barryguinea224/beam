@@ -61,7 +61,7 @@ assert.ok((multi.match(/\/Type \/Page\b/g)||[]).length>1);
 assert.equal((multi.match(/Allemagne/g)||[]).length,80);
 const index=fs.readFileSync("travel/index.html","utf8");
 const inline=index.match(/<script>([\s\S]*?)<\/script>/)?.[1];assert.ok(inline);new vm.Script(inline);
-for(const token of ['S.from("trip_stops")','fetchOwnedStops(data||[],user.id)',
+for(const token of ['S.from("trip_stops")','fetchOwnedStops(data||[],uid)',
  'trip.stops||[]','detailStopsSection','tripStopForm','tripStopDeleteConfirm',
  'window.BEAM_TRAVEL_PDF.fetchStops(S,uid)','window.BEAM_TRAVEL_PDF.attachStops(data,stops)']){
  assert.ok(index.includes(token),"Missing real query / UI wiring: "+token);
