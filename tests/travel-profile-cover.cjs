@@ -29,7 +29,7 @@ const patch=String.raw`
  window.supabase.createClient=(...args)=>{
   const client=initial(...args),base=client.from.bind(client);
   const ui=window.__coverFixture={profile:{display_name:"Voyageuse Fictive",country_of_residence:"GN",
-   access_until:"2099-12-31",deleting:false,avatar_id:null,cover_media_id:null},
+   access_until:location.search.includes("readonly=1")?"2020-01-01":"2099-12-31",deleting:false,avatar_id:null,cover_media_id:null},
    rows:[{id:"picture-senegal",user_id:"22222222-2222-4222-8222-222222222222",trip_id:"completed-sn",
     storage_path:"22222222-2222-4222-8222-222222222222/completed-sn/fixture.webp",
     created_at:"2025-07-01",is_favorite:true}]};
@@ -96,15 +96,17 @@ async function main(){
     await page.waitForFunction(()=>window.__coverFixture.profile.cover_media_id==="picture-senegal");
     await page.locator("#coverAuto").click();
     await page.waitForFunction(()=>window.__coverFixture.profile.cover_media_id===null);
-    await page.evaluate(()=>window.__coverFixture.profile.access_until="2020-01-01");
-    await page.locator("#closeAccount").click();
-    await page.evaluate(()=>{window.__coverFixture.profile.access_until="2020-01-01";});
-    await page.locator("#openAccount").click();
-    // The app authorization state, not merely a disabled visual button, protects writes.
-    assert.equal(await page.locator("#coverPickerOpen").isDisabled(),false); // state reload required before readonly is enforced
     await page.locator("#closeAccount").click();
     await page.locator("#trips .tripOpen").filter({hasText:"Sénégal"}).first().scrollIntoViewIfNeeded();
     if(width===360)await page.screenshot({path:path.join(dir,"carte-senegal-360.png"),animations:"disabled"});
+    if(width===360){
+      await page.goto("http://127.0.0.1:"+host.address().port+"/travel/?readonly=1",{waitUntil:"load"});
+      await page.waitForFunction(()=>document.querySelector("#dashboardTitle")?.textContent==="Voyageuse Fictive");
+      await page.locator("#openAccount").click();
+      assert.equal(await page.locator("#coverPickerOpen").isDisabled(),true,"Read-only cannot select a cover");
+      assert.equal(await page.locator("#coverAuto").isDisabled(),true,"Read-only cannot reset cover");
+      assert.equal(await page.locator("#coverReadonly").isVisible(),true);
+    }
     assert.deepEqual(errors,[],"Console errors "+width);
     console.log("PASS profile cover Android "+width+"px, fictional signed photo, settings choice/reset and overflow");
    }finally{await ctx.close()}
