@@ -343,7 +343,7 @@ html.travelAccessReadOnly #photoField,html.travelAccessReadOnly #saveTrip{displa
 .detailMomentActions{display:flex;gap:9px;flex-wrap:wrap;margin:8px 0}
 .detailMomentActions .btn,#detailAddMoment{min-height:44px;white-space:normal}
 @media(max-width:390px){.upcomingTripsSection{padding:10px}.detailMomentActions>*{flex:1 1 100%;max-width:100%}}
-</style><link rel="stylesheet" href="./photo-sheet.css"><link rel="stylesheet" href="./loyalty.css"><link rel="stylesheet" href="./account-settings.css"><link rel="stylesheet" href="./activity-duration.css"><link rel="stylesheet" href="./trip-stops.css"><link rel="stylesheet" href="./day-excursions.css"><link rel="stylesheet" href="./date-range-picker.css"><link rel="stylesheet" href="./flight-connections.css"><link rel="stylesheet" href="./visual-cards.css"><link rel="stylesheet" href="./dashboard-filters.css">
+</style><link rel="stylesheet" href="./photo-sheet.css"><link rel="stylesheet" href="./loyalty.css"><link rel="stylesheet" href="./account-settings.css"><link rel="stylesheet" href="./activity-duration.css"><link rel="stylesheet" href="./trip-stops.css"><link rel="stylesheet" href="./day-excursions.css"><link rel="stylesheet" href="./date-range-picker.css"><link rel="stylesheet" href="./flight-connections.css"><link rel="stylesheet" href="./visual-cards.css"><link rel="stylesheet" href="./dashboard-filters.css"><link rel="stylesheet" href="./home-simple.css">
 <script src="/travel/offline-bootstrap.js"></script></head><body>
 <section id="offline" role="status" aria-live="polite"><div class="ey">J&#39;y étais</div><h1>Connexion nécessaire pour consulter votre carnet</h1><p>Vos voyages et photos sont privés et indisponibles hors ligne. Reconnectez-vous à Internet pour continuer.</p></section>
 <section id="auth" class="auth hidden"><img class="jyBrandLogo jyAuthLogo" src="./assets/brand/jyetais-logo.svg" alt="J&#39;y étais"><p class="jyAuthSignature">J&#39;y étais by BEAM</p><h1>Gardez vos voyages.<br>Retrouvez votre histoire.</h1><p class="sub">Un espace personnel pour vos destinations, dates, activités, souvenirs et photos.</p><form id="login"><div class="field"><label for="email">E-mail</label><input id="email" type="email" autocomplete="email" required></div><button class="btn">Recevoir un code</button></form><div id="otpBox" class="hidden"><p class="sub">Si cette adresse est autorisée, vous recevrez un code à 6 chiffres par e-mail.</p><form id="otpForm"><div class="field"><label for="otp">Code à 6 chiffres</label><input id="otp" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" aria-describedby="otpHelp" required><small id="otpHelp">Pas de code après 2 minutes ? Vérifiez vos spams, ou <a href="https://wa.me/224622095630" target="_blank" rel="noopener noreferrer">écrivez-nous sur WhatsApp</a>.</small></div><button class="btn">Continuer avec le code</button></form><div class="actions"><button id="resend" type="button" class="btn ghost" disabled>Renvoyer un code · 60 s</button></div></div><p id="loginMsg" class="notice hidden" role="status" aria-live="polite"></p><p class="sub" id="accessHelp">Ce carnet est réservé aux clients BEAM. <a href="https://wa.me/224622095630" target="_blank" rel="noopener noreferrer">Contactez-nous sur WhatsApp</a>.</p><div class="beamInstall" data-beam-install-area><button class="beamInstallButton" type="button" data-beam-install-action hidden>Installer J'y étais</button><details class="beamInstallHelp" data-beam-install-help><summary>Comment installer J'y étais</summary><p data-beam-install-steps>Depuis le menu de votre navigateur, cherchez « Installer l’application » ou « Ajouter à l’écran d’accueil », si cette option est proposée.</p></details><p class="beamInstallStatus" role="status" aria-live="polite" data-beam-install-status></p></div><aside class="authContact" aria-label="Contact"><strong>Contact</strong><p>WhatsApp : <a href="https://wa.me/224622095630" target="_blank" rel="noopener noreferrer">+224 622 09 56 30</a></p></aside><nav class="legalLinks legalLinksAuth" aria-label="Informations légales"><a href="./confidentialite.html">Confidentialité</a><span aria-hidden="true">·</span><a href="./conditions.html">Conditions d’utilisation</a></nav></section>
@@ -807,17 +807,16 @@ function updateWelcome(name){
  $("#welcomeCard").classList.toggle("hidden",hasTrip&&hasName);
  // Preserve account access and installation even with zero journeys.
  $("#app .w").classList.toggle("emptyTravel",!hasTrip);
- $("#travelHero .actions").classList.toggle("hidden",!hasTrip);
- $("#travelHero .statsWrap").classList.toggle("hidden",!hasTrip);
+ $("#homeActions").classList.toggle("hidden",!hasTrip);
+ $("#homeStats").classList.toggle("hidden",!hasTrip);
  $("#travelMapPanel").classList.toggle("hidden",!hasTrip);
  $("#filterAnchor").classList.toggle("hidden",!hasTrip);
- $("#pdfActionGroup").classList.toggle("hidden",!hasTrip);
- $("#printJournal").classList.toggle("hidden",!hasTrip);
+
  for(const [id,done] of [["#welcomeName",hasName],["#welcomeTrip",hasTrip],["#welcomePdf",pdfGenerated]]){
   const button=$(id);button.classList.toggle("done",done);
-  button.querySelector(".check").textContent=done?"✓":"○";
+  button.querySelector(".check").textContent=done?"✓":"";
  }
- $("#welcomeHint").textContent=!hasTrip?"Commencez par votre nom et votre premier voyage. Le PDF sera disponible ensuite.":!hasName?"Enregistrez votre nom pour pouvoir générer le PDF.":"";
+ $("#welcomeHint").textContent="";
  if(!hasTrip)setFiltersOpen(false);
 }
 
@@ -845,17 +844,17 @@ function render(){
  setDashboardTitle(name);updateWelcome(name);renderAccessUi();
  const national=dashboardFilters.scope==="domestic";
  $("#nt").textContent=stats.trips;
- $("#ntl").textContent="Voyages";
+ $("#ntl").textContent=stats.trips===1?"voyage":"voyages";
  $("#nc").textContent=stats.countries;
- $("#ncl").textContent="Pays";
+ $("#ncl").textContent="pays";
  $("#nd").textContent=stats.days;
- $("#ndl").textContent=stats.days===1?"Jour":"Jours";
- $("#statsScopeLabel").textContent=national?"Séjours nationaux":"Voyages à l’étranger";
- $("#domesticCount").textContent=!national&&stats.domestic?" · + "+stats.domestic+" séjour"+(stats.domestic===1?" national":"s nationaux"):"";
+ $("#ndl").textContent=stats.days===1?"jour":"jours";
+
+
  $("#filterStatus").textContent=active?visible.length+" voyage"+(visible.length===1?"":"s")+" correspondant"+(visible.length===1?"":"s")+" aux filtres.":"Tous les voyages sont affichés.";
  $("#resetFilters").disabled=!active;
   $("#pdfExclusionNote").classList.toggle("hidden",!trips.some(t=>!LIFE.completed(t,asOf)));
- $("#mapInfo").textContent=dashboardFilters.country?countryName(dashboardFilters.country)+" sélectionné · appuyez à nouveau pour tout afficher.":"Choisissez un pays sur la carte ou dans les étiquettes.";
+ $("#mapInfo").textContent="";
  $("#plannedLegend").classList.toggle("hidden",!country.planned.size);
   const codes=[...new Set([...counts.keys(),...country.planned.keys()])];
   $("#countryList").innerHTML=codes.sort((a,b)=>countryName(a).localeCompare(countryName(b),"fr")).map(code=>{
@@ -872,14 +871,11 @@ function render(){
   renderFilterChips();applyMapState();scheduleMap();scheduleCoverImages();
 }
 function positionHeaderActions(){
- const header=$("#headerActions"),hero=$("#travelHero .actions"),group=$("#pdfActionGroup");
- if(!header||!hero||!group)return;
- const target=matchMedia("(min-width:900px)").matches?header:hero;
- target.append(group,$("#printJournal"));
+ // Actions stay below the map.
 }
 
 positionHeaderActions();
-$("#travelMapPanel").after($("#filterAnchor"));
+$("#homeActions").after($("#filterAnchor"));
 window.addEventListener("resize",positionHeaderActions);
 let filterReturnFocus=null;
 function setFiltersOpen(open){
@@ -1037,7 +1033,7 @@ document.addEventListener("keydown",e=>{
 function setAccountState(state){
  accountState=state;
  const active=state==="active";
- for(const id of ["#travelHero","#filterAnchor","#travelMapPanel","#travelPanels","#openAccount","#residencePanel","#myAccount"]){
+ for(const id of ["#travelHero","#filterAnchor","#travelMapPanel","#homeActions","#travelPanels","#openAccount","#residencePanel","#myAccount"]){
    $(id).classList.toggle("hidden",!active);
  }
  $("#deletionPending").classList.toggle("hidden",state!=="deleting");
