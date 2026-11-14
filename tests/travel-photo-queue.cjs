@@ -91,7 +91,7 @@ function harness() {
     blob:new Blob(['reencoded pixels'],{type:'image/webp'}),width:800,height:1200
   })};
   const context=vm.createContext({
-    Blob,DETAIL,DAY,tripMode:'multi',photoTripStay:()=>({}),
+    Blob,DETAIL,DAY,tripMode:'multi',tripPicker:{clear(){}},photoTripStay:()=>({}),
     window:{BEAM_COUNTRIES:COUNTRIES,BEAM_PHOTO:{...PHOTO,...convertedPhoto},
       BEAM_PHOTO_UPLOAD:{uploadOne:params=>uploadOne({...params,idProvider:()=>('photo-'+(++serial))})},
       confirm:message=>{confirmMessages.push(message);return confirmAnswer}},
