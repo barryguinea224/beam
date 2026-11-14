@@ -5,6 +5,7 @@ const vm=require('node:vm');
 const DETAIL=require('../travel/trip-detail.js');
 const PDF=require('../travel/factual-pdf.js');
 const DAY=require('../travel/day-excursions.js');
+const LIFE=require('../travel/trip-lifecycle.js');
 
 const html=fs.readFileSync('travel/index.html','utf8');
 const inline=html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
@@ -70,8 +71,9 @@ assert.match(DETAIL.validateActivity({title:'Visite',place:'',happened_on:'2026-
 function box(){
  const names=new Set();
  return {innerHTML:'',textContent:'',disabled:false,value:'',min:'',max:'',scrollTop:0,
-  classList:{add:v=>names.add(v),remove:v=>names.delete(v),contains:v=>names.has(v)},
+  classList:{add:v=>names.add(v),remove:v=>names.delete(v),contains:v=>names.has(v),toggle:(v,force)=>{if(force===undefined)force=!names.has(v);if(force)names.add(v);else names.delete(v);return force;}},
   focus(){context.document.activeElement=this},replaceChildren(){this.innerHTML=''},
+   setAttribute(name,value){this[name]=String(value)},scrollIntoView(){},
   reset(){this.value='';this.didReset=true},
   add(option){this.options=(this.options||[]).concat(option)},
   querySelectorAll(){return []}
@@ -79,6 +81,7 @@ function box(){
 }
 const ids=['#modal','#tripDetailModal','#detailTitle','#detailIntro','#detailFacts','#detailNote',
  '#detailStatus','#detailActivityMessage','#detailActivityForm','#detailLoyaltyHint','#detailPhotos',
+  '#detailLifecycle','#detailAddMoment','#detailMomentActions','#detailMomentActivity','#detailMomentPhoto','#activityTitle','#photos',
  '#detailActivities','#detailSheet','#detailClose','#detailEdit','#activityDate','#activitySave',
  '#detailStops','#addTripStop','#tripStopForm','#tripStopCountry','#tripStopCities',
  '#tripStopEntry','#tripStopExit','#tripStopFormTitle','#tripStopFormMessage',
@@ -116,7 +119,7 @@ const context=vm.createContext({
  COUNTRY_NAMES:{FR:'France',DE:'Allemagne'},
  Option:class {constructor(label,value){this.text=label;this.value=value}},
  document:{activeElement:null},
- S,DAY,user:{id:'owner'},accountState:'active',trips:[tripRecord],canWrite:()=>true,
+ S,DAY,LIFE,user:{id:'owner'},accountState:'active',trips:[tripRecord],canWrite:()=>true,
  LOYALTY:{hintFor:airline=>airline==='Compagnie fictive'?"Pensez à donner votre numéro Flying Blue à la réservation.":""},
  $:id=>{assert.ok(els[id], 'Missing DOM stub '+id);return els[id]},
  countryName:code=>code==='FR'?'France':code,

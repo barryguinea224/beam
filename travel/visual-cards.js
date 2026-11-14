@@ -3,6 +3,7 @@
 (function(root){
   "use strict";
   const COUNTRY_ART=Object.freeze(["FR","MA","GN","SA","TR","SN"]);
+  const LIFE=root?.BEAM_TRIP_LIFECYCLE||(typeof require==="function"?require("./trip-lifecycle.js"):null);
   const COUNTRY_SET=new Set(COUNTRY_ART);
   // All ISO 3166-1 alpha-2 flags are bundled locally; use the same 249-code
   // catalogue as the printable journal, never a second manually curated list.
@@ -32,6 +33,7 @@
     const dates=esc(dateLabel),purpose=esc(purposeLabel);
     const days=Number(trip.duration_days),isDay=trip.entry_date===trip.exit_date;
     const safeDays=Number.isInteger(days)&&days>=0?days:"—";
+    const lifecycle=LIFE?.state(trip)||"ended",status=LIFE?.label(trip)||"";
     // Decorative media is always public, local and anonymous; private cover URLs
     // are inserted LATER by the authenticated session, never serialized in markup.
     return '<article class="trip journeyTrip"><button type="button" class="tripOpen" data-id="'+esc(id)+
@@ -39,6 +41,7 @@
      (image?'<img class="journeyBackdrop" src="'+image+'" alt="" loading="lazy" decoding="async" width="800" height="340">':'')+
      '<span class="journeyShade" aria-hidden="true"></span>'+
      '<span class="journeyContent">'+
+       (status?'<span class="journeyStatus journeyStatus-'+lifecycle+'">'+esc(status)+'</span>':"")+
        '<span class="journeyFlagLine">'+
          (icon?'<img class="journeyFlag" src="'+icon+'" alt="" loading="lazy" width="26" height="20">':'')+
          '<span class="journeyCode">'+esc(code||"—")+'</span>'+

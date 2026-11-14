@@ -10,6 +10,7 @@
  const STOPS=root?.BEAM_TRIP_STOPS||(typeof require==="function"?require("./trip-stops.js"):null);
  const DURATIONS=root?.BEAM_ACTIVITY_DURATIONS||(typeof require==="function"?require("./activity-durations.js"):null);
  const FLIGHTS=root?.BEAM_FLIGHT_CONNECTIONS||(typeof require==="function"?require("./flight-connections.js"):null);
+  const LIFE=root?.BEAM_TRIP_LIFECYCLE||(typeof require==="function"?require("./trip-lifecycle.js"):null);
  if(!COUNTRIES||!FILTERS)throw new Error("Référentiels du carnet indisponibles.");
  const PURPOSES=Object.freeze({tourisme:"Tourisme",affaires:"Affaires",etudes:"Études",famille:"Famille",sante:"Santé",transit:"Transit",autre:"Autre"});
  const FLAGS=new Set(COUNTRIES.ORDER.map(code=>code.toLowerCase()));
@@ -271,10 +272,13 @@
  function render(doc,model){
   if(!doc?.createElement||!model||!Array.isArray(model.trips))throw new Error("Carnet indisponible.");
   const name=clean(model.name).replace(/\s+/g," ").slice(0,80);
-  const list=model.trips.map(t=>viewTrip(t.trip,t.activities,t.photos,{
+  const asOf=LIFE?.today(model.generatedAt instanceof Date?model.generatedAt:new Date());
+   const upcoming=model.trips.filter(t=>LIFE?.state(t.trip,asOf)==="upcoming");
+   const lived=model.trips.filter(t=>LIFE?.state(t.trip,asOf)!=="upcoming");
+   const list=lived.map(t=>viewTrip(t.trip,t.activities,t.photos,{
     airlinePhoto:t.airlinePhoto,hotelPhoto:t.hotelPhoto
   },t.photoCaptions));
-  const failed=model.trips.map(t=>{
+  const failed=lived.map(t=>{
    const n=Number(t.missingPhotos);
    return Number.isInteger(n)&&n>0?Math.min(n,MAX_PHOTOS_PER_TRIP):0;
   });
@@ -425,6 +429,13 @@
   const closing=el(main,"section","sheet-page closing");
   el(closing,"p","eyebrow","MON CARNET PERSONNEL");
   el(closing,"h2",null,"Chaque voyage laisse une histoire.");
+   if(upcoming.length){
+     el(closing,"h3",null,"Nos prochains voyages…");
+     for(const item of upcoming.slice(0,12)){
+       const trip=item.trip,place=COUNTRIES.NAMES?.[trip.country_code]||trip.country_code||"Destination";
+       el(closing,"p","future-trip-line",place+" · "+date(trip.entry_date));
+     }
+   }
   el(closing,"p",null,"Carnet généré le "+generatedAt.toLocaleDateString("fr-FR",{day:"numeric",month:"long",year:"numeric"}));
    el(closing,"p","brand-signature","J'y étais");
   // The image-load path is intentionally independent of the signed URL source.

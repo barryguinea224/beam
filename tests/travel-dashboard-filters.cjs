@@ -90,7 +90,7 @@ assert.ok(!/dashboardFilters|filterCountry|filterYear|filterPurpose|filterScope/
  "PDF generation must never consume dashboard filters");
 assert.match(inline,/const visible=api\.apply\(trips,dashboardFilters\)/,
  "filtered rows must drive dashboard");
-assert.match(inline,/stats=api\.summary\(visible,dashboardFilters\)/,
+assert.match(inline,/stats=api\.summary\(visible,dashboardFilters,asOf\)/,
  "headline statistics must receive selected scope");
 assert.match(inline,/national=dashboardFilters\.scope==="domestic"/,
  "only explicit national scope changes headline to domestic stays");
@@ -115,7 +115,7 @@ for(const id of ["filterCountry","filterYear","filterPurpose","filterScope","res
 assert.ok(app.includes('<script src="./dashboard-filters.js"></script>'));
 const sw=fs.readFileSync("travel/sw.js","utf8");
 assert.ok(sw.includes("./dashboard-filters.js")&&sw.includes("./dashboard-filters.css"));
-assert.match(sw,/beam-travel-shell-v1-20261114-jyetais-v42-excursions-ranges/);
+assert.match(sw,/beam-travel-shell-v1-20261114-jyetais-v43-future-journeys/);
 assert.ok(!sw.includes('beam-travel-shell-v1-20261030'),
  "PWA cache must not regress to the old static shell");
 
