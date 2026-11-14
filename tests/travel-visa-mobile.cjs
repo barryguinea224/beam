@@ -37,7 +37,7 @@ async function main(){
     assert.equal(await page.locator("#dashboardVisaGuide").count(),0,"guide removed from home header");
     await page.locator("#accountOverlay").evaluate(el=>{el.classList.add("accountOpen");el.setAttribute("aria-hidden","false");});
     assert.equal(await mainLink.count(),1);
-    assert.equal((await mainLink.innerText()).trim(),"Guide des visas");
+    assert.equal((await mainLink.locator("span").first().innerText()).trim(),"Guide des visas");
     assert.equal(await mainLink.getAttribute("href"),"/visas/");
     assert.equal(await mainLink.getAttribute("target"),null,"dashboard uses same tab");
     let metrics=await page.evaluate(()=>{
