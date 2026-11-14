@@ -107,7 +107,6 @@ async function main(){
       mockLoaded:!!window.__offFixture,
       supabaseLoaded:!!window.supabase,
       online:navigator.onLine,
-      loadDiagnostic:await (async()=>{try{await load();return "success"}catch(e){return String(e.stack||e)}})(),
       shellScripts:[...document.querySelectorAll("script[src]")].map(x=>x.src.split("/").pop())
      }));
      throw new Error("No raw IndexedDB snapshot: "+JSON.stringify(debug)+" PAGEERRORS="+JSON.stringify(errors));
@@ -193,6 +192,8 @@ async function main(){
    const {context,page,url,errors}=await pageFor(browser,server,360);
    try{
     await seed(page,url);
+    await page.reload({waitUntil:"load"});
+    await page.waitForFunction(()=>!!navigator.serviceWorker.controller);
     await page.evaluate(async()=>{
      const req=indexedDB.open("jyetais-offline");
      const db=await new Promise(resolve=>req.onsuccess=()=>resolve(req.result));
@@ -203,12 +204,15 @@ async function main(){
       tx.oncomplete=resolve;
      });db.close();
     });
-    await page.reload({waitUntil:"load"});
+    await context.setOffline(true);
+    await page.goto(url,{waitUntil:"domcontentloaded",timeout:30000});
+    await page.locator("#offline").waitFor({state:"visible",timeout:30000});
+    assert.equal(await page.locator("#offlineBanner").isVisible(),false);
     await page.waitForFunction(async()=>!((await indexedDB.databases())
      .some(db=>db.name==="jyetais-offline")),{timeout:30000});
-    // The online refresh may rebuild a new copy; verify TTL with direct API instead.
+    assert.equal(await page.evaluate(()=>localStorage.getItem("jyetais.offline.owner")),null);
     assert.deepEqual(errors,[]);
-    console.log("PASS expired local record is deleted before authenticated refresh");
+    console.log("PASS expired 30-day copy removed on offline startup; neutral fallback");
    }finally{await context.close()}
   }
  }finally{await browser.close();await new Promise(resolve=>server.close(resolve))}
