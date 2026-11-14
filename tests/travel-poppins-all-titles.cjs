@@ -25,14 +25,17 @@ function contentType(n){return n.endsWith(".html")?"text/html; charset=utf-8":"t
 async function run(){
  await fsp.mkdir(output,{recursive:true});
  const beforeAssets={};
- for(const file of ["index.html","home-simple.css","account-settings.css","visual-cards.css","photo-sheet.css","legal.css"]){
-  const p=path.join(baseline,file);
-  beforeAssets[file]=await fsp.readFile(p);
+ const hasBaseline=fs.existsSync(path.join(baseline,"index.html"));
+ if(hasBaseline){
+  for(const file of ["index.html","home-simple.css","account-settings.css","visual-cards.css","photo-sheet.css","legal.css"]){
+   const p=path.join(baseline,file);
+   beforeAssets[file]=await fsp.readFile(p);
+  }
  }
  const host=serve();await new Promise(ok=>host.listen(0,"127.0.0.1",ok));
  const browser=await chromium.launch({headless:true,args:["--no-sandbox","--disable-dev-shm-usage"]});
  try{
-  for(const phase of ["avant","apres"]){
+  for(const phase of (hasBaseline?["avant","apres"]:["apres"])){
    const ctx=await browser.newContext({viewport:{width:360,height:800},isMobile:true,hasTouch:true,deviceScaleFactor:1,serviceWorkers:"block"});
    const page=await ctx.newPage(),errors=[],externalFonts=[];
    page.on("pageerror",e=>errors.push(String(e)));
