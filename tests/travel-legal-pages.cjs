@@ -70,7 +70,7 @@ for(const [scope,html] of [["connexion",auth],["mon-compte",account]]){
 }
 assert.ok(account.indexOf("legalLinksAccount")>account.indexOf('id="loyaltyPanel"') && account.indexOf("legalLinksAccount")<account.indexOf('id="accountSession"'),
  "terms and privacy should be available after the account controls");
-assert.match(sw,/beam-travel-shell-v1-20261114-jyetais-v49-top-cover-accords-country-svg/);
+assert.match(sw,/beam-travel-shell-v1-20261114-jyetais-v50-fab-share-first/);
 for(const file of ["confidentialite.html","conditions.html","legal.css"])
  assert.ok(sw.includes('"./'+file+'"'),"public legal shell asset not audited: "+file);
 assert.doesNotMatch(sw,/cache\.put\(/,"PWA must still forbid runtime private cache writes");
