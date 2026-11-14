@@ -82,11 +82,11 @@ assert.match(album,/trip\.photos\.length>=2\|\|trip\.memory\.length>500\|\|trip\
  "short trips must be compact, rich trips may span two pages");
 assert.match(album,/height:35mm/, "travel without photographs must have a short ribbon");
 assert.match(album,/trip\.cities\.split\(","\)\[0\]/, "timeline needs the first city");
-assert.ok(album.includes('"jour"+(summaryDays===1?"":"s")'),
+assert.ok(album.includes('FR.word(summaryDays,"jour","jours")'),
  "number of days must be singular when value is one");
 const source=fs.readFileSync("travel/printable-journal.js","utf8");
 assert.match(source,/img\.naturalWidth>0/, "complete=true is not proof of successful photo loading");
-assert.match(source,/photos n'ont pas pu être chargées/, "missing photo count must be visible");
+assert.match(source,/FR\.count\(n,"photo"\).*FR\.word\(n,"n'a","n'ont"\)/,"missing-photo count must use shared singular and plural rules");
 assert.match(source,/img\.remove\(\)/, "broken photo must be replaced by a printable placeholder");
 assert.match(source,/setTimeout\(\(\)=>settle\(false\),30000\)/, "slow mobile photo wait must be bounded");
 assert.match(source,/initialFailed\+results\.filter\(x=>!x\)\.length/,
@@ -140,7 +140,7 @@ assert.equal(PDF.VIEW,"travel_history_pdf");
 assert.deepEqual(PDF.FIELDS,["country_code","cities","entry_date","exit_date","duration_days","purpose"]);
 const sw=fs.readFileSync("travel/sw.js","utf8");
 assert.ok(sw.includes('"./printable-journal.js"')&&sw.includes('"./family-booklet.js"'));
-assert.match(sw,/beam-travel-shell-v1-20261114-jyetais-v48-profile-cover-15-photos/,"cache revision must match the rebased booklet release");
+assert.match(sw,/beam-travel-shell-v1-20261114-jyetais-v49-top-cover-accords-country-svg/,"cache revision must match the rebased booklet release");
 assert.ok(!sw.includes("storage/v1/object/sign")&&!sw.includes("signedUrl"));
 assert.match(sw,/url\.origin === self\.location\.origin/);
 assert.match(sw,/url\.search === ""/);

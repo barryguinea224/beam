@@ -2,7 +2,7 @@
 (function(root){
  "use strict";
  function init({client,projectUrl,getUser,getProfile,getTrips,canWrite,isActive,getToday,onSet}){
-  const $=q=>document.querySelector(q),MODEL=root.BEAM_PROFILE_COVER,VISUAL=root.BEAM_VISUAL_CARDS;
+  const $=q=>document.querySelector(q),MODEL=root.BEAM_PROFILE_COVER,VISUAL=root.BEAM_VISUAL_CARDS,FR=root.BEAM_FR_ACCORDS;
   let rows=[],epoch=0,gridEpoch=0,busy=false,visibleCount=24;
   function controls(){
    const permitted=!!canWrite()&&!busy;
@@ -82,7 +82,7 @@
    if($("#coverPicker").hidden||!isActive()||!getUser())return;
    const uid=getUser().id,token=++gridEpoch,mine=rows.filter(row=>row.user_id===uid);
    const holder=$("#coverPickerGrid");holder.replaceChildren();
-   $("#coverGridStatus").textContent=mine.length?mine.length+" photos privées de voyage.":"Aucune photo de voyage disponible.";
+   $("#coverGridStatus").textContent=FR.count(mine.length,"photo")+" "+FR.word(mine.length,"privée","privées")+" de voyage.";
    $("#coverGridMore").hidden=mine.length<=visibleCount;
    for(const row of mine.slice(0,visibleCount)){
     const button=document.createElement("button");

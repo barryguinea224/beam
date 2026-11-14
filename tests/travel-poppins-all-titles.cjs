@@ -16,7 +16,7 @@ for(const file of files){
  assert.doesNotMatch(source,/(?<!sans-)\bserif\b/i,"Serif fallback in travel/"+file);
 }
 const sw=fs.readFileSync(path.join(root,"sw.js"),"utf8");
-assert.match(sw,/jyetais-v48-profile-cover-15-photos/);
+assert.match(sw,/jyetais-v49-top-cover-accords-country-svg/);
 assert.doesNotMatch(sw,/\bGeorgia\b/i);
 for(const file of ["index.html","account-settings.css","visual-cards.css","photo-sheet.css","legal.css"])
  assert.match(fs.readFileSync(path.join(root,file),"utf8"),/Poppins,system-ui,sans-serif/,"Source-family contract "+file);
@@ -49,12 +49,24 @@ async function run(){
     if(url.hostname!=="127.0.0.1")return route.abort();
     const name=url.pathname==="/travel/"?"index.html":url.pathname.slice("/travel/".length);
     if(phase==="avant"&&Object.hasOwn(beforeAssets,name))
-     return route.fulfill({status:200,contentType:contentType(name),body:beforeAssets[name]});
+     return route.fulfill({status:200,contentType:contentType(name),body:name==="index.html"
+      ? beforeAssets[name].toString().replace('<script src="./photo-utils.js"></script>','<script src="./fr-accords.js"></script><script src="./photo-utils.js"></script>')
+      : beforeAssets[name]});
     return route.continue();
    });
    try{
     await page.goto("http://127.0.0.1:"+host.address().port+"/travel/",{waitUntil:"load",timeout:30000});
-    await page.waitForFunction(()=>document.querySelector("#dashboardTitle")?.textContent==="Voyageuse Fictive"&&document.querySelectorAll("#trips .tripOpen").length>=2,null,{timeout:20000});
+    await page.waitForFunction(()=>document.querySelector("#dashboardTitle")?.textContent==="Voyageuse Fictive"&&document.querySelectorAll("#trips .tripOpen").length>=2,null,{timeout:20000}).catch(async error=>{
+      const state=await page.evaluate(()=>({
+       title:document.querySelector("#dashboardTitle")?.textContent,
+       cards:document.querySelectorAll("#trips .tripOpen").length,
+       appHidden:document.querySelector("#app")?.classList.contains("hidden"),
+       accountText:document.querySelector("#appMsg")?.textContent,
+       authText:document.querySelector("#loginMsg")?.textContent
+      }));
+      throw Error("Typography fixture failed in phase "+phase+": "+JSON.stringify(state)+
+       " JavaScript errors="+JSON.stringify(errors)+" "+String(error));
+     });
     await page.evaluate(()=>document.fonts.ready);
     const snapshot=async(name)=>page.screenshot({path:path.join(output,phase+"-"+name+"-360.png"),animations:"disabled"});
     const family=selector=>page.locator(selector).evaluate(node=>getComputedStyle(node).fontFamily);

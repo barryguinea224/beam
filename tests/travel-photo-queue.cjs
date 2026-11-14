@@ -94,7 +94,7 @@ function harness() {
     blob:new Blob(['reencoded pixels'],{type:'image/webp'}),width:800,height:1200
   })};
   const context=vm.createContext({
-    Blob,DETAIL,DAY,tripMode:'multi',tripPicker:{clear(){}},photoTripStay:()=>({}),
+    Blob,DETAIL,DAY,FR:require("../travel/fr-accords.js"),tripMode:'multi',tripPicker:{clear(){}},photoTripStay:()=>({}),
     window:{BEAM_COUNTRIES:COUNTRIES,BEAM_PHOTO:{...PHOTO,...convertedPhoto},
       BEAM_PHOTO_UPLOAD:{uploadOne:params=>uploadOne({...params,idProvider:()=>('photo-'+(++serial))})},
       confirm:message=>{confirmMessages.push(message);return confirmAnswer}},
@@ -142,7 +142,7 @@ async function main() {
   await first.select([fake('portrait.jpg')]);
   await first.select([fake('gps.jpg')]);
   assert.deepEqual(Array.from(first.queued()),['portrait.jpg','gps.jpg']);
-  assert.match(first.els['#photoUsage'].textContent,/0 \/ 15 photos enregistrées · 2 en attente/);
+  assert.match(first.els['#photoUsage'].textContent,/0 photo enregistrée \/ 15 · 2 photos en attente/);
   assert.match(first.els['#photoGallery'].innerHTML,/portrait\.jpg/);
   assert.match(first.els['#photoGallery'].innerHTML,/gps\.jpg/);
   await first.save();
@@ -199,7 +199,7 @@ async function main() {
   await cap.select([fake('sixteenth.jpg')]);
   assert.deepEqual(Array.from(cap.queued()),['fifteenth.jpg']);
   assert.match(cap.els['#photoMessage'].textContent,/15 photos maximum/);
-  assert.match(cap.els['#photoUsage'].textContent,/14 \/ 15 photos enregistrées · 1 en attente/);
+  assert.match(cap.els['#photoUsage'].textContent,/14 photos enregistrées \/ 15 · 1 photo en attente/);
 
   // A failed second upload keeps only that second item, so the retry cannot duplicate first.
   const partial=harness();

@@ -2,6 +2,7 @@
 // The A4 landscape spread is rotated clockwise inside each physically portrait page.
 (function(root){
 "use strict";
+const FR=root?.BEAM_FR_ACCORDS||(typeof require==="function"?require("./fr-accords.js"):null);
 const COUNTRIES=root?.BEAM_COUNTRIES||(typeof require==="function"?require("./countries.js"):null);
 const JOURNAL=root?.BEAM_PERSONAL_JOURNAL||(typeof require==="function"?require("./printable-journal.js"):null);
 const LIFE=root?.BEAM_TRIP_LIFECYCLE||(typeof require==="function"?require("./trip-lifecycle.js"):null);
@@ -38,7 +39,7 @@ function natural(trip){
  const city=trip.cities?.split(",")[0]||trip.country;
  const oneDay=trip.entryISO===trip.exitISO;
  const when=oneDay?new Intl.DateTimeFormat("fr-FR",{day:"numeric",month:"short",year:"numeric",timeZone:"UTC"}).format(new Date(iso+"T12:00:00Z")):month;
- return [when,(oneDay?"Excursion · 1 jour":trip.days+" jours")+" à "+city,trip.purpose].filter(Boolean).join(" · ");
+ return [when,(oneDay?"Excursion · 1 jour":FR.count(trip.days,"jour"))+" à "+city,trip.purpose].filter(Boolean).join(" · ");
 }
 function flag(parent,code,big=false){
  if(!COUNTRIES.valid(code))return node(parent,"span",null,"✧");
@@ -375,7 +376,7 @@ function render(doc,model){
  display("booklet");
  const photos=[...doc.querySelectorAll("img")].filter(x=>isPrintPhoto(x.src));
  const quotaText=model.limitReached?" · Limite de "+MAX_TOTAL_PHOTOS+" photos atteinte : les suivantes ne sont pas incluses.":"";
- const qualityText=model.unoptimized?" · "+model.unoptimized+" photo(s) sans compression, PDF potentiellement volumineux.":"";
+ const qualityText=model.unoptimized?" · "+FR.count(model.unoptimized,"photo")+" sans compression, PDF potentiellement volumineux.":"";
  if(!photos.length){button.disabled=false;status.textContent="Livret prêt à imprimer."+quotaText+qualityText;return leaves.length}
  let done=0,failed=list.reduce((n,x)=>n+Number(x.data.missingPhotos||0),0);
  for(const img of photos){
@@ -383,7 +384,7 @@ function render(doc,model){
   const doneImage=ok=>{
    if(settled)return;settled=true;if(!ok){failed++;img.remove()}
    done++;status.textContent="Photos vérifiées : "+done+" / "+photos.length;
-   if(done===photos.length){button.disabled=false;status.textContent=(failed?"Prêt · "+failed+" photo(s) indisponible(s).":"Livret prêt à imprimer.")+quotaText+qualityText}
+   if(done===photos.length){button.disabled=false;status.textContent=(failed?"Prêt · "+FR.count(failed,"photo")+" "+FR.word(failed,"indisponible","indisponibles")+".":"Livret prêt à imprimer.")+quotaText+qualityText}
   };
   img.addEventListener("load",()=>doneImage(img.naturalWidth>0),{once:true});
   img.addEventListener("error",()=>doneImage(false),{once:true});

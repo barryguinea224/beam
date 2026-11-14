@@ -30,7 +30,8 @@ async function run(){
    try{
     await page.setContent(html,{waitUntil:"domcontentloaded"});
     await page.addStyleTag({content:css});
-    await page.addScriptTag({content:lifeJs});
+    await page.addScriptTag({content:fs.readFileSync("travel/fr-accords.js","utf8")});
+     await page.addScriptTag({content:lifeJs});
      await page.addScriptTag({content:filtersJs});
     await page.addScriptTag({content:flightsJs});
     await page.evaluate(({mapSvg,centroids,journeys})=>{
@@ -44,6 +45,7 @@ async function run(){
     },{mapSvg,centroids,journeys});
     const setup=[
      'const $=selector=>document.querySelector(selector);',
+      'const FR=window.BEAM_FR_ACCORDS;',
      'const profile={country_of_residence:"GN"};',
      'const trips=window.__journeys;',
      'const STOPS={codes:t=>[t.country_code,...(t.stops||[]).map(s=>s.country_code)]};',

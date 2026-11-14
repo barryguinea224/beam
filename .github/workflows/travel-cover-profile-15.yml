@@ -10,7 +10,12 @@ on:
       - "travel/photo-utils.js"
       - "travel/family-booklet.js"
       - "travel/visual-cards.js"
-      - "travel/assets/countries/sn.svg"
+      - "travel/assets/countries/*.svg"
+      - "travel/fr-accords.js"
+      - "travel/home-simple.css"
+      - "travel/sw.js"
+      - "tests/travel-fr-accords.cjs"
+      - "tests/travel-visual-cards.cjs"
       - "travel/supabase/migrations/20261114200000_cover_and_15_photos.sql"
       - "tests/travel-profile-cover.cjs"
       - ".github/workflows/travel-cover-profile-15.yml"
@@ -32,6 +37,7 @@ jobs:
           node --check tests/travel-profile-cover.cjs
           node --check travel/profile-cover-ui.js
           node --check travel/profile-cover.js
+          node tests/travel-fr-accords.cjs
           node tests/travel-private-photos.cjs
           node tests/travel-visual-cards.cjs
       - name: Install isolated Chromium
@@ -44,9 +50,10 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: jyetais-couverture-360px-fictif
+          name: jyetais-couverture-et-pays-360px-fictif
           path: |
             test-artifacts/cover-profile/accueil-couverture-360.png
             test-artifacts/cover-profile/parametres-choix-couverture-360.png
             test-artifacts/cover-profile/carte-senegal-360.png
+            test-artifacts/cover-profile/carte-*-360.png
           if-no-files-found: warn

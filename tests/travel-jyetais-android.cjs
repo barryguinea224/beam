@@ -74,7 +74,7 @@ async function main(){
    try{
     await routes(book);
     await book.setContent('<!doctype html><html lang="fr"><head><base href="https://preview-jyetais.invalid/travel/"></head><body></body></html>');
-    for(const module of ["countries.js","dashboard-filters.js","flight-connections.js","printable-journal.js","family-booklet.js"])
+    for(const module of ["countries.js","fr-accords.js","dashboard-filters.js","flight-connections.js","printable-journal.js","family-booklet.js"])
      await book.addScriptTag({path:path.join(root,module)});
     const model={
      name:"Voyageur fictif",generatedAt:"2026-11-07T09:00:00Z",filters:{},mapSvgText:world,

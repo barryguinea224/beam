@@ -17,7 +17,8 @@ async function main(){
     await page.setContent(noScript,{waitUntil:"domcontentloaded"});
     await page.addStyleTag({content:css});
     await page.addStyleTag({content:fs.readFileSync("travel/date-range-picker.css","utf8")});
-    await page.addScriptTag({path:path.resolve("travel/date-range-picker.js")});
+    await page.addScriptTag({path:path.resolve("travel/fr-accords.js")});
+     await page.addScriptTag({path:path.resolve("travel/date-range-picker.js")});
     await page.addScriptTag({path:path.resolve("travel/countries.js")});
     await page.addScriptTag({path:path.resolve("travel/trip-stops.js")});
     await page.evaluate(()=>{
