@@ -26,7 +26,7 @@ assert.ok(page.includes('stayFact("Hôtel / hébergement",trip.hotel,"hotel")'))
 assert.ok(journal.includes("trip-logistics") && booklet.includes("stay-logistics"));
 // Regression: inspect the REAL query feeding both personal print formats.
 const printStart=page.indexOf('$("#printJournal").onclick=async()=>');
-const factualStart=page.indexOf('$("#pdf").onclick=async()=>',printStart);
+const factualStart=page.indexOf('$("#pdf").onclick=()=>',printStart);
 assert.ok(printStart>=0&&factualStart>printStart,"print/factual handlers must be separated");
 const printHandler=page.slice(printStart,factualStart);
 const tripQueries=[...printHandler.matchAll(/S\.from\("trips"\)\s*\.select\("([^"]+)"\)/g)];

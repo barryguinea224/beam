@@ -13,7 +13,7 @@ const booklet=fs.readFileSync("travel/family-booklet.js","utf8");
 const journal=fs.readFileSync("travel/printable-journal.js","utf8");
 const sw=fs.readFileSync("travel/sw.js","utf8");
 const from=app.indexOf('$("#printJournal").onclick=async()=>');
-const until=app.indexOf('$("#pdf").onclick=async()=>',from);
+const until=app.indexOf('$("#pdf").onclick=()=>',from);
 assert.ok(from>0&&until>from,"personal and factual print handlers must stay separate");
 const print=app.slice(from,until);
 const trips=[...print.matchAll(/S\.from\("trips"\)\s*\.select\("([^"]+)"\)/g)];

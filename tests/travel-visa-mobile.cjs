@@ -33,13 +33,15 @@ async function main(){
    try{
     const page=await context.newPage();
     await page.setContent(markup);
-    const mainLink=page.locator("#dashboardVisaGuide");
+    const mainLink=page.locator('#accountLinks a[href="/visas/"]');
+    assert.equal(await page.locator("#dashboardVisaGuide").count(),0,"guide removed from home header");
+    await page.locator("#accountOverlay").evaluate(el=>{el.classList.add("accountOpen");el.setAttribute("aria-hidden","false");});
     assert.equal(await mainLink.count(),1);
-    assert.equal(await mainLink.innerText(),"Guide des visas");
+    assert.equal((await mainLink.innerText()).trim(),"Guide des visas");
     assert.equal(await mainLink.getAttribute("href"),"/visas/");
     assert.equal(await mainLink.getAttribute("target"),null,"dashboard uses same tab");
     let metrics=await page.evaluate(()=>{
-     const a=document.querySelector("#dashboardVisaGuide").getBoundingClientRect();
+     const a=document.querySelector('#accountLinks a[href="/visas/"]').getBoundingClientRect();
      return {scroll:document.documentElement.scrollWidth,left:a.left,right:a.right};
     });
     assert.ok(metrics.scroll<=width+1&&metrics.left>=-1&&metrics.right<=width+1,

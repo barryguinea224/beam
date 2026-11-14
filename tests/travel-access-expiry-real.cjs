@@ -100,6 +100,9 @@ async function main(){
      if(entry.label==="expired"){
       const popupPromise=page.waitForEvent("popup",{timeout:10000});
       await page.locator("#pdf").click();
+      assert.equal(await page.locator("#pdfDialog").isVisible(),true);
+      assert.equal(await page.locator("#includePdfContacts").isChecked(),false);
+      await page.locator("#generatePdf").click();
       const popup=await popupPromise;
       await popup.close();
      }
