@@ -1139,29 +1139,70 @@ function setAccountState(state){
  if(!active){if($("#pdfDialog").open)$("#pdfDialog").close();if(typeof LOYALTY!=="undefined")LOYALTY?.clear();renderAccessUi();$("#accountOverlay").classList.remove("accountOpen","accountEditing");$("#accountOverlay").setAttribute?.("aria-hidden","true");clearContactFields();$("#modal").classList.remove("open");if($("#tripDetailModal").classList.contains("open"))closeTripDetail()}
 }
 async function load(){
- if(!user)return;
- setAccountState("loading");
+ if(!user||!S)return;
+ const uid=user.id;
+ if(!offlineMode){setAccountState("loading");setSkeleton(true)}
  const {data:current,error:stateError}=await S.from("profiles")
-   .select("country_of_residence,display_name,deleting,access_until,avatar_id,cover_media_id").eq("id",user.id).single();
- if(stateError||!current){setAccountState("unavailable");return}
- profile=current;
+   .select("country_of_residence,display_name,deleting,access_until,avatar_id,cover_media_id").eq("id",uid).single();
+ if(stateError||!current){if(!offlineMode){setSkeleton(false);setAccountState("unavailable")}return}
  if(current.deleting===true){
-   trips=[];
-   setAccountState("deleting");
-   return;
+  // A server-side deletion lock revokes previously saved offline access as well.
+  await OFFLINE.clear();offlineMode=false;offlineSnapshot=null;offlineActivities=[];
+  trips=[];setSkeleton(false);setAccountState("deleting");return;
  }
+ profile=current;
  countrySelectors.residence.reset(profile.country_of_residence||"");
  $("#travelerName").value=profile.display_name||"";
- setAccountState("active");renderAccessUi();await refreshAvatar();
  const {data,error}=await S.from("trips").select("*").eq("deleting",false).order("entry_date",{ascending:false});
  if(error){$("#appMsg").textContent="Impossible de rafraîchir vos voyages. Réessayez.";$("#appMsg").classList.remove("hidden");throw error}
- trips=await fetchOwnedStops(data||[],user.id);render();
+ const fresh=await fetchOwnedStops(data||[],uid);
+ if(user?.id!==uid)return; // A newer session must never receive the old owner's result.
+ trips=fresh;offlineMode=false;offlineSnapshot=null;offlineActivities=[];
+ $("#offlineBanner").hidden=true;document.documentElement.classList.remove("travelOfflinePreview");
+ setSkeleton(false);setAccountState("active");renderAccessUi();render();
+ await refreshAvatar();
  void refreshProfileCover();
  if(typeof LOYALTY!=="undefined")void LOYALTY?.reload();
+ void storeOfflineCopy(uid);
  await loadOptionalContacts();
 }
 function layoutDebug(){if(!new URLSearchParams(location.search).has("debug"))return;setTimeout(()=>{let vv=window.visualViewport,els=[...document.querySelectorAll("body *")].filter(e=>{let r=e.getBoundingClientRect();return r.right>innerWidth+1||r.left<-1||e.scrollWidth>e.clientWidth+1}).map(e=>({tag:e.tagName,id:e.id,cls:e.className,right:Math.round(e.getBoundingClientRect().right),left:Math.round(e.getBoundingClientRect().left),sw:e.scrollWidth,cw:e.clientWidth}));let pre=document.createElement("pre");pre.style="position:relative;z-index:99999;white-space:pre-wrap;overflow-wrap:anywhere;background:#111;color:#fff;padding:12px;font:12px monospace";pre.textContent=JSON.stringify({innerWidth,screenWidth:screen.width,devicePixelRatio,visualViewport:vv&&vv.width,overflow:els},null,2);document.body.prepend(pre)},500)}
-async function init(){if(!navigator.onLine)return;layoutDebug();if(!ok||!S){view("#auth");$("#loginMsg").textContent="Configuration Supabase requise.";$("#loginMsg").classList.remove("hidden");return}let {data:{session}}=await S.auth.getSession();user=session?.user;if(user){setAccountState("loading");view("#app");await load()}else {view("#auth");let p=pendingAuth();if(p?.email)showOtp(p.email)}}
+async function init(){
+ layoutDebug();
+ try{await OFFLINE.prune()}catch{}
+ if(!navigator.onLine){
+  // Offline access requires a last verified local owner marker and a fresh copy.
+  const saved=await OFFLINE.readLast().catch(()=>null);
+  if(saved)showOfflineCopy(saved);
+  return;
+ }
+ setSkeleton(true);view("#app");
+ if(!ok||!S){
+  setSkeleton(false);view("#auth");
+  $("#loginMsg").textContent="Configuration Supabase requise.";
+  $("#loginMsg").classList.remove("hidden");return;
+ }
+ let session=null;
+ try{({data:{session}}=await S.auth.getSession())}catch{}
+ user=session?.user;
+ if(!user){
+  await OFFLINE.clear().catch(()=>{});
+  setSkeleton(false);view("#auth");
+  const pending=pendingAuth();if(pending?.email)showOtp(pending.email);
+  return;
+ }
+ let saved=null;
+ try{
+  // A different Supabase user evicts the previous DB BEFORE any stored trip is shown.
+  await OFFLINE.bind(user.id);
+  saved=await OFFLINE.readFor(user.id);
+ }catch{}
+ if(saved)showOfflineCopy(saved);
+ else {setAccountState("loading");view("#app");setSkeleton(true)}
+ try{await load()}catch{
+  if(!offlineMode){setSkeleton(false);setAccountState("unavailable")}
+ }
+}
 const AUTH_STATE_KEY="beam.travel.auth.pending";
 const ACCESS_NOTICE="Si cette adresse est autorisée, vous recevrez un code à 6 chiffres par e-mail.";
 function pendingAuth(){try{return JSON.parse(sessionStorage.getItem(AUTH_STATE_KEY)||"null")}catch{return null}}
@@ -1216,6 +1257,9 @@ $("#resend").onclick=async()=>{
   await sendAccess(email);
 };
 async function clearPwaSession(){
+ await OFFLINE.clear().catch(()=>{});offlineMode=false;offlineSnapshot=null;offlineActivities=[];
+ document.documentElement.classList.remove("travelOfflinePreview");
+ $("#offlineBanner").hidden=true;setSkeleton(false);
  clearPending();user=null;trips=[];stopEditingId=null;stopDeleteTarget=null;profile={country_of_residence:null,display_name:null,access_until:null,avatar_id:null,cover_media_id:null};clearProfileCover();flightIntroDone=false;lastFlightRoutes=[];
  avatarSigned=null;avatarSignedUntil=0;avatarBusy=false;renderAvatar();avatarMessage("Photo facultative · recadrage carré et WebP privé.");
  clearContactFields();dashboardFilters=window.BEAM_DASHBOARD_FILTERS.normalize(window.BEAM_DASHBOARD_FILTERS.EMPTY);
@@ -1241,7 +1285,7 @@ async function clearPwaSession(){
 }
 $("#logout").onclick=async()=>{
  $("#logout").disabled=true;
- try{await S.auth.signOut({scope:"local"})}catch{}
+ if(!offlineMode&&S){try{await S.auth.signOut({scope:"local"})}catch{}}
  await clearPwaSession();
  // A fresh page cannot re-display previously loaded private trips.
  location.replace(location.pathname);
@@ -1669,7 +1713,7 @@ function openTripDetail(id){
    ...(trip.companions?.trim()?[fact("Voyagé avec",trip.companions)]:[])
  ].join("");
  renderLoyaltyHint(trip);
- $("#detailNote").textContent=trip.note?.trim()||"Aucun souvenir ajouté.";
+ $("#detailNote").textContent=offlineMode?"Souvenirs disponibles avec une connexion.":(trip.note?.trim()||"Aucun souvenir ajouté.");
  $("#detailStatus").classList.add("hidden");
  $("#detailActivityMessage").classList.add("hidden");
  $("#detailActivityForm").reset();
@@ -1687,13 +1731,27 @@ function openTripDetail(id){
  $("#detailActivities").innerHTML='<p class="detailEmpty">Chargement des activités…</p>';
  $("#tripDetailModal").classList.add("open");
  // Read a fixed public index only; never transmit the country or trip data.
- void window.BEAM_VISA_GUIDE?.showForCountry(trip.country_code,$("#detailVisaGuide"));
+ if(!offlineMode)void window.BEAM_VISA_GUIDE?.showForCountry(trip.country_code,$("#detailVisaGuide"));
  $("#detailSheet").scrollTop=0;
  $("#detailClose").focus();
- refreshTripDetail(id).catch(()=>{if(detailTripId===id)detailMessage("Impossible de charger cette fiche. Réessayez en la rouvrant.")});
+ if(offlineMode){
+  const code=window.BEAM_VISUAL_CARDS.codeOf(trip.country_code);
+  const art=window.BEAM_VISUAL_CARDS.countryArt(code)||"./assets/world-map.svg";
+  const photoBox=$("#detailPhotos");photoBox.replaceChildren();
+  const illustration=document.createElement("img");
+  illustration.className="offlineCountryIllustration";illustration.alt="Illustration du pays";
+  illustration.src=art;photoBox.append(illustration);
+  const note=document.createElement("p");note.className="detailEmpty";
+  note.textContent="Photos disponibles avec une connexion.";photoBox.append(note);
+  detailActivitiesRows=offlineActivities.filter(row=>row.trip_id===id);
+  $("#detailActivities").innerHTML=DETAIL.activities(detailActivitiesRows);
+ }else refreshTripDetail(id).catch(()=>{
+  if(detailTripId===id)detailMessage("Impossible de charger cette fiche. Réessayez en la rouvrant.");
+ });
 }
 async function refreshTripDetail(id){
  const token=++detailRequest;
+ if(offlineMode)return;
  const [photos,activities]=await Promise.all([
    S.from("media").select("id,storage_path,caption").eq("user_id",user.id).eq("trip_id",id).order("created_at",{ascending:true}),
    S.from("activities").select("id,title,place,happened_on,duration_days").eq("user_id",user.id).eq("trip_id",id).order("created_at",{ascending:true})
@@ -2647,9 +2705,33 @@ $("#generatePdf").onclick=async()=>{
  }
 };if(S)S.auth.onAuthStateChange((event,s)=>{
  if(event==="SIGNED_OUT"){clearPwaSession().then(()=>view("#auth")).catch(()=>view("#auth"));return}
- if(s?.user&&!user&&navigator.onLine){clearPending();user=s.user;setAccountState("loading");view("#app");setTimeout(load,0)}
+ if(s?.user&&user&&s.user.id!==user.id){
+  // Fail closed on a cross-account Auth transition, even if IndexedDB is slow.
+  view("#auth");$("#trips").replaceChildren();trips=[];offlineMode=false;
+  void OFFLINE.clear().then(async()=>{
+   user=s.user;await OFFLINE.bind(user.id);
+   setAccountState("loading");view("#app");setSkeleton(true);await load();
+  }).catch(()=>view("#auth"));
+  return;
+ }
+ if(s?.user&&!user&&navigator.onLine){
+  clearPending();user=s.user;
+  void OFFLINE.bind(user.id).then(async()=>{
+   const saved=await OFFLINE.readFor(user.id);
+   if(saved)showOfflineCopy(saved);
+   else {setAccountState("loading");view("#app");setSkeleton(true)}
+   await load();
+  }).catch(()=>{setSkeleton(false);view("#auth")});
+ }
 });
-if(navigator.onLine)init();
+init().catch(()=>{setSkeleton(false);if(!navigator.onLine)document.documentElement.classList.add("beamOffline")});
+window.addEventListener("offline",()=>{
+ if(!user?.id)return;
+ void OFFLINE.readFor(user.id).then(snapshot=>{
+  if(snapshot)showOfflineCopy(snapshot);
+  else {document.documentElement.classList.remove("travelOfflinePreview");$("#offline").style.display="block"}
+ }).catch(()=>{document.documentElement.classList.remove("travelOfflinePreview")});
+});
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&accountState==="active"){renderAccessUi();refreshAvatarIfNeeded().catch(()=>{})}});
 window.addEventListener("focus",()=>{if(accountState==="active"){renderAccessUi();refreshAvatarIfNeeded().catch(()=>{})}});
 setInterval(()=>{if(accountState==="active")renderAccessUi()},60000);
