@@ -233,9 +233,11 @@
     const contacts=includeContacts?contactProjection(metadata?.contacts):null;
     doc.documentElement.lang="fr";
     const meta=doc.createElement("meta");meta.setAttribute("charset","utf-8");
+    const viewport=doc.createElement("meta");viewport.setAttribute("name","viewport");
+    viewport.setAttribute("content","width=device-width,initial-scale=1");
     const title=doc.createElement("title");title.textContent="J'y étais — Historique de voyages";
     const style=doc.createElement("style");style.textContent=CSS;
-    doc.head.replaceChildren(meta,title,style);
+    doc.head.replaceChildren(meta,viewport,title,style);
     doc.body.replaceChildren();
     const main=add(doc.body,"main");
     const toolbar=add(main,"div",null,"toolbar");
