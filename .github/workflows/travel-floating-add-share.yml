@@ -37,6 +37,7 @@ jobs:
         run: |
           npm install --no-save --no-package-lock playwright@1.56.1
           npx playwright install --with-deps chromium
+          command -v pdfinfo || (sudo apt-get update -qq && sudo apt-get install -y -qq poppler-utils)
       - name: Real Android UI and unchanged sharing regressions
         run: |
           node tests/travel-floating-add-mobile.cjs
