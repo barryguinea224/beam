@@ -41,7 +41,7 @@ async function rejectWith(file, text) {
   await assert.rejects(PHOTO.validateFile(file), error => error.message.includes(text));
 }
 async function main() {
-  assert.equal(PHOTO.MAX_PHOTOS, 10);
+  assert.equal(PHOTO.MAX_PHOTOS, 15);
   assert.equal(PHOTO.MAX_SOURCE_BYTES, 8 * 1024 * 1024);
   assert.equal(await PHOTO.validateFile(fake(jpeg, "test.jpg", "image/jpeg")), "jpeg");
   assert.equal(await PHOTO.validateFile(fake(png, "test.png", "image/png")), "png");
@@ -51,10 +51,10 @@ async function main() {
   await rejectWith(fake(jpeg, "clip.mp4", "video/mp4"), "Format non pris en charge");
   await rejectWith(fake(heic, "photo.jpg", "image/jpeg"), "Format non pris en charge");
   await rejectWith(fake(jpeg, "big.jpg", "image/jpeg", PHOTO.MAX_SOURCE_BYTES + 1), "8 Mo");
-  await assert.rejects(PHOTO.validateSelection([fake(jpeg, "a.jpg", "image/jpeg")], 10), /10 photos maximum/);
-  await assert.rejects(PHOTO.validateSelection(Array.from({length: 11}, (_,i) => fake(jpeg,i+".jpg","image/jpeg")),0), /10 photos maximum/);
+  await assert.rejects(PHOTO.validateSelection([fake(jpeg, "a.jpg", "image/jpeg")], 15), /15 photos maximum/);
+  await assert.rejects(PHOTO.validateSelection(Array.from({length: 16}, (_,i) => fake(jpeg,i+".jpg","image/jpeg")),0), /15 photos maximum/);
   await assert.rejects(PHOTO.validateSelection([], -1), /Impossible de vérifier/);
-  assert.equal((await PHOTO.validateSelection([fake(jpeg,"a.jpg","image/jpeg")],9)).length, 1);
+  assert.equal((await PHOTO.validateSelection([fake(jpeg,"a.jpg","image/jpeg")],14)).length, 1);
 
   // Browser stub: camera EXIF orientation is applied by createImageBitmap,
   // then pixels are copied to a NEW canvas-created WebP, not the original JPEG.

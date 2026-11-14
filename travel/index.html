@@ -1713,8 +1713,7 @@ function updatePhotoUsage(){
  $("#photoLoadStatus").classList.toggle("hidden",mediaReady||mediaError);
  $("#photoUsage").classList.toggle("hidden",!mediaReady);
  $("#photoRetry").classList.toggle("hidden",!mediaError);
- if(mediaReady)$("#photoUsage").textContent=saved+" enregistrée"+(saved===1?"":"s")+" + "+waiting+" en attente / "+PHOTO.MAX_PHOTOS+
-   " · "+remaining+" place"+(remaining===1?"":"s")+" disponible"+(remaining===1?"":"s");
+ if(mediaReady)$("#photoUsage").textContent=saved+" / "+PHOTO.MAX_PHOTOS+" photos enregistrées · "+waiting+" en attente · "+remaining+" place"+(remaining===1?"":"s")+" disponible"+(remaining===1?"":"s");
  $("#photos").disabled=!mediaReady||mediaBusy||photoSelecting||savingTrip||remaining<=0||accountState!=="active"||!canWrite();
  $("#saveTrip").disabled=mediaBusy||photoSelecting||savingTrip||accountState!=="active"||!canWrite();
 }

@@ -7,7 +7,7 @@ const JOURNAL=root?.BEAM_PERSONAL_JOURNAL||(typeof require==="function"?require(
 const LIFE=root?.BEAM_TRIP_LIFECYCLE||(typeof require==="function"?require("./trip-lifecycle.js"):null);
 const FLIGHTS=root?.BEAM_FLIGHT_CONNECTIONS||(typeof require==="function"?require("./flight-connections.js"):null);
 // The family booklet alone supports all ten stored media items per trip.
-const MAX_PHOTOS_PER_TRIP=10,MAX_TOTAL_PHOTOS=60,PRINT_EDGE=1500,PRINT_JPEG_QUALITY=.72;
+const MAX_PHOTOS_PER_TRIP=15,MAX_TOTAL_PHOTOS=60,PRINT_EDGE=1500,PRINT_JPEG_QUALITY=.72;
 if(!COUNTRIES||!JOURNAL){if(root)root.BEAM_FAMILY_BOOKLET=null;return;} // Optional print module must never crash the account page.
 const node=(parent,tag,cls,value)=>{const e=parent.ownerDocument.createElement(tag);if(cls)e.className=cls;if(value!==undefined)e.textContent=String(value??"");parent.appendChild(e);return e;};
 const svgEl=(doc,tag)=>doc.createElementNS("http://www.w3.org/2000/svg",tag);
