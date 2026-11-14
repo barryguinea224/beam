@@ -136,8 +136,13 @@ async function start(){
     assert.equal(await page.locator("#tripOverlapStop").isVisible(),true);
     assert.equal(await page.locator("#tripOverlapActivity").isVisible(),false);
     assert.equal(await page.evaluate(()=>window.__excursionFixture.tripInserts.length),0);
-    if(width===360)await page.locator("#modal").screenshot({
-     path:path.join(dir,"proposition-excursion-360.png"),animations:"disabled"});
+    if(width===360){
+     await page.locator("#tripOverlapOffer").screenshot({
+      path:path.join(dir,"proposition-excursion-360.png"),animations:"disabled"});
+     await page.locator("#tripOverlapEditDates").scrollIntoViewIfNeeded();
+     await page.screenshot({
+      path:path.join(dir,"proposition-excursion-viewport-360.png"),animations:"disabled"});
+    }
     await page.locator("#tripOverlapStop").click();
     await page.locator("#tripDetailModal.open").waitFor();
     await page.waitForFunction(()=>window.__excursionFixture.stopInserts.length===1);
