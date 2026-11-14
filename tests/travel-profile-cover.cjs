@@ -20,7 +20,7 @@ const html=fs.readFileSync("travel/index.html","utf8"),sw=fs.readFileSync("trave
 assert.match(html,/id="coverPickerOpen"/);
 assert.match(html,/id="photoProfileCover"/);
 assert.match(html,/id="coverAuto"/);
-assert.match(sw,/jyetais-v48-profile-cover-15-photos/);
+assert.match(sw,/jyetais-v49-top-cover-accords-country-svg/);
 assert.doesNotMatch(sw,/caches\.put\(/);
 const dir=path.resolve("test-artifacts/cover-profile");
 fs.mkdirSync(dir,{recursive:true});
@@ -80,15 +80,40 @@ async function main(){
     await page.waitForFunction(()=>document.querySelector("#dashboardTitle")?.textContent==="Voyageuse Fictive");
     await page.waitForFunction(()=>document.querySelector("#profileCover")?.dataset.source==="favorite",null,{timeout:15000});
     await page.locator("#profileCoverImage").waitFor({state:"visible"});
+    await page.evaluate(()=>window.scrollTo(0,0));
     const measurements=await page.evaluate(()=>{
       const cover=document.querySelector("#profileCover").getBoundingClientRect();
       const avatar=document.querySelector("#travelerAvatar").getBoundingClientRect();
-      return {coverWidth:cover.width,coverHeight:cover.height,avatarTop:avatar.top,coverBottom:cover.bottom,
+      return {coverTop:cover.top,coverWidth:cover.width,coverHeight:cover.height,avatarTop:avatar.top,coverBottom:cover.bottom,
        overflow:document.documentElement.scrollWidth-innerWidth};
     });
+    assert.equal(measurements.coverTop,0,"Cover must start at viewport top at width "+width);
     assert.ok(measurements.coverHeight<=180&&measurements.coverHeight>=100,JSON.stringify(measurements));
     assert.ok(measurements.avatarTop<measurements.coverBottom&&measurements.overflow<=1,JSON.stringify(measurements));
     if(width===360)await page.screenshot({path:path.join(dir,"accueil-couverture-360.png"),animations:"disabled"});
+    if(width===360){
+      const countries=[["FR","France","Paris"],["MA","Maroc","Marrakech"],["GN","Guinée","Labé"],["SA","Arabie saoudite","Riyad"],["TR","Turquie","Istanbul"]];
+      for(const [countryCode,name,city] of countries){
+       await page.evaluate(({countryCode,name,city})=>{
+        document.querySelector("#finishFixtureCard")?.remove();
+        const template=document.createElement("template");
+        template.innerHTML=window.BEAM_VISUAL_CARDS.markup({
+         id:"70000000-0000-4000-8000-000000000001",country_code:countryCode,cities:[city],
+         entry_date:"2025-09-02",exit_date:"2025-09-04",duration_days:3,purpose:"tourisme",
+         is_domestic:false,deleting:false},""+name,"Tourisme","2 au 4 sept. 2025");
+        const card=template.content.firstElementChild;card.id="finishFixtureCard";
+        document.querySelector("#trips").prepend(card);
+       },{countryCode,name,city});
+       const card=page.locator("#finishFixtureCard");
+       await card.scrollIntoViewIfNeeded();
+       const image=card.locator(".journeyBackdrop");
+       await image.evaluate(img=>img.decode());
+       assert.equal(await image.evaluate(img=>img.naturalWidth),1600,"Valid 1600px landscape "+countryCode);
+       await page.screenshot({path:path.join(dir,"carte-"+countryCode.toLowerCase()+"-360.png"),animations:"disabled"});
+      }
+      await page.evaluate(()=>document.querySelector("#finishFixtureCard")?.remove());
+      await page.evaluate(()=>window.scrollTo(0,0));
+    }
     await page.locator("#openAccount").click();
     await page.locator("#coverPickerOpen").click();
     await page.locator("#coverPickerGrid .coverOption").first().waitFor();
