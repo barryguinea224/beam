@@ -115,15 +115,20 @@ async function start(){
    try{
     await page.goto("http://127.0.0.1:"+server.address().port+"/travel/",{waitUntil:"load"});
     await page.waitForFunction(()=>document.querySelector("#dashboardTitle")?.textContent==="Voyageuse Fictive");
+    async function choose(date){
+     await page.locator("#tripDatePicker .drp-year").selectOption(date.slice(0,4));
+     await page.locator("#tripDatePicker .drp-month").selectOption(String(Number(date.slice(5,7))-1));
+     await page.locator('#tripDatePicker button[data-date="'+date+'"]').click();
+    }
     async function openDay(country,city,date){
      await page.locator("#add").click();
      assert.equal(await page.locator('[data-trip-mode="multi"]').getAttribute("aria-pressed"),"true");
      await page.locator('[data-trip-mode="day"]').click();
-     assert.equal(await page.locator("#tripEntryLabel").innerText(),"Date");
+     assert.equal(await page.locator("#tripEntryLabel").textContent(),"Date");
      assert.equal(await page.locator("#tripExitField").isVisible(),false);
      await page.locator("#tripCountrySelect").selectOption(country);
      await page.locator('#tripForm input[name="cities"]').fill(city);
-     await page.locator("#tripEntryDate").fill(date);
+     await choose(date);
     }
     // Difference from the foreign parent becomes a private trip_stop.
     await openDay("DE","Berlin","2026-11-12");
@@ -160,8 +165,8 @@ async function start(){
     assert.equal(await page.locator('[data-trip-mode="multi"]').getAttribute("aria-pressed"),"true");
     await page.locator("#tripCountrySelect").selectOption("BE");
     await page.locator('#tripForm input[name="cities"]').fill("Bruxelles");
-    await page.locator("#tripEntryDate").fill("2026-11-14");
-    await page.locator("#tripExitDate").fill("2026-11-16");
+    await choose("2026-11-14");
+    await choose("2026-11-16");
     await page.locator("#saveTrip").click();
     await page.locator("#tripOverlapOffer").waitFor({state:"visible"});
     assert.equal(await page.locator("#tripOverlapStop").innerText(),"L'ajouter comme étape à ce voyage");
@@ -233,4 +238,5 @@ async function start(){
   }
  }finally{await browser.close();await new Promise(resolve=>server.close(resolve))}
 }
-start().catch(error=>{console.error(error);process.exitCode=1});
+module.exports={serve,fictionalSupabase};
+if(require.main===module)start().catch(error=>{console.error(error);process.exitCode=1});

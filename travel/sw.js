@@ -1,7 +1,7 @@
 // J'y étais PWA — PRIVATE BY DEFAULT.
 // Cache only the audited, versioned public shell. No runtime cache writes.
 // Never cache Supabase, signed links, personal trips, photos or API responses.
-const CACHE_NAME = "beam-travel-shell-v1-20261114-jyetais-v42-excursions-ranges";
+const CACHE_NAME = "beam-travel-shell-v1-20261114-jyetais-v43-range-picker";
 const SCOPE_PATH = "/travel/";
 const PUBLIC_SHELL = [
   "./index.html", "./config.js", "./offline-bootstrap.js", "./pwa.js",
@@ -14,7 +14,7 @@ const PUBLIC_SHELL = [
   "./flight-connections.js", "./flight-connections.css",
   "./loyalty-programs.js", "./loyalty-ui.js", "./loyalty.css", "./account-settings.css",
   "./activity-durations.js", "./activity-duration.css",
-  "./trip-stops.js", "./trip-stops.css", "./day-excursions.js", "./day-excursions.css",
+  "./trip-stops.js", "./trip-stops.css", "./day-excursions.js", "./day-excursions.css", "./date-range-picker.js", "./date-range-picker.css",
   "./assets/world-map.svg", "./assets/world-centroids.json", "./assets/stay-airline.svg", "./assets/stay-hotel.svg", "./manifest.webmanifest",
   "./assets/brand/icon-192.png", "./assets/brand/icon-512.png", "./assets/brand/icon-maskable-512.png",
   "./assets/brand/jyetais-logo.svg", "./assets/brand/jyetais-icon.svg",

@@ -1,0 +1,50 @@
+/* Calendrier maison : semaine lundi–dimanche, cibles tactiles >=44 px. */
+.drp{min-width:0;width:100%;max-width:100%;padding:12px;background:#fff;border:1px solid #ceded2;border-radius:16px;color:#173e2e;overflow:hidden}
+.drp-summary{font-weight:800;line-height:1.45;font-size:15px;min-height:44px;margin:0 0 12px;display:flex;align-items:center;overflow-wrap:anywhere}
+.drp-toolbar{display:flex;align-items:center;justify-content:space-between;gap:5px;min-width:0;margin-bottom:12px}
+.drp-toolbar>button{flex:none;width:44px;height:44px;border:1px solid #b7ccbc;border-radius:11px;background:#f5faf6;color:#15472f;font-size:27px;font-weight:800;cursor:pointer}
+.drp-toolbar button:disabled{opacity:.35;cursor:not-allowed}
+.drp-selects{display:flex;gap:5px;min-width:0;flex:1;justify-content:center}
+.drp-selects label{min-width:0}
+.drp-selects select{height:44px;max-width:100%;width:100%;padding:5px 2px;border:1px solid #b7ccbc;border-radius:9px;background:#fff;color:#174d3a;font-size:13px;font-weight:700}
+.drp-selects label:first-child{flex:1 1 106px}
+.drp-selects label:last-child{flex:0 1 83px}
+.drp-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.drp-scroll{overflow-x:auto;overflow-y:hidden;max-width:100%;border-radius:8px;outline-offset:1px}
+.drp-weekdays,.drp-days{display:grid;grid-template-columns:repeat(7,minmax(44px,1fr));width:100%;min-width:308px}
+.drp-weekdays span{text-align:center;font-size:11px;font-weight:800;color:#526c59;padding:7px 0}
+.drp-days{row-gap:3px;padding-bottom:3px}
+.drp-day,.drp-blank{height:44px;min-width:44px;position:relative}
+.drp-day{border:1px solid transparent;border-radius:9px;background:#fff;color:#213d2d;cursor:pointer;font-size:14px;font-weight:700;touch-action:manipulation}
+.drp-day:hover:not(:disabled){background:#eff5ee}
+.drp-day.drp-booked:not(.drp-selected):not(:disabled){background:#eef3ed}
+.drp-day.drp-booked::after{content:"";position:absolute;left:calc(50% - 3px);bottom:3px;width:6px;height:6px;border-radius:50%;background:#88a78f}
+.drp-day.drp-selected{border-radius:0;background:#d4e9d9;color:#11432e}
+.drp-day.drp-start,.drp-day.drp-end{border-radius:10px;background:#16583b;color:#fff}
+.drp-day.drp-start.drp-end{border-radius:10px}
+.drp-day:disabled{opacity:.33;cursor:not-allowed;background:#f3f3f3}
+.drp-day:focus-visible,.drp-clear:focus-visible,.drp-toolbar button:focus-visible,.drp-selects select:focus-visible{outline:3px solid #c48b24;outline-offset:1px;z-index:2}
+.drp-bottom{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:12px;min-height:44px}
+.drp-legend{font-size:11px;line-height:1.35;color:#526c59;flex:1}
+.drp-clear{min-width:75px;min-height:44px;flex:none;border:1px solid #b7ccbc;border-radius:10px;background:#f6faf7;color:#174d3a;font-weight:800;cursor:pointer}
+.drp-clear:hover{background:#e5f3e9}
+@media(max-width:390px){
+ #modal{padding:4px}
+ #tripForm.sheet{padding:8px;border-radius:12px}
+ .drp{padding:5px}
+ .drp-summary{padding:4px 3px;font-size:14px}
+ .drp-toolbar{gap:2px}
+ .drp-selects{gap:2px}
+ .drp-selects select{font-size:12px}
+ .drp-bottom{gap:3px}
+ .drp-legend{font-size:10px}
+}
+@media(max-width:350px){
+ #modal,#tripDetailModal{padding:0}
+ #tripForm.sheet{padding:4px}
+ #tripForm .drp{padding:0}
+ #detailSheet{padding:4px}
+ .tripStopForm{padding:3px;margin-left:-2px;margin-right:-2px}
+ .tripStopForm .drp{padding:0}
+ .drp-toolbar>button{width:44px}
+}
