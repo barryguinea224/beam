@@ -24,7 +24,7 @@ for(const code of CARD.COUNTRY_ART){
  assert.ok(stat.size>300&&stat.size<=100000,"Country image size unreasonable: "+code);
  if(code==="SN"){
   const vector=fs.readFileSync(p,"utf8");
-  assert.match(vector,/<svg\\b[^>]*width="1600"[^>]*height="680"/,"Senegal artwork must be intrinsically at least 1200px wide");
+  assert.match(vector,/<svg\b[^>]*width="1600"[^>]*height="680"/,"Senegal artwork must be intrinsically at least 1200px wide");
   assert.doesNotMatch(vector,/<script|foreignObject|onload=|href="https?:/i,"No executable/external SVG resources");
  }else{
   const binary=fs.readFileSync(p);
