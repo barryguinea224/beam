@@ -17,7 +17,7 @@ async function main(){
      document.querySelector("#nd").textContent="1286";
      document.querySelector("#nt").textContent="12345";
      document.querySelector("#nc").textContent="249";
-     assert.equal(document.querySelector("#homeStats").querySelectorAll("span[id]").length,6);
+     if(document.querySelector("#homeStats").querySelectorAll("span[id]").length!==6)throw Error("Condensed statistics must keep all six value and label nodes");
      const select=document.querySelector("#residence");
      const option=document.createElement("option");option.value="AE";option.textContent="Émirats arabes unis";select.appendChild(option);select.value="AE";
      document.querySelector("#countryList").innerHTML='<button class="countryChip">Guinée</button> <button class="countryChip">Arabie saoudite</button>';

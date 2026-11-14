@@ -111,3 +111,7 @@
   overflow:auto;box-shadow:0 0 0 100vmax #10241ab0;
  }
 }
+
+/* Override legacy mobile display:contents/block rules for the old hero wrapper. */
+#travelHero>.travelerIdentity:first-child{display:flex!important;align-items:center!important;gap:10px}
+#travelMapPanel{z-index:0!important}
