@@ -349,7 +349,7 @@
    const detail=el(row,"div","timeline-detail");
    el(detail,"span","timeline-country",trip.country);
    if(trip.cities)el(detail,"span","timeline-city",trip.cities.split(",")[0]);
-   const dates=[trip.entry,trip.exit].filter((v,i)=>i===0||v!=="—").join(" – ");
+   const dates=trip.entryISO===trip.exitISO?STOPS.short(trip.entryISO,true):[trip.entry,trip.exit].filter((v,i)=>i===0||v!=="—").join(" – ");
    el(row,"span","timeline-meta",dates+" · "+trip.duration);
   }
   if(list.length>24)el(yearbook,"p","empty","Et "+(list.length-24)+" autres voyages racontés dans ce carnet.");
@@ -365,7 +365,7 @@
    el(header,"h2",null,trip.country);
    if(trip.stops.length)el(header,"p","journalStops","Étapes : "+trip.stops.map(stop=>stop.label).join(" · "));
    if(trip.companions)el(header,"p","trip-companions","avec "+trip.companions);
-   el(header,"p","trip-line",[trip.cities,trip.entry+" – "+trip.exit].filter(Boolean).join(" · "));
+   el(header,"p","trip-line",[trip.cities,trip.entryISO===trip.exitISO?STOPS.short(trip.entryISO,true):trip.entry+" – "+trip.exit].filter(Boolean).join(" · "));
    flag(banner,trip.code);
    for(const stop of trip.stops)flag(banner,stop.code);
    const pills=el(hero,"div","pills");

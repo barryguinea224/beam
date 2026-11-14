@@ -328,7 +328,7 @@ html.travelAccessReadOnly #photoField,html.travelAccessReadOnly #saveTrip{displa
 #travelHero .travelerEy .jyHeaderLogo{width:132px;max-width:37vw;max-height:58px}
 .jyAppFooter{padding:18px 12px 24px;text-align:center;color:var(--g);font:650 12px/1.45 system-ui,sans-serif}
 @media(max-width:350px){#travelHero .travelerEy .jyHeaderLogo{width:120px;max-width:36vw}}
-</style><link rel="stylesheet" href="./photo-sheet.css"><link rel="stylesheet" href="./loyalty.css"><link rel="stylesheet" href="./account-settings.css"><link rel="stylesheet" href="./activity-duration.css"><link rel="stylesheet" href="./trip-stops.css"><link rel="stylesheet" href="./flight-connections.css"><link rel="stylesheet" href="./visual-cards.css"><link rel="stylesheet" href="./dashboard-filters.css">
+</style><link rel="stylesheet" href="./photo-sheet.css"><link rel="stylesheet" href="./loyalty.css"><link rel="stylesheet" href="./account-settings.css"><link rel="stylesheet" href="./activity-duration.css"><link rel="stylesheet" href="./trip-stops.css"><link rel="stylesheet" href="./day-excursions.css"><link rel="stylesheet" href="./flight-connections.css"><link rel="stylesheet" href="./visual-cards.css"><link rel="stylesheet" href="./dashboard-filters.css">
 <script src="/travel/offline-bootstrap.js"></script></head><body>
 <section id="offline" role="status" aria-live="polite"><div class="ey">J&#39;y étais</div><h1>Connexion nécessaire pour consulter votre carnet</h1><p>Vos voyages et photos sont privés et indisponibles hors ligne. Reconnectez-vous à Internet pour continuer.</p></section>
 <section id="auth" class="auth hidden"><img class="jyBrandLogo jyAuthLogo" src="./assets/brand/jyetais-logo.svg" alt="J&#39;y étais"><p class="jyAuthSignature">J&#39;y étais by BEAM</p><h1>Gardez vos voyages.<br>Retrouvez votre histoire.</h1><p class="sub">Un espace personnel pour vos destinations, dates, activités, souvenirs et photos.</p><form id="login"><div class="field"><label for="email">E-mail</label><input id="email" type="email" autocomplete="email" required></div><button class="btn">Recevoir un code</button></form><div id="otpBox" class="hidden"><p class="sub">Si cette adresse est autorisée, vous recevrez un code à 6 chiffres par e-mail.</p><form id="otpForm"><div class="field"><label for="otp">Code à 6 chiffres</label><input id="otp" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" aria-describedby="otpHelp" required><small id="otpHelp">Pas de code après 2 minutes ? Vérifiez vos spams, ou <a href="https://wa.me/224622095630" target="_blank" rel="noopener noreferrer">écrivez-nous sur WhatsApp</a>.</small></div><button class="btn">Continuer avec le code</button></form><div class="actions"><button id="resend" type="button" class="btn ghost" disabled>Renvoyer un code · 60 s</button></div></div><p id="loginMsg" class="notice hidden" role="status" aria-live="polite"></p><p class="sub" id="accessHelp">Ce carnet est réservé aux clients BEAM. <a href="https://wa.me/224622095630" target="_blank" rel="noopener noreferrer">Contactez-nous sur WhatsApp</a>.</p><div class="beamInstall" data-beam-install-area><button class="beamInstallButton" type="button" data-beam-install-action hidden>Installer J'y étais</button><details class="beamInstallHelp" data-beam-install-help><summary>Comment installer J'y étais</summary><p data-beam-install-steps>Depuis le menu de votre navigateur, cherchez « Installer l’application » ou « Ajouter à l’écran d’accueil », si cette option est proposée.</p></details><p class="beamInstallStatus" role="status" aria-live="polite" data-beam-install-status></p></div><aside class="authContact" aria-label="Contact"><strong>Contact</strong><p>WhatsApp : <a href="https://wa.me/224622095630" target="_blank" rel="noopener noreferrer">+224 622 09 56 30</a></p></aside><nav class="legalLinks legalLinksAuth" aria-label="Informations légales"><a href="./confidentialite.html">Confidentialité</a><span aria-hidden="true">·</span><a href="./conditions.html">Conditions d’utilisation</a></nav></section>
@@ -407,9 +407,9 @@ html.travelAccessReadOnly #photoField,html.travelAccessReadOnly #saveTrip{displa
  <h4 class="loyaltyGroupTitle">Découvrir d’autres programmes</h4>
  <div id="loyaltyAvailable" class="loyaltyAvailable" aria-label="Inscriptions officielles"></div>
 </section><nav class="legalLinks legalLinksAccount" aria-label="Informations légales"><a href="./confidentialite.html">Confidentialité</a><span aria-hidden="true">·</span><a href="./conditions.html">Conditions d’utilisation</a></nav><section id="accountSensitive" class="panel accountCard accountDanger" aria-labelledby="accountSensitiveTitle"><h3 id="accountSensitiveTitle" class="accountSectionTitle">Zone sensible</h3><p id="deleteAccountInfo" class="mapInfo">Vous pouvez supprimer définitivement votre compte et ses données de voyage, y compris les photos privées. Cette action est irréversible.</p><div class="actions"><button id="deleteAccountOpen" type="button" class="btn ghost" aria-describedby="deleteAccountInfo">Supprimer mon compte</button></div><form id="deleteAccountForm" class="hidden" aria-labelledby="deleteAccountConfirmTitle"><h3 id="deleteAccountConfirmTitle">Confirmer la suppression</h3><p>Votre compte, vos voyages, activités, souvenirs et photos seront définitivement supprimés. Ils ne pourront pas être restaurés.</p><div class="field"><label for="deleteAccountConfirm">Saisissez <strong>SUPPRIMER</strong> pour confirmer</label><input id="deleteAccountConfirm" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="9" pattern="SUPPRIMER" required></div><div class="actions"><button id="deleteAccountSubmit" type="submit" class="btn" style="background:#a8271d" disabled>Supprimer définitivement</button><button id="deleteAccountCancel" type="button" class="btn ghost">Annuler</button></div></form><p id="deleteAccountMessage" class="notice hidden" role="status" aria-live="polite"></p></section><section id="accountSession" class="accountSession"><button id="logout" type="button" class="btn ghost">Se déconnecter</button></section></section></div></div><footer class="jyAppFooter">J&#39;y étais by BEAM</footer></main>
-<div id="modal" class="modal"><form id="tripForm" class="sheet"><div class="top"><h2 id="tripTitle">Ajouter un voyage</h2><button type="button" id="close" class="btn ghost">Fermer</button></div><div class="two"><div class="field"><label>Pays</label><label for="tripCountrySearch">Rechercher un pays ou territoire</label><input id="tripCountrySearch" type="search" autocomplete="off" placeholder="Ex. ara, etats, congo…" aria-controls="tripCountrySelect"><select id="tripCountrySelect" name="country_code" aria-label="Pays sélectionné" required><option value="">Choisir un pays</option></select></div><div class="field"><label>Ville(s)</label><input name="cities" required placeholder="Ex. Labé, Kankan"></div></div><div class="two"><div class="field"><label>Entrée</label><input name="entry_date" type="date" required></div><div class="field"><label>Sortie</label><input name="exit_date" type="date" required></div></div><div class="field"><label>Voyage intérieur ?</label><select name="is_domestic" id="isDomestic"><option value="false">Non</option><option value="true">Oui</option></select><small id="domesticHint">Vous pouvez corriger cette proposition.</small></div><div class="field"><label>Motif</label><select name="purpose"><option value="tourisme">Tourisme</option><option value="affaires">Affaires</option><option value="etudes">Études</option><option value="famille">Famille</option><option value="sante">Santé</option><option value="transit">Transit</option><option value="autre">Autre</option></select></div><div class="two" id="stayDetails"><div class="field"><label for="tripAirline">Compagnie aérienne (facultatif)</label><input id="tripAirline" name="airline" type="text" maxlength="160" autocomplete="off" placeholder="Ex. Air France"><small>Nom uniquement, sans billet ni numéro de réservation.</small></div><div class="field"><label for="tripHotel">Hôtel / hébergement (facultatif)</label><input id="tripHotel" name="hotel" type="text" maxlength="160" autocomplete="off" placeholder="Ex. Hôtel Bellevue"><small>Nom uniquement, sans justificatif ni numéro de réservation.</small></div></div>
+<div id="modal" class="modal"><form id="tripForm" class="sheet"><div class="top"><h2 id="tripTitle">Ajouter un voyage</h2><button type="button" id="close" class="btn ghost">Fermer</button></div><div class="two"><div class="field"><label>Pays</label><label for="tripCountrySearch">Rechercher un pays ou territoire</label><input id="tripCountrySearch" type="search" autocomplete="off" placeholder="Ex. ara, etats, congo…" aria-controls="tripCountrySelect"><select id="tripCountrySelect" name="country_code" aria-label="Pays sélectionné" required><option value="">Choisir un pays</option></select></div><div class="field"><label>Ville(s)</label><input name="cities" required placeholder="Ex. Labé, Kankan"></div></div><div id="tripDurationChoices" class="dayModeChoices" role="group" aria-label="Durée du voyage"><button type="button" data-trip-mode="day" aria-pressed="false">Une journée</button><button type="button" data-trip-mode="multi" aria-pressed="true">Plusieurs jours</button></div><div class="two" id="tripDateFields"><div class="field"><label for="tripEntryDate" id="tripEntryLabel">Arrivée dans le pays</label><input id="tripEntryDate" name="entry_date" type="date" required></div><div class="field" id="tripExitField"><label for="tripExitDate">Départ du pays</label><input id="tripExitDate" name="exit_date" type="date" required></div></div><div class="field"><label>Voyage intérieur ?</label><select name="is_domestic" id="isDomestic"><option value="false">Non</option><option value="true">Oui</option></select><small id="domesticHint">Vous pouvez corriger cette proposition.</small></div><div class="field"><label>Motif</label><select name="purpose"><option value="tourisme">Tourisme</option><option value="affaires">Affaires</option><option value="etudes">Études</option><option value="famille">Famille</option><option value="sante">Santé</option><option value="transit">Transit</option><option value="autre">Autre</option></select></div><div class="two" id="stayDetails"><div class="field"><label for="tripAirline">Compagnie aérienne (facultatif)</label><input id="tripAirline" name="airline" type="text" maxlength="160" autocomplete="off" placeholder="Ex. Air France"><small>Nom uniquement, sans billet ni numéro de réservation.</small></div><div class="field"><label for="tripHotel">Hôtel / hébergement (facultatif)</label><input id="tripHotel" name="hotel" type="text" maxlength="160" autocomplete="off" placeholder="Ex. Hôtel Bellevue"><small>Nom uniquement, sans justificatif ni numéro de réservation.</small></div></div>
 <div class="field"><label for="tripCompanions">Voyagé avec (facultatif)</label><input id="tripCompanions" name="companions" type="text" maxlength="200" autocomplete="off" placeholder="Ex. Maman, Aïssatou, mon frère Ibrahima"><small>Prénoms ou liens seulement, sans nom complet ni numéro de téléphone.</small></div>
-<div id="photoField" class="field"><label for="photos">Photos privées</label><p id="photoInfo" class="photoHelp">10 photos maximum par voyage · 8 Mo maximum par photo. JPEG, PNG ou WebP uniquement. Les images sont converties en WebP sans données GPS avant l'envoi.</p><input id="photos" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" multiple aria-describedby="photoInfo photoUsage photoLoadStatus"><p id="photoLoadStatus" class="photoHelp hidden" role="status" aria-live="polite"><span class="photoSpinner" aria-hidden="true"></span>Chargement de vos photos…</p><p id="photoUsage" class="photoHelp" role="status" aria-live="polite">0 / 10 photos enregistrées</p><div id="photoGallery" class="photoGrid" aria-label="Photos enregistrées et en attente"></div><p id="photoMessage" class="notice hidden" role="alert"></p><button id="photoRetry" type="button" class="btn ghost hidden">Réessayer</button></div><div class="field"><label>Souvenir / note privée</label><textarea name="note"></textarea></div><p id="tripMsg" class="notice hidden"></p><button id="saveTrip" class="btn">Enregistrer</button></form></div>
+<div id="photoField" class="field"><label for="photos">Photos privées</label><p id="photoInfo" class="photoHelp">10 photos maximum par voyage · 8 Mo maximum par photo. JPEG, PNG ou WebP uniquement. Les images sont converties en WebP sans données GPS avant l'envoi.</p><input id="photos" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" multiple aria-describedby="photoInfo photoUsage photoLoadStatus"><p id="photoLoadStatus" class="photoHelp hidden" role="status" aria-live="polite"><span class="photoSpinner" aria-hidden="true"></span>Chargement de vos photos…</p><p id="photoUsage" class="photoHelp" role="status" aria-live="polite">0 / 10 photos enregistrées</p><div id="photoGallery" class="photoGrid" aria-label="Photos enregistrées et en attente"></div><p id="photoMessage" class="notice hidden" role="alert"></p><button id="photoRetry" type="button" class="btn ghost hidden">Réessayer</button></div><div class="field"><label>Souvenir / note privée</label><textarea name="note"></textarea></div><p id="tripMsg" class="notice hidden"></p><section id="tripOverlapOffer" class="tripOverlapOffer hidden" role="status" aria-live="polite" aria-label="Excursion pendant un voyage"><p id="tripOverlapText"></p><div class="tripOverlapActions"><button id="tripOverlapStop" type="button" class="btn">L'ajouter comme excursion à ce voyage</button><button id="tripOverlapActivity" type="button" class="btn">L'ajouter comme activité</button><button id="tripOverlapEditDates" type="button" class="btn ghost">Modifier les dates</button></div><p id="tripOverlapFeedback" class="tripOverlapFeedback" aria-live="polite"></p></section><button id="saveTrip" class="btn">Enregistrer</button></form></div>
 <div id="tripDetailModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="detailTitle" aria-describedby="detailIntro">
   <div id="detailSheet" class="sheet detailSheet" tabindex="-1">
     <div class="detailTop"><div><div class="ey">Ma fiche voyage</div><h2 id="detailTitle">Voyage</h2><p id="detailIntro" class="detailIntro">Informations et souvenirs privés.</p></div><button id="detailClose" type="button" class="btn ghost">Fermer</button></div>
@@ -487,7 +487,7 @@ html.travelAccessReadOnly #photoField,html.travelAccessReadOnly #saveTrip{displa
   <p id="photoActionStatus" role="status" aria-live="polite"></p>
  </section>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./config.js"></script><script src="./pwa.js"></script><script src="./access.js"></script><script src="./photo-utils.js"></script><script src="./photo-upload.js"></script><script src="./avatar.js"></script><script src="./activity-durations.js"></script><script src="./trip-detail.js"></script><script src="./loyalty-programs.js"></script><script src="./loyalty-ui.js"></script><script src="./visa-guide.js"></script><script src="./countries.js"></script><script src="./trip-stops.js"></script><script src="./country-picker.js"></script><script src="./factual-pdf.js"></script><script src="./factual-pdf-file.js"></script><script src="./journal-stats.js"></script><script src="./dashboard-filters.js"></script><script src="./visual-cards.js"></script><script src="./flight-connections.js"></script><script src="./printable-journal.js"></script><script src="./family-booklet.js"></script><script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./config.js"></script><script src="./pwa.js"></script><script src="./access.js"></script><script src="./photo-utils.js"></script><script src="./photo-upload.js"></script><script src="./avatar.js"></script><script src="./activity-durations.js"></script><script src="./trip-detail.js"></script><script src="./loyalty-programs.js"></script><script src="./loyalty-ui.js"></script><script src="./visa-guide.js"></script><script src="./countries.js"></script><script src="./trip-stops.js"></script><script src="./day-excursions.js"></script><script src="./country-picker.js"></script><script src="./factual-pdf.js"></script><script src="./factual-pdf-file.js"></script><script src="./journal-stats.js"></script><script src="./dashboard-filters.js"></script><script src="./visual-cards.js"></script><script src="./flight-connections.js"></script><script src="./printable-journal.js"></script><script src="./family-booklet.js"></script><script>
 const C=window.BEAM_TRAVEL_CONFIG||{},ok=C.supabaseUrl&&!C.supabaseUrl.includes("YOUR_")&&C.supabaseAnonKey&&!C.supabaseAnonKey.includes("YOUR_"),S=ok&&typeof supabase!=="undefined"?supabase.createClient(C.supabaseUrl,C.supabaseAnonKey):null,$=s=>document.querySelector(s);let user,trips=[],accountState="loading";
 const LOYALTY=window.BEAM_LOYALTY_UI?.init({supabase:S,user:()=>user,isActive:()=>accountState==="active",canWrite:()=>canWrite(),onChange:()=>renderLoyaltyHint()});
 function view(id){$("#auth").classList.add("hidden");$("#app").classList.add("hidden");$(id).classList.remove("hidden");document.title="J'y étais"}
@@ -680,7 +680,7 @@ $("#avatarRemove").onclick=async()=>{
  }finally{avatarBusy=false;avatarControls()}
 };
 
-function tripDates(a,b){let A=new Date(a+"T12:00:00"),B=new Date(b+"T12:00:00"),sameMonth=A.getMonth()===B.getMonth()&&A.getFullYear()===B.getFullYear(),sameYear=A.getFullYear()===B.getFullYear();if(sameMonth)return A.getDate()+" → "+B.toLocaleDateString("fr-FR",{day:"numeric",month:"long",year:"numeric"});if(sameYear)return A.toLocaleDateString("fr-FR",{day:"numeric",month:"short"})+" → "+B.toLocaleDateString("fr-FR",{day:"numeric",month:"short",year:"numeric"});return A.toLocaleDateString("fr-FR",{day:"numeric",month:"short",year:"numeric"})+" → "+B.toLocaleDateString("fr-FR",{day:"numeric",month:"short",year:"numeric"})}
+function tripDates(a,b){if(a===b)return window.BEAM_DAY_EXCURSIONS.short(a);let A=new Date(a+"T12:00:00"),B=new Date(b+"T12:00:00"),sameMonth=A.getMonth()===B.getMonth()&&A.getFullYear()===B.getFullYear(),sameYear=A.getFullYear()===B.getFullYear();if(sameMonth)return A.getDate()+" → "+B.toLocaleDateString("fr-FR",{day:"numeric",month:"long",year:"numeric"});if(sameYear)return A.toLocaleDateString("fr-FR",{day:"numeric",month:"short"})+" → "+B.toLocaleDateString("fr-FR",{day:"numeric",month:"short",year:"numeric"});return A.toLocaleDateString("fr-FR",{day:"numeric",month:"short",year:"numeric"})+" → "+B.toLocaleDateString("fr-FR",{day:"numeric",month:"short",year:"numeric"})}
 function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 let mapReady=false,mapLoading=false,worldCentroids=null,centroidPromise=null,centroidFailed=false,flightIntroDone=false,lastFlightRoutes=[];
 const FLIGHTS=window.BEAM_FLIGHT_CONNECTIONS;
@@ -1092,7 +1092,35 @@ $("#logout").onclick=async()=>{
  await clearPwaSession();
  // A fresh page cannot re-display previously loaded private trips.
  location.replace(location.pathname);
-};$("#residence").onchange=()=>{ /* Draft only: saved with the account form, never on selection. */ };let editingTripId=null,editingOriginalCountry=null;function proposeDomestic(code){if(!profile.country_of_residence||!code)return false;return code===profile.country_of_residence}function setDomesticProposal(code){$("#isDomestic").value=String(proposeDomestic(code));$("#domesticHint").textContent=profile.country_of_residence?"Proposition selon votre résidence actuelle. Vous pouvez la corriger.":"Aucune résidence enregistrée : vérifiez ce choix."}function openNewTrip(){if(accountState!=="active"||!canWrite())return;editingTripId=null;editingOriginalCountry=null;const city=$("#tripForm").elements.namedItem("cities");delete city.dataset.autoProposed;delete city.dataset.manualCorrection;$("#tripForm").reset();countrySelectors.trip.reset("");setDomesticProposal("");$("#tripTitle").textContent="Ajouter un voyage";$("#saveTrip").textContent="Enregistrer";resetPhotoUI(null);$("#tripMsg").classList.add("hidden");$("#modal").classList.add("open")}function openEditTrip(id){if(accountState!=="active"||!canWrite())return;const city=$("#tripForm").elements.namedItem("cities");delete city.dataset.autoProposed;delete city.dataset.manualCorrection;let x=trips.find(t=>t.id===id);if(!x)return;editingTripId=id;editingOriginalCountry=x.country_code;let f=$("#tripForm");countrySelectors.trip.reset(x.country_code);f.country_code.value=x.country_code;f.cities.value=x.cities.join(", ");f.entry_date.value=x.entry_date;f.exit_date.value=x.exit_date;f.purpose.value=x.purpose;f.airline.value=x.airline||"";f.hotel.value=x.hotel||"";f.companions.value=x.companions||"";f.note.value=x.note||"";f.is_domestic.value=String(!!x.is_domestic);$("#domesticHint").textContent="Classification enregistrée pour ce voyage. Elle reste stable tant que le pays ne change pas.";$("#tripTitle").textContent="Modifier le voyage";$("#saveTrip").textContent="Enregistrer les modifications";resetPhotoUI(id);$("#tripMsg").classList.add("hidden");$("#modal").classList.add("open");refreshMedia(id).catch(()=>showPhotoMessage("Impossible de charger les photos. Réessayez en rouvrant le voyage."))}$("#tripForm").country_code.onchange=e=>{let code=e.target.value;if(!editingTripId||code!==editingOriginalCountry)setDomesticProposal(code)};$("#add").onclick=openNewTrip;
+};$("#residence").onchange=()=>{ /* Draft only: saved with the account form, never on selection. */ };let editingTripId=null,editingOriginalCountry=null;
+const DAY=window.BEAM_DAY_EXCURSIONS;
+let tripMode="multi",overlapPending=null,overlapSaving=false;
+function clearTripOverlap(){
+ overlapPending=null;
+ $("#tripOverlapOffer").classList.add("hidden");
+ $("#tripOverlapFeedback").textContent="";
+}
+function setTripMode(mode){
+ tripMode=mode==="day"?"day":"multi";
+ for(const button of $("#tripDurationChoices").querySelectorAll("button[data-trip-mode]"))
+  button.setAttribute("aria-pressed",String(button.dataset.tripMode===tripMode));
+ const isDay=tripMode==="day",exit=$("#tripExitDate");
+ $("#tripExitField").classList.toggle("hidden",isDay);
+ $("#tripEntryLabel").textContent=isDay?"Date":"Arrivée dans le pays";
+ exit.disabled=isDay;exit.required=!isDay;
+ if(isDay)exit.value=$("#tripEntryDate").value;
+ clearTripOverlap();
+}
+$("#tripDurationChoices").onclick=event=>{
+ const button=event.target.closest("button[data-trip-mode]");
+ if(button)setTripMode(button.dataset.tripMode);
+};
+$("#tripForm").addEventListener("input",clearTripOverlap);
+$("#tripForm").addEventListener("change",clearTripOverlap);
+$("#tripEntryDate").addEventListener("change",()=>{
+ if(tripMode==="day")$("#tripExitDate").value=$("#tripEntryDate").value;
+});
+function proposeDomestic(code){if(!profile.country_of_residence||!code)return false;return code===profile.country_of_residence}function setDomesticProposal(code){$("#isDomestic").value=String(proposeDomestic(code));$("#domesticHint").textContent=profile.country_of_residence?"Proposition selon votre résidence actuelle. Vous pouvez la corriger.":"Aucune résidence enregistrée : vérifiez ce choix."}function openNewTrip(){if(accountState!=="active"||!canWrite())return;editingTripId=null;editingOriginalCountry=null;const city=$("#tripForm").elements.namedItem("cities");delete city.dataset.autoProposed;delete city.dataset.manualCorrection;$("#tripForm").reset();setTripMode("multi");countrySelectors.trip.reset("");setDomesticProposal("");$("#tripTitle").textContent="Ajouter un voyage";$("#saveTrip").textContent="Enregistrer";resetPhotoUI(null);$("#tripMsg").classList.add("hidden");$("#modal").classList.add("open")}function openEditTrip(id){if(accountState!=="active"||!canWrite())return;const city=$("#tripForm").elements.namedItem("cities");delete city.dataset.autoProposed;delete city.dataset.manualCorrection;let x=trips.find(t=>t.id===id);if(!x)return;editingTripId=id;editingOriginalCountry=x.country_code;let f=$("#tripForm");countrySelectors.trip.reset(x.country_code);f.country_code.value=x.country_code;f.cities.value=x.cities.join(", ");f.entry_date.value=x.entry_date;f.exit_date.value=x.exit_date;setTripMode(DAY.modeFor(x));f.purpose.value=x.purpose;f.airline.value=x.airline||"";f.hotel.value=x.hotel||"";f.companions.value=x.companions||"";f.note.value=x.note||"";f.is_domestic.value=String(!!x.is_domestic);$("#domesticHint").textContent="Classification enregistrée pour ce voyage. Elle reste stable tant que le pays ne change pas.";$("#tripTitle").textContent="Modifier le voyage";$("#saveTrip").textContent="Enregistrer les modifications";resetPhotoUI(id);$("#tripMsg").classList.add("hidden");$("#modal").classList.add("open");refreshMedia(id).catch(()=>showPhotoMessage("Impossible de charger les photos. Réessayez en rouvrant le voyage."))}$("#tripForm").country_code.onchange=e=>{let code=e.target.value;if(!editingTripId||code!==editingOriginalCountry)setDomesticProposal(code)};$("#add").onclick=openNewTrip;
 $("#welcomeName").onclick=()=>{if(!canWrite())return;openAccountPanel();$("#editAccount").click();$("#travelerName").focus()};
 $("#welcomeTrip").onclick=openNewTrip;
 $("#welcomePdf").onclick=()=>{
@@ -1257,7 +1285,7 @@ function requestStopDeletion(stop){
  resetTripStopForm(trip);
  stopDeleteTarget=stop;
  $("#tripStopDeleteText").textContent="Supprimer l’étape "+STOPS.country(stop.country_code)+
-  " ("+STOPS.date(stop.entry_date)+" → "+STOPS.date(stop.exit_date)+") ?";
+  " ("+STOPS.interval(stop.entry_date,stop.exit_date)+") ?";
  $("#tripStopDeleteConfirm").classList.remove("hidden");
  $("#tripStopDeleteYes").focus();
 }
@@ -1276,6 +1304,62 @@ async function refreshOwnedTripStops(uid){
  const detail=trips.find(t=>t.id===detailTripId);
  if(detail)renderTripStops(detail);
 }
+function showTripOverlap(payload,match,allowConvert=true){
+ overlapPending={payload,match,allowConvert};
+ $("#tripMsg").classList.add("hidden");
+ $("#tripOverlapText").textContent=DAY.message(match);
+ $("#tripOverlapStop").classList.toggle("hidden",!allowConvert||match.kind!=="stop");
+ $("#tripOverlapActivity").classList.toggle("hidden",!allowConvert||match.kind!=="activity");
+ $("#tripOverlapFeedback").textContent=payload.entry_date!==payload.exit_date&&allowConvert
+  ?"Seule la date du "+DAY.short(match.date)+" sera enregistrée comme excursion ou activité.":"";
+ $("#tripOverlapOffer").classList.remove("hidden");
+ $("#tripOverlapOffer").scrollIntoView({block:"nearest",behavior:"smooth"});
+}
+$("#tripOverlapEditDates").onclick=()=>{
+ clearTripOverlap();
+ $("#tripEntryDate").focus();
+};
+function closeEditorForExcursion(){
+ $("#modal").classList.remove("open");
+ $("#tripForm").reset();resetPhotoUI(null);
+ editingTripId=null;editingOriginalCountry=null;
+ clearTripOverlap();
+}
+$("#tripOverlapStop").onclick=async()=>{
+ const pending=overlapPending;
+ if(!pending||!pending.allowConvert||pending.match.kind!=="stop"||overlapSaving||stopBusy||!user||!canWrite())return;
+ const trip=trips.find(t=>t.id===pending.match.trip.id);
+ if(!trip)return;
+ const payload={country_code:pending.payload.country_code,cities:pending.payload.cities,
+  entry_date:pending.match.date,exit_date:pending.match.date,position:(trip.stops?.length||0)+1};
+ const validation=STOPS.validate(payload,trip,trip.stops||[]);
+ if(validation){$("#tripOverlapFeedback").textContent=validation;return;}
+ overlapSaving=true;
+ $("#tripOverlapStop").disabled=true;
+ $("#tripOverlapFeedback").textContent="Enregistrement de l’excursion…";
+ try{
+  const {data,error}=await S.from("trip_stops").insert({...payload,trip_id:trip.id}).select("id");
+  if(error||data?.length!==1)throw error||new Error("Non confirmé");
+  await refreshOwnedTripStops(user.id);
+  closeEditorForExcursion();
+  openTripDetail(trip.id);
+  detailMessage("Excursion enregistrée.");
+ }catch(error){
+  $("#tripOverlapFeedback").textContent=stopError(error);
+ }finally{
+  overlapSaving=false;$("#tripOverlapStop").disabled=false;
+ }
+};
+$("#tripOverlapActivity").onclick=()=>{
+ const pending=overlapPending;
+ if(!pending||!pending.allowConvert||pending.match.kind!=="activity"||!user||!canWrite())return;
+ const id=pending.match.trip.id,day=pending.match.date;
+ closeEditorForExcursion();
+ openTripDetail(id);
+ $("#activityDate").value=day;
+ $("#activityTitle").focus();
+ $("#detailActivityForm").scrollIntoView({block:"nearest"});
+};
 $("#addTripStop").onclick=()=>openTripStopEditor();
 $("#tripStopCancel").onclick=()=>{
  const trip=trips.find(t=>t.id===detailTripId);resetTripStopForm(trip);
@@ -1342,7 +1426,7 @@ function openTripDetail(id){
  if(!$("#tripDetailModal").classList.contains("open"))detailReturnFocus=document.activeElement;
  detailTripId=id;
  $("#detailTitle").textContent=(trip.cities||[]).join(", ")||countryName(trip.country_code);
- $("#detailIntro").textContent=countryName(trip.country_code)+" · "+(trip.is_domestic?"Séjour national":"Voyage à l’étranger");
+ $("#detailIntro").textContent=countryName(trip.country_code)+" · "+(DAY.single(trip)?"Excursion · 1 jour":(trip.is_domestic?"Séjour national":"Voyage à l’étranger"));
  const fact=(label,value)=>'<div class="detailFact"><dt>'+esc(label)+'</dt><dd>'+esc(value)+'</dd></div>';
  const stayFact=(label,value,role)=>'<div class="detailFact detailStay"><dt>'+esc(label)+'</dt><dd>'+
    '<img class="stayThumb" data-stay-role="'+role+'" src="./assets/stay-'+role+'.svg" alt="" aria-hidden="true">'+
@@ -1350,9 +1434,10 @@ function openTripDetail(id){
  $("#detailFacts").innerHTML=[
    fact("Pays",countryName(trip.country_code)),
    fact("Ville(s)",(trip.cities||[]).join(", ")||"Non renseignée"),
-   fact("Entrée",DETAIL.dateFR(trip.entry_date)),
-   fact("Sortie",DETAIL.dateFR(trip.exit_date)),
-   fact("Durée",trip.duration_days+" jour"+(trip.duration_days===1?"":"s")),
+   ...(DAY.single(trip)?[fact("Date",DAY.short(trip.entry_date))]:[
+     fact("Entrée",DETAIL.dateFR(trip.entry_date)),
+     fact("Sortie",DETAIL.dateFR(trip.exit_date))]),
+   fact("Durée",DAY.single(trip)?"Excursion · 1 jour":trip.duration_days+" jour"+(trip.duration_days===1?"":"s")),
    fact("Motif",window.BEAM_TRAVEL_PDF.purposeName(trip.purpose)),
    ...(trip.airline?.trim()?[stayFact("Compagnie aérienne",trip.airline,"airline")]:[]),
    ...(trip.hotel?.trim()?[stayFact("Hôtel / hébergement",trip.hotel,"hotel")]:[]),
@@ -1697,7 +1782,7 @@ $("#tripForm").onsubmit=async e=>{
    const p={
      country_code:String(f.get("country_code")).toUpperCase(),
      cities:String(f.get("cities")).split(",").map(x=>x.trim()).filter(Boolean),
-     entry_date:f.get("entry_date"),exit_date:f.get("exit_date"),
+     ...DAY.datesFor(tripMode,String(f.get("entry_date")||""),String(f.get("exit_date")||"")),
      purpose:f.get("purpose"),airline:airline||null,hotel:hotel||null,companions:companions||null,
      note:f.get("note")||null,is_domestic:f.get("is_domestic")==="true"
    };
@@ -1705,10 +1790,34 @@ $("#tripForm").onsubmit=async e=>{
      msg.textContent="Choisissez un pays reconnu dans la liste.";
      msg.classList.remove("hidden");return;
    }
+   if(!DAY.validDate(p.entry_date)||!DAY.validDate(p.exit_date)||p.entry_date>p.exit_date){
+     msg.textContent="Vérifiez les dates du voyage.";msg.classList.remove("hidden");return;
+   }
+   const overlap=DAY.conflict(p,trips,editingTripId);
+   if(overlap){showTripOverlap(p,overlap,!wasEditing);return;}
    const query=wasEditing?S.from("trips").update(p).eq("id",editingTripId):S.from("trips").insert(p);
    const {data,error}=await query.select().single();
    if(error){
-     msg.textContent=error.code==="23P01"||/no_overlap/.test(error.message)?"Un autre voyage existe déjà sur ces dates. Vérifiez votre historique.":wasEditing?"Impossible de modifier ce voyage. Réessayez.":"Impossible d’ajouter ce voyage. Vérifiez les informations puis réessayez.";
+     if(error.code==="23P01"||/no_overlap/.test(String(error.message||""))){
+       let match=DAY.conflict(p,trips,editingTripId);
+       if(!match){
+         try{
+           const {data:recent,error:reloadError}=await S.from("trips").select("*")
+             .eq("deleting",false).order("entry_date",{ascending:false});
+           if(!reloadError&&recent){
+             trips=await fetchOwnedStops(recent,user.id);
+             match=DAY.conflict(p,trips,editingTripId);
+           }
+         }catch{}
+       }
+       if(match)showTripOverlap(p,match,!wasEditing);
+       else{
+         msg.textContent="Un voyage est déjà enregistré à ces dates. Modifiez les dates.";
+         msg.classList.remove("hidden");
+       }
+       return;
+     }
+     msg.textContent=wasEditing?"Impossible de modifier ce voyage. Réessayez.":"Impossible d’ajouter ce voyage. Vérifiez les informations puis réessayez.";
      msg.classList.remove("hidden");return;
    }
    if(wasEditing){const i=trips.findIndex(x=>x.id===data.id);if(i>=0)trips[i]=data}

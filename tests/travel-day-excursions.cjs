@@ -1,0 +1,78 @@
+"use strict";
+const assert=require("node:assert/strict");
+const fs=require("node:fs");
+const vm=require("node:vm");
+const DAY=require("../travel/day-excursions.js");
+const STOPS=require("../travel/trip-stops.js");
+const CARD=require("../travel/visual-cards.js");
+const JOURNAL=require("../travel/printable-journal.js");
+const BOOK=require("../travel/family-booklet.js");
+const PDF=require("../travel/factual-pdf.js");
+const p={id:"11111111-1111-4111-8111-111111111111",country_code:"FR",
+ cities:["Paris"],entry_date:"2026-11-08",exit_date:"2026-11-18",
+ duration_days:11,purpose:"tourisme",is_domestic:false,stops:[]};
+const day={id:"22222222-2222-4222-8222-222222222222",country_code:"SN",
+ cities:["Dakar"],entry_date:"2026-11-12",exit_date:"2026-11-12",
+ duration_days:1,purpose:"tourisme",is_domestic:false};
+assert.equal(DAY.modeFor(p),"multi");
+assert.equal(DAY.modeFor(day),"day");
+assert.equal(DAY.single(day),true);
+assert.equal(DAY.single(p),false);
+assert.deepEqual(DAY.datesFor("day","2026-11-12","2026-11-22"),
+ {entry_date:"2026-11-12",exit_date:"2026-11-12"});
+assert.deepEqual(DAY.datesFor("multi","2026-11-12","2026-11-22"),
+ {entry_date:"2026-11-12",exit_date:"2026-11-22"});
+assert.equal(DAY.short("2026-11-12"),"12 nov. 2026");
+for(const date of ["2026-11-31","2026-02-30","2026-13-01","",null,"2026/11/12"])
+ assert.equal(DAY.validDate(date),false);
+const selected={entry_date:"2026-11-12",exit_date:"2026-11-12",country_code:"DE"};
+const match=DAY.conflict(selected,[p]);
+assert.equal(match.kind,"stop");
+assert.equal(match.date,"2026-11-12");
+assert.equal(match.trip.id,p.id);
+assert.equal(DAY.message(match),
+ "Ce jour fait partie de votre voyage en France du 8 nov. 2026 au 18 nov. 2026.");
+assert.equal(DAY.conflict({...selected,country_code:"FR"},[p]).kind,"activity");
+assert.equal(DAY.conflict({...selected,entry_date:"2026-12-12",exit_date:"2026-12-12"},[p]),null);
+assert.equal(DAY.conflict(selected,[p],p.id),null);
+assert.equal(DAY.conflict(selected,[{...p,is_domestic:true}]),null);
+assert.equal(DAY.conflict({...selected,entry_date:"2026-11-06",exit_date:"2026-11-09"},[p]).date,"2026-11-08",
+ "partial period overlap selects a date within the existing foreign trip");
+assert.equal(DAY.conflict({...selected,entry_date:"2026-11-12",exit_date:"2026-11-20"},[p]).date,"2026-11-12");
+const stop={country_code:"DE",cities:["Berlin"],entry_date:"2026-11-12",
+ exit_date:"2026-11-12",position:1};
+assert.equal(STOPS.validate(stop,p,[]),"");
+assert.equal(STOPS.interval(stop.entry_date,stop.exit_date),"12 nov. 2026");
+assert.equal(STOPS.compact(stop),"Allemagne (12 nov. 2026)");
+const card=CARD.markup(day,"Sénégal","Tourisme",DAY.short(day.entry_date));
+assert.match(card,/12 nov\. 2026 · Excursion · 1 jour/);
+assert.doesNotMatch(card,/12 nov\. → 12 nov\.|1 jours/);
+const projected=JOURNAL.viewTrip({...day,stops:[stop]});
+assert.equal(projected.entry,projected.exit);
+assert.equal(projected.stops[0].label,"Allemagne (12 nov. 2026)");
+assert.match(BOOK.natural(projected),/12 nov\. 2026 · Excursion · 1 jour/);
+const factual=PDF.factualRows([day])[0];
+assert.equal(factual.entry,"12/11/2026");
+assert.equal(factual.exit,"12/11/2026");
+assert.equal(factual.duration,"1 jour");
+assert.deepEqual(PDF.FIELDS,["country_code","cities","entry_date","exit_date","duration_days","purpose"]);
+const html=fs.readFileSync("travel/index.html","utf8");
+const inline=html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
+assert.ok(inline);
+new vm.Script(inline,{filename:"travel/index.html"});
+new vm.Script(fs.readFileSync("travel/day-excursions.js","utf8"),{filename:"travel/day-excursions.js"});
+for(const marker of ['id="tripDurationChoices"','data-trip-mode="day"','data-trip-mode="multi"',
+ 'id="tripOverlapStop"','id="tripOverlapActivity"','id="tripOverlapEditDates"',
+ 'id="tripEntryDate"','id="tripExitDate"','DAY.datesFor(tripMode',
+ 'DAY.conflict(p,trips,editingTripId)','S.from("trip_stops").insert',
+ 'DAY.single(trip)','Excursion · 1 jour','type="button"'])
+ assert.ok(html.includes(marker),"Missing travel UI "+marker);
+assert.match(html,/showTripOverlap\(p,match,!wasEditing\)/);
+assert.match(html,/if\(error\.code==="23P01"/);
+assert.doesNotMatch(html,/msg\.textContent=error\.message/);
+const sw=fs.readFileSync("travel/sw.js","utf8");
+assert.match(sw,/jyetais-v41-excursions/);
+assert.ok(sw.includes('"./day-excursions.js"')&&sw.includes('"./day-excursions.css"'));
+const style=fs.readFileSync("travel/day-excursions.css","utf8");
+assert.ok(style.includes(".dayModeChoices")&&style.includes(".tripOverlapOffer"));
+console.log("PASS one-day excursions: dates, conflict/stop/activity routing, printable formatting, six-field factual PDF, UI safety and PWA v41");

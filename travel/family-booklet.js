@@ -35,7 +35,9 @@ function natural(trip){
    month=d.toLocaleDateString("fr-FR",{month:"long",year:"numeric",timeZone:"UTC"});
  }
  const city=trip.cities?.split(",")[0]||trip.country;
- return [month,trip.days+" jour"+(trip.days===1?"":"s")+" à "+city,trip.purpose].filter(Boolean).join(" · ");
+ const oneDay=trip.entryISO===trip.exitISO;
+ const when=oneDay?new Intl.DateTimeFormat("fr-FR",{day:"numeric",month:"short",year:"numeric",timeZone:"UTC"}).format(new Date(iso+"T12:00:00Z")):month;
+ return [when,(oneDay?"Excursion · 1 jour":trip.days+" jours")+" à "+city,trip.purpose].filter(Boolean).join(" · ");
 }
 function flag(parent,code,big=false){
  if(!COUNTRIES.valid(code))return node(parent,"span",null,"✧");
