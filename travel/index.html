@@ -1152,6 +1152,9 @@ $("#tripDateFields").addEventListener("change",()=>{
  const message=$("#tripMsg");
  if(message.textContent==="Choisissez la date de départ du pays.")message.classList.add("hidden");
 });
+$("#tripStopDatePicker").addEventListener("change",()=>{
+ if($("#tripStopFormMessage").textContent==="Choisissez la date de départ du pays.")stopMessage("");
+});
 let tripMode="multi",overlapPending=null,overlapSaving=false;
 function clearTripOverlap(){
  overlapPending=null;
