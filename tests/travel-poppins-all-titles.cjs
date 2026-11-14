@@ -49,7 +49,9 @@ async function run(){
     if(url.hostname!=="127.0.0.1")return route.abort();
     const name=url.pathname==="/travel/"?"index.html":url.pathname.slice("/travel/".length);
     if(phase==="avant"&&Object.hasOwn(beforeAssets,name))
-     return route.fulfill({status:200,contentType:contentType(name),body:beforeAssets[name]});
+     return route.fulfill({status:200,contentType:contentType(name),body:name==="index.html"
+      ? beforeAssets[name].toString().replace('<script src="./photo-utils.js"></script>','<script src="./fr-accords.js"></script><script src="./photo-utils.js"></script>')
+      : beforeAssets[name]});
     return route.continue();
    });
    try{
