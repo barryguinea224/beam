@@ -2,6 +2,7 @@
 // No user data embedded in assets or service worker.
 (function(root){
 "use strict";
+const FR=root?.BEAM_FR_ACCORDS||(typeof require==="function"?require("./fr-accords.js"):null);
 const COUNTRIES=root?.BEAM_COUNTRIES||(typeof require==="function"?require("./countries.js"):null);
 const valid=code=>typeof code==="string"&&/^[A-Z]{2}$/.test(code)&&!!COUNTRIES?.NAMES?.[code];
 const formatISO=iso=>typeof iso==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(iso)&&
@@ -36,7 +37,7 @@ function compact(row){return country(row.country_code)+" ("+interval(row.entry_d
 function factual(row){
  const length=days(row.entry_date,row.exit_date);
  return "↳ "+country(row.country_code)+" · "+(cities(row)||"—")+" · "+date(row.entry_date)+
-  " → "+date(row.exit_date)+" · "+length+" jour"+(length===1?"":"s")+" · étape";
+  " → "+date(row.exit_date)+" · "+FR.count(length,"jour")+" · étape";
 }
 function codes(trip){
  return [...new Set([trip?.country_code,...(trip?.stops||[]).map(s=>s.country_code)].filter(valid))];
@@ -71,7 +72,7 @@ function renderList(target,trip,editable,onEdit,onRemove){
   const name=doc.createElement("strong");name.textContent=country(stop.country_code);
   const location=doc.createElement("span");location.textContent=(cities(stop)||"Ville non précisée")+
    " · "+(stop.entry_date===stop.exit_date?short(stop.entry_date,true):date(stop.entry_date)+" → "+date(stop.exit_date))+
-   " · "+(stop.entry_date===stop.exit_date?"Excursion · 1 jour":length+" jour"+(length===1?"":"s"));
+   " · "+(stop.entry_date===stop.exit_date?"Excursion · 1 jour":FR.count(length,"jour"));
   info.append(name,location);item.append(flag,info);
   if(editable){
    const buttons=doc.createElement("div");buttons.className="tripStopActions";

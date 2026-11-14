@@ -1,6 +1,7 @@
 /* Calendrier de période — composant local, sans requête ni dépendance. */
 (function(root){
  "use strict";
+ const FR=root?.BEAM_FR_ACCORDS||(typeof require==="function"?require("./fr-accords.js"):null);
  const MONTHS=["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
  const SHORT=["janv.","févr.","mars","avr.","mai","juin","juil.","août","sept.","oct.","nov.","déc."];
  const DAYS=["lundi","mardi","mercredi","jeudi","vendredi","samedi","dimanche"];
@@ -49,7 +50,7 @@
   const start=entry.slice(0,7)===exit.slice(0,7)?String(Number(entry.slice(8,10))):
    entry.slice(0,4)===exit.slice(0,4)?String(Number(entry.slice(8,10)))+" "+SHORT[Number(entry.slice(5,7))-1]:shortDate(entry);
   const days=duration(entry,exit);
-  return "Du "+start+" au "+shortDate(exit)+" · "+days+" jour"+(days===1?"":"s");
+  return "Du "+start+" au "+shortDate(exit)+" · "+FR.count(days,"jour");
  }
  function mount({container,entryInput,exitInput,mode="multi",min="",max="",existing=[],excludeId=null}){
   if(!container||!entryInput||!exitInput)throw Error("Le calendrier requiert deux champs de dates.");

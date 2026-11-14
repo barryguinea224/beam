@@ -3,6 +3,7 @@
 (function(root){
   "use strict";
   const COUNTRY_ART=Object.freeze(["FR","MA","GN","SA","TR","SN"]);
+  const FR=root?.BEAM_FR_ACCORDS||(typeof require==="function"?require("./fr-accords.js"):null);
   const LIFE=root?.BEAM_TRIP_LIFECYCLE||(typeof require==="function"?require("./trip-lifecycle.js"):null);
   const COUNTRY_SET=new Set(COUNTRY_ART);
   // All ISO 3166-1 alpha-2 flags are bundled locally; use the same 249-code
@@ -49,7 +50,7 @@
        '</span>'+
        '<span class="journeyCountry">'+country+'</span>'+
        '<span class="journeyCities">'+cities+'</span>'+
-       '<span class="journeyFooter">'+dates+' · '+(isDay?"Excursion · 1 jour":safeDays+" jour"+(safeDays===1?"":"s"))+' · '+purpose+'</span>'+
+       '<span class="journeyFooter">'+dates+' · '+(isDay?"Excursion · 1 jour":safeDays==="—"?"—":FR.count(safeDays,"jour"))+' · '+purpose+'</span>'+
        '<span class="journeyLink">Voir la fiche →</span>'+
      '</span></button></article>';
   }
