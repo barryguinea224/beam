@@ -1,13 +1,14 @@
 // Voyage international only in header statistics; full journal/map remain unchanged.
 (function(root){
   "use strict";
-  function summarize(rows){
-    const eligible=rows.filter(t=>!t.is_domestic&&!t.deleting);
-    const domestic=rows.filter(t=>t.is_domestic&&!t.deleting).length;
+  const LIFE=root?.BEAM_TRIP_LIFECYCLE||(typeof require==="function"?require("./trip-lifecycle.js"):null);
+  function summarize(rows,asOf=LIFE.today()){
+    const eligible=rows.filter(t=>!t.is_domestic&&!t.deleting&&LIFE.started(t,asOf));
+    const domestic=rows.filter(t=>t.is_domestic&&!t.deleting&&LIFE.started(t,asOf)).length;
     return Object.freeze({
       trips:eligible.length,
-      countries:new Set(eligible.flatMap(t=>[t.country_code,...(Array.isArray(t.stops)?t.stops.map(s=>s.country_code):[])])).size,
-      days:eligible.reduce((n,t)=>n+(Number(t.duration_days)||0),0),
+      countries:new Set(eligible.flatMap(t=>LIFE.visitedCodes(t,asOf))).size,
+      days:eligible.reduce((n,t)=>n+LIFE.elapsedDays(t,asOf),0),
       domestic
     });
   }

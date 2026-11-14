@@ -23,6 +23,7 @@ const edges={
  "country-picker.js":["countries.js"],
  "factual-pdf.js":["countries.js"],
  "visual-cards.js":["countries.js"],
+ "dashboard-filters.js":["trip-lifecycle.js"],
  "factual-pdf-file.js":["factual-pdf.js"],
  "printable-journal.js":["countries.js","dashboard-filters.js","visual-cards.js"],
  "family-booklet.js":["countries.js","printable-journal.js"]
@@ -45,6 +46,10 @@ const broken=modules.slice();
 const i=broken.indexOf("dashboard-filters.js"),j=broken.indexOf("printable-journal.js");
 [broken[i],broken[j]]=[broken[j],broken[i]];
 assert.throws(()=>verifyOrder(broken),/printable-journal\.js is loaded before dashboard-filters\.js/);
+const brokenLifecycle=modules.slice();
+const lifeIndex=brokenLifecycle.indexOf("trip-lifecycle.js"),filtersIndex=brokenLifecycle.indexOf("dashboard-filters.js");
+[brokenLifecycle[lifeIndex],brokenLifecycle[filtersIndex]]=[brokenLifecycle[filtersIndex],brokenLifecycle[lifeIndex]];
+assert.throws(()=>verifyOrder(brokenLifecycle),/dashboard-filters\.js is loaded before trip-lifecycle\.js/);
 for(const s of scripts){
  if(!s.src||(!s.src.startsWith("./")&&!s.src.startsWith("/travel/")))continue;
  assert.ok(!/\b(?:async|defer)\b/i.test(s.attrs),"load-order-sensitive module must be synchronous: "+s.src);
@@ -59,6 +64,6 @@ const journal=fs.readFileSync(path.join(__dirname,"..","travel","printable-journ
 assert.match(journal,/BEAM_DASHBOARD_FILTERS/, "the journal's filter dependency must remain explicitly checked");
 assert.match(journal,/BEAM_COUNTRIES/, "the journal's country dependency must remain explicitly checked");
 const sw=fs.readFileSync(path.join(__dirname,"..","travel","sw.js"),"utf8");
-assert.match(sw,/beam-travel-shell-v1-20261114-jyetais-v42-excursions-ranges/);
+assert.match(sw,/beam-travel-shell-v1-20261114-jyetais-v43-future-journeys/);
 assert.ok(sw.includes('"./printable-journal.js"')&&sw.includes('"./dashboard-filters.js"')&&sw.includes('"./visual-cards.js"'));
 console.log("PASS real index.html script dependency graph and PWA shell version");
