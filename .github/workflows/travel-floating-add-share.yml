@@ -1,0 +1,56 @@
+name: "J'y étais — bouton flottant, PDF envoi prioritaire"
+on:
+  pull_request:
+    branches: [feature/beam-travel-history-v1]
+    paths:
+      - "travel/index.html"
+      - "travel/home-simple.css"
+      - "travel/factual-pdf.js"
+      - "travel/sw.js"
+      - "tests/travel-floating-add-mobile.cjs"
+      - "tests/travel-factual-pdf-share-priority.cjs"
+      - ".github/workflows/travel-floating-add-share.yml"
+permissions:
+  contents: read
+jobs:
+  android-pdf:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Source invariants, existing PDF contract, and unchanged generator
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          git diff --exit-code "$BASE_SHA"...HEAD -- travel/factual-pdf-file.js travel/supabase
+          node --check tests/travel-floating-add-mobile.cjs
+          node --check tests/travel-factual-pdf-share-priority.cjs
+          node --check tests/travel-factual-pdf-share-browser.cjs
+          node tests/travel-factual-pdf.cjs
+      - name: Install isolated Playwright Chromium
+        run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Real Android UI and unchanged sharing regressions
+        run: |
+          node tests/travel-floating-add-mobile.cjs
+          node tests/travel-factual-pdf-share-priority.cjs
+          node tests/travel-factual-pdf-share-browser.cjs
+          node tests/travel-factual-pdf-file.cjs
+          node tests/travel-home-simple-mobile.cjs
+      - name: Upload 360px screenshots (synthetic account only)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jyetais-bouton-flottant-pdf-360px
+          path: |
+            test-artifacts/floating-add-share/bouton-flottant-360.png
+            test-artifacts/floating-add-share/apercu-pdf-360.png
+          if-no-files-found: warn
+          retention-days: 14
