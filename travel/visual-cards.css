@@ -13,7 +13,7 @@
 .journeyFlag{width:26px;height:19px;object-fit:cover;border:1px solid #ffffff66;border-radius:2px;background:#f0f0f0;box-shadow:0 1px 3px #11201c5c}
 .journeyCode{font:700 12px system-ui,sans-serif;letter-spacing:.16em;color:#f0eee9}
 .journeyDomestic{font:700 10px system-ui,sans-serif;border:1px solid #fff9;border-radius:999px;padding:3px 8px;color:#fff}
-.journeyCountry{display:block;font:500 clamp(24px,5vw,31px)/1.13 Georgia,serif;overflow-wrap:anywhere;margin-top:7px;text-shadow:0 1px 6px #0007}
+.journeyCountry{display:block;font:500 clamp(24px,5vw,31px)/1.13 Poppins,system-ui,sans-serif;overflow-wrap:anywhere;margin-top:7px;text-shadow:0 1px 6px #0007}
 .journeyCities{font:600 14px/1.25 system-ui,sans-serif;overflow-wrap:anywhere;color:#fbfaf7}
 .journeyFooter{font:500 12px/1.45 system-ui,sans-serif;color:#f7f4ec;margin-top:8px;overflow-wrap:anywhere}
 .journeyLink{font:700 12px/1.2 system-ui,sans-serif;color:#f0dfb6;margin-top:auto;padding-top:8px}

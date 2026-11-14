@@ -24,10 +24,11 @@ for(const file of published){
 // Supabase schema/function/table names, existing client storage keys.
 assert.match(app,/window\.BEAM_TRAVEL_CONFIG/);
 assert.match(app,/BEAM_FAMILY_BOOKLET/);
-assert.match(sw,/beam-travel-shell-v1-20261114-jyetais-v45-period-finish/);
+assert.match(sw,/beam-travel-shell-v1-20261114-jyetais-v47-poppins-all-headings/);
 assert.match(sw,/BEAM_CLEAR_PUBLIC_SHELL/);
 assert.match(app,/<img class="jyBrandLogo jyAuthLogo" src="\.\/assets\/brand\/jyetais-logo\.svg"/);
-assert.match(app,/<img class="jyBrandLogo jyHeaderLogo" src="\.\/assets\/brand\/jyetais-logo\.svg"/);
+assert.ok(!app.includes('class="jyBrandLogo jyHeaderLogo"'),"home prioritizes the traveler avatar, not a decorative logo");
+assert.ok(app.includes('id="travelerAvatar"')&&app.includes('id="openAccount"'),"profile and settings remain on home");
 assert.match(app,/<link rel="icon" type="image\/svg\+xml" href="\/travel\/assets\/brand\/jyetais-icon\.svg">/);
 assert.match(app,/rel="apple-touch-icon" href="\/travel\/assets\/brand\/icon-192\.png"/);
 assert.match(app,/J&#39;y étais by BEAM/);

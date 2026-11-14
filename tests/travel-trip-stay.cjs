@@ -26,7 +26,7 @@ assert.ok(page.includes('stayFact("Hôtel / hébergement",trip.hotel,"hotel")'))
 assert.ok(journal.includes("trip-logistics") && booklet.includes("stay-logistics"));
 // Regression: inspect the REAL query feeding both personal print formats.
 const printStart=page.indexOf('$("#printJournal").onclick=async()=>');
-const factualStart=page.indexOf('$("#pdf").onclick=async()=>',printStart);
+const factualStart=page.indexOf('$("#pdf").onclick=()=>',printStart);
 assert.ok(printStart>=0&&factualStart>printStart,"print/factual handlers must be separated");
 const printHandler=page.slice(printStart,factualStart);
 const tripQueries=[...printHandler.matchAll(/S\.from\("trips"\)\s*\.select\("([^"]+)"\)/g)];
@@ -47,7 +47,7 @@ assert.ok(factualHandler.includes("BEAM_TRAVEL_PDF.fetchRows(S,uid)"),
 assert.deepEqual(PDF.FIELDS,["country_code","cities","entry_date","exit_date","duration_days","purpose"],
  "neither airline nor hotel may enter the factual PDF");
 
-assert.ok(sw.includes("jyetais-v45-period-finish"));
+assert.ok(sw.includes("jyetais-v47-poppins-all-headings"));
 const sample={country_code:"FR",cities:["Paris"],entry_date:"2025-05-01",exit_date:"2025-05-03",
  duration_days:3,purpose:"tourisme",airline:"  Compagnie fictive  ",hotel:"  Hôtel fictif  "};
 const projected=JOURNAL.viewTrip(sample);

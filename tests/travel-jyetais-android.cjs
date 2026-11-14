@@ -57,14 +57,15 @@ async function main(){
      const map=document.querySelector("#map");
      if(map)map.innerHTML=svg;
     },world);
-    await page.locator(".jyHeaderLogo").evaluate(img=>img.decode());
+    await page.locator(".jyAuthLogo").evaluate(img=>img.decode());
     const home=await page.evaluate(()=>({
-     logo:document.querySelector(".jyHeaderLogo").naturalWidth,
+     logo:document.querySelector(".jyAuthLogo").naturalWidth,
+      traveler:document.querySelector("#travelerAvatar")?.textContent,
      scroll:document.documentElement.scrollWidth,
      appVisible:!document.querySelector("#app").classList.contains("hidden"),
      footer:document.querySelector(".jyAppFooter")?.textContent.trim()
     }));
-    assert.ok(home.logo>0&&home.appVisible&&home.scroll<=width+2,
+    assert.ok(home.logo>0&&home.traveler&&home.appVisible&&home.scroll<=width+2,
      "Android home "+width+": "+JSON.stringify(home));
     assert.equal(home.footer,"J'y étais by BEAM");
     await page.screenshot({path:path.join(out,"accueil-"+width+".png")});

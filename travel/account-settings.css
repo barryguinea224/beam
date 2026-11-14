@@ -5,9 +5,9 @@
 #myAccount{padding:0 16px 22px;gap:12px;background:var(--bg)}
 #myAccount>.panel{border-radius:16px;padding:18px;margin:0}
 #myAccount .accountToolbar{position:sticky;top:0;z-index:6;display:flex;align-items:center;gap:12px;background:var(--bg);border-bottom:1px solid var(--line);margin:0 -16px;padding:11px 16px;min-height:68px}
-.accountToolbar h2{font-family:Georgia,serif;font-size:clamp(23px,6.5vw,29px);font-weight:700;margin:0;line-height:1.2}
+.accountToolbar h2{font-family:Poppins,system-ui,sans-serif;font-size:clamp(23px,6.5vw,29px);font-weight:700;margin:0;line-height:1.2}
 .accountBack{width:46px;height:46px;min-width:46px;min-height:46px;border:1px solid var(--line);border-radius:50%;background:#fff;color:var(--g);display:grid;place-items:center;cursor:pointer;font-size:24px}
-#myAccount .accountSectionTitle{font-family:Georgia,serif;font-weight:700;font-size:20px;line-height:1.25;color:var(--ink);margin:0 0 14px}
+#myAccount .accountSectionTitle{font-family:Poppins,system-ui,sans-serif;font-weight:700;font-size:20px;line-height:1.25;color:var(--ink);margin:0 0 14px}
 #myAccount .accountAvatarRow{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;margin:10px 0 14px}
 .accountAvatarControl{position:relative;display:flex;justify-content:center;min-width:0}
 .accountAvatarButton{background:transparent;border:0;padding:0;position:relative;width:96px;height:96px;border-radius:50%;cursor:pointer}
@@ -19,7 +19,7 @@
 .accountActionMenu{position:absolute;top:calc(100% + 8px);left:50%;transform:translateX(-50%);width:210px;z-index:8;border-radius:13px;padding:5px;box-shadow:0 12px 32px #10251a2d;border:1px solid var(--line);background:#fff;text-align:left}
 .accountMenuItem{display:block;background:transparent;color:var(--ink);border:0;border-radius:9px;width:100%;text-align:left;min-height:44px;padding:10px 13px;cursor:pointer;font-size:14px}
 .accountMenuItem:hover,.accountMenuItem:focus-visible{background:#eaf2ec;outline:2px solid var(--g);outline-offset:-2px}
-.accountDisplayName{font-family:Georgia,serif;font-weight:700;font-size:24px;line-height:1.24;overflow-wrap:anywhere;margin:9px 0 0}
+.accountDisplayName{font-family:Poppins,system-ui,sans-serif;font-weight:700;font-size:24px;line-height:1.24;overflow-wrap:anywhere;margin:9px 0 0}
 #avatarMessage{font-size:12px;line-height:1.5;color:var(--muted);margin:4px 0 0;max-width:290px}
 #accountReadSummary.accountInfoList{display:grid;gap:0;white-space:normal;line-height:normal;margin:15px 0 0}
 .accountInfoRow{display:flex;align-items:center;gap:12px;min-width:0;min-height:58px;padding:10px 1px;border-top:1px solid var(--line)}
@@ -34,7 +34,7 @@
 #accountOverlay:not(.accountEditing) #residencePanel{display:none}
 #accountOverlay.accountEditing #residencePanel{display:block}
 .accountEditResidence{border-top:1px solid var(--line);margin-top:16px;padding-top:13px}
-.accountSubTitle{font-family:Georgia,serif;font-size:17px;font-weight:700;margin:12px 0 8px}
+.accountSubTitle{font-family:Poppins,system-ui,sans-serif;font-size:17px;font-weight:700;margin:12px 0 8px}
 .accountSubTitle small{font-family:system-ui,sans-serif;color:var(--muted);font-size:12px;font-weight:400}
 #myAccount #travelerNameForm,#myAccount #contactDetailsForm{max-width:100%!important;margin-bottom:12px!important}
 #myAccount .account-contacts-form{padding-top:24px}
