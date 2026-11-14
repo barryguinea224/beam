@@ -27,7 +27,7 @@ async function main(){
      if(url.hostname==="cdn.jsdelivr.net")return route.fulfill({status:200,contentType:"application/javascript",body:"("+fictionalSupabase.toString()+")();"});
      if(url.hostname==="127.0.0.1"){
       if(phase==="avant"&&url.pathname==="/travel/")
-       return route.fulfill({status:200,contentType:"text/html; charset=utf-8",body:baseline.replace(\u0027<script src="./photo-utils.js"></script>\u0027,\u0027<script src="./fr-accords.js"></script><script src="./photo-utils.js"></script>\u0027)});
+       return route.fulfill({status:200,contentType:"text/html; charset=utf-8",body:baseline.replace('<script src="./photo-utils.js"></script>','<script src="./fr-accords.js"></script><script src="./photo-utils.js"></script>')});
       return route.continue();
      }
      return route.abort();
