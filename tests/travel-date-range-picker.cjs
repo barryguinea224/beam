@@ -17,7 +17,26 @@ let s=P.nextSelection("multi","","","2026-11-03");
 assert.deepEqual(s,{entry:"2026-11-03",exit:""});
 s=P.nextSelection("multi",s.entry,s.exit,"2026-11-10");
 assert.deepEqual(s,{entry:"2026-11-03",exit:"2026-11-10"});
-assert.equal(P.summary("multi",s.entry,s.exit),"Du 3 nov. 2026 au 10 nov. 2026 · 8 jours");
+assert.equal(P.summary("multi",s.entry,s.exit),"Du 3 au 10 nov. 2026 · 8 jours");
+assert.equal(P.summary("multi","2026-11-05",""),"Arrivée le 5 nov. 2026 — touchez maintenant la date de départ");
+assert.deepEqual(P.nextSelection("multi","2026-11-05","","2026-11-05"),{entry:"2026-11-05",exit:"2026-11-05"},"two taps same date is valid");
+assert.equal(P.summary("multi","2026-11-05","2026-11-05"),"Le 5 nov. 2026");
+assert.equal(P.summary("multi","2026-11-05","2026-11-06"),"Du 5 au 6 nov. 2026 · 2 jours");
+assert.equal(P.summary("multi","2026-11-05","2026-11-11"),"Du 5 au 11 nov. 2026 · 7 jours");
+assert.equal(P.summary("multi","2026-10-28","2026-11-03"),"Du 28 oct. au 3 nov. 2026 · 7 jours");
+assert.equal(P.summary("multi","2026-12-28","2027-01-03"),"Du 28 déc. 2026 au 3 janv. 2027 · 7 jours");
+const STOPS=require("../travel/trip-stops.js"),CARDS=require("../travel/visual-cards.js");
+const stage=one("2026-11-05","2026-11-05","s");
+assert.match(STOPS.factual({...stage,country_code:"DE",cities:["Berlin"]}),/1 jour · étape/);
+assert.match(STOPS.factual({...stage,exit_date:"2026-11-06",country_code:"DE",cities:["Berlin"]}),/2 jours · étape/);
+function card(duration,exit){
+ return CARDS.markup({id:"00000000-0000-4000-8000-000000000000",country_code:"FR",
+  cities:["Paris"],entry_date:"2026-11-05",exit_date:exit,duration_days:duration},
+  "France","Tourisme","5 nov. 2026");
+}
+assert.match(card(1,"2026-11-06"),/1 jour/);
+assert.doesNotMatch(card(1,"2026-11-06"),/1 jours/);
+assert.match(card(2,"2026-11-06"),/2 jours/);
 s=P.nextSelection("multi",s.entry,s.exit,"2026-11-14");
 assert.deepEqual(s,{entry:"2026-11-14",exit:""},"third click starts a new selection");
 s=P.nextSelection("multi",s.entry,s.exit,"2026-11-02");
@@ -48,7 +67,10 @@ for(const token of ['id="tripDatePicker"','id="tripStopDatePicker"','id="stopDur
 assert.ok(html.indexOf('src="./date-range-picker.js"')<html.indexOf("const RANGE="));
 assert.ok(html.includes('href="./date-range-picker.css"'));
 assert.match(html,/BEAM_DATE_RANGE_PICKER/);
-assert.match(sw,/jyetais-v44-period-calendar/);
+assert.ok(html.includes('msg.textContent="Choisissez la date de départ du pays."'),"partial range submit must explain missing departure");
+assert.ok(html.includes('stopMode==="multi"&&$("#tripStopEntry").value&&!$("#tripStopExit").value'),"stages must also reject an incomplete range");
+assert.ok(html.includes('tripMode==="multi"&&$("#tripEntryDate").value&&!$("#tripExitDate").value'),"trip save must read hidden date sources directly");
+assert.match(sw,/jyetais-v45-period-finish/);
 for(const resource of ['"./date-range-picker.js"','"./date-range-picker.css"'])
  assert.ok(sw.includes(resource),"Missing safe public cache resource "+resource);
 new vm.Script(fs.readFileSync("travel/date-range-picker.js","utf8"));
