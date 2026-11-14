@@ -68,7 +68,8 @@ assert.ok(html.indexOf('src="./date-range-picker.js"')<html.indexOf("const RANGE
 assert.ok(html.includes('href="./date-range-picker.css"'));
 assert.match(html,/BEAM_DATE_RANGE_PICKER/);
 assert.ok(html.includes('msg.textContent="Choisissez la date de départ du pays."'),"partial range submit must explain missing departure");
-assert.ok(html.includes('stageRange.mode==="multi"&&stageRange.entry&&!stageRange.exit'),"stages must also reject an incomplete range");
+assert.ok(html.includes('stopMode==="multi"&&$("#tripStopEntry").value&&!$("#tripStopExit").value'),"stages must also reject an incomplete range");
+assert.ok(html.includes('tripMode==="multi"&&$("#tripEntryDate").value&&!$("#tripExitDate").value'),"trip save must read hidden date sources directly");
 assert.match(sw,/jyetais-v45-period-finish/);
 for(const resource of ['"./date-range-picker.js"','"./date-range-picker.css"'])
  assert.ok(sw.includes(resource),"Missing safe public cache resource "+resource);

@@ -1155,7 +1155,7 @@ $("#tripDateFields").addEventListener("change",()=>{
 $("#tripStopDatePicker").addEventListener("change",()=>{
  if($("#tripStopFormMessage").textContent==="Choisissez la date de départ du pays.")stopMessage("");
 });
-let tripMode="multi",overlapPending=null,overlapSaving=false;
+let tripMode="multi",stopMode="multi",overlapPending=null,overlapSaving=false;
 function clearTripOverlap(){
  overlapPending=null;
  $("#tripOverlapOffer").classList.add("hidden");
@@ -1179,6 +1179,7 @@ $("#tripForm").addEventListener("input",clearTripOverlap);
 $("#tripForm").addEventListener("change",clearTripOverlap);
 function setStopMode(mode){
  const value=mode==="day"?"day":"multi";
+ stopMode=value;
  for(const button of $("#stopDurationChoices").querySelectorAll("button[data-stop-mode]"))
   button.setAttribute("aria-pressed",String(button.dataset.stopMode===value));
  stopPicker.setMode(value);
@@ -1445,8 +1446,7 @@ $("#tripStopForm").onsubmit=async e=>{
  if(!detailTripId||!user||stopBusy||!canWrite())return;
  const uid=user.id,trip=trips.find(t=>t.id===detailTripId);
  if(!trip)return;
- const stageRange=stopPicker.state();
- if(stageRange.mode==="multi"&&stageRange.entry&&!stageRange.exit){
+ if(stopMode==="multi"&&$("#tripStopEntry").value&&!$("#tripStopExit").value){
   stopMessage("Choisissez la date de départ du pays.");return;
  }
  const fields=new FormData(e.currentTarget);
@@ -1865,8 +1865,7 @@ $("#tripForm").onsubmit=async e=>{
  e.preventDefault();
  if(accountState!=="active"||!canWrite()||savingTrip||mediaBusy||photoSelecting)return;
  const form=e.currentTarget,btn=$("#saveTrip"),msg=$("#tripMsg"),wasEditing=!!editingTripId;
- const period=tripPicker.state();
- if(tripMode==="multi"&&period.entry&&!period.exit){
+ if(tripMode==="multi"&&$("#tripEntryDate").value&&!$("#tripExitDate").value){
   msg.textContent="Choisissez la date de départ du pays.";
   msg.classList.remove("hidden");return;
  }
