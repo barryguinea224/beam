@@ -3,6 +3,7 @@
 (function(root){
   "use strict";
   const EMPTY=Object.freeze({country:"",year:"",purpose:"",scope:""});
+  const LIFE=root?.BEAM_TRIP_LIFECYCLE||(typeof require==="function"?require("./trip-lifecycle.js"):null);
   const stopCodes=t=>[t?.country_code,...(Array.isArray(t?.stops)?t.stops.map(s=>s.country_code):[])].filter(code);
   const PURPOSES=Object.freeze(["tourisme","affaires","etudes","famille","sante","transit","autre"]);
   function code(value){return typeof value==="string"&&/^[A-Z]{2}$/.test(value)?value:"";}
@@ -41,17 +42,16 @@
   // Keep the original international-only headline when scope is "all".
   // Other filters still apply first; only explicit "National" changes the
   // headline to domestic journeys. Domestic stays a separate count otherwise.
-  function summary(rows,input){
-    const active=(Array.isArray(rows)?rows:[]).filter(t=>t&&!t.deleting);
+  function summary(rows,input,asOf=LIFE.today()){
+    const active=(Array.isArray(rows)?rows:[]).filter(t=>t&&!t.deleting&&LIFE.started(t,asOf));
     const state=normalize(input);
     const domestic=active.filter(t=>t.is_domestic===true);
     const eligible=state.scope==="domestic"
       ? domestic : active.filter(t=>t.is_domestic!==true);
     return Object.freeze({
       trips:eligible.length,
-      countries:new Set(eligible.flatMap(t=>stopCodes(t))).size,
-      days:eligible.reduce((sum,t)=>sum+(Number.isFinite(Number(t.duration_days))?
-        Math.max(0,Number(t.duration_days)):0),0),
+      countries:new Set(eligible.flatMap(t=>LIFE.visitedCodes(t,asOf))).size,
+      days:eligible.reduce((sum,t)=>sum+LIFE.elapsedDays(t,asOf),0),
       domestic:domestic.length
     });
   }
