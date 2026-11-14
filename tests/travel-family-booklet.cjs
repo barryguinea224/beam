@@ -75,7 +75,7 @@ async function main(){
   try{
    await page.route("https://fixture.invalid/**",route=>route.fulfill({status:200,contentType:"image/svg+xml",body:svg}));
    await page.setContent("<!doctype html><html lang='fr'><head></head><body></body></html>");
-   for(const mod of ["countries.js","dashboard-filters.js","flight-connections.js","printable-journal.js","family-booklet.js"])
+   for(const mod of ["countries.js","fr-accords.js","dashboard-filters.js","flight-connections.js","printable-journal.js","family-booklet.js"])
     await page.addScriptTag({path:path.resolve("travel",mod)});
    const count=await page.evaluate(data=>window.BEAM_FAMILY_BOOKLET.render(document,{
     ...data,generatedAt:new Date(data.generatedAt)

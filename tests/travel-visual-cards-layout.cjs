@@ -5,6 +5,7 @@ const path=require("node:path");
 const {chromium}=require("playwright");
 const countries=fs.readFileSync("travel/countries.js","utf8");
 const visual=fs.readFileSync("travel/visual-cards.js","utf8");
+const fr=fs.readFileSync("travel/fr-accords.js","utf8");
 const css=fs.readFileSync("travel/visual-cards.css","utf8");
 async function main(){
  const browser=await chromium.launch({headless:true,args:["--no-sandbox","--disable-dev-shm-usage"]});
@@ -17,7 +18,8 @@ async function main(){
     await page.setContent('<!doctype html><html lang="fr"><meta name="viewport" content="width=device-width,initial-scale=1"><body><div id="trips"></div></body></html>');
     await page.addStyleTag({content:'*{box-sizing:border-box}html,body{margin:0;padding:0;max-width:100%;overflow-x:hidden}body{background:#f7f5ef;color:#17231f;font-family:system-ui;padding:12px}#trips{max-width:480px;margin:0 auto}' + css});
     await page.addScriptTag({content:countries});
-    await page.addScriptTag({content:visual});
+    await page.addScriptTag({content:fr});
+     await page.addScriptTag({content:visual});
     await page.evaluate(()=>{
       const t=(code,name,city,domestic=false)=>({
        id:"60000000-0000-4000-8000-00000000000"+(["FR","GN","SA","NZ"].indexOf(code)+1),country_code:code,cities:[city],duration_days:11,
