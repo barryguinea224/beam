@@ -209,12 +209,13 @@
     ".share-button{border:1px solid #174d3a;border-radius:25px;background:white;color:#174d3a;padding:11px 19px;font-weight:700;font-size:11pt;cursor:pointer}",
     ".share-button:disabled{opacity:.6;cursor:not-allowed}",
     ".share-status{font-size:9pt;color:#486450}",
+    "@media(min-width:621px){.print-button{order:0}.toolbar-note{order:1}.share-button{order:2}.share-status{order:3}}",
     ".declared-contacts{border:1px solid #c4d5c8;background:#fbfdfb;padding:10px 12px;margin:0 0 8mm;break-inside:avoid;overflow-wrap:anywhere}",
     ".declared-contacts h2{font:700 11pt Arial,sans-serif;color:#174d3a;margin:0 0 5px}",
     ".declared-contacts p{margin:3px 0;font-size:9.5pt;white-space:pre-wrap}",
     "@media print{.toolbar{display:none!important}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}a{display:none!important}}",
     "@media screen{body{padding:24px 18px;background:#edf1ed}main{background:white;padding:28px;box-shadow:0 4px 25px #17231f20}}",
-    "@media(max-width:620px){body{padding:8px}main{padding:16px;overflow-x:auto}table{min-width:530px}.toolbar{flex-direction:column;align-items:stretch}}"
+    "@media(max-width:620px){body{padding:8px}main{padding:16px;overflow-x:auto}table{min-width:530px}.toolbar{flex-direction:column;align-items:stretch}.toolbar button{width:100%;min-height:46px;white-space:normal}.share-button{background:#174d3a;color:white;border-color:#174d3a;order:0}.print-button{background:white;color:#174d3a;border:1px solid #174d3a;order:1}.toolbar-note{order:2}.share-status{order:3}}"
   ].join("\n");
   function add(parent,tag,content,cssClass){
     const node=parent.ownerDocument.createElement(tag);
@@ -232,18 +233,20 @@
     const contacts=includeContacts?contactProjection(metadata?.contacts):null;
     doc.documentElement.lang="fr";
     const meta=doc.createElement("meta");meta.setAttribute("charset","utf-8");
+    const viewport=doc.createElement("meta");viewport.setAttribute("name","viewport");
+    viewport.setAttribute("content","width=device-width,initial-scale=1");
     const title=doc.createElement("title");title.textContent="J'y étais — Historique de voyages";
     const style=doc.createElement("style");style.textContent=CSS;
-    doc.head.replaceChildren(meta,title,style);
+    doc.head.replaceChildren(meta,viewport,title,style);
     doc.body.replaceChildren();
     const main=add(doc.body,"main");
     const toolbar=add(main,"div",null,"toolbar");
+    const share=add(toolbar,"button","Envoyer (WhatsApp, e-mail…)","share-button");
+    share.type="button";share.disabled=true;
     const button=add(toolbar,"button","Imprimer / Enregistrer au format PDF","print-button");
     button.type="button";button.disabled=rows.length===0;
     button.addEventListener("click",()=>doc.defaultView?.print());
     add(toolbar,"span","Choisissez « Enregistrer au format PDF » dans l’impression.","toolbar-note");
-    const share=add(toolbar,"button","Partager","share-button");
-    share.type="button";share.disabled=true;
     const shareStatus=add(toolbar,"span","","share-status");
     shareStatus.setAttribute("role","status");shareStatus.setAttribute("aria-live","polite");
     // Generate the file while rendering, before the next user click, so the
