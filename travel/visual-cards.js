@@ -33,7 +33,7 @@
     const dates=esc(dateLabel),purpose=esc(purposeLabel);
     const days=Number(trip.duration_days),isDay=trip.entry_date===trip.exit_date;
     const safeDays=Number.isInteger(days)&&days>=0?days:"—";
-    const lifecycle=LIFE.state(trip),status=LIFE.label(trip);
+    const lifecycle=LIFE?.state(trip)||"ended",status=LIFE?.label(trip)||"";
     // Decorative media is always public, local and anonymous; private cover URLs
     // are inserted LATER by the authenticated session, never serialized in markup.
     return '<article class="trip journeyTrip"><button type="button" class="tripOpen" data-id="'+esc(id)+

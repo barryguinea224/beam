@@ -194,13 +194,13 @@ create trigger media_photo_quota_before_write
   for each row execute function public.enforce_media_photo_quota();
 
 
-create function public.check_trip_dates() returns trigger language plpgsql set search_path='' as $
+create function public.check_trip_dates() returns trigger language plpgsql set search_path='' as $$
 begin
   if new.entry_date > (now() at time zone 'utc')::date + interval '2 years' then
     raise exception 'Un voyage ne peut pas commencer dans plus de deux ans.';
   end if;
   return new;
-end $;
+end $$;
 create trigger trips_dates before insert or update of entry_date,exit_date on public.trips for each row execute function public.check_trip_dates();
 
 create function public.touch_updated_at() returns trigger language plpgsql set search_path='' as $$

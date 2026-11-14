@@ -160,9 +160,9 @@ const photoCaption=value=>typeof value==="string"?value.trim().slice(0,500):"";
 const previewCaption=value=>value.length>105?value.slice(0,104)+"…":value;
 function render(doc,model){
  if(!doc?.createElement||!Array.isArray(model?.trips)||!model.trips.length)throw Error("Aucun voyage à imprimer.");
- const asOf=LIFE.today(model.generatedAt instanceof Date?model.generatedAt:new Date());
-  const upcoming=model.trips.filter(x=>LIFE.state(x.trip,asOf)==="upcoming");
-  const list=model.trips.filter(x=>LIFE.state(x.trip,asOf)!=="upcoming").map((data,i)=>{
+ const asOf=LIFE?.today(model.generatedAt instanceof Date?model.generatedAt:new Date());
+  const upcoming=model.trips.filter(x=>LIFE?.state(x.trip,asOf)==="upcoming");
+  const list=model.trips.filter(x=>LIFE?.state(x.trip,asOf)!=="upcoming").map((data,i)=>{
   const trip=JOURNAL.viewTrip(data.trip,data.activities,data.photos,{
    airlinePhoto:data.airlinePhoto,hotelPhoto:data.hotelPhoto
   },data.photoCaptions);

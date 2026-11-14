@@ -272,9 +272,9 @@
  function render(doc,model){
   if(!doc?.createElement||!model||!Array.isArray(model.trips))throw new Error("Carnet indisponible.");
   const name=clean(model.name).replace(/\s+/g," ").slice(0,80);
-  const asOf=LIFE.today(model.generatedAt instanceof Date?model.generatedAt:new Date());
-   const upcoming=model.trips.filter(t=>LIFE.state(t.trip,asOf)==="upcoming");
-   const lived=model.trips.filter(t=>LIFE.state(t.trip,asOf)!=="upcoming");
+  const asOf=LIFE?.today(model.generatedAt instanceof Date?model.generatedAt:new Date());
+   const upcoming=model.trips.filter(t=>LIFE?.state(t.trip,asOf)==="upcoming");
+   const lived=model.trips.filter(t=>LIFE?.state(t.trip,asOf)!=="upcoming");
    const list=lived.map(t=>viewTrip(t.trip,t.activities,t.photos,{
     airlinePhoto:t.airlinePhoto,hotelPhoto:t.hotelPhoto
   },t.photoCaptions));
