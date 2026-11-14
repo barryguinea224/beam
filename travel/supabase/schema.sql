@@ -194,8 +194,13 @@ create trigger media_photo_quota_before_write
   for each row execute function public.enforce_media_photo_quota();
 
 
-create function public.check_trip_dates() returns trigger language plpgsql set search_path='' as $$
-begin if new.exit_date>(now() at time zone 'utc')::date then raise exception 'L''historique ne contient que des voyages terminés'; end if; return new; end $$;
+create function public.check_trip_dates() returns trigger language plpgsql set search_path='' as $
+begin
+  if new.entry_date > (now() at time zone 'utc')::date + interval '2 years' then
+    raise exception 'Un voyage ne peut pas commencer dans plus de deux ans.';
+  end if;
+  return new;
+end $;
 create trigger trips_dates before insert or update of entry_date,exit_date on public.trips for each row execute function public.check_trip_dates();
 
 create function public.touch_updated_at() returns trigger language plpgsql set search_path='' as $$
@@ -265,7 +270,8 @@ grant update(caption,taken_on,is_favorite,position) on public.media to authentic
 
 create view public.travel_history_pdf with(security_invoker=true) as
 select user_id,country_code,cities,entry_date,exit_date,duration_days,purpose
-from public.trips where not is_domestic and not deleting;
+from public.trips where not is_domestic and not deleting
+  and exit_date < (now() at time zone 'utc')::date;
 
 insert into storage.buckets(id,name,public,file_size_limit,allowed_mime_types)
 values('media','media',false,10485760,array['image/webp']) on conflict(id) do nothing;
