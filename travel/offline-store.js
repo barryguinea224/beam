@@ -36,12 +36,22 @@ function activity(x){
   place:safeText(x?.place,160),happened_on:safeDate(x?.happened_on),
   duration_days:Number.isInteger(x?.duration_days)?x.duration_days:1};
 }
-function project(uid,displayName,trips,activities,now=Date.now()){
+function project(uid,profileInput,trips,activities,now=Date.now()){
  if(!id(uid))throw new Error("Identifiant utilisateur invalide");
+ // A string is accepted for old clients. An object is projected field by
+ // field; no arbitrary profile property can enter IndexedDB.
+ const p=typeof profileInput==="string"?{display_name:profileInput}:
+  profileInput&&typeof profileInput==="object"?profileInput:{};
+ const residence=typeof p.country_of_residence==="string"&&
+  /^[A-Z]{2}$/.test(p.country_of_residence)?p.country_of_residence:"";
  const selected=Array.isArray(trips)?trips.map(journey).filter(t=>t.id):[];
  const allowed=new Set(selected.map(x=>x.id));
  return {key:KEY,ownerId:uid,updatedAt:new Date(now).toISOString(),
-  profile:{display_name:safeText(displayName,80)},
+  profile:{
+   display_name:safeText(p.display_name,80),
+   home_city:safeText(p.home_city,80),
+   country_of_residence:residence
+  },
   trips:selected,activities:Array.isArray(activities)?
    activities.map(activity).filter(x=>x.id&&allowed.has(x.trip_id)):[]};
 }
@@ -134,7 +144,7 @@ async function readFor(uid){
  }
  if(owner()!==uid||!enabled())return null;
  // Re-project even when an old/corrupted record gained additional properties.
- return project(uid,stored.profile?.display_name,stored.trips,stored.activities,
+ return project(uid,stored.profile,stored.trips,stored.activities,
   Date.parse(stored.updatedAt));
 }
 async function readLast(){
@@ -145,9 +155,9 @@ async function prune(){
  if(!enabled()){await clear();return null}
  return readLast();
 }
-async function save(uid,displayName,trips,activities){
+async function save(uid,profileInput,trips,activities){
  if(!enabled()||owner()!==uid)return false;
- const data=project(uid,displayName,trips,activities);
+ const data=project(uid,profileInput,trips,activities);
  return serial(async()=>{
   if(!enabled()||owner()!==uid)return false;
   await put(data);
