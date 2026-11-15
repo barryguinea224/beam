@@ -54,6 +54,7 @@ jobs:
           name: jyetais-hors-ligne-360px
           path: |
             test-artifacts/jyetais-offline/offline-accueil-360.png
+            test-artifacts/jyetais-offline/offline-carte-conakry-360.png
             test-artifacts/jyetais-offline/offline-fiche-360.png
             test-artifacts/jyetais-offline/offline-parametres-360.png
           if-no-files-found: warn
