@@ -237,7 +237,7 @@
     ".mobileTripFacts .mobileMeta{white-space:nowrap}",
     "tbody tr.trip-stop{display:block;margin:0 0 3px 11px;padding:5px 0;border-left:2px solid #c6d6cc;min-width:0}",
     "tbody tr.trip-stop>td{display:block;width:100%;padding:3px 5px 5px 9px;font-size:11px;overflow-wrap:anywhere}",
-    "}}"
+    "}"
   ].join("\n");
   function add(parent,tag,content,cssClass){
     const node=parent.ownerDocument.createElement(tag);
