@@ -222,9 +222,14 @@ async function main(){
      const row=await new Promise(resolve=>{const g=db.transaction("journeys").objectStore("journeys").get("current");g.onsuccess=()=>resolve(g.result)});
      db.close();return row?.ownerId==="22222222-2222-4222-8222-222222222222";
     },null,{timeout:10000});
-    // The preceding waitForFunction already verifies the raw IndexedDB record.
-    // A second independent open here races with browser context/session cleanup.
-    assert.equal(await page.evaluate(()=>window.JYETAIS_OFFLINE.owner()),B);
+    // The raw IDB transaction and the local owner marker can settle on
+    // different ticks during a verified account transition. They must converge.
+    await page.waitForFunction(async()=>{
+     const expected="22222222-2222-4222-8222-222222222222";
+     if(window.JYETAIS_OFFLINE.owner()!==expected)return false;
+     const saved=await window.JYETAIS_OFFLINE.readFor(expected);
+     return saved?.ownerId===expected;
+    },null,{timeout:15000});
     await page.locator("#openAccount").click();
     await page.locator("#logout").click();
     await page.waitForFunction(async()=>!((await indexedDB.databases())
