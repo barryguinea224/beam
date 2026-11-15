@@ -61,7 +61,7 @@ assert.ok((multi.match(/\/Type \/Page\b/g)||[]).length>1);
 assert.equal((multi.match(/Allemagne/g)||[]).length,80);
 const index=fs.readFileSync("travel/index.html","utf8");
 const inline=index.match(/<script>([\s\S]*?)<\/script>/)?.[1];assert.ok(inline);new vm.Script(inline);
-for(const token of ['S.from("trip_stops")','fetchOwnedStops(data||[],user.id)',
+for(const token of ['S.from("trip_stops")','fetchOwnedStops(data||[],uid)',
  'trip.stops||[]','detailStopsSection','tripStopForm','tripStopDeleteConfirm',
  'window.BEAM_TRAVEL_PDF.fetchStops(S,uid)','window.BEAM_TRAVEL_PDF.attachStops(data,stops)']){
  assert.ok(index.includes(token),"Missing real query / UI wiring: "+token);
@@ -73,7 +73,7 @@ for(const file of ["travel/printable-journal.js","travel/family-booklet.js"]){
  assert.match(src,/trip\.stops/,"Personal carnet must contain stages");
 }
 assert.match(index,/pack\[position\]=\{trip,stops:trip\.stops/);
-assert.equal(fs.readFileSync("travel/sw.js","utf8").includes("jyetais-v50-fab-share-first"),true);
+assert.equal(fs.readFileSync("travel/sw.js","utf8").includes("jyetais-v51-offline-readonly"),true);
 const sql=fs.readFileSync("travel/supabase/migrations/20261107150000_trip_stops.sql","utf8");
 assert.match(sql,/foreign key\(trip_id,user_id\)/i);
 assert.match(sql,/constraint trip_stops_no_overlap exclude using gist/i);
