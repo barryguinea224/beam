@@ -222,7 +222,9 @@ async function main(){
      const row=await new Promise(resolve=>{const g=db.transaction("journeys").objectStore("journeys").get("current");g.onsuccess=()=>resolve(g.result)});
      db.close();return row?.ownerId==="22222222-2222-4222-8222-222222222222";
     },null,{timeout:10000});
-    assert.equal((await stored(page))?.ownerId,B);
+    // The preceding waitForFunction already verifies the raw IndexedDB record.
+    // A second independent open here races with browser context/session cleanup.
+    assert.equal(await page.evaluate(()=>window.JYETAIS_OFFLINE.owner()),B);
     await page.locator("#openAccount").click();
     await page.locator("#logout").click();
     await page.waitForFunction(async()=>!((await indexedDB.databases())
