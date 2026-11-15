@@ -186,6 +186,9 @@ async function main(){
     }));
     assert.deepEqual(offlineOrigin,onlineOrigin,
       "Offline arcs and visible origin must match the ONLINE profile at Conakry, GN");
+    if(width===360)await page.locator("#travelMapPanel").screenshot({
+     path:path.join(DIR,"offline-carte-conakry-360.png"),animations:"disabled"
+    });
     const cover=await page.locator("#profileCoverImage").evaluate(img=>({
      src:img.getAttribute("src"),private:img.dataset.isPrivate,
      width:img.naturalWidth,hidden:img.hidden
