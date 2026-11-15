@@ -38,7 +38,7 @@ function fakeSupabase(){
   from(table){
    const data=table==="profiles"?{
     display_name:uid===A?"Voyageuse Fictive":"Voyageur Second",
-    country_of_residence:"GN",deleting:false,access_until:"2099-12-31",
+    home_city:"Conakry",country_of_residence:"GN",deleting:false,access_until:"2099-12-31",
     avatar_id:null,cover_media_id:null,phone:"DO_NOT_STORE_PHONE",postal_address:"DO_NOT_STORE_ADDRESS"
    }:table==="trips"?(uid===A?[trip,earlier]:[trip]):table==="activities"?[act]:[];
    const query={
@@ -96,6 +96,18 @@ async function main(){
    const {context,page,url,errors}=await pageFor(browser,server,width);
    try{
     await seed(page,url);
+    // Record real online flight geometry before disconnecting. The same
+    // profile and travel fixtures must produce exactly the same departure.
+    await page.waitForFunction(()=>document.querySelectorAll("#map .flightArc").length===2&&
+      !!document.querySelector("#map .flightResidence"),null,{timeout:30000});
+    const onlineOrigin=await page.evaluate(()=>({
+     origin:[...document.querySelectorAll("#map .flightArc")].map(p=>
+       p.getAttribute("d").match(/^M([\d.]+) ([\d.]+)/)?.slice(1,3)),
+     marker:[document.querySelector("#map .flightResidence").getAttribute("cx"),
+      document.querySelector("#map .flightResidence").getAttribute("cy")]
+    }));
+    assert.equal(new Set(onlineOrigin.origin.map(x=>x?.join(","))).size,1,
+     "Every online arc must leave from the same GN residence centroid");
     const snapshot=await stored(page);
     if(!snapshot){
      const debug=await page.evaluate(async()=>({
@@ -119,7 +131,10 @@ async function main(){
     assert.equal(snapshot.ownerId,A);
     assert.equal(snapshot.trips.length,2);
     assert.equal(snapshot.activities.length,1);
-    for(const forbidden of ["DO_NOT_STORE_","phone","postal_address","nationality",
+    assert.deepEqual(snapshot.profile,{
+     display_name:"Voyageuse Fictive",home_city:"Conakry",country_of_residence:"GN"
+    },"Only the authorized profile fields are persisted");
+    for(const forbidden of ["DO_NOT_STORE_","phone","postal_address","nationality","email",
       "token","storage_path","signedUrl","photo_url","passport","session","cover_media_id"]){
      assert.ok(!raw.includes(forbidden),"Forbidden IndexedDB content "+forbidden);
     }
@@ -162,7 +177,18 @@ async function main(){
     }));
     assert.ok(map.count>100,"Real SVG polygons must render after airplane-mode reload");
     assert.ok(map.france&&map.morocco,"Offline snapshot countries must be colored as visited");
-    assert.ok(map.routes>0,"Offline travel connections must be drawn without residence data");
+    assert.equal(map.routes,2,"Both visited destinations must have a departure from GN");
+    const offlineOrigin=await page.evaluate(()=>({
+     origin:[...document.querySelectorAll("#map .flightArc")].map(p=>
+       p.getAttribute("d").match(/^M([\d.]+) ([\d.]+)/)?.slice(1,3)),
+     marker:[document.querySelector("#map .flightResidence")?.getAttribute("cx"),
+      document.querySelector("#map .flightResidence")?.getAttribute("cy")]
+    }));
+    assert.deepEqual(offlineOrigin,onlineOrigin,
+      "Offline arcs and visible origin must match the ONLINE profile at Conakry, GN");
+    if(width===360)await page.locator("#travelMapPanel").screenshot({
+     path:path.join(DIR,"offline-carte-conakry-360.png"),animations:"disabled"
+    });
     const cover=await page.locator("#profileCoverImage").evaluate(img=>({
      src:img.getAttribute("src"),private:img.dataset.isPrivate,
      width:img.naturalWidth,hidden:img.hidden
@@ -200,7 +226,7 @@ async function main(){
     });
     assert.equal(await page.evaluate(()=>localStorage.getItem("jyetais.offline.owner")),null);
     assert.deepEqual(errors,[],"Offline page errors at "+width+": "+errors.join("; "));
-    console.log("PASS offline Android "+width+"px: shell, home, map, detail, no editing, no leaks, switch deletes DB");
+    console.log("PASS offline Android "+width+"px: GN origin=online, home marker, map, detail, no leaks, owner safeguards");
    }finally{await context.close()}
   }
   // Separate authenticated session: old owner's data must be removed first.

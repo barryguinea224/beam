@@ -580,7 +580,9 @@ function showOfflineCopy(snapshot){
  // Preserve the actual authenticated user object on a connected warm start,
  // so account email and Auth state are not lost to the read-only preview.
  if(user?.id!==snapshot.ownerId)user={id:snapshot.ownerId};
- profile={display_name:snapshot.profile?.display_name||"",country_of_residence:null,
+ profile={display_name:snapshot.profile?.display_name||"",
+  home_city:snapshot.profile?.home_city||"",
+  country_of_residence:snapshot.profile?.country_of_residence||"",
   access_until:null,avatar_id:null,cover_media_id:null};
  trips=snapshot.trips||[];
  // Last completed country's illustration is public; no signed photo is restored.
@@ -610,7 +612,11 @@ async function storeOfflineCopy(uid){
    .eq("user_id",uid).order("created_at",{ascending:true});
   if(result.error||!Array.isArray(result.data)||user?.id!==uid||offlineMode)return;
   const safeTrips=trips.map(t=>({...t,status:LIFE.state(t)}));
-  await OFFLINE.save(uid,profile.display_name,safeTrips,result.data);
+  await OFFLINE.save(uid,{
+   display_name:profile.display_name,
+   home_city:profile.home_city,
+   country_of_residence:profile.country_of_residence
+  },safeTrips,result.data);
  }catch{/* Online reading remains available without local storage. */}
 }
 function accessState(){return ACCESS.state(profile.access_until)}
@@ -851,22 +857,11 @@ function renderFlightConnections(){
  if(!worldCentroids&&home&&!centroidFailed){
   void loadWorldCentroids().then(data=>{if(data&&mapReady&&accountState==="active")applyMapState()});
  }
- if(offlineMode){
-  // Residence is deliberately excluded from IndexedDB. Only connect
-  // countries actually visited; do not invent a residence for offline routes.
-  const visitedSet=countryState().visited;
-  const visited=[...new Set([...trips].sort((a,b)=>(a.entry_date||"").localeCompare(b.entry_date||""))
-   .flatMap(t=>[t.country_code,...(t.stops||[]).map(x=>x.country_code)])
-   .filter(code=>visitedSet.has(code)))];
-  if(!worldCentroids&&visited.length&&!centroidFailed)
-   void loadWorldCentroids().then(data=>{if(data&&offlineMode&&mapReady)applyMapState()});
-  lastFlightRoutes=visited.length>1?
-   FLIGHTS.draw(svg,visited[0],visited.slice(1),worldCentroids,{animate:false}):[];
- }else{
-  lastFlightRoutes=FLIGHTS.draw(svg,home,filteredFlightDestinations(),worldCentroids,{
-   animate:!flightIntroDone
-  });
- }
+ // Both online and offline use the same validated residence centroid.
+ // With no country of residence, FLIGHTS.draw returns no arcs or home marker.
+ lastFlightRoutes=FLIGHTS.draw(svg,home,filteredFlightDestinations(),worldCentroids,{
+  animate:!offlineMode&&!flightIntroDone
+ });
  if(lastFlightRoutes.length)flightIntroDone=true;
 }
 
@@ -1229,7 +1224,7 @@ async function load(){
  const uid=user.id;
  if(!offlineMode){setAccountState("loading");setSkeleton(true)}
  const {data:current,error:stateError}=await S.from("profiles")
-   .select("country_of_residence,display_name,deleting,access_until,avatar_id,cover_media_id").eq("id",uid).single();
+   .select("country_of_residence,home_city,display_name,deleting,access_until,avatar_id,cover_media_id").eq("id",uid).single();
  if(stateError||!current){if(!offlineMode){setSkeleton(false);setAccountState("unavailable")}return}
  if(current.deleting===true){
   // A server-side deletion lock revokes previously saved offline access as well.

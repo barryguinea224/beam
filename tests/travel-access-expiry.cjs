@@ -32,6 +32,6 @@ assert.match(admin,/v_duration not in \('1 year','2 years'\)/);
 assert.match(html,/<script src="\.\/access\.js"><\/script>/);
 assert.match(html,/#accessBanner/);
 assert.match(html,/travelAccessReadOnly/);
-assert.match(html,/select\("country_of_residence,display_name,deleting,access_until(?:,avatar_id)?(?:,cover_media_id)?"\)/);
+assert.match(html,/select\("country_of_residence,home_city,display_name,deleting,access_until(?:,avatar_id)?(?:,cover_media_id)?"\)/);
 assert.match(html,/Accès jusqu'au/);
 console.log("PASS expiry UTC boundaries, null guard, grant isolation, deployment SQL and UI");
