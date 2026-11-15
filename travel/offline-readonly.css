@@ -1,0 +1,41 @@
+/* A separate visual state; never expose editing controls or remote media while offline. */
+#offlineBanner{position:relative;z-index:2;margin:0 auto;padding:10px 16px;
+ max-width:960px;background:#ecf2ed;color:#194b38;border-bottom:1px solid #cbdace;
+ font:600 13px/1.5 system-ui,sans-serif}
+#offlineActionNote{font:600 12px/1.5 system-ui,sans-serif;color:#5c6c61;margin:2px 0 10px}
+#offlineSetting{margin:8px 0 0;padding:14px;border:1px solid #d3dfd6;border-radius:12px}
+#offlineSetting label{display:flex;justify-content:space-between;gap:14px;align-items:center;
+ font:650 14px/1.4 system-ui,sans-serif}
+#offlineToggle{width:23px;height:23px;accent-color:var(--g);flex:none}
+#offlineSetting p{margin:8px 0 0;color:#53685d;font-size:12px;line-height:1.5}
+#offlineSettingStatus{min-height:1.2em}
+#offlineSkeleton{max-width:960px;margin:20px auto;padding:0 14px}
+#offlineSkeleton .skeletonMap{height:200px;border-radius:18px;margin:16px 0;background:#e5e9e5}
+#offlineSkeleton .skeletonTrip{height:92px;border-radius:14px;margin:12px 0;background:#e5e9e5}
+#offlineSkeleton .skeletonBar{height:24px;width:62%;border-radius:7px;background:#e5e9e5}
+html.travelSkeleton #app>.w,html.travelSkeleton #app>.jyAppFooter{display:none!important}
+#offlineSkeleton[hidden],#offlineBanner[hidden],#offlineActionNote[hidden]{display:none!important}
+html.travelOfflinePreview #offlineActionNote{display:block}
+html.travelOfflinePreview #add,html.travelOfflinePreview #pdf,
+html.travelOfflinePreview #printJournal{display:block!important;opacity:.55;cursor:not-allowed}
+html.travelOfflinePreview #addFloating,
+html.travelOfflinePreview #welcomeName,html.travelOfflinePreview #welcomeTrip,
+html.travelOfflinePreview #welcomePdf,html.travelOfflinePreview #detailEdit,
+html.travelOfflinePreview #detailAddMoment,html.travelOfflinePreview #detailMomentActions,
+html.travelOfflinePreview #detailActivityForm,html.travelOfflinePreview #detailStopEditor,
+html.travelOfflinePreview #tripStopForm,html.travelOfflinePreview #deleteAccountOpen,
+html.travelOfflinePreview #accountSensitive,html.travelOfflinePreview #accountLinks,
+html.travelOfflinePreview #loyaltyPanel,html.travelOfflinePreview #accountCoverSection,
+html.travelOfflinePreview #contactDetailsForm,html.travelOfflinePreview #avatarMenuToggle,
+html.travelOfflinePreview #editAccount,html.travelOfflinePreview #changeResidence,
+html.travelOfflinePreview #residencePanel,html.travelOfflinePreview #detailPhotos .photoTap,
+html.travelOfflinePreview .detailRemoveActivity{display:none!important}
+html.travelOfflinePreview #myAccount{padding-bottom:max(18px,env(safe-area-inset-bottom))}
+html.travelOfflinePreview .offlineCountryIllustration{
+ display:block;max-width:100%;height:150px;object-fit:contain;margin:0 auto 10px}
+html.travelOfflinePreview #detailPhotos .detailEmpty{color:#5f7264;text-align:center}
+@media(max-width:390px){
+ #offlineBanner{padding:9px 14px;font-size:12px}
+ #offlineSetting{padding:12px}
+ #offlineSetting label{font-size:13px}
+}

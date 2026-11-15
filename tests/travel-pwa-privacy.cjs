@@ -66,7 +66,7 @@ function fixture(){
          map.set(url,new Response("PUBLIC_STATIC"));
        }
      },
-     match:async request=>map.get(typeof request==="string"?request:request.url)||null,
+     match:async request=>map.get(typeof request==="string"?request:request.url)?.clone()||null,
      put:async()=>{throw new Error("Forbidden runtime cache write")}
    };
  };
@@ -169,9 +169,8 @@ async function run(){
  const noShell=await f.fetch(f.origin+"/travel/not-in-cache.js");
  assert.equal(noShell,null,"unknown resources must still bypass the service worker");
  const offline=await f.fetch(f.origin+"/travel/",{mode:"navigate"});
- assert.equal(offline.status,503);
- assert.equal(offline.headers.get("cache-control"),"no-store");
- assert.match(await offline.text(),/Connexion nécessaire pour consulter votre carnet/);
+ assert.equal(await offline.text(),"PUBLIC_STATIC",
+  "installed /travel/ serves the audited, data-free public app shell");
  assert.equal(f.cacheOps.filter(x=>x[0]==="addAll").length,1,
    "no runtime writes even after offline fallback");
  // Public legal documents are safe offline, without leaking any private app HTML.
@@ -180,10 +179,16 @@ async function run(){
    assert.equal(await fallback.text(),"PUBLIC_STATIC",
      "offline legal notices should be available from the public audited shell");
  }
- // The cached APP HTML must NEVER be displayed as the offline navigation.
+ // /travel/index.html is the same install-time PUBLIC shell.
  const offlineIndex=await f.fetch(f.origin+"/travel/index.html",{mode:"navigate"});
- assert.equal(offlineIndex.status,503);
- assert.match(await offlineIndex.text(),/Connexion nécessaire pour consulter votre carnet/);
+ assert.equal(await offlineIndex.text(),"PUBLIC_STATIC");
+ // If installation never cached the shell, keep the neutral public fallback.
+ const cachedShell=[...f.cachesData.values()][0];
+ cachedShell.delete(f.origin+"/travel/index.html");
+ const noCachedShell=await f.fetch(f.origin+"/travel/",{mode:"navigate"});
+ assert.equal(noCachedShell.status,503);
+ assert.equal(noCachedShell.headers.get("cache-control"),"no-store");
+ assert.match(await noCachedShell.text(),/Connexion nécessaire pour consulter votre carnet/);
 
  f.cachesData.set("unrelated-site-cache",new Map());
  const ack=await f.purge();
@@ -218,6 +223,6 @@ async function run(){
  assert.equal(sessions.size,0,"pending OTP cleared");
  assert.ok(events.load,"PWA registration is on load");
 
- console.log("BEAM PWA PASS: manifest/icons, private cache exclusions, offline, cleanup, OTP");
+ console.log("BEAM PWA PASS: public offline shell, Supabase bypass, neutral fallback, cleanup, OTP");
 }
 run().catch(e=>{console.error(e);process.exitCode=1});
