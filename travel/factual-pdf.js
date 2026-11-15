@@ -209,13 +209,35 @@
     ".share-button{border:1px solid #174d3a;border-radius:25px;background:white;color:#174d3a;padding:11px 19px;font-weight:700;font-size:11pt;cursor:pointer}",
     ".share-button:disabled{opacity:.6;cursor:not-allowed}",
     ".share-status{font-size:9pt;color:#486450}",
+    ".mobileTripFacts{display:none}",
     "@media(min-width:621px){.print-button{order:0}.toolbar-note{order:1}.share-button{order:2}.share-status{order:3}}",
     ".declared-contacts{border:1px solid #c4d5c8;background:#fbfdfb;padding:10px 12px;margin:0 0 8mm;break-inside:avoid;overflow-wrap:anywhere}",
     ".declared-contacts h2{font:700 11pt Arial,sans-serif;color:#174d3a;margin:0 0 5px}",
     ".declared-contacts p{margin:3px 0;font-size:9.5pt;white-space:pre-wrap}",
     "@media print{.toolbar{display:none!important}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}a{display:none!important}}",
     "@media screen{body{padding:24px 18px;background:#edf1ed}main{background:white;padding:28px;box-shadow:0 4px 25px #17231f20}}",
-    "@media(max-width:620px){body{padding:8px}main{padding:16px;overflow-x:auto}table{min-width:530px}.toolbar{flex-direction:column;align-items:stretch}.toolbar button{width:100%;min-height:46px;white-space:normal}.share-button{background:#174d3a;color:white;border-color:#174d3a;order:0}.print-button{background:white;color:#174d3a;border:1px solid #174d3a;order:1}.toolbar-note{order:2}.share-status{order:3}}"
+    "@media screen and (max-width:620px){",
+    "body{padding:8px}main{padding:14px;overflow-x:visible;max-width:100%}",
+    ".toolbar{flex-direction:column;align-items:stretch}.toolbar button{width:100%;min-height:46px;white-space:normal}",
+    ".share-button{background:#174d3a;color:white;border-color:#174d3a;order:0}",
+    ".print-button{background:white;color:#174d3a;border:1px solid #174d3a;order:1}.toolbar-note{order:2}.share-status{order:3}",
+    "table,tbody{display:block;table-layout:auto;width:100%;min-width:0;max-width:100%}",
+    "thead{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}",
+    "tbody tr:not(.trip-stop){display:grid;grid-template-columns:minmax(0,max-content) minmax(0,1fr);column-gap:7px;row-gap:5px;padding:10px 0 12px;border-bottom:1px solid #dfe5e0;min-width:0}",
+    "tbody tr:not(.trip-stop)>td{display:block;min-width:0;padding:0;border:0;line-height:1.35;font-size:12px}",
+    "tbody tr:not(.trip-stop)>td:nth-child(1){font-weight:700;overflow-wrap:anywhere}",
+    "tbody tr:not(.trip-stop)>td:nth-child(1) .code{display:inline;font-size:10px;font-weight:400;margin:0;white-space:nowrap}",
+    "tbody tr:not(.trip-stop)>td:nth-child(1) .code:before{content:\" (\"}",
+    "tbody tr:not(.trip-stop)>td:nth-child(1) .code:after{content:\")\"}",
+    "tbody tr:not(.trip-stop)>td:nth-child(2){overflow-wrap:anywhere}",
+    "tbody tr:not(.trip-stop)>td:nth-child(3){grid-column:1/-1}",
+    "tbody tr:not(.trip-stop)>td:nth-child(n+4),.desktopEntry{display:none}",
+    ".mobileTripFacts{display:flex;flex-wrap:wrap;column-gap:4px;row-gap:2px;align-items:baseline;font-size:clamp(9.5px,2.95vw,11.9px);color:#44594b}",
+    ".mobileTripFacts .mobileDate{white-space:nowrap;font-variant-numeric:tabular-nums}",
+    ".mobileTripFacts .mobileMeta{white-space:nowrap}",
+    "tbody tr.trip-stop{display:block;margin:0 0 3px 11px;padding:5px 0;border-left:2px solid #c6d6cc;min-width:0}",
+    "tbody tr.trip-stop>td{display:block;width:100%;padding:3px 5px 5px 9px;font-size:11px;overflow-wrap:anywhere}",
+    "}"
   ].join("\n");
   function add(parent,tag,content,cssClass){
     const node=parent.ownerDocument.createElement(tag);
@@ -322,7 +344,20 @@
         const country=add(tr,"td");
         add(country,"span",trip.country);
         add(country,"span",trip.code,"code");
-        for(const key of ["cities","entry","exit","duration","purpose"])add(tr,"td",trip[key]);
+        for(const key of ["cities","entry","exit","duration","purpose"]){
+          const cell=add(tr,"td",trip[key]);
+          if(key!=="entry")continue;
+          // Still six physical columns in print; this alternative is screen-only.
+          cell.replaceChildren();
+          add(cell,"span",trip.entry,"desktopEntry");
+          const compact=add(cell,"span",null,"mobileTripFacts");
+          compact.setAttribute("aria-label","Entrée : "+trip.entry+" ; Sortie : "+trip.exit+
+            " ; Durée : "+trip.duration+" ; Motif : "+trip.purpose);
+          add(compact,"span",trip.entry,"mobileDate");
+          add(compact,"span","→");
+          add(compact,"span",trip.exit,"mobileDate");
+          add(compact,"span","· "+trip.duration+" · "+trip.purpose,"mobileMeta");
+        }
         for(const stop of trip.stops||[]){
           const child=add(tbody,"tr",null,"trip-stop");
           const cell=add(child,"td",stop.label);

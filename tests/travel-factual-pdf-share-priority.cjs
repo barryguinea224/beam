@@ -5,8 +5,10 @@ const fs=require("node:fs/promises");
 const path=require("node:path");
 const {chromium}=require("playwright");
 const output=path.resolve("test-artifacts/floating-add-share");
-const rows=[{country_code:"SN",cities:["Dakar"],entry_date:"2026-08-01",
- exit_date:"2026-08-03",duration_days:3,purpose:"tourisme",note:"PRIVATE_FIXTURE"}];
+const rows=[{country_code:"FR",cities:["Paris"],entry_date:"2026-10-10",
+ exit_date:"2026-10-20",duration_days:11,purpose:"tourisme",note:"PRIVATE_FIXTURE",
+ stops:[{country_code:"BE",cities:["Bruxelles"],entry_date:"2026-10-12",
+  exit_date:"2026-10-13",position:1}]}];
 const displayName="Voyageur Exemple",date="2026-10-31T12:00:00Z";
 async function main(){
  await fs.mkdir(output,{recursive:true});
@@ -19,7 +21,7 @@ async function main(){
    page.on("pageerror",e=>errors.push(e.message));
    try{
     await page.setContent('<!doctype html><html lang="fr"><head></head><body></body></html>');
-    for(const file of ["countries.js","factual-pdf.js","factual-pdf-file.js"])
+    for(const file of ["countries.js","fr-accords.js","trip-stops.js","factual-pdf.js","factual-pdf-file.js"])
      await page.addScriptTag({path:path.resolve("travel",file)});
     await page.evaluate(({rows,displayName,date})=>{
      BEAM_TRAVEL_PDF.render(document,rows,{displayName,generatedAt:new Date(date)});
@@ -43,9 +45,50 @@ async function main(){
     assert.ok(audit.shareTop<audit.printTop,"Share visually above print");
     assert.equal(audit.enabled,true);
     assert.ok(audit.scrollWidth<=width+1,"PDF preview body overflow at "+width+": "+JSON.stringify(audit));
-    if(width===360)await page.screenshot({
-     path:path.join(output,"apercu-pdf-360.png"),animations:"disabled"
+    const mobile=await page.evaluate(()=>{
+     const row=document.querySelector("tbody tr:not(.trip-stop)");
+     const items=[...document.querySelectorAll(".mobileTripFacts .mobileDate")];
+     const summary=document.querySelector(".mobileTripFacts");
+     const stage=document.querySelector("tbody tr.trip-stop");
+     return {columns:row.querySelectorAll("td").length,
+      display:getComputedStyle(row).display,summaryDisplay:getComputedStyle(summary).display,
+      summary:summary.textContent,aria:summary.getAttribute("aria-label"),
+      stages:!!stage&&getComputedStyle(stage).display==="block",
+      wrapped:items.map(el=>el.getClientRects().length>1),
+      visible:items.every(el=>{const b=el.getBoundingClientRect();return b.width>0&&b.right<=innerWidth+1}),
+      bodyWidth:document.body.scrollWidth,tableWidth:document.querySelector("table").scrollWidth,
+      tableClient:document.querySelector("table").clientWidth};
     });
+    assert.equal(mobile.columns,6,"Print must retain exactly six table columns");
+    assert.equal(mobile.display,"grid","Screen trip must be a two-line card");
+    assert.equal(mobile.summaryDisplay,"flex");
+    assert.match(mobile.summary,/10\/10\/2026.*20\/10\/2026.*11 jours.*Tourisme/);
+    assert.match(mobile.aria,/Entrée.*Sortie.*Durée.*Motif/);
+    assert.deepEqual(mobile.wrapped,[false,false],"Each date stays unbroken");
+    assert.equal(mobile.visible,true,"Both dates stay inside viewport");
+    assert.equal(mobile.stages,true,"Nested stages remain visible beneath trip");
+    assert.ok(mobile.tableWidth<=mobile.tableClient+1,"No hidden 530px table scroll at "+width);
+    assert.ok(mobile.bodyWidth<=width+1,"No document horizontal overflow");
+    if(width===360)await page.screenshot({
+     path:path.join(output,"apercu-pdf-360.png"),animations:"disabled",fullPage:true
+    });
+    await page.emulateMedia({media:"print"});
+    const print=await page.evaluate(()=>{
+     const table=document.querySelector("table"),row=table.querySelector("tbody tr");
+     return {table:getComputedStyle(table).display,
+      row:getComputedStyle(row).display,
+      headings:table.querySelectorAll("thead th").length,
+      columns:row.querySelectorAll("td").length,
+      mobile:getComputedStyle(document.querySelector(".mobileTripFacts")).display,
+      normal:getComputedStyle(document.querySelector(".desktopEntry")).display};
+    });
+    assert.equal(print.table,"table","Print remains a table");
+    assert.equal(print.row,"table-row","Print rows remain standard");
+    assert.equal(print.headings,6,"Print headings unchanged");
+    assert.equal(print.columns,6,"Print six cells unchanged");
+    assert.equal(print.mobile,"none","Mobile-only summary absent from print");
+    assert.notEqual(print.normal,"none","Original date remains visible in print");
+    await page.emulateMedia({media:"screen"});
     await page.evaluate(()=>{
      window.__shared=[];
      Object.defineProperty(navigator,"canShare",{configurable:true,

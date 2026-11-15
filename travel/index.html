@@ -583,6 +583,16 @@ function showOfflineCopy(snapshot){
  profile={display_name:snapshot.profile?.display_name||"",country_of_residence:null,
   access_until:null,avatar_id:null,cover_media_id:null};
  trips=snapshot.trips||[];
+ // Last completed country's illustration is public; no signed photo is restored.
+ const latest=[...trips].filter(t=>LIFE.state(t)!=="upcoming")
+  .sort((a,b)=>(b.exit_date||"").localeCompare(a.exit_date||"")||(b.entry_date||"").localeCompare(a.entry_date||""))[0];
+ const image=$("#profileCoverImage"),art=window.BEAM_VISUAL_CARDS.countryArt(latest?.country_code);
+ image.onerror=null;image.removeAttribute("src");image.hidden=true;image.dataset.isPrivate="false";
+ $("#profileCover").dataset.source="solid";
+ if(art){
+  image.onerror=()=>{image.hidden=true;image.removeAttribute("src");$("#profileCover").dataset.source="solid"};
+  image.src=art;image.hidden=false;$("#profileCover").dataset.source="country";
+ }
  dashboardFilters=window.BEAM_DASHBOARD_FILTERS.normalize(window.BEAM_DASHBOARD_FILTERS.EMPTY);
  setAccountState("active");view("#app");setSkeleton(false);
  const date=new Date(snapshot.updatedAt);
@@ -805,10 +815,22 @@ function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&l
 let mapReady=false,mapLoading=false,worldCentroids=null,centroidPromise=null,centroidFailed=false,flightIntroDone=false,lastFlightRoutes=[];
 const FLIGHTS=window.BEAM_FLIGHT_CONNECTIONS;
 // Coordinates are public, static; residence and selected destinations stay in RAM only.
+// All offline assets are public, same-origin files precached by the service worker.
+// Avoid the SW's network-first fetch latency on a newly opened offline PWA.
+async function publicMapAsset(path){
+ const url=new URL(path,location.href);
+ if(url.origin!==location.origin||!url.pathname.startsWith("/travel/assets/"))
+  throw new Error("Fichier cartographique non autorisé");
+ if(!navigator.onLine){
+  try{const cached=await window.caches?.match(url.href,{ignoreSearch:false});
+   if(cached?.ok)return cached}catch{}
+ }
+ return fetch(url.href,{cache:"no-cache"});
+}
 async function loadWorldCentroids(){
  if(worldCentroids)return worldCentroids;
  if(centroidFailed)return null;
- if(!centroidPromise)centroidPromise=fetch("./assets/world-centroids.json",{cache:"force-cache"})
+ if(!centroidPromise)centroidPromise=publicMapAsset("./assets/world-centroids.json")
   .then(response=>{if(!response.ok)throw Error("Coordinates unavailable");return response.json()})
   .then(data=>{if(!data||typeof data!=="object"||!Array.isArray(data.GN))throw Error("Invalid coordinates");return worldCentroids=data})
   .catch(()=>{centroidFailed=true;return null})
@@ -829,9 +851,22 @@ function renderFlightConnections(){
  if(!worldCentroids&&home&&!centroidFailed){
   void loadWorldCentroids().then(data=>{if(data&&mapReady&&accountState==="active")applyMapState()});
  }
- lastFlightRoutes=FLIGHTS.draw(svg,home,filteredFlightDestinations(),worldCentroids,{
-  animate:!flightIntroDone
- });
+ if(offlineMode){
+  // Residence is deliberately excluded from IndexedDB. Only connect
+  // countries actually visited; do not invent a residence for offline routes.
+  const visitedSet=countryState().visited;
+  const visited=[...new Set([...trips].sort((a,b)=>(a.entry_date||"").localeCompare(b.entry_date||""))
+   .flatMap(t=>[t.country_code,...(t.stops||[]).map(x=>x.country_code)])
+   .filter(code=>visitedSet.has(code)))];
+  if(!worldCentroids&&visited.length&&!centroidFailed)
+   void loadWorldCentroids().then(data=>{if(data&&offlineMode&&mapReady)applyMapState()});
+  lastFlightRoutes=visited.length>1?
+   FLIGHTS.draw(svg,visited[0],visited.slice(1),worldCentroids,{animate:false}):[];
+ }else{
+  lastFlightRoutes=FLIGHTS.draw(svg,home,filteredFlightDestinations(),worldCentroids,{
+   animate:!flightIntroDone
+  });
+ }
  if(lastFlightRoutes.length)flightIntroDone=true;
 }
 
@@ -887,8 +922,38 @@ function applyMapState(){
   });
   renderFlightConnections();fitMapToVisited();
 }
-async function loadMap(){if(mapReady||mapLoading)return;mapLoading=true;try{let r=await fetch("./assets/world-map.svg",{cache:"force-cache"});if(!r.ok)throw new Error("map "+r.status);$("#map").innerHTML=await r.text();mapReady=true;applyMapState();$("#map").onclick=e=>{let p=e.target.closest?.("path[data-country]");if(p)selectMapCountry(p.dataset.country)};$("#map").onkeydown=e=>{let p=e.target.closest?.("path[data-country]");if(p&&(e.key==="Enter"||e.key===" ")){e.preventDefault();selectMapCountry(p.dataset.country)}}}catch(e){$("#map").textContent="Carte indisponible. La liste des pays reste accessible."}finally{mapLoading=false}}
-function scheduleMap(){(window.requestIdleCallback||((fn)=>setTimeout(fn,0)))(loadMap)}
+async function loadMap(){
+ const holder=$("#map");
+ if(mapReady&&!holder.querySelector("svg"))mapReady=false;
+ if(mapReady){applyMapState();return}
+ if(mapLoading)return;
+ mapLoading=true;
+ try{
+  const response=await publicMapAsset("./assets/world-map.svg");
+  if(!response.ok)throw new Error("Carte SVG indisponible");
+  const markup=await response.text();
+  if(!markup.includes("<svg")||!markup.includes("data-country"))
+   throw new Error("Carte SVG invalide");
+  holder.innerHTML=markup;
+  if(holder.querySelectorAll("svg path[data-country]").length<=100)
+   throw new Error("Carte SVG incomplète");
+  mapReady=true;
+  applyMapState();
+  holder.onclick=e=>{const p=e.target.closest?.("path[data-country]");if(p)selectMapCountry(p.dataset.country)};
+  holder.onkeydown=e=>{
+   const p=e.target.closest?.("path[data-country]");
+   if(p&&(e.key==="Enter"||e.key===" ")){e.preventDefault();selectMapCountry(p.dataset.country)}
+  };
+ }catch{
+  mapReady=false;
+  holder.textContent="Carte indisponible. La liste des pays reste accessible.";
+ }finally{mapLoading=false}
+}
+function scheduleMap(){
+ // An installed app with no network may not receive an idle callback promptly.
+ if(offlineMode||!navigator.onLine){void loadMap();return}
+ (window.requestIdleCallback||((fn)=>setTimeout(fn,0)))(()=>void loadMap());
+}
 function renderFilterOptions(){
  const api=window.BEAM_DASHBOARD_FILTERS,opts=api.options(trips),country=$("#filterCountry"),year=$("#filterYear");
  const sorted=opts.countries.sort((a,b)=>countryName(a).localeCompare(countryName(b),"fr"));
