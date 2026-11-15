@@ -20,7 +20,7 @@ const html=fs.readFileSync("travel/index.html","utf8"),sw=fs.readFileSync("trave
 assert.match(html,/id="coverPickerOpen"/);
 assert.match(html,/id="photoProfileCover"/);
 assert.match(html,/id="coverAuto"/);
-assert.match(sw,/jyetais-v52-offline-map-pdf-mobile/);
+assert.match(sw,/jyetais-v53-offline-home-gn/);
 assert.doesNotMatch(sw,/caches\.put\(/);
 const dir=path.resolve("test-artifacts/cover-profile");
 fs.mkdirSync(dir,{recursive:true});
