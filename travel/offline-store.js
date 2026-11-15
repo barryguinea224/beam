@@ -90,8 +90,13 @@ function dropDB(){
  });
 }
 async function clear(){
- try{root.localStorage.removeItem(OWNER_KEY)}catch{}
- return serial(dropDB);
+ // Queue the ownership marker removal with the database deletion. Previously
+ // the marker could be cleared OUTSIDE the queue while another read/bind was
+ // installing the next owner's copy.
+ return serial(async()=>{
+  try{root.localStorage.removeItem(OWNER_KEY)}catch{}
+  await dropDB();
+ });
 }
 async function bind(uid){
  if(!id(uid)){await clear();return false}
