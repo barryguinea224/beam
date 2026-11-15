@@ -20,6 +20,9 @@ function fakeSupabase(){
   companions:"Compagnon fictif",is_domestic:false,deleting:false,
   note:"DO_NOT_STORE_PRIVATE_NOTE",phone:"DO_NOT_STORE_PHONE",
   storage_path:"DO_NOT_STORE_PRIVATE_PATH",cover_media_id:null};
+ const earlier={...trip,id:"66666666-6666-4666-8666-666666666666",
+  country_code:"MA",cities:["Rabat"],entry_date:"2026-03-01",exit_date:"2026-03-04",
+  note:"DO_NOT_STORE_EARLIER_NOTE"};
  const act={id:"55555555-5555-4555-8555-555555555555",trip_id:tripId,
   title:"Visite fictive",place:"Quartier fictif",happened_on:"2026-05-02",duration_days:1,
   access_token:"DO_NOT_STORE_TOKEN"};
@@ -37,7 +40,7 @@ function fakeSupabase(){
     display_name:uid===A?"Voyageuse Fictive":"Voyageur Second",
     country_of_residence:"GN",deleting:false,access_until:"2099-12-31",
     avatar_id:null,cover_media_id:null,phone:"DO_NOT_STORE_PHONE",postal_address:"DO_NOT_STORE_ADDRESS"
-   }:table==="trips"?[trip]:table==="activities"?[act]:[];
+   }:table==="trips"?(uid===A?[trip,earlier]:[trip]):table==="activities"?[act]:[];
    const query={
     select(){return query},eq(){return query},order(){return query},
     limit(){return query},range(){return query},
@@ -114,7 +117,7 @@ async function main(){
     }
     const raw=JSON.stringify(snapshot);
     assert.equal(snapshot.ownerId,A);
-    assert.equal(snapshot.trips.length,1);
+    assert.equal(snapshot.trips.length,2);
     assert.equal(snapshot.activities.length,1);
     for(const forbidden of ["DO_NOT_STORE_","phone","postal_address","nationality",
       "token","storage_path","signedUrl","photo_url","passport","session","cover_media_id"]){
@@ -124,6 +127,18 @@ async function main(){
     // Make sure a controlled shell is installed before switching the network off.
     await page.reload({waitUntil:"load"});
     await page.waitForFunction(()=>!!navigator.serviceWorker.controller,{timeout:20000});
+    // This is the REAL installed SW and its CacheStorage, not a mocked fetch.
+    assert.equal(await page.evaluate(async()=>{
+     const names=await caches.keys();
+     if(!names.some(x=>x.startsWith("beam-travel-shell-")))return false;
+     const url=new URL("/travel/assets/world-map.svg",location.href).href;
+     return !!(await caches.match(url));
+    }),true,"The actual service worker precached world-map.svg");
+    const privateOfflineRequests=[];
+    page.on("request",request=>{
+     if(/\/storage\/v1\/|\/rest\/v1\/|\/auth\/v1\/|signedUrl/i.test(request.url()))
+      privateOfflineRequests.push(request.url());
+    });
     await context.setOffline(true);
     await page.goto(url,{waitUntil:"domcontentloaded",timeout:30000});
     await page.locator("#offlineBanner").waitFor({state:"visible",timeout:30000});
@@ -136,8 +151,31 @@ async function main(){
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true,
      "No offline home overflow at "+width);
     await page.locator("#travelMapPanel").waitFor({state:"visible"});
+    await page.waitForFunction(()=>
+     document.querySelectorAll("#map svg path[data-country]").length>100,
+     null,{timeout:30000});
+    const map=await page.evaluate(()=>({
+     count:document.querySelectorAll("#map svg path[data-country]").length,
+     france:!!document.querySelector('#map svg path[data-country="FR"].visited'),
+     morocco:!!document.querySelector('#map svg path[data-country="MA"].visited'),
+     routes:document.querySelectorAll('#map svg g[data-flight-connections="true"] path.flightArc').length
+    }));
+    assert.ok(map.count>100,"Real SVG polygons must render after airplane-mode reload");
+    assert.ok(map.france&&map.morocco,"Offline snapshot countries must be colored as visited");
+    assert.ok(map.routes>0,"Offline travel connections must be drawn without residence data");
+    const cover=await page.locator("#profileCoverImage").evaluate(img=>({
+     src:img.getAttribute("src"),private:img.dataset.isPrivate,
+     width:img.naturalWidth,hidden:img.hidden
+    }));
+    assert.match(cover.src||"",/\.\/assets\/countries\/fr\.svg$/,
+     "Most recent visited country must illustrate offline cover");
+    assert.equal(cover.private,"false","Private image URLs forbidden offline");
+    assert.equal(cover.hidden,false);
+    assert.ok(cover.width>0,"Country cover must load from public cache");
+    assert.deepEqual(privateOfflineRequests,[],
+     "Offline navigation must not request Supabase or signed private photos");
     if(width===360)await page.screenshot({path:path.join(DIR,"offline-accueil-360.png"),
-     animations:"disabled"});
+     fullPage:true,animations:"disabled"});
     await page.locator("#trips .tripOpen").first().click();
     assert.equal(await page.locator("#tripDetailModal").evaluate(el=>el.classList.contains("open")),true);
     assert.match(await page.locator("#detailActivities").textContent(),/Visite fictive/);
