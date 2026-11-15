@@ -52,11 +52,15 @@ async function run(){
       'const LIFE=window.BEAM_TRIP_LIFECYCLE;',
      'let dashboardFilters=window.BEAM_DASHBOARD_FILTERS.normalize({});',
      'let accountState="active";',
+     'let offlineMode=false;',
      'const countryName=code=>({GN:"Guinée",CA:"Canada",JP:"Japon",SN:"Sénégal"}[code]||code);',
      'function render(){applyMapState()}',
      logic
     ].join("\n");
     await page.addScriptTag({content:setup});
+    // This isolated about:blank test has a synthetic fetch and no /travel/ URL.
+    // Override only the public file transport; render/flight logic stays real.
+    await page.evaluate(()=>{publicMapAsset=path=>fetch(path)});
     await page.evaluate(()=>loadMap());
     await page.waitForFunction(()=>document.querySelectorAll("#map .flightArc").length===3);
     const initial=await page.evaluate(()=>{
