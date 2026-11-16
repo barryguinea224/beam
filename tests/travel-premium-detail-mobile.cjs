@@ -121,6 +121,13 @@ async function main(){
      assert.equal(await page.locator("#"+id).isVisible(),true);
     assert.equal(await page.locator("#detailFacts .detailStay").count(),2);
     assert.equal(await page.locator("#detailFacts .detailCompanions").count(),1);
+    // Reading mode is default; in-progress trips still offer "Ajouter un moment".
+    assert.equal((await page.locator("#detailModeToggle").innerText()).trim(),"Modifier ce voyage");
+    for(const id of ["detailEdit","addTripStop","detailActivityToggle"])
+     assert.equal(await page.locator("#"+id).isVisible(),false,"Reading-mode action must be hidden: "+id);
+    assert.equal(await page.locator(".tripStopActions button").count(),0);
+    assert.equal(await page.locator("#detailActivities .detailRemoveActivity").count(),0);
+    assert.equal(await page.locator("#detailAddMoment").isVisible(),true,"Ongoing trip add moment in reading mode");
     if(width===360){
      await page.locator("#detailSheet").evaluate(el=>el.scrollTop=0);
      await page.screenshot({path:path.join(DIR,"fiche-galerie-360.png"),animations:"disabled"});
@@ -129,6 +136,31 @@ async function main(){
      await page.locator("#detailActivitiesSection").screenshot({
       path:path.join(DIR,"fiche-moments-360.png"),animations:"disabled"});
     }
+    await page.locator("#detailModeToggle").click();
+    assert.equal((await page.locator("#detailModeToggle").innerText()).trim(),"Terminé");
+    for(const id of ["detailEdit","addTripStop","detailActivityToggle","detailAddMoment"])
+     assert.equal(await page.locator("#"+id).isVisible(),true,"Edit mode should reveal "+id);
+    assert.equal(await page.locator(".tripStopActions button").count(),2);
+    assert.equal(await page.locator("#detailActivities .detailRemoveActivity").count(),2);
+    await page.locator(".tripStopActions").getByRole("button",{name:"Modifier"}).click();
+    assert.equal(await page.locator("#tripStopForm").isVisible(),true);
+    await page.locator("#tripStopCancel").click();
+    await page.locator(".tripStopActions").getByRole("button",{name:"Supprimer"}).click();
+    assert.equal(await page.locator("#tripStopDeleteConfirm").isVisible(),true);
+    await page.locator("#tripStopDeleteNo").click();
+    await page.evaluate(()=>{window.__prompted=false;window.confirm=()=>{window.__prompted=true;return false}});
+    await page.locator("#detailActivities .detailRemoveActivity").first().click();
+    assert.equal(await page.evaluate(()=>window.__prompted),true,"Retirer triggers confirmation");
+    await page.locator("#detailActivityToggle").click();
+    assert.equal(await page.locator("#detailActivityForm").isVisible(),true);
+    await page.locator("#detailModeToggle").click();
+    assert.equal((await page.locator("#detailModeToggle").innerText()).trim(),"Modifier ce voyage");
+    assert.equal(await page.locator("#detailActivityForm").isVisible(),false);
+    for(const id of ["detailEdit","addTripStop","detailActivityToggle"])
+     assert.equal(await page.locator("#"+id).isVisible(),false,"Done returns to reading: "+id);
+    assert.equal(await page.locator(".tripStopActions button").count(),0);
+    assert.equal(await page.locator("#detailActivities .detailRemoveActivity").count(),0);
+    assert.equal(await page.locator("#detailAddMoment").isVisible(),true);
     await page.locator("#detailPhotos").evaluate(g=>{g.scrollLeft=g.clientWidth;g.dispatchEvent(new Event("scroll"))});
     await page.waitForFunction(()=>document.querySelector("#detailGalleryCount")?.textContent==="2/4");
     await page.waitForFunction(()=>window.__premiumFixture.signs.length>=3);
@@ -180,6 +212,7 @@ async function main(){
     const offlineCount=storageRequests.length;
     await page.locator("#trips .journeyTrip").filter({hasText:"France"}).locator(".tripOpen").click();
     await page.locator("#tripDetailModal.open").waitFor();
+    assert.equal(await page.locator("#detailModeToggle").isVisible(),false);
     assert.equal(await page.locator("#detailShare").isDisabled(),true);
     assert.match(await page.locator("#detailShareHelp").innerText(),/Photos disponibles avec une connexion/);
     assert.equal(await page.locator("#detailPhotos .detailHeroFallback").count(),1);
@@ -200,7 +233,7 @@ async function main(){
     await page.waitForFunction(()=>document.querySelector("#dashboardTitle")?.textContent==="Voyageuse Fictive");
     await page.locator("#trips .journeyTrip").filter({hasText:"France"}).locator(".tripOpen").click();
     await page.locator("#tripDetailModal.open").waitFor();
-    for(const id of ["detailEdit","detailActivityToggle","detailAddMoment","addTripStop"])
+    for(const id of ["detailModeToggle","detailEdit","detailActivityToggle","detailAddMoment","addTripStop"])
      assert.equal(await page.locator("#"+id).isVisible(),false,"Read-only editing button "+id);
     await page.waitForFunction(()=>document.querySelectorAll("#detailActivities .detailActivity").length>0);
     assert.equal(await page.locator("#detailActivities .detailRemoveActivity").count(),0);

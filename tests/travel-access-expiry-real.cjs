@@ -92,11 +92,14 @@ async function main(){
      assert.equal(await page.locator("#openAccount").isVisible(),true);
      await page.locator("#trips .tripOpen").first().click();
      await page.locator("#tripDetailModal").waitFor({state:"visible"});
-     assert.equal(await page.locator("#detailEdit").isVisible(),!entry.readonly);
+     assert.equal(await page.locator("#detailModeToggle").isVisible(),!entry.readonly);
+      assert.equal(await page.locator("#detailEdit").isVisible(),false);
      assert.equal(await page.locator("#detailActivityForm").isVisible(),false,
        "Premium activity form starts collapsed, even for writable accounts");
-      assert.equal(await page.locator("#detailActivityToggle").isVisible(),!entry.readonly);
+      assert.equal(await page.locator("#detailActivityToggle").isVisible(),false);
       if(!entry.readonly){
+       await page.locator("#detailModeToggle").click();
+       assert.equal(await page.locator("#detailEdit").isVisible(),true);
        await page.locator("#detailActivityToggle").click();
        assert.equal(await page.locator("#detailActivityForm").isVisible(),true);
       }

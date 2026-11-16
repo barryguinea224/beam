@@ -70,7 +70,7 @@ assert.match(DETAIL.validateActivity({title:'Visite',place:'',happened_on:'2026-
 // Test the real detail handlers using owned, mocked Supabase records.
 function box(){
  const names=new Set();
- return {innerHTML:'',textContent:'',disabled:false,value:'',min:'',max:'',scrollTop:0,
+ return {innerHTML:'',textContent:'',disabled:false,value:'',min:'',max:'',scrollTop:0,dataset:{},
   classList:{add:v=>names.add(v),remove:v=>names.delete(v),contains:v=>names.has(v),toggle:(v,force)=>{if(force===undefined)force=!names.has(v);if(force)names.add(v);else names.delete(v);return force;}},
   focus(){context.document.activeElement=this},replaceChildren(){this.innerHTML=''},
    removeAttribute(){},addEventListener(){},querySelector(){return null},
@@ -88,7 +88,7 @@ const ids=['#modal','#tripDetailModal','#detailTitle','#detailCountryTitle','#de
  '#detailActivityToggle',
  '#detailStatus','#detailActivityMessage','#detailActivityForm','#detailLoyaltyHint','#detailPhotos',
   '#detailLifecycle','#detailAddMoment','#detailMomentActions','#detailMomentActivity','#detailMomentPhoto','#activityTitle','#photos',
- '#detailActivities','#detailSheet','#detailClose','#detailEdit','#activityDate','#activitySave',
+ '#detailActivities','#detailSheet','#detailClose','#detailEdit','#detailModeToggle','#activityDate','#activitySave',
  '#detailStops','#addTripStop','#tripStopForm','#tripStopCountry','#tripStopCities',
  '#tripStopEntry','#tripStopExit','#tripStopFormTitle','#tripStopFormMessage',
  '#stopDurationChoices',
@@ -165,6 +165,11 @@ async function main(){
  await els['#detailActivityForm'].onsubmit({preventDefault(){},currentTarget:els['#detailActivityForm']});
  assert.ok(calls.some(c=>c[0]==='activities'&&c[1]==='insert'&&c[2].trip_id==='trip-1'));
  assert.equal(els['#activitySave'].disabled,false);
+ assert.equal(els['#detailModeToggle'].textContent,"Modifier ce voyage");
+ assert.equal(els['#detailEdit'].classList.contains("hidden"),true);
+ els['#detailModeToggle'].onclick();
+ assert.equal(els['#detailModeToggle'].textContent,"Terminé");
+ assert.equal(els['#detailEdit'].classList.contains("hidden"),false);
  els['#detailEdit'].onclick();
  assert.equal(els['#tripDetailModal'].classList.contains('open'),false);
  assert.ok(calls.some(c=>c[0]==='edit'&&c[1]==='trip-1'));

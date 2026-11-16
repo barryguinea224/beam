@@ -17,7 +17,7 @@ assert.deepEqual(fields,{country:"France",cities:"Paris",dates:"10 → 20 oct. 2
 const rendered=[];
 const ctx={
  fillStyle:"",strokeStyle:"",font:"",textAlign:"",
- fillRect(){},drawImage(){},beginPath(){},moveTo(){},lineTo(){},stroke(){},
+ fillRect(){},drawImage(){},beginPath(){},roundRect(){},save(){},clip(){},restore(){},moveTo(){},lineTo(){},stroke(){},
  fillText(...args){rendered.push(args[0])},measureText(t){return {width:String(t).length*22}}
 };
 const canvas={width:0,height:0,getContext(){return ctx}};
