@@ -1627,6 +1627,158 @@ $("#trips").onclick=e=>{const first=e.target.closest("#addFirstTrip");if(first){
 // Private image URLs are signed afresh on every opening and never cached.
 const DETAIL=window.BEAM_TRIP_DETAIL;
 let detailTripId=null,detailRequest=0,detailActivityBusy=false,detailMediaBusy=false,detailMediaIds=[],detailPhotoRows=[],detailActivitiesRows=[],detailReturnFocus=null;
+const SHARE=window.BEAM_TRIP_SHARE;
+let detailGalleryIndex=0,detailGalleryLoads=new Set(),detailLightboxRow=null,detailShareFile=null,detailShareObjectUrl=null,detailShareBusy=false;
+const detailSvg={
+ plane:'<path d="M2 16l8-3 5-10a2 2 0 0 1 3 2l-2 9 5 3-1 3-7-2-5 2-6-1Z"/>',
+ bed:'<path d="M3 4v16M3 17h18v3M3 12h18v5H3zM6 9h5v3H6zM13 9h5v3h-5z"/>',
+ people:'<circle cx="9" cy="8" r="3"/><path d="M3 20v-2a6 6 0 0 1 12 0v2M17 5a3 3 0 0 1 0 6M18 15a5 5 0 0 1 3 5"/>'
+};
+function detailIcon(kind){
+ return '<svg class="detailMetaIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+detailSvg[kind]+'</svg>';
+}
+function detailNoPhoto(trip){
+ const assets=window.BEAM_VISUAL_CARDS;
+ const art=assets.countryArt(trip.country_code),flag=assets.flag(trip.country_code);
+ $("#detailPhotos").innerHTML='<div class="detailHeroFallback">'+
+  (art?'<img class="detailCountryArt" src="'+art+'" alt="Illustration du pays">':
+   flag?'<img class="detailFallbackFlag" src="'+flag+'" alt="Drapeau du pays">':'')+'</div>';
+ $("#detailGalleryCount").hidden=true;
+}
+function detailCounter(){
+ const count=$("#detailGalleryCount"),len=detailPhotoRows.length;
+ count.hidden=!len;count.textContent=len?Math.min(len,detailGalleryIndex+1)+"/"+len:"";
+}
+function detailSections(trip){
+ const stops=Array.isArray(trip?.stops)?trip.stops:[];
+ $("#detailStopsSection").hidden=!stops.length&&$("#tripStopForm").classList.contains("hidden")&&
+  $("#tripStopDeleteConfirm").classList.contains("hidden");
+ $("#detailActivitiesSection").hidden=!detailActivitiesRows.length&&$("#detailActivityForm").classList.contains("hidden");
+ $("#detailNoteSection").hidden=offlineMode||!trip?.note?.trim();
+}
+function detailShareReset(){
+ if($("#detailShareDialog").open)$("#detailShareDialog").close();
+ $("#detailSharePreview").removeAttribute("src");
+ if(detailShareObjectUrl)URL.revokeObjectURL(detailShareObjectUrl);
+ detailShareObjectUrl=null;detailShareFile=null;detailShareBusy=false;
+}
+function detailLightboxClose(){
+ $("#detailLightbox").classList.remove("open");$("#detailLightbox").setAttribute("aria-hidden","true");
+ $("#detailLightboxImage").removeAttribute("src");detailLightboxRow=null;
+}
+function detailGalleryRender(trip){
+ const box=$("#detailPhotos");
+ if(!detailPhotoRows.length){detailNoPhoto(trip);return}
+ box.innerHTML=DETAIL.photos(detailPhotoRows,{
+  canEdit:canWrite(),coverMediaId:trip.cover_media_id,airline:!!trip.airline?.trim(),
+  hotel:!!trip.hotel?.trim(),airlineMediaId:trip.airline_media_id,hotelMediaId:trip.hotel_media_id
+ });
+ detailGalleryIndex=0;box.scrollLeft=0;detailCounter();
+}
+async function detailSignPhoto(index,id=detailTripId,token=detailRequest){
+ const row=detailPhotoRows[index];
+ if(!row||row.url||detailGalleryLoads.has(index)||offlineMode||!user||!S)return row?.url||"";
+ detailGalleryLoads.add(index);
+ try{
+  const {data,error}=await S.storage.from("media").createSignedUrl(row.storage_path,300);
+  if(!detailActive(id,token)||error)return "";
+  const safe=window.BEAM_VISUAL_CARDS.trustedSignedUrl(data?.signedUrl,C.supabaseUrl);
+  if(!safe)return "";
+  row.url=safe;
+  const figures=$("#detailPhotos").querySelectorAll?.(".detailPhoto")||[];
+  const button=figures[index]?.querySelector?.(".photoTap");
+  if(button){
+   const missing=button.querySelector(".detailPhotoMissing");
+   if(missing)missing.remove();
+   let img=button.querySelector("img");
+   if(!img){img=document.createElement("img");img.loading="lazy";img.alt="Photo privée du voyage";img.referrerPolicy="no-referrer";button.prepend(img)}
+   img.dataset.isPrivate="true";img.src=safe;
+  }
+  return safe;
+ }catch{return ""}
+ finally{detailGalleryLoads.delete(index)}
+}
+function detailGalleryPosition(){
+ if(!detailPhotoRows.length)return;
+ const box=$("#detailPhotos");
+ const index=Math.max(0,Math.min(detailPhotoRows.length-1,Math.round(box.scrollLeft/Math.max(1,box.clientWidth))));
+ if(index!==detailGalleryIndex){detailGalleryIndex=index;detailCounter()}
+ // Only the visible photograph and the next may be requested by scrolling.
+ void detailSignPhoto(index);void detailSignPhoto(index+1);
+}
+$("#detailPhotos").addEventListener?.("scroll",detailGalleryPosition,{passive:true});
+async function detailOpenLightbox(index,button){
+ const row=detailPhotoRows[index];
+ if(!row)return;
+ if(!row.url)await detailSignPhoto(index);
+ if(!row.url)return;
+ detailLightboxRow=row;
+ $("#detailLightboxImage").src=row.url;
+ $("#detailLightboxCaption").textContent=DETAIL.captionValue(row.caption);
+ $("#detailLightboxActions").hidden=!canWrite()||offlineMode;
+ $("#detailLightbox").classList.add("open");
+ $("#detailLightbox").setAttribute("aria-hidden","false");
+ $("#detailLightboxClose").focus();
+ detailReturnFocus=button;
+}
+$("#detailLightboxClose").onclick=()=>{
+ detailLightboxClose();
+ if(detailReturnFocus?.isConnected)detailReturnFocus.focus();
+};
+$("#detailLightbox").onkeydown=e=>{if(e.key==="Escape"){e.preventDefault();detailLightboxClose()}};
+$("#detailLightboxActions").onclick=()=>{
+ const row=detailLightboxRow,id=detailTripId;
+ detailLightboxClose();
+ if(row&&id&&canWrite())openPhotoActions("detail",row,id,$("#detailPhotos").querySelector('.photoTap[data-id="'+row.id+'"]'));
+};
+async function detailSharePrepare(){
+ if(detailShareBusy||!detailTripId||offlineMode||!navigator.onLine||!SHARE)return;
+ const trip=trips.find(t=>t.id===detailTripId);
+ if(!trip)return;
+ detailShareBusy=true;$("#detailShare").disabled=true;
+ $("#detailShareHelp").textContent="Préparation de l'image sur votre téléphone…";
+ try{
+  const urls=[];
+  for(let i=0;i<Math.min(3,detailPhotoRows.length);i++)urls.push(await detailSignPhoto(i));
+  const art=window.BEAM_VISUAL_CARDS.countryArt(trip.country_code);
+  const flag=window.BEAM_VISUAL_CARDS.flag(trip.country_code);
+  // Strict data allowlist. Profile, companions, notes, contacts, miles and
+  // embassy PDF fields never pass into the renderer.
+  const fields=SHARE.safeTrip(trip,countryName(trip.country_code),tripCardDates(trip.entry_date,trip.exit_date));
+  const image=await SHARE.create({fields,coverUrl:urls[0]||art,photoUrls:urls.filter(Boolean),flagUrl:flag});
+  const file=SHARE.makeFile(image.blob);
+  if(detailTripId!==trip.id||offlineMode)return;
+  detailShareReset();detailShareFile=file;
+  detailShareObjectUrl=URL.createObjectURL(image.blob);
+  $("#detailSharePreview").src=detailShareObjectUrl;
+  let supported=false;
+  try{supported=!!navigator.share&&!!navigator.canShare&&navigator.canShare({files:[file]})}catch{}
+  $("#detailShareSend").hidden=!supported;
+  $("#detailShareStatus").textContent="Image privée · 1080 × 1350 · aucune publication automatique.";
+  $("#detailShareDialog").showModal();
+ }catch{
+  $("#detailShareHelp").textContent="Impossible de préparer l'image. Réessayez avec une connexion.";
+ }finally{
+  detailShareBusy=false;$("#detailShare").disabled=offlineMode;
+  if(!$("#detailShareDialog").open&&!offlineMode&&$("#detailShareHelp").textContent.startsWith("Préparation"))$("#detailShareHelp").textContent="";
+ }
+}
+$("#detailShare").onclick=()=>{void detailSharePrepare()};
+$("#detailShareClose").onclick=detailShareReset;
+$("#detailShareDialog").addEventListener?.("close",detailShareReset);
+$("#detailShareSend").onclick=()=>{
+ if(!detailShareFile||!navigator.share)return;
+ // The PNG file exists BEFORE this click: share starts synchronously
+ // in the trusted user gesture. No async canvas call precedes navigator.share.
+ const pending=navigator.share({files:[detailShareFile],title:"J'y étais"});
+ Promise.resolve(pending).catch(()=>{$("#detailShareStatus").textContent="Partage annulé ou indisponible. Vous pouvez enregistrer l'image."});
+};
+$("#detailShareSave").onclick=()=>{
+ if(!detailShareFile)return;
+ const url=URL.createObjectURL(detailShareFile),a=document.createElement("a");
+ a.href=url;a.download="jyetais-voyage.png";document.body.append(a);a.click();a.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),1000);
+};
 function detailActive(id,token){
  return accountState==="active"&&!!user&&detailTripId===id&&token===detailRequest&&
    $("#tripDetailModal").classList.contains("open");
