@@ -144,7 +144,7 @@ assert.match(html,/showTripOverlap\(p,match,!wasEditing\)/);
 assert.match(html,/if\(error\.code==="23P01"/);
 assert.doesNotMatch(html,/msg\.textContent=error\.message/);
 const sw=fs.readFileSync("travel/sw.js","utf8");
-assert.match(sw,/jyetais-v53-offline-home-gn/);
+assert.match(sw,/jyetais-v54-premium-cards/);
 assert.ok(sw.includes('"./day-excursions.js"')&&sw.includes('"./day-excursions.css"'));
 const style=fs.readFileSync("travel/day-excursions.css","utf8");
 assert.ok(style.includes(".dayModeChoices")&&style.includes(".tripOverlapOffer"));
