@@ -101,7 +101,7 @@ async function main(){
     await page.waitForFunction(()=>document.querySelector("#dashboardTitle")?.textContent==="Voyageuse Fictive");
     await page.locator("#trips .tripOpen").first().waitFor();
     const before=await page.evaluate(()=>window.__premiumFixture.signs.length);
-    await page.locator("#trips .tripOpen").filter({hasText:"Voir la fiche"}).first().click();
+    await page.locator("#trips .journeyTrip").filter({hasText:"France"}).locator(".tripOpen").click();
     await page.locator("#tripDetailModal.open").waitFor();
     await page.waitForFunction(()=>document.querySelectorAll("#detailPhotos .detailPhoto").length===4);
     const initial=await page.evaluate(()=>window.__premiumFixture.signs.length);
@@ -173,7 +173,7 @@ async function main(){
      trips:window.__premiumFixture.rows,activities:window.__premiumFixture.activities,updatedAt:"2026-11-16T12:00:00Z"
     }));
     const offlineCount=storageRequests.length;
-    await page.locator("#trips .tripOpen").first().click();
+    await page.locator("#trips .journeyTrip").filter({hasText:"France"}).locator(".tripOpen").click();
     await page.locator("#tripDetailModal.open").waitFor();
     assert.equal(await page.locator("#detailShare").isDisabled(),true);
     assert.match(await page.locator("#detailShareHelp").innerText(),/Photos disponibles avec une connexion/);
@@ -193,7 +193,7 @@ async function main(){
     await page.locator("#detailClose").click();
     await page.goto(base+"?readonly=1",{waitUntil:"load"});
     await page.waitForFunction(()=>document.querySelector("#dashboardTitle")?.textContent==="Voyageuse Fictive");
-    await page.locator("#trips .tripOpen").first().click();
+    await page.locator("#trips .journeyTrip").filter({hasText:"France"}).locator(".tripOpen").click();
     await page.locator("#tripDetailModal.open").waitFor();
     for(const id of ["detailEdit","detailActivityToggle","detailAddMoment","addTripStop"])
      assert.equal(await page.locator("#"+id).isVisible(),false,"Read-only editing button "+id);
