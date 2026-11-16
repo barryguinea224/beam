@@ -1580,8 +1580,8 @@ $("#trips").addEventListener("error",e=>{
    const fallback=window.BEAM_VISUAL_CARDS.countryArt(img.dataset.country);
    if(fallback){img.src=fallback;return}
   }
-  img.remove();
   const fall=img.closest(".journeyMedia")?.querySelector(".journeyFlagFallback");
+  img.remove();
   if(fall)fall.hidden=false;
  }else if(img.classList.contains("journeyFlag"))img.remove();
 },true);
