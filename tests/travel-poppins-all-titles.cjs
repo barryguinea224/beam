@@ -16,18 +16,19 @@ for(const file of files){
  assert.doesNotMatch(source,/(?<!sans-)\bserif\b/i,"Serif fallback in travel/"+file);
 }
 const sw=fs.readFileSync(path.join(root,"sw.js"),"utf8");
-assert.match(sw,/jyetais-v53-offline-home-gn/);
+assert.match(sw,/jyetais-v55-card-finishes/);
 assert.doesNotMatch(sw,/\bGeorgia\b/i);
 for(const file of ["index.html","account-settings.css","visual-cards.css","photo-sheet.css","legal.css"])
  assert.match(fs.readFileSync(path.join(root,file),"utf8"),/Poppins,system-ui,sans-serif/,"Source-family contract "+file);
 assert.doesNotMatch(fs.readFileSync(path.join(root,"home-simple.css"),"utf8"),/font-family:[^;{}]+!important/,"No title-family !important override");
-function contentType(n){return n.endsWith(".html")?"text/html; charset=utf-8":"text/css; charset=utf-8"}
+function contentType(n){return n.endsWith(".html")?"text/html; charset=utf-8":
+ n.endsWith(".js")?"application/javascript; charset=utf-8":"text/css; charset=utf-8"}
 async function run(){
  await fsp.mkdir(output,{recursive:true});
  const beforeAssets={};
  const hasBaseline=fs.existsSync(path.join(baseline,"index.html"));
  if(hasBaseline){
-  for(const file of ["index.html","home-simple.css","account-settings.css","visual-cards.css","photo-sheet.css","legal.css"]){
+  for(const file of ["index.html","home-simple.css","account-settings.css","visual-cards.css","visual-cards.js","photo-sheet.css","legal.css"]){
    const p=path.join(baseline,file);
    beforeAssets[file]=await fsp.readFile(p);
   }

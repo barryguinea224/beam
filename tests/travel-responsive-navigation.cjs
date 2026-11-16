@@ -172,21 +172,21 @@ async function main(){
    // Close one overlay and immediately open another: a pending popstate must not close it.
    await page.locator("#openAccount").click();
    await page.locator("#closeAccount").click();
-   await page.locator("#toggleFilters").click();
+   await page.locator("#tripListFilter").click();
    await page.waitForTimeout(150);
    assert.ok(await page.locator("#filterPanel").evaluate(n=>n.classList.contains("filterOpen")),
     "stale account history popstate must not close newly opened filters");
    await page.evaluate(()=>history.back());
    await page.waitForFunction(()=>!document.querySelector("#filterPanel").classList.contains("filterOpen"));
-   assert.equal(await page.evaluate(()=>document.activeElement?.id),"toggleFilters");
-   await page.locator("#toggleFilters").click();
+   assert.equal(await page.evaluate(()=>document.activeElement?.id),"tripListFilter");
+   await page.locator("#tripListFilter").click();
    assert.equal(await page.locator("#closeFilters").evaluate(el=>{
     const r=el.getBoundingClientRect(),top=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);
     return top===el||el.contains(top);
    }),true,"filters close must be topmost hit target at "+width);
    await page.keyboard.press("Escape");
    assert.ok(!await page.locator("#filterPanel").evaluate(n=>n.classList.contains("filterOpen")));
-   assert.equal(await page.evaluate(()=>document.activeElement?.id),"toggleFilters");
+   assert.equal(await page.evaluate(()=>document.activeElement?.id),"tripListFilter");
    await page.locator("#openAccount").click();
    await page.keyboard.press("Escape");
    assert.ok(!await account.evaluate(n=>n.classList.contains("accountOpen")));

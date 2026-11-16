@@ -28,31 +28,58 @@
     return FLAG_SET.has(code)?"./assets/flags/"+code.toLowerCase()+".svg":"";
   }
   function markup(trip,countryLabel,purposeLabel,dateLabel){
-    const code=codeOf(trip.country_code),image=countryArt(code),icon=flag(code);
+    const code=codeOf(trip.country_code),art=countryArt(code),flagUrl=flag(code);
     const id=typeof trip.id==="string"&&UUID.test(trip.id)?trip.id:"";
-    const country=esc(countryLabel),cities=esc((trip.cities||[]).join(", "));
-    const dates=esc(dateLabel),purpose=esc(purposeLabel);
-    const days=Number(trip.duration_days),isDay=trip.entry_date===trip.exit_date;
-    const safeDays=Number.isInteger(days)&&days>=0?days:"—";
-    const lifecycle=LIFE?.state(trip)||"ended",status=LIFE?.label(trip)||"";
-    // Decorative media is always public, local and anonymous; private cover URLs
-    // are inserted LATER by the authenticated session, never serialized in markup.
-    return '<article class="trip journeyTrip"><button type="button" class="tripOpen" data-id="'+esc(id)+
-     '" aria-label="Voir la fiche du voyage à '+cities+'">'+
-     (image?'<img class="journeyBackdrop" src="'+image+'" alt="" loading="lazy" decoding="async" width="800" height="340">':'')+
-     '<span class="journeyShade" aria-hidden="true"></span>'+
-     '<span class="journeyContent">'+
-       (status?'<span class="journeyStatus journeyStatus-'+lifecycle+'">'+esc(status)+'</span>':"")+
-       '<span class="journeyFlagLine">'+
-         (icon?'<img class="journeyFlag" src="'+icon+'" alt="" loading="lazy" width="26" height="20">':'')+
-         '<span class="journeyCode">'+esc(code||"—")+'</span>'+
-         (trip.is_domestic?'<span class="journeyDomestic">Séjour national</span>':'')+
-       '</span>'+
-       '<span class="journeyCountry">'+country+'</span>'+
-       '<span class="journeyCities">'+cities+'</span>'+
-       '<span class="journeyFooter">'+dates+' · '+(isDay?"Excursion · 1 jour":safeDays==="—"?"—":FR.count(safeDays,"jour"))+' · '+purpose+'</span>'+
-       '<span class="journeyLink">Voir la fiche →</span>'+
-     '</span></button></article>';
+    const cities=Array.isArray(trip.cities)?trip.cities.join(", "):"";
+    const state=LIFE?.state(trip)||"ended",status=LIFE?.label(trip)||"";
+    const isDay=trip.entry_date===trip.exit_date,days=Number(trip.duration_days);
+    const daysLabel=isDay?"Excursion · 1 jour":Number.isInteger(days)&&days>=0?FR.count(days,"jour"):"—";
+    const summary=[dateLabel,daysLabel,purposeLabel].filter(Boolean).map(esc)
+      .join('<span class="journeySeparator" aria-hidden="true">|</span>');
+    const stops=Array.isArray(trip.stops)?trip.stops:[];
+    const extras=[];
+    if(stops.length){
+      const first=codeOf(stops[0].country_code);
+      extras.push({kind:"stops",text:FR.count(stops.length,"étape")+
+        (first?" · "+(COUNTRIES.NAMES[first]||first):"")});
+    }
+    if(typeof trip.companions==="string"&&trip.companions.trim())
+      extras.push({kind:"people",text:"Avec "+trip.companions.trim()});
+    if(typeof trip.airline==="string"&&trip.airline.trim())
+      extras.push({kind:"plane",text:trip.airline.trim()});
+    if(typeof trip.hotel==="string"&&trip.hotel.trim())
+      extras.push({kind:"bed",text:trip.hotel.trim()});
+    // The SVGs are original, local markup. They carry no user data;
+    // text remains escaped separately and is always accessible beside them.
+    const iconPaths=Object.freeze({
+      stops:'<path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/>',
+      people:'<circle cx="9" cy="8" r="3"/><path d="M3 20v-2a6 6 0 0 1 12 0v2M17 5a3 3 0 0 1 0 6M18 15a5 5 0 0 1 3 5"/>',
+      plane:'<path d="m2 16 8-3 5-10a2 2 0 0 1 3 2l-2 9 5 3-1 3-7-2-5 2-6-1Z"/>',
+      bed:'<path d="M3 4v16M3 17h18v3M3 12h18v5H3zM6 9h5v3H6zM13 9h5v3h-5z"/>'
+    });
+    const metaIcon=kind=>'<svg class="journeyMetaIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+iconPaths[kind]+'</svg>';
+    return '<article class="trip journeyTrip" data-id="'+esc(id)+'">'+
+      '<div class="journeyMedia">'+
+        (art?'<img class="journeyBackdrop" src="'+art+'" alt="" loading="lazy" decoding="async" width="800" height="450">':'')+
+        '<span class="journeyFlagFallback"'+(art?' hidden':'')+'>'+
+          (flagUrl?'<img src="'+flagUrl+'" alt="" loading="lazy" width="84" height="60">':'')+
+        '</span>'+
+        '<span class="journeyFlagLine">'+
+          (flagUrl?'<img class="journeyFlag" src="'+flagUrl+'" alt="" loading="lazy" width="26" height="20">':'')+
+          '<span class="journeyCode">'+esc(code||"—")+'</span>'+
+        '</span>'+
+        (status?'<span class="journeyStatus journeyStatus-'+state+'">'+esc(status)+'</span>':'')+
+      '</div>'+
+      '<div class="journeyContent">'+
+        '<h3 class="journeyCountry">'+esc(countryLabel)+'</h3>'+
+        '<p class="journeyCities">'+esc(cities)+'</p>'+
+        '<p class="journeyFooter">'+summary+'</p>'+
+        (trip.is_domestic?'<p class="journeyDomestic">Séjour national</p>':'')+
+        (extras.length?'<div class="journeyExtras">'+extras.map(x=>
+          '<span class="journeyExtra journeyExtra-'+x.kind+'">'+metaIcon(x.kind)+
+          '<span>'+esc(x.text)+'</span></span>').join("")+'</div>':'')+
+        '<button type="button" class="tripOpen journeyLink" data-id="'+esc(id)+'" aria-label="Voir la fiche du voyage en '+esc(countryLabel)+'">Voir la fiche</button>'+
+      '</div></article>';
   }
   // Strict allowed origin: the existing first-party Supabase project Storage URL.
   // A failed, expired, missing or unowned URL is never used.

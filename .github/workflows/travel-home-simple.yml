@@ -49,7 +49,7 @@ jobs:
           git show "${{ github.event.pull_request.base.sha }}:travel/index.html" > test-artifacts/home-simple/baseline.html
           node tests/travel-home-simple-mobile.cjs test-artifacts/home-simple/baseline.html
           mkdir -p test-artifacts/title-comparison/baseline-v46
-          for file in index.html home-simple.css account-settings.css visual-cards.css photo-sheet.css legal.css; do
+          for file in index.html home-simple.css account-settings.css visual-cards.css visual-cards.js photo-sheet.css legal.css; do
             git show cc3c3283f673bd6a08a9e93a4438cbf907f147cc:"travel/$file" > "test-artifacts/title-comparison/baseline-v46/$file"
           done
           node tests/travel-poppins-all-titles.cjs

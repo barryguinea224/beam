@@ -191,7 +191,7 @@ async function main(){
     if(width===360)assert.ok(head.mapTop<780,
      "map must begin within first screen at 360px: "+JSON.stringify(head));
     // National filter keeps its existing switching behavior and DOES NOT inflate foreign totals.
-    await page.locator("#toggleFilters").click();
+    await page.locator("#tripListFilter").click();
     await page.locator("#filterScope").selectOption("domestic");
     const national=await readStats(page);
     assert.deepEqual([national.voyages,national.pays,national.jours],["1","1","3"],
