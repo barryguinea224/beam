@@ -2072,7 +2072,7 @@ function openTripDetail(id){
  $("#detailSheet").scrollTop=0;$("#detailClose").focus();
  if(offlineMode){
   detailActivitiesRows=offlineActivities.filter(row=>row.trip_id===id);
-  $("#detailActivities").innerHTML=DETAIL.activities(detailActivitiesRows);
+  $("#detailActivities").innerHTML=DETAIL.activities(detailActivitiesRows,canWrite());
   detailSections(trip);
  }else refreshTripDetail(id).catch(()=>{
   if(detailTripId===id)detailMessage("Impossible de charger cette fiche. Réessayez en la rouvrant.");
@@ -2093,7 +2093,7 @@ async function refreshTripDetail(id){
   $("#detailActivitiesSection").hidden=false;
  }else{
   detailActivitiesRows=activities.data;
-  $("#detailActivities").innerHTML=DETAIL.activities(detailActivitiesRows);
+  $("#detailActivities").innerHTML=DETAIL.activities(detailActivitiesRows,canWrite());
   detailSections(trip);
  }
  if(photos.error||!photos.data){
