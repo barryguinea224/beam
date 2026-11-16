@@ -1834,6 +1834,7 @@ function resetTripStopForm(trip=null){
  stopPicker.clear();
  form.classList.add("hidden");
  $("#tripStopDeleteConfirm").classList.add("hidden");
+ if(trip)$("#detailStopsSection").hidden=!(trip.stops?.length||0);
  stopMessage("");
  const select=$("#tripStopCountry");
  if(!select)return;
@@ -1851,7 +1852,7 @@ function openTripStopEditor(stop=null){
  resetTripStopForm(trip);
  stopEditingId=stop?.id||null;
  const form=$("#tripStopForm");
- form.classList.remove("hidden");
+ form.classList.remove("hidden");$("#detailStopsSection").hidden=false;
  $("#tripStopFormTitle").textContent=stop?"Modifier l’étape":"Ajouter une étape";
  $("#tripStopCountry").value=stop?.country_code||"";
  $("#tripStopCities").value=STOPS.cities(stop);
@@ -1868,7 +1869,7 @@ function requestStopDeletion(stop){
  stopDeleteTarget=stop;
  $("#tripStopDeleteText").textContent="Supprimer l’étape "+STOPS.country(stop.country_code)+
   " ("+STOPS.interval(stop.entry_date,stop.exit_date)+") ?";
- $("#tripStopDeleteConfirm").classList.remove("hidden");
+ $("#tripStopDeleteConfirm").classList.remove("hidden");$("#detailStopsSection").hidden=false;
  $("#tripStopDeleteYes").focus();
 }
 function stopError(err){
@@ -1943,6 +1944,7 @@ $("#tripOverlapActivity").onclick=()=>{
  closeEditorForExcursion();
  openTripDetail(id);
  $("#activityDate").value=day;
+ $("#detailActivitiesSection").hidden=false;$("#detailActivityForm").classList.remove("hidden");
  $("#activityTitle").focus();
  $("#detailActivityForm").scrollIntoView({block:"nearest"});
 };
@@ -2120,8 +2122,8 @@ async function refreshTripDetail(id){
 $("#detailPhotos").onclick=e=>{
  const button=e.target.closest(".photoTap[data-id]");
  if(!button||!detailTripId)return;
- const row=detailPhotoRows.find(photo=>photo.id===button.dataset.id);
- if(row)openPhotoActions("detail",row,detailTripId,button);
+ const index=detailPhotoRows.findIndex(photo=>photo.id===button.dataset.id);
+ if(index>=0)void detailOpenLightbox(index,button);
 };
 $("#detailClose").onclick=closeTripDetail;
 $("#detailAddMoment").onclick=()=>{
