@@ -73,13 +73,19 @@ function box(){
  return {innerHTML:'',textContent:'',disabled:false,value:'',min:'',max:'',scrollTop:0,
   classList:{add:v=>names.add(v),remove:v=>names.delete(v),contains:v=>names.has(v),toggle:(v,force)=>{if(force===undefined)force=!names.has(v);if(force)names.add(v);else names.delete(v);return force;}},
   focus(){context.document.activeElement=this},replaceChildren(){this.innerHTML=''},
+   removeAttribute(){},addEventListener(){},querySelector(){return null},
    setAttribute(name,value){this[name]=String(value)},scrollIntoView(){},
   reset(){this.value='';this.didReset=true},
   add(option){this.options=(this.options||[]).concat(option)},
   querySelectorAll(){return []}
  };
 }
-const ids=['#modal','#tripDetailModal','#detailTitle','#detailIntro','#detailFacts','#detailNote',
+const ids=['#modal','#tripDetailModal','#detailTitle','#detailCountryTitle','#detailCountryBadge',
+ '#detailIntro','#detailFacts','#detailNote','#detailNoteSection','#detailActivitiesSection','#detailStopsSection',
+ '#detailHero','#detailGalleryCount','#detailShare','#detailShareHelp','#detailShareDialog','#detailShareSend',
+ '#detailShareClose','#detailShareSave','#detailSharePreview','#detailShareStatus',
+ '#detailLightbox','#detailLightboxImage','#detailLightboxClose','#detailLightboxCaption','#detailLightboxActions',
+ '#detailActivityToggle',
  '#detailStatus','#detailActivityMessage','#detailActivityForm','#detailLoyaltyHint','#detailPhotos',
   '#detailLifecycle','#detailAddMoment','#detailMomentActions','#detailMomentActivity','#detailMomentPhoto','#activityTitle','#photos',
  '#detailActivities','#detailSheet','#detailClose','#detailEdit','#activityDate','#activitySave',
@@ -115,12 +121,15 @@ const S={
  storage:{from:()=>({createSignedUrl:async()=>({data:{signedUrl:'https://signed.invalid/private.webp'},error:null})})}
 };
 const context=vm.createContext({
- window:{BEAM_TRIP_DETAIL:DETAIL,BEAM_TRAVEL_PDF:PDF,confirm:()=>true},
+ window:{BEAM_TRIP_DETAIL:DETAIL,BEAM_TRAVEL_PDF:PDF,
+  BEAM_TRIP_SHARE:require("../travel/trip-share.js"),
+  BEAM_VISUAL_CARDS:require("../travel/visual-cards.js"),confirm:()=>true},
  STOPS:{renderList:()=>{},valid:()=>true,byOrder:rows=>rows||[],cities:()=>'',country:()=>''},
  COUNTRY_NAMES:{FR:'France',DE:'Allemagne'},
  Option:class {constructor(label,value){this.text=label;this.value=value}},
  document:{activeElement:null},
- S,DAY,LIFE,FR:require("../travel/fr-accords.js"),setStopMode:()=>{},stopPicker:{clear(){},setBounds(){},setMode(){},setExisting(){},sync(){}},user:{id:'owner'},accountState:'active',offlineMode:false,offlineActivities:[],trips:[tripRecord],canWrite:()=>true,
+ S,C:{supabaseUrl:"https://signed.invalid"},DAY,LIFE,FR:require("../travel/fr-accords.js"),
+ tripCardDates:(a,b)=>a+" → "+b,setStopMode:()=>{},stopPicker:{clear(){},setBounds(){},setMode(){},setExisting(){},sync(){}},user:{id:'owner'},accountState:'active',offlineMode:false,offlineActivities:[],trips:[tripRecord],canWrite:()=>true,
  LOYALTY:{hintFor:airline=>airline==='Compagnie fictive'?"Pensez à donner votre numéro Flying Blue à la réservation.":""},
  $:id=>{assert.ok(els[id], 'Missing DOM stub '+id);return els[id]},
  countryName:code=>code==='FR'?'France':code,
@@ -149,6 +158,7 @@ async function main(){
  assert.match(els['#detailFacts'].innerHTML,/stay-airline\.svg/);
  assert.match(els['#detailFacts'].innerHTML,/stay-hotel\.svg/);
  assert.match(els['#detailPhotos'].innerHTML,/signed.invalid/);
+ assert.match(els['#detailCountryTitle'].textContent,/France/);
  assert.match(els['#detailActivities'].innerHTML,/Visite du musée/);
  assert.equal(calls.filter(c=>c[0]==='media'&&c[1]==='filters')[0][2][0][1],'owner');
  assert.equal(calls.filter(c=>c[0]==='activities'&&c[1]==='filters')[0][2][1][1],'trip-1');
