@@ -22,7 +22,10 @@ assert.match(DETAIL.validateActivity({title:"Visite",happened_on:"2026-12-30",du
 const malicious='<img src=x onerror="alert(1)">';
 const list=DETAIL.activities([{id:"synthetic",title:malicious,place:malicious,happened_on:"2026-12-24",duration_days:3}]);
 assert.ok(!list.includes(malicious));
-assert.match(list,/24 → 26 déc. · 3 jours/);
+assert.match(list,/aria-label="24 décembre 2026"/);
+assert.match(list,/detailActivityDay">24/);
+assert.match(list,/detailActivityMonth">déc/);
+assert.match(list,/3 jours/);
 assert.doesNotMatch(list,/<img src=x/);
 const projection=JOURNAL.viewTrip({country_code:"FR",cities:["Paris"],entry_date:"2026-12-20",
  exit_date:"2026-12-31",duration_days:12,purpose:"tourisme",companions:malicious,

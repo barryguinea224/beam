@@ -89,7 +89,7 @@ async function main(){
      ];
      const bounds=[];
      for(const selector of names)for(const el of modal.querySelectorAll(selector)){
-      if(getComputedStyle(el).display==="none"||el.hidden)continue;
+      if(getComputedStyle(el).display==="none"||el.hidden||!el.getClientRects().length)continue;
       const r=el.getBoundingClientRect(),sr=sheet.getBoundingClientRect();
       bounds.push({selector,left:r.left-sr.left,right:sr.right-r.right});
      }

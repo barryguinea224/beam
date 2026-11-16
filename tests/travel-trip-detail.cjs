@@ -81,7 +81,7 @@ function box(){
  };
 }
 const ids=['#modal','#tripDetailModal','#detailTitle','#detailCountryTitle','#detailCountryBadge',
- '#detailIntro','#detailFacts','#detailNote','#detailNoteSection','#detailActivitiesSection','#detailStopsSection',
+ '#detailIntro','#detailFacts','#detailNote','#detailNoteToggle','#detailNoteDate','#detailNoteSection','#detailActivitiesSection','#detailStopsSection',
  '#detailHero','#detailGalleryCount','#detailShare','#detailShareHelp','#detailShareDialog','#detailShareSend',
  '#detailShareClose','#detailShareSave','#detailSharePreview','#detailShareStatus',
  '#detailLightbox','#detailLightboxImage','#detailLightboxClose','#detailLightboxCaption','#detailLightboxActions',
