@@ -1792,6 +1792,7 @@ function detailActivityMessage(message){
  box.textContent=message;box.classList.remove("hidden");
 }
 function closeTripDetail(){
+ detailLightboxClose();detailShareReset();detailGalleryLoads.clear();
  if(typeof photoSheetState!=="undefined"&&photoSheetState?.context==="detail")closePhotoActions();
  detailRequest++;detailTripId=null;detailActivitiesRows=[];detailMediaIds=[];detailPhotoRows=[];stopEditingId=null;stopDeleteTarget=null;
  $("#tripStopForm").classList.add("hidden");$("#tripStopDeleteConfirm").classList.add("hidden");
@@ -2012,38 +2013,48 @@ function openTripDetail(id){
  const trip=trips.find(x=>x.id===id);
  if(!trip)return;
  if(!$("#tripDetailModal").classList.contains("open"))detailReturnFocus=document.activeElement;
- detailTripId=id;
- $("#detailTitle").textContent=(trip.cities||[]).join(", ")||countryName(trip.country_code);
- $("#detailIntro").textContent=countryName(trip.country_code)+" · "+(DAY.single(trip)?"Excursion · 1 jour":(trip.is_domestic?"Séjour national":"Voyage à l’étranger"));
-  const lifecycle=LIFE.state(trip),label=LIFE.label(trip),badge=$("#detailLifecycle");
-  badge.textContent=label;
-  badge.className="detailLifecycle"+(label?" detailLifecycle-"+lifecycle:" hidden");
-  $("#detailAddMoment").classList.toggle("hidden",lifecycle!=="ongoing"||!canWrite());
-  $("#detailAddMoment").setAttribute("aria-expanded","false");
-  $("#detailMomentActions").classList.add("hidden");
+ detailTripId=id;detailRequest++;detailPhotoRows=[];detailMediaIds=[];detailGalleryIndex=0;detailGalleryLoads.clear();
+ const city=(trip.cities||[]).join(", ");
+ $("#detailCountryTitle").textContent=countryName(trip.country_code);
+ $("#detailTitle").textContent=city||countryName(trip.country_code);
+ const code=window.BEAM_VISUAL_CARDS.codeOf(trip.country_code),
+       flag=window.BEAM_VISUAL_CARDS.flag(code);
+ $("#detailCountryBadge").innerHTML=(flag?'<img src="'+flag+'" alt="" aria-hidden="true">':"")+
+  '<span>'+esc(code||"—")+'</span>';
+ const date=DAY.single(trip)?DAY.short(trip.entry_date):tripCardDates(trip.entry_date,trip.exit_date);
+ const duration=DAY.single(trip)?"Excursion · 1 jour":FR.count(trip.duration_days,"jour");
+ const purpose=window.BEAM_TRAVEL_PDF.purposeName(trip.purpose);
+ $("#detailIntro").textContent=[date,duration,purpose].filter(Boolean).join(" | ");
+ const lifecycle=LIFE.state(trip),label=LIFE.label(trip),badge=$("#detailLifecycle");
+ badge.textContent=label;badge.className="detailLifecycle"+(label?" detailLifecycle-"+lifecycle:" hidden");
+ $("#detailAddMoment").classList.toggle("hidden",lifecycle!=="ongoing"||!canWrite());
+ $("#detailAddMoment").setAttribute("aria-expanded","false");
+ $("#detailMomentActions").classList.add("hidden");
+ $("#detailEdit").classList.toggle("hidden",!canWrite());
+ $("#detailActivityToggle").classList.toggle("hidden",!canWrite());
+ $("#detailShare").disabled=offlineMode;
+ $("#detailShareHelp").textContent=offlineMode?"Photos disponibles avec une connexion.":"";
  const fact=(label,value)=>'<div class="detailFact"><dt>'+esc(label)+'</dt><dd>'+esc(value)+'</dd></div>';
- const stayFact=(label,value,role)=>'<div class="detailFact detailStay"><dt>'+esc(label)+'</dt><dd>'+
-   '<img class="stayThumb" data-stay-role="'+role+'" src="./assets/stay-'+role+'.svg" alt="" aria-hidden="true">'+
-   '<span>'+esc(value)+'</span></dd></div>';
+ const stayFact=(label,value,role)=>'<div class="detailFact detailStay"><dt>'+detailIcon(role==="airline"?"plane":"bed")+esc(label)+'</dt><dd>'+
+  '<img class="stayThumb" data-stay-role="'+role+'" src="./assets/stay-'+role+'.svg" alt="" aria-hidden="true">'+
+  '<span>'+esc(value)+'</span></dd></div>';
  $("#detailFacts").innerHTML=[
-   fact("Pays",countryName(trip.country_code)),
-   fact("Ville(s)",(trip.cities||[]).join(", ")||"Non renseignée"),
-   ...(DAY.single(trip)?[fact("Date",DAY.short(trip.entry_date))]:[
-     fact("Entrée",DETAIL.dateFR(trip.entry_date)),
-     fact("Sortie",DETAIL.dateFR(trip.exit_date))]),
-   fact("Durée",DAY.single(trip)?"Excursion · 1 jour":FR.count(trip.duration_days,"jour")),
-   fact("Motif",window.BEAM_TRAVEL_PDF.purposeName(trip.purpose)),
-   ...(trip.airline?.trim()?[stayFact("Compagnie aérienne",trip.airline,"airline")]:[]),
-   ...(trip.hotel?.trim()?[stayFact("Hôtel / hébergement",trip.hotel,"hotel")]:[]),
-   ...(trip.companions?.trim()?[fact("Voyagé avec",trip.companions)]:[])
+  fact("Pays",countryName(trip.country_code)),
+  fact("Ville(s)",city||"Non renseignée"),
+  ...(DAY.single(trip)?[fact("Date",DAY.short(trip.entry_date))]:[
+   fact("Entrée",DETAIL.dateFR(trip.entry_date)),fact("Sortie",DETAIL.dateFR(trip.exit_date))]),
+  fact("Durée",duration),fact("Motif",purpose),
+  ...(trip.airline?.trim()?[stayFact("Compagnie aérienne",trip.airline,"airline")]:[]),
+  ...(trip.hotel?.trim()?[stayFact("Hôtel / hébergement",trip.hotel,"hotel")]:[]),
+  ...(trip.companions?.trim()?['<div class="detailFact detailCompanions"><dt>'+
+   detailIcon("people")+'Avec</dt><dd>'+esc(trip.companions)+'</dd></div>']:[])
  ].join("");
  renderLoyaltyHint(trip);
- $("#detailNote").textContent=offlineMode?"Souvenirs disponibles avec une connexion.":(trip.note?.trim()||"Aucun souvenir ajouté.");
+ $("#detailNote").textContent=offlineMode?"":(trip.note?.trim()||"");
  $("#detailStatus").classList.add("hidden");
  $("#detailActivityMessage").classList.add("hidden");
- $("#detailActivityForm").reset();
- resetTripStopForm(trip);
- renderTripStops(trip);
+ $("#detailActivityForm").reset();$("#detailActivityForm").classList.add("hidden");
+ resetTripStopForm(trip);renderTripStops(trip);
  window.BEAM_ACTIVITY_DURATIONS?.resetControls(trip);
  const dates=$("#activityDate");dates.replaceChildren(new Option("Sans date",""));
  const start=new Date(trip.entry_date+"T12:00:00Z"),end=new Date(trip.exit_date+"T12:00:00Z");
@@ -2052,24 +2063,15 @@ function openTripDetail(id){
    const iso=new Date(time).toISOString().slice(0,10);
    dates.add(new Option(DETAIL.dateFR(iso),iso));
   }
- $("#detailPhotos").innerHTML='<p class="detailEmpty">Chargement des photos privées…</p>';
- $("#detailActivities").innerHTML='<p class="detailEmpty">Chargement des activités…</p>';
+ $("#detailActivities").replaceChildren();detailActivitiesRows=[];
+ detailNoPhoto(trip);detailSections(trip);
  $("#tripDetailModal").classList.add("open");
- // Read a fixed public index only; never transmit the country or trip data.
  if(!offlineMode)void window.BEAM_VISA_GUIDE?.showForCountry(trip.country_code,$("#detailVisaGuide"));
- $("#detailSheet").scrollTop=0;
- $("#detailClose").focus();
+ $("#detailSheet").scrollTop=0;$("#detailClose").focus();
  if(offlineMode){
-  const code=window.BEAM_VISUAL_CARDS.codeOf(trip.country_code);
-  const art=window.BEAM_VISUAL_CARDS.countryArt(code)||window.BEAM_VISUAL_CARDS.flag(code)||"./assets/world-map.svg";
-  const photoBox=$("#detailPhotos");photoBox.replaceChildren();
-  const illustration=document.createElement("img");
-  illustration.className="offlineCountryIllustration";illustration.alt="Illustration du pays";
-  illustration.src=art;photoBox.append(illustration);
-  const note=document.createElement("p");note.className="detailEmpty";
-  note.textContent="Photos disponibles avec une connexion.";photoBox.append(note);
   detailActivitiesRows=offlineActivities.filter(row=>row.trip_id===id);
   $("#detailActivities").innerHTML=DETAIL.activities(detailActivitiesRows);
+  detailSections(trip);
  }else refreshTripDetail(id).catch(()=>{
   if(detailTripId===id)detailMessage("Impossible de charger cette fiche. Réessayez en la rouvrant.");
  });
@@ -2078,41 +2080,41 @@ async function refreshTripDetail(id){
  const token=++detailRequest;
  if(offlineMode)return;
  const [photos,activities]=await Promise.all([
-   S.from("media").select("id,storage_path,caption").eq("user_id",user.id).eq("trip_id",id).order("created_at",{ascending:true}),
-   S.from("activities").select("id,title,place,happened_on,duration_days").eq("user_id",user.id).eq("trip_id",id).order("created_at",{ascending:true})
+  S.from("media").select("id,storage_path,caption").eq("user_id",user.id).eq("trip_id",id).order("created_at",{ascending:true}),
+  S.from("activities").select("id,title,place,happened_on,duration_days").eq("user_id",user.id).eq("trip_id",id).order("created_at",{ascending:true})
  ]);
- if(!detailActive(id,token))return;
- if(activities.error||!activities.data){
-   $("#detailActivities").innerHTML='<p class="detailEmpty">Activités indisponibles. Réessayez en rouvrant la fiche.</p>';
- }else{
-   detailActivitiesRows=activities.data;
-   $("#detailActivities").innerHTML=DETAIL.activities(activities.data);
- }
- if(photos.error||!photos.data){
-   detailMediaIds=[];detailPhotoRows=[];
-   $("#detailPhotos").innerHTML='<p class="detailEmpty">Photos indisponibles. Réessayez en rouvrant la fiche.</p>';
-   return;
- }
- detailMediaIds=photos.data.map(row=>row.id);
- const signed=await Promise.all(photos.data.map(async row=>{
-   try{
-     const {data,error}=await S.storage.from("media").createSignedUrl(row.storage_path,300);
-     return {id:row.id,storage_path:row.storage_path,url:error?"":(data?.signedUrl||""),caption:row.caption||""};
-   }catch{return {id:row.id,storage_path:row.storage_path,url:"",caption:row.caption||""}}
- }));
  if(!detailActive(id,token))return;
  const trip=trips.find(t=>t.id===id);
  if(!trip)return;
- detailPhotoRows=signed;
- $("#detailPhotos").innerHTML=DETAIL.photos(signed,{
-   canEdit:canWrite(),coverMediaId:trip.cover_media_id,airline:!!trip.airline?.trim(),hotel:!!trip.hotel?.trim(),
-   airlineMediaId:trip.airline_media_id,hotelMediaId:trip.hotel_media_id
- });
+ if(activities.error||!activities.data){
+  detailActivitiesRows=[];$("#detailActivities").innerHTML='<p class="detailEmpty">Activités indisponibles. Réessayez en rouvrant la fiche.</p>';
+  $("#detailActivitiesSection").hidden=false;
+ }else{
+  detailActivitiesRows=activities.data;
+  $("#detailActivities").innerHTML=DETAIL.activities(detailActivitiesRows);
+  detailSections(trip);
+ }
+ if(photos.error||!photos.data){
+  detailMediaIds=[];detailPhotoRows=[];detailNoPhoto(trip);
+  detailMessage("Photos indisponibles. Réessayez en rouvrant la fiche.");
+  return;
+ }
+ // Cover first, other photos retain their existing chronological order.
+ const cover=trip.cover_media_id,ordered=photos.data.slice().sort((a,b)=>Number(b.id===cover)-Number(a.id===cover));
+ detailMediaIds=ordered.map(row=>row.id);
+ detailPhotoRows=ordered.map(row=>({id:row.id,storage_path:row.storage_path,caption:row.caption||"",url:""}));
+ detailGalleryLoads.clear();
+ if(!detailPhotoRows.length){detailNoPhoto(trip);return}
+ // Strict two-signature budget at open. Remaining photos only on swipe/share.
+ await Promise.all(detailPhotoRows.slice(0,2).map((row,i)=>detailSignPhoto(i,id,token)));
+ if(!detailActive(id,token))return;
+ detailGalleryRender(trip);
+ // The first image and its neighbor are already privately signed.
  for(const role of ["airline","hotel"]){
-   const image=$("#detailFacts").querySelector?.('[data-stay-role="'+role+'"]');
-   if(!image)continue;
-   const selected=signed.find(row=>row.id===trip[role+"_media_id"]);
-   image.src=selected?.url||"./assets/stay-"+role+".svg";
+  const image=$("#detailFacts").querySelector?.('[data-stay-role="'+role+'"]');
+  if(!image)continue;
+  const selected=detailPhotoRows.find(row=>row.id===trip[role+"_media_id"]);
+  if(selected?.url)image.src=selected.url;
  }
 }
 $("#detailPhotos").onclick=e=>{
@@ -2131,10 +2133,18 @@ $("#detailAddMoment").onclick=()=>{
  $("#detailMomentActivity").onclick=()=>{
   $("#detailMomentActions").classList.add("hidden");
   $("#detailAddMoment").setAttribute("aria-expanded","false");
+  $("#detailActivityForm").classList.remove("hidden");$("#detailActivitiesSection").hidden=false;
   $("#detailActivityForm").scrollIntoView({behavior:"smooth",block:"center"});
   $("#activityTitle").focus();
  };
- $("#detailMomentPhoto").onclick=()=>{
+ $("#detailActivityToggle").onclick=()=>{
+ if(!canWrite())return;
+ $("#detailActivitiesSection").hidden=false;
+ $("#detailActivityForm").classList.remove("hidden");
+ $("#detailActivityForm").scrollIntoView({behavior:"smooth",block:"center"});
+ $("#activityTitle").focus();
+};
+$("#detailMomentPhoto").onclick=()=>{
   if(!detailTripId||!canWrite())return;
   const id=detailTripId;closeTripDetail();openEditTrip(id);
   $("#photos").scrollIntoView({behavior:"smooth",block:"center"});$("#photos").focus();
@@ -2564,7 +2574,7 @@ function updatePhotoViews(tripId){
  const trip=trips.find(t=>t.id===tripId);
  if(editingTripId===tripId)renderPhotoGallery();
  if(detailTripId===tripId&&$("#tripDetailModal").classList.contains("open")){
-   $("#detailPhotos").innerHTML=DETAIL.photos(detailPhotoRows,photoTripStay(trip));
+   detailGalleryRender(trip);
  }
 }
 async function writePhotoRole(field){
