@@ -66,6 +66,11 @@ function renderList(target,trip,editable,onEdit,onRemove){
  for(const stop of list){
   const length=days(stop.entry_date,stop.exit_date);
   const item=doc.createElement("div");item.className="tripStopRow";
+  const marker=doc.createElement("div");marker.className="tripStopMarker";
+  marker.setAttribute("aria-hidden","true");
+  const dot=doc.createElement("span");dot.className="tripStopDot";marker.append(dot);
+  const card=doc.createElement("div");card.className="tripStopCard";
+  const summary=doc.createElement("div");summary.className="tripStopSummary";
   const flag=doc.createElement("img");flag.className="tripStopFlag";flag.setAttribute("alt","");
   flag.setAttribute("aria-hidden","true");flag.src="./assets/flags/"+stop.country_code.toLowerCase()+".svg";
   const info=doc.createElement("div");info.className="tripStopInfo";
@@ -73,15 +78,16 @@ function renderList(target,trip,editable,onEdit,onRemove){
   const location=doc.createElement("span");location.textContent=(cities(stop)||"Ville non précisée")+
    " · "+(stop.entry_date===stop.exit_date?short(stop.entry_date,true):date(stop.entry_date)+" → "+date(stop.exit_date))+
    " · "+(stop.entry_date===stop.exit_date?"Excursion · 1 jour":FR.count(length,"jour"));
-  info.append(name,location);item.append(flag,info);
+  info.append(name,location);summary.append(flag,info);card.append(summary);
   if(editable){
    const buttons=doc.createElement("div");buttons.className="tripStopActions";
    for(const [label,action] of [["Modifier",()=>onEdit(stop)],["Supprimer",()=>onRemove(stop)]]){
     const b=doc.createElement("button");b.type="button";b.className="btn ghost";
     b.textContent=label;b.addEventListener("click",action);buttons.append(b);
    }
-   item.append(buttons);
+   card.append(buttons);
   }
+  item.append(marker,card);
   target.append(item);
  }
 }

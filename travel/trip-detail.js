@@ -89,7 +89,7 @@
     const signed=options?.signedPhotoByActivity||{};
     return '<ul class="detailActivityList detailTimeline">'+ordered.map(row=>{
       const duration=Number(row.duration_days)||1;
-      const metadata=[row.place?esc(row.place):"",esc(duration===1?"1 jour":duration+" jours")].filter(Boolean);
+      const metadata=[row.place?esc(row.place):"",duration>=2?esc(duration+" jours"):""].filter(Boolean);
       const candidate=options?.offline?"":signed[row.id];
       const safeUrl=typeof candidate==="string"&&options?.supabaseUrl&&
         root?.BEAM_VISUAL_CARDS?.trustedSignedUrl?
