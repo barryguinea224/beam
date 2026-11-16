@@ -49,6 +49,6 @@ assert.match(css,/aspect-ratio:100 \/ 56/);
 assert.match(css,/#detailShareSend\[hidden\]/);
 assert.ok(!sw.includes("cache.put("));
 assert.ok(sw.includes("./trip-share.js")&&sw.includes("./trip-premium.css"));
-assert.match(sw,/jyetais-v57-read-mode-flag/);
+assert.match(sw,/jyetais-v58-moments-souvenir/);
 assert.match(DETAIL.photos([{id:"one",url:"https://fixture.invalid/p.webp"}]),/photoTap/);
 console.log("PASS private PNG share allowlist, 1080×1350, synchronous file share, snap gallery and offline shell");

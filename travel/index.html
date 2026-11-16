@@ -525,7 +525,14 @@ html.travelAccessReadOnly #photoField,html.travelAccessReadOnly #saveTrip{displa
         <p id="detailActivityMessage" class="notice hidden" role="status" aria-live="polite"></p>
       </form>
     </section>
-<section id="detailNoteSection" class="detailSection" aria-labelledby="detailNoteTitle"><h3 id="detailNoteTitle">Notes</h3><p id="detailNote" class="detailNote"></p></section>
+<section id="detailNoteSection" class="detailSection" aria-labelledby="detailNoteTitle">
+  <h3 id="detailNoteTitle">Mon souvenir</h3>
+  <div class="detailSouvenirCard">
+    <p id="detailNote" class="detailNote detailSouvenirText is-clamped"></p>
+    <button id="detailNoteToggle" type="button" aria-controls="detailNote" aria-expanded="false" hidden>Lire la suite</button>
+    <p id="detailNoteDate" class="detailSouvenirDate"></p>
+  </div>
+</section>
 <div class="detailBottomActions" id="detailBottomActions">
  <button type="button" id="detailAddMoment" class="btn hidden" aria-expanded="false" aria-controls="detailMomentActions">Ajouter un moment</button>
  <button type="button" id="detailModeToggle" class="btn ghost" aria-pressed="false">Modifier ce voyage</button>
@@ -1680,6 +1687,19 @@ function detailSections(trip){
  $("#detailActivitiesSection").hidden=!detailActivitiesRows.length&&$("#detailActivityForm").classList.contains("hidden");
  $("#detailNoteSection").hidden=offlineMode||!trip?.note?.trim();
 }
+function detailMeasureSouvenir(){
+ const note=$("#detailNote"),toggle=$("#detailNoteToggle");
+ if(!note||!toggle||$("#detailNoteSection").hidden)return;
+ if(!note.classList.contains("is-clamped"))return;
+ toggle.hidden=note.scrollHeight<=note.clientHeight+2;
+}
+$("#detailNoteToggle").onclick=()=>{
+ const note=$("#detailNote"),toggle=$("#detailNoteToggle");
+ const expanded=note.classList.toggle("is-clamped")===false;
+ toggle.textContent=expanded?"Réduire":"Lire la suite";
+ toggle.setAttribute("aria-expanded",String(expanded));
+ if(!expanded)detailMeasureSouvenir();
+};
 function detailShareReset(){
  if($("#detailShareDialog").open)$("#detailShareDialog").close();
  $("#detailSharePreview").removeAttribute("src");
@@ -2076,6 +2096,11 @@ function openTripDetail(id){
  ].join("");
  renderLoyaltyHint(trip);
  $("#detailNote").textContent=offlineMode?"":(trip.note?.trim()||"");
+ $("#detailNoteDate").textContent=DETAIL.souvenirDateLine(trip.entry_date,trip.exit_date);
+ $("#detailNote").classList.add("is-clamped");
+ $("#detailNoteToggle").hidden=true;
+ $("#detailNoteToggle").textContent="Lire la suite";
+ $("#detailNoteToggle").setAttribute("aria-expanded","false");
  $("#detailStatus").classList.add("hidden");
  $("#detailActivityMessage").classList.add("hidden");
  $("#detailActivityForm").reset();$("#detailActivityForm").classList.add("hidden");
@@ -2091,6 +2116,9 @@ function openTripDetail(id){
  $("#detailActivities").replaceChildren();detailActivitiesRows=[];
  detailNoPhoto(trip);detailSyncMode(trip);
  $("#tripDetailModal").classList.add("open");
+ // Measure after the modal becomes visible; only show the expansion button
+ // when the actual text exceeds six rendered lines.
+ window.requestAnimationFrame?.(detailMeasureSouvenir);
  if(!offlineMode)void window.BEAM_VISA_GUIDE?.showForCountry(trip.country_code,$("#detailVisaGuide"));
  $("#detailSheet").scrollTop=0;$("#detailClose").focus();
  if(offlineMode){

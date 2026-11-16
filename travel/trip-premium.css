@@ -84,3 +84,165 @@ html.travelAccessReadOnly #tripDetailModal .detailBottomActions,html.beamOffline
 #tripDetailModal:not([data-mode="edit"]) :is(.tripStopActions,.detailRemoveActivity){display:none!important}
 #tripDetailModal #detailModeToggle[aria-pressed="true"]{border-color:#174d3a;background:#edf5ef;color:#174d3a}
 html.travelAccessReadOnly #tripDetailModal #detailModeToggle,html.beamOffline #tripDetailModal #detailModeToggle{display:none!important}
+
+
+/* Fiche voyage: sections typographiques sobres et alignement mobile unifié. */
+#tripDetailModal .detailSection h3,
+#tripDetailModal #detailStopsSection h3{
+  font:600 22px/1.3 Poppins,system-ui,sans-serif;
+  letter-spacing:normal;
+  color:#174d3a;
+  margin:0 0 18px;
+}
+#tripDetailModal .detailSection,
+#tripDetailModal #detailStopsSection{padding:24px 20px 23px}
+#tripDetailModal #detailVisaGuide,
+#tripDetailModal #detailLoyaltyHint,
+#tripDetailModal #detailStatus{
+  display:block;
+  box-sizing:border-box;
+  max-width:calc(100% - 40px);
+  margin:14px 20px;
+  overflow-wrap:anywhere;
+}
+#tripDetailModal #detailVisaGuide[hidden],
+#tripDetailModal #detailLoyaltyHint[hidden]{display:none!important}
+#tripDetailModal #detailLoyaltyHint{
+  border-radius:12px;
+  padding:12px 14px;
+}
+/* Dates + captions are cards, not oversized timeline radio dots. */
+#tripDetailModal #detailActivities .detailActivityList{
+  list-style:none;margin:0;padding:0;display:grid;gap:14px;
+}
+#tripDetailModal #detailActivities .detailTimeline>.detailActivity{
+  display:grid;
+  grid-template-columns:52px minmax(0,1fr) auto;
+  align-items:center;
+  column-gap:10px;
+  row-gap:7px;
+  padding:12px;
+  border:1px solid #dbe7dc;
+  border-radius:13px;
+  background:#fff;
+  margin:0;
+  min-width:0;
+  box-shadow:0 2px 6px #12392308;
+  overflow:visible;
+}
+#tripDetailModal #detailActivities .detailTimeline>.detailActivity::before{content:none}
+#tripDetailModal #detailActivities .detailTimeline>.detailActivity::after{content:none}
+#tripDetailModal .detailActivityDate{
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  width:52px;
+  min-width:52px;
+  min-height:60px;
+  border-radius:9px;
+  background:#f0f6f0;
+  color:#174d3a;
+  text-align:center;
+  line-height:1.1;
+}
+#tripDetailModal .detailActivityDay{font:600 27px/1.15 Poppins,system-ui,sans-serif}
+#tripDetailModal .detailActivityMonth{margin-top:2px;font:500 12px/1.25 system-ui,sans-serif}
+#tripDetailModal .detailActivityUndated svg{width:21px;height:21px}
+#tripDetailModal #detailActivities .detailActivity:not(:last-child)>.detailActivityDate::after{
+  content:"";
+  position:absolute;
+  width:1px;
+  height:14px;
+  bottom:-26px;
+  left:26px;
+  background:#bad0bf;
+}
+#tripDetailModal #detailActivities .detailActivityText{min-width:0;overflow:hidden}
+#tripDetailModal #detailActivities .detailActivityText strong{
+  display:-webkit-box;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:2;
+  line-clamp:2;
+  overflow:hidden;
+  font:700 14px/1.42 system-ui,sans-serif;
+  color:#203d2c;
+  overflow-wrap:anywhere;
+}
+#tripDetailModal #detailActivities .detailActivityMeta{
+  margin:5px 0 0;
+  color:#66796b;
+  font:400 12px/1.4 system-ui,sans-serif;
+  overflow-wrap:anywhere;
+}
+#tripDetailModal #detailActivities .detailActivityThumb{
+  display:block;
+  grid-column:3;
+  width:64px;
+  height:64px;
+  border-radius:9px;
+  object-fit:cover;
+  flex-shrink:0;
+}
+#tripDetailModal #detailActivities .detailRemoveActivity{
+  grid-column:2/-1;
+  justify-self:start;
+  min-height:36px;
+  padding:5px 10px;
+  margin-top:3px;
+}
+/* The travel note is a restrained tinted story, not a quotation graphic. */
+#tripDetailModal .detailSouvenirCard{
+  background:#f2f7f1;
+  border-left:3px solid #2d7750;
+  border-radius:0 12px 12px 0;
+  padding:17px 18px;
+  min-width:0;
+}
+#tripDetailModal #detailNote.detailSouvenirText{
+  display:block;
+  margin:0;
+  font:400 16px/1.6 system-ui,sans-serif;
+  white-space:pre-line;
+  overflow-wrap:anywhere;
+  color:#253b2b;
+}
+#tripDetailModal #detailNote.detailSouvenirText.is-clamped{
+  display:-webkit-box;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:6;
+  line-clamp:6;
+  overflow:hidden;
+}
+#tripDetailModal #detailNoteToggle{
+  display:inline-flex;
+  align-items:center;
+  min-height:44px;
+  margin:8px 0 0;
+  padding:0;
+  border:0;
+  background:transparent;
+  color:#176743;
+  font:650 13px/1.4 system-ui,sans-serif;
+  text-decoration:underline;
+  text-underline-offset:3px;
+  cursor:pointer;
+}
+#tripDetailModal #detailNoteToggle[hidden]{display:none!important}
+#tripDetailModal .detailSouvenirDate{
+  font:400 12px/1.45 system-ui,sans-serif;
+  color:#657c68;
+  margin:12px 0 0;
+}
+@media(max-width:390px){
+  #tripDetailModal .detailHeading{padding-left:18px;padding-right:18px}
+  #tripDetailModal .detailSection,
+  #tripDetailModal #detailStopsSection{padding:24px 18px 23px}
+  #tripDetailModal .detailBottomActions{padding-left:18px;padding-right:18px}
+  #tripDetailModal #detailVisaGuide,
+  #tripDetailModal #detailLoyaltyHint,
+  #tripDetailModal #detailStatus{max-width:calc(100% - 36px);margin-left:18px;margin-right:18px}
+  #tripDetailModal #detailActivities .detailTimeline>.detailActivity{padding:9px;column-gap:8px}
+  #tripDetailModal .detailSouvenirCard{padding:16px}
+}
