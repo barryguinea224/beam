@@ -16,6 +16,8 @@ async function main(){
    try{
     await page.setContent(noScript,{waitUntil:"domcontentloaded"});
     await page.addStyleTag({content:css});
+    // Exercise the same stage geometry and cascade as the real #tripDetailModal.
+    await page.addStyleTag({content:fs.readFileSync("travel/trip-premium.css","utf8")});
     await page.addStyleTag({content:fs.readFileSync("travel/date-range-picker.css","utf8")});
     await page.addScriptTag({path:path.resolve("travel/fr-accords.js")});
      await page.addScriptTag({path:path.resolve("travel/date-range-picker.js")});
