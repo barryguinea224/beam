@@ -31,7 +31,7 @@
     const items=rows.map(row=>{
       const caption=captionValue(row.caption);
       return '<figure class="detailPhoto" data-media-id="'+esc(row.id)+'">'+
-        '<button type="button" class="photoTap" data-id="'+esc(row.id)+'" aria-label="Ouvrir les actions de cette photo">'+
+        '<button type="button" class="photoTap" data-id="'+esc(row.id)+'" aria-label="Voir la photo en plein écran">'+
         (row.url?'<img loading="lazy" alt="Photo privée du voyage" src="'+esc(row.url)+'">':
           '<span class="detailPhotoMissing">Prévisualisation indisponible</span>')+
         badges(row,stay)+'</button>'+
@@ -39,14 +39,14 @@
     }).join("");
     return items;
   }
-  function activities(rows) {
+  function activities(rows,editable=true) {
     if (!rows.length) return '<p class="detailEmpty">Aucune activité pour le moment.</p>';
-    return '<ul class="detailActivityList">' + rows.map(row => {
+    return '<ul class="detailActivityList detailTimeline">' + rows.map(row => {
       const meta = [row.place && esc(row.place),row.happened_on && esc(DURATIONS?.format(row.happened_on,row.duration_days||1)||dateFR(row.happened_on))].filter(Boolean);
       return '<li class="detailActivity"><div class="detailActivityText"><strong>' + esc(row.title) +
         '</strong>' + (meta.length ? '<p>' + meta.join(" · ") + '</p>' : '') +
-        '</div><button type="button" class="btn ghost detailRemoveActivity" data-id="' + esc(row.id) +
-        '" aria-label="Supprimer l’activité ' + esc(row.title) + '">Retirer</button></li>';
+        '</div>'+(editable?'<button type="button" class="btn ghost detailRemoveActivity" data-id="' + esc(row.id) +
+        '" aria-label="Supprimer l’activité ' + esc(row.title) + '">Retirer</button>':"")+'</li>';
     }).join("") + '</ul>';
   }
   function validateActivity({title,place,happened_on,duration_days=1}, trip) {

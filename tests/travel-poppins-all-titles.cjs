@@ -16,7 +16,7 @@ for(const file of files){
  assert.doesNotMatch(source,/(?<!sans-)\bserif\b/i,"Serif fallback in travel/"+file);
 }
 const sw=fs.readFileSync(path.join(root,"sw.js"),"utf8");
-assert.match(sw,/jyetais-v55-card-finishes/);
+assert.match(sw,/jyetais-v57-read-mode-flag/);
 assert.doesNotMatch(sw,/\bGeorgia\b/i);
 for(const file of ["index.html","account-settings.css","visual-cards.css","photo-sheet.css","legal.css"])
  assert.match(fs.readFileSync(path.join(root,file),"utf8"),/Poppins,system-ui,sans-serif/,"Source-family contract "+file);
@@ -88,7 +88,7 @@ async function run(){
     await page.locator("#modal.open").waitFor({state:"hidden"});
     await page.locator("#trips .tripOpen").first().click();
     await page.locator("#tripDetailModal.open").waitFor({state:"visible"});
-    const detailFont=await family("#detailTitle");
+    const detailFont=await family(phase==="avant"?"#detailTitle":"#detailCountryTitle");
     await snapshot("fiche-voyage");
     await page.locator("#detailClose").click();
     await page.locator("#openAccount").click();

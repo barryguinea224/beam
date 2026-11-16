@@ -25,6 +25,7 @@ async function main(){
      window.confirm=()=>{throw Error("Native confirmation forbidden")};
      document.getElementById("app").classList.remove("hidden");
      document.getElementById("tripDetailModal").classList.add("open");
+     document.getElementById("tripDetailModal").dataset.mode="edit";
      const trip={country_code:"FR",entry_date:"2026-11-05",exit_date:"2026-11-15",stops:[
       {id:"fiction-de",country_code:"DE",cities:["Berlin"],entry_date:"2026-11-10",exit_date:"2026-11-14",position:1}
      ]};

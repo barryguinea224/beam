@@ -23,6 +23,9 @@ async function main(){
      const input=document.getElementById("tripCompanions");
      input.value="Maman, Aïssatou"; // fictional first-name specimen
      const detail=document.getElementById("tripDetailModal");detail.classList.add("open");
+     // The premium sheet keeps forms collapsed; expose it for the form fixture.
+     document.getElementById("detailActivitiesSection").hidden=false;
+     document.getElementById("detailActivityForm").classList.remove("hidden");
      document.getElementById("activityDate").add(new Option("24 décembre","2026-12-24"));
      document.getElementById("activityDate").add(new Option("30 décembre","2026-12-30"));
      window.BEAM_ACTIVITY_DURATIONS.resetControls({entry_date:"2026-12-20",exit_date:"2026-12-31"});

@@ -1,0 +1,86 @@
+/* J'y étais — page de voyage, sans aucun style de marque tierce. */
+#tripDetailModal{padding:0;align-items:center;justify-items:center}
+#tripDetailModal .detailSheet{width:min(100vw,650px);max-width:100vw;max-height:100dvh;height:min(100dvh,1080px);padding:0;overflow-y:auto;overscroll-behavior:contain;background:#fff;color:#17231f;border-radius:0;box-shadow:0 22px 60px #102e2052}
+@media(min-width:700px){#tripDetailModal{padding:16px}#tripDetailModal .detailSheet{height:min(94dvh,1100px);max-height:94dvh;width:min(650px,96vw);border-radius:20px}}
+#tripDetailModal .detailHero{position:relative;width:100%;height:auto;aspect-ratio:100 / 56;flex-shrink:0;background:#dceadf;overflow:hidden}
+#tripDetailModal #detailPhotos.detailGallery{display:flex;gap:0;margin:0;padding:0;width:100%;height:100%;max-width:100%;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain;touch-action:pan-x;scroll-behavior:smooth}
+#tripDetailModal #detailPhotos.detailGallery::-webkit-scrollbar{display:none}
+#tripDetailModal #detailPhotos .detailPhoto{position:relative;flex:0 0 100%;width:100%;height:100%;scroll-snap-align:start;scroll-snap-stop:always;margin:0;padding:0;border:0;border-radius:0;overflow:hidden;background:#dceadf}
+#tripDetailModal #detailPhotos .photoTap{height:100%;width:100%;border-radius:0;background:transparent}
+#tripDetailModal #detailPhotos .photoTap img{display:block;width:100%;max-width:100%;height:100%;object-fit:cover;border-radius:0;background:#dceadf}
+#tripDetailModal #detailPhotos .detailPhotoMissing{display:grid;place-items:center;width:100%;height:100%;color:#315b43}
+#tripDetailModal #detailPhotos .photoOneLine,#tripDetailModal #detailPhotos .photoRoles{display:none}
+#tripDetailModal .detailHeroFallback{position:absolute;inset:0;display:grid;place-items:center;background:#dceadf}
+#tripDetailModal .detailHeroFallback img.detailCountryArt{display:block;width:100%;height:100%;object-fit:cover}
+#tripDetailModal .detailHeroFallback img.detailFallbackFlag{display:block;width:76px;height:58px;object-fit:contain}
+#tripDetailModal .detailHeroControls{position:absolute;inset:12px 12px auto;display:flex;align-items:center;justify-content:space-between;gap:8px;z-index:5;pointer-events:none}
+#tripDetailModal .detailHeroControls button{min-height:44px;border:1px solid #ffffffb0;box-shadow:0 2px 8px #0a25182e;border-radius:999px;padding:10px 13px;background:#fff;color:#174d3a;font:650 13px/1 system-ui,sans-serif;pointer-events:auto}
+#tripDetailModal #detailClose{width:44px;height:44px;padding:0;font-size:24px}
+#tripDetailModal #detailShare:disabled{opacity:.55;cursor:not-allowed}
+#tripDetailModal #detailGalleryCount{position:absolute;bottom:12px;right:12px;z-index:3;border-radius:999px;background:#142b22cf;color:#fff;padding:6px 12px;font:650 13px/1.35 system-ui,sans-serif;pointer-events:none}
+#tripDetailModal .detailHeading{padding:23px 20px 16px;min-width:0}
+#tripDetailModal #detailCountryBadge{display:inline-flex;align-items:center;gap:7px;border:1px solid #d6e3d9;background:#f8fbf7;color:#174d3a;border-radius:999px;padding:5px 10px;font:700 13px/1.25 system-ui,sans-serif}
+#tripDetailModal #detailCountryBadge img{width:24px;height:17px;object-fit:cover;border-radius:2px}
+#tripDetailModal #detailCountryTitle{font:700 clamp(29px,8vw,42px)/1.12 Poppins,system-ui,sans-serif;color:#174d3a;margin:14px 0 5px;overflow-wrap:anywhere;letter-spacing:-.02em}
+#tripDetailModal #detailTitle{font:500 16px/1.45 system-ui,sans-serif;color:#536b5c;margin:0 0 10px;overflow-wrap:anywhere}
+#tripDetailModal #detailIntro{font:400 13px/1.65 system-ui,sans-serif;color:#4f6458;margin:0;overflow-wrap:anywhere}
+#tripDetailModal #detailLifecycle{margin:10px 0 0}
+#tripDetailModal #detailShareHelp{font:500 12px/1.4 system-ui,sans-serif;color:#64776a;margin:5px 0 0}
+#tripDetailModal #detailShareHelp:empty{display:none}
+#tripDetailModal #detailFacts.detailFacts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:19px 0 0;padding:0}
+#tripDetailModal #detailFacts .detailFact:not(.detailStay):not(.detailCompanions){display:none}
+#tripDetailModal #detailFacts .detailFact{display:flex;flex-direction:column;min-width:0;gap:5px;border:1px solid #dae5dc;border-radius:12px;background:#f8faf7;padding:11px 7px;overflow-wrap:anywhere}
+#tripDetailModal #detailFacts .detailFact dt{display:flex;align-items:center;gap:5px;font:650 11px/1.35 system-ui,sans-serif;color:#567061}
+#tripDetailModal #detailFacts .detailFact dd{display:block;margin:0;font:600 12px/1.45 system-ui,sans-serif;color:#1c3f2e;min-width:0;overflow-wrap:anywhere}
+#tripDetailModal #detailFacts .detailStay dd img{display:none}
+#tripDetailModal .detailMetaIcon{width:15px;height:15px;flex-shrink:0}
+#tripDetailModal .detailSection,#tripDetailModal #detailStopsSection{padding:22px 20px;border-top:1px solid #e1eae3;margin:0;min-width:0}
+#tripDetailModal .detailSection[hidden],#tripDetailModal #detailStopsSection[hidden]{display:none!important}
+#tripDetailModal #detailStopsSection>.mapInfo{display:none}
+#tripDetailModal .detailSection h3,#tripDetailModal #detailStopsSection h3{font:700 21px/1.25 Poppins,system-ui,sans-serif;color:#174d3a;margin:0 0 18px}
+#tripDetailModal .detailTimeline{display:grid;gap:0;margin:0;padding:0;list-style:none}
+#tripDetailModal .detailTimeline>li,.tripStopRow{position:relative;border:0;border-left:2px solid #b6d5c0;border-radius:0;background:transparent;margin-left:8px;padding:0 0 22px 19px;min-width:0}
+#tripDetailModal .detailTimeline>li::before,#tripDetailModal .tripStopRow::before{content:"";position:absolute;top:3px;left:-7px;width:12px;height:12px;background:#174d3a;border:2px solid #fff;border-radius:100%;box-shadow:0 0 0 1px #8bad9a}
+#tripDetailModal .detailTimeline>li:last-child,#tripDetailModal .tripStopRow:last-child{border-left-color:transparent;padding-bottom:0}
+#tripDetailModal .tripStopsList{gap:0}
+#tripDetailModal .tripStopRow{display:flex;flex-wrap:wrap;gap:9px}
+#tripDetailModal .tripStopFlag{width:28px;height:20px;object-fit:cover;margin-top:2px;border-radius:3px}
+#tripDetailModal .tripStopActions{display:flex;width:100%;margin:4px 0 0}
+#tripDetailModal .detailActivity{display:flex;align-items:flex-start;gap:11px;border:0;padding:0 0 21px 19px}
+#tripDetailModal .detailActivityText{min-width:0;flex:1}
+#tripDetailModal .detailActivityText strong{font:700 14px/1.35 system-ui,sans-serif}
+#tripDetailModal .detailActivityText p{font:400 12px/1.45 system-ui,sans-serif;margin:4px 0;color:#5a7361}
+#tripDetailModal .detailActivityThumb{display:block;width:70px;height:62px;flex-shrink:0;object-fit:cover;border-radius:9px}
+#tripDetailModal #detailNote{font:400 14px/1.75 system-ui,sans-serif;white-space:pre-line;overflow-wrap:anywhere;margin:0}
+#tripDetailModal .detailBottomActions{padding:17px 20px calc(21px + env(safe-area-inset-bottom,0px));border-top:1px solid #e1eae3;display:grid;gap:8px}
+#tripDetailModal .detailBottomActions button{min-height:44px;border:1px solid #a5bdad;border-radius:11px;background:#fff;color:#174d3a;padding:9px 12px;font:650 13px/1.35 system-ui,sans-serif}
+#tripDetailModal #detailAddMoment:not(.hidden){display:block;border-color:#174d3a;background:#174d3a;color:#fff;font-size:14px}
+#tripDetailModal .detailMomentActions{margin:0;gap:8px}
+#tripDetailModal .detailMomentActions .btn{flex:1 1 125px}
+#tripDetailModal #detailActivityForm.hidden{display:none!important}
+#tripDetailModal .detailActivityForm{margin:14px 0 0}
+#tripDetailModal .detailActivityForm h4{font-family:Poppins,system-ui,sans-serif}
+html.travelAccessReadOnly #tripDetailModal .detailBottomActions,html.beamOffline #tripDetailModal .detailBottomActions{display:none!important}
+#detailLightbox{display:none;position:fixed;inset:0;z-index:110;background:#07130deF;color:#fff;flex-direction:column;align-items:center;justify-content:center;padding:18px}
+#detailLightbox.open{display:flex}
+#detailLightbox img{width:100%;max-height:70dvh;object-fit:contain}
+#detailLightbox p{font:400 13px/1.55 system-ui,sans-serif;color:#e2ede4;text-align:center;white-space:pre-wrap;overflow-wrap:anywhere}
+#detailLightbox button{min-height:44px;align-self:flex-end;border:1px solid #cadbd0;border-radius:99px;background:#f6fbf7;color:#174d3a;padding:10px 17px}
+#detailShareDialog{box-sizing:border-box;max-height:92dvh;max-width:min(460px,calc(100vw - 24px));border:1px solid #cfddd3;border-radius:17px;padding:15px;background:#f7f5ef;color:#183c2d}
+#detailShareDialog::backdrop{background:#0a2118bc}
+#detailShareDialog h2{font:700 19px/1.4 Poppins,system-ui,sans-serif;margin:4px 0 12px}
+#detailSharePreview{display:block;margin:auto;max-height:58dvh;max-width:100%;width:auto;height:auto;border-radius:9px}
+#detailShareDialog .shareActions{display:flex;gap:8px;margin-top:13px;flex-wrap:wrap}
+#detailShareDialog button{min-height:44px;flex:1 1 125px;border:1px solid #9fbbac;border-radius:10px;background:#fff;color:#174d3a;padding:10px;font:650 13px/1.3 system-ui,sans-serif}
+#detailShareSend{background:#174d3a!important;color:white!important}
+#detailShareSend[hidden]{display:none!important}
+#detailShareStatus{font:500 12px/1.4 system-ui,sans-serif;color:#42644c;margin:5px 0 0}
+@media(max-width:390px){#tripDetailModal .detailHeading{padding:19px 15px 13px}#tripDetailModal .detailSection,#tripDetailModal #detailStopsSection{padding:20px 15px}#tripDetailModal .detailBottomActions{padding-left:15px;padding-right:15px}#tripDetailModal #detailFacts.detailFacts{gap:6px}#tripDetailModal #detailFacts .detailFact{padding:9px 5px}}
+@media print{#detailLightbox,#detailShareDialog{display:none!important}}
+
+/* The flag outline remains visible against the white trip header. */
+#tripDetailModal #detailCountryBadge img{box-sizing:border-box;border:1px solid #9caaa1;border-radius:3px}
+/* Defense in depth: editing buttons never appear in consultation mode. */
+#tripDetailModal:not([data-mode="edit"]) :is(.tripStopActions,.detailRemoveActivity){display:none!important}
+#tripDetailModal #detailModeToggle[aria-pressed="true"]{border-color:#174d3a;background:#edf5ef;color:#174d3a}
+html.travelAccessReadOnly #tripDetailModal #detailModeToggle,html.beamOffline #tripDetailModal #detailModeToggle{display:none!important}
