@@ -117,7 +117,8 @@ async function main(){
     // Editing must reopen on the stored period, with own booking excluded from hints.
     const france=page.locator("#trips .journeyTrip").filter({hasText:"France"}).first();
     await france.locator(".tripOpen").click();
-    await page.locator("#detailEdit").click();
+    await page.locator("#detailModeToggle").click();
+     await page.locator("#detailEdit").click();
     await values("2026-11-08","2026-11-18");
     assert.equal(await page.locator("#tripDatePicker .drp-year").inputValue(),"2026");
     assert.equal(await page.locator("#tripDatePicker .drp-month").inputValue(),"10");
