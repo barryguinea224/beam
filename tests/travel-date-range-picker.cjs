@@ -70,7 +70,7 @@ assert.match(html,/BEAM_DATE_RANGE_PICKER/);
 assert.ok(html.includes('msg.textContent="Choisissez la date de départ du pays."'),"partial range submit must explain missing departure");
 assert.ok(html.includes('stopMode==="multi"&&$("#tripStopEntry").value&&!$("#tripStopExit").value'),"stages must also reject an incomplete range");
 assert.ok(html.includes('tripMode==="multi"&&$("#tripEntryDate").value&&!$("#tripExitDate").value'),"trip save must read hidden date sources directly");
-assert.match(sw,/jyetais-v53-offline-home-gn/);
+assert.match(sw,/jyetais-v55-card-finishes/);
 for(const resource of ['"./date-range-picker.js"','"./date-range-picker.css"'])
  assert.ok(sw.includes(resource),"Missing safe public cache resource "+resource);
 new vm.Script(fs.readFileSync("travel/date-range-picker.js","utf8"));

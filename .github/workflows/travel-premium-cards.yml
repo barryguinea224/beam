@@ -1,0 +1,48 @@
+name: J'y étais — cartes premium et tri mobile
+on:
+  pull_request:
+    branches: [feature/beam-travel-history-v1]
+    paths:
+      - "travel/index.html"
+      - "travel/visual-cards.js"
+      - "travel/visual-cards.css"
+      - "travel/trip-list.js"
+      - "travel/trip-list.css"
+      - "travel/home-simple.css"
+      - "travel/sw.js"
+      - "tests/travel-premium-*"
+      - "tests/travel-visual-cards*"
+      - ".github/workflows/travel-premium-cards.yml"
+permissions:
+  contents: read
+jobs:
+  premium-cards:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Local source and privacy assertions
+        run: |
+          node --check travel/trip-list.js
+          node --check travel/visual-cards.js
+          node tests/travel-premium-list.cjs
+          node tests/travel-visual-cards.cjs
+          node tests/travel-dashboard-filters.cjs
+      - name: Install isolated Chromium
+        run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Android 320, 360, 390 px and 360 px screenshots
+        run: |
+          node tests/travel-visual-cards-layout.cjs
+          node tests/travel-premium-cards-mobile.cjs
+      - name: Upload fictional 360 px screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jyetais-cartes-premium-360px
+          path: test-artifacts/premium-cards/*.png
+          if-no-files-found: warn
