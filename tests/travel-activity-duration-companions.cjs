@@ -41,7 +41,7 @@ for(const token of ['id="tripCompanions"','name="companions"','id="activityDurat
 assert.match(html,/Prénoms ou liens seulement, sans nom complet ni numéro de téléphone/);
 assert.match(inline,/f\.companions\.value=x\.companions\|\|""/);
 assert.match(inline,/companions:companions\|\|null/);
-assert.match(inline,/fact\("Voyagé avec",trip\.companions\)/);
+assert.match(inline,/detailIcon\("people"\).*esc\(trip\.companions\)/s);
 assert.match(inline,/select\("id,title,place,happened_on,duration_days"\)/);
 assert.match(inline,/select\("title,place,happened_on,duration_days"\)/);
 assert.match(inline,/select\("id,country_code,cities,entry_date,exit_date,duration_days,purpose,is_domestic,note,airline,hotel,companions,airline_media_id,hotel_media_id"\)/);
@@ -55,7 +55,7 @@ for(const p of ["travel/printable-journal.js","travel/family-booklet.js"]){
 assert.doesNotMatch(read("travel/printable-journal.js"),/\.innerHTML\s*=/);
 assert.doesNotMatch(read("travel/family-booklet.js"),/\.innerHTML\s*=/);
 const sw=read("travel/sw.js");
-assert.match(sw,/jyetais-v55-card-finishes/);
+assert.match(sw,/jyetais-v56-detail-share/);
 assert.match(sw,/\.\/activity-durations\.js/);
 assert.match(sw,/\.\/activity-duration\.css/);
 for(const p of ["travel/activity-durations.js","travel/trip-detail.js","travel/printable-journal.js","travel/family-booklet.js"])
