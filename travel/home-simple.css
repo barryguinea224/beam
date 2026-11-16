@@ -120,3 +120,5 @@
 #addFloating:focus-visible{outline:3px solid #d0b36c;outline-offset:3px}
 #addFloating[hidden],html.travelAccessReadOnly #addFloating,html.beamOffline #addFloating{display:none!important}
 @media(display-mode:standalone){.jyAppFooter{display:none!important}}
+
+#homeActions{position:relative;z-index:2} /* Keep actions above cards on overlapping small viewports. */

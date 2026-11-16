@@ -123,7 +123,7 @@ async function main(){
     await page.locator("#coverAuto").click();
     await page.waitForFunction(()=>window.__coverFixture.profile.cover_media_id===null);
     await page.locator("#closeAccount").click();
-    await page.locator("#trips .tripOpen").filter({hasText:"Sénégal"}).first().scrollIntoViewIfNeeded();
+    await page.locator("#trips .journeyTrip").filter({hasText:"Sénégal"}).first().scrollIntoViewIfNeeded();
     if(width===360)await page.screenshot({path:path.join(dir,"carte-senegal-360.png"),animations:"disabled"});
     if(width===360){
       await page.goto("http://127.0.0.1:"+host.address().port+"/travel/?readonly=1",{waitUntil:"load"});
