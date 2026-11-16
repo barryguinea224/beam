@@ -42,7 +42,8 @@
   ctx.fillStyle="#dceadf";ctx.fillRect(0,0,WIDTH,570);
   if(cover)crop(ctx,cover,0,0,WIDTH,570);
   ctx.fillStyle="#fff";ctx.fillRect(0,570,WIDTH,780);
-  if(flag)crop(ctx,flag,72,631,68,48);
+  // Flags must be shown in full: center-crop can hide two stripes on SVGs without explicit dimensions.
+  if(flag)ctx.drawImage(flag,72,631,68,48);
   ctx.fillStyle="#174d3a";ctx.font="700 64px "+FONT;
   wrap(ctx,country,72,765,930,69,2);
   ctx.fillStyle="#42624f";ctx.font="500 38px system-ui, sans-serif";
