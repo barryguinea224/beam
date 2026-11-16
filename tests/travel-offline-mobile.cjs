@@ -207,7 +207,9 @@ async function main(){
     assert.match(await page.locator("#detailActivities").textContent(),/Visite fictive/);
     assert.equal(await page.locator("#detailActivityForm").isVisible(),false);
     assert.equal(await page.locator("#detailEdit").isVisible(),false);
-    assert.match(await page.locator("#detailPhotos").textContent(),/Photos disponibles avec une connexion/);
+    assert.equal(await page.locator("#detailShare").isDisabled(),true);
+    assert.match(await page.locator("#detailShareHelp").textContent(),/Photos disponibles avec une connexion/);
+    assert.equal(await page.locator("#detailPhotos .detailHeroFallback").count(),1);
     assert.equal(await page.locator('#detailPhotos img[src*="supabase"]').count(),0);
     if(width===360)await page.screenshot({path:path.join(DIR,"offline-fiche-360.png"),
      animations:"disabled"});
@@ -224,7 +226,8 @@ async function main(){
      const dbs=await indexedDB.databases();
      return !dbs.some(db=>db.name==="jyetais-offline");
     });
-    assert.equal(await page.evaluate(()=>localStorage.getItem("jyetais.offline.owner")),null);
+    // A logout may reload the SPA as storage clears; wait across navigation.
+     await page.waitForFunction(()=>localStorage.getItem("jyetais.offline.owner")===null,null,{timeout:15000});
     assert.deepEqual(errors,[],"Offline page errors at "+width+": "+errors.join("; "));
     console.log("PASS offline Android "+width+"px: GN origin=online, home marker, map, detail, no leaks, owner safeguards");
    }finally{await context.close()}

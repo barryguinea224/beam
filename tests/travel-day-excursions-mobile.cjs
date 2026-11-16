@@ -216,7 +216,8 @@ async function start(){
     assert.match(await page.locator("#detailIntro").innerText(),/Excursion · 1 jour/);
     assert.equal(await page.locator("#detailFacts dt").filter({hasText:"Date"}).count(),1);
     assert.equal(await page.locator("#detailFacts dt").filter({hasText:"Sortie"}).count(),0);
-    await page.locator("#detailEdit").click();
+    await page.locator("#detailModeToggle").click();
+     await page.locator("#detailEdit").click();
     assert.equal(await page.locator('[data-trip-mode="day"]').getAttribute("aria-pressed"),"true");
     assert.equal(await page.locator("#tripExitField").isVisible(),false);
     await page.locator("#close").click();

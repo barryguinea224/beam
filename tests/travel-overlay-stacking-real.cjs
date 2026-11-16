@@ -149,6 +149,12 @@ async function run(){
     await page.locator("#trips .tripOpen").first().click();
     await page.locator("#tripDetailModal.open").waitFor();
     await assertTopmost(page,"#detailSheet",width,"Fiche voyage");
+    // The sheet opens in reading mode; opt into editing before opening the form.
+    // Keep the same layer, focus and hit-test assertions below.
+    const mode=page.locator("#detailModeToggle");
+    await mode.click();
+    assert.equal(await mode.getAttribute("aria-pressed"),"true",
+      "Trip detail must explicitly enter editing mode");
     await page.locator("#detailEdit").click();
     await page.locator("#modal.open").waitFor();
     assert.match(await page.locator("#tripTitle").textContent(),/Modifier le voyage/);

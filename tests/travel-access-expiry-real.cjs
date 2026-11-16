@@ -44,7 +44,7 @@ function fakeSupabase(){
    };return query;
   },
   storage:{from(){return{
-   async createSignedUrl(){window.__expiryCalls.signed++;return{data:{signedUrl:"https://signed.invalid/pic.webp"},error:null}},
+   async createSignedUrl(){window.__expiryCalls.signed++;return{data:{signedUrl:"https://fixture.invalid/storage/v1/object/sign/media/pic.webp?token=SYNTHETIC"},error:null}},
    async download(){return{data:null,error:{message:"fixture unavailable"}}}
   }}},
   functions:{async invoke(name,{body}){if(name==="travel-delete"&&body?.action==="delete_account"){
@@ -92,8 +92,17 @@ async function main(){
      assert.equal(await page.locator("#openAccount").isVisible(),true);
      await page.locator("#trips .tripOpen").first().click();
      await page.locator("#tripDetailModal").waitFor({state:"visible"});
-     assert.equal(await page.locator("#detailEdit").isVisible(),!entry.readonly);
-     assert.equal(await page.locator("#detailActivityForm").isVisible(),!entry.readonly);
+     assert.equal(await page.locator("#detailModeToggle").isVisible(),!entry.readonly);
+      assert.equal(await page.locator("#detailEdit").isVisible(),false);
+     assert.equal(await page.locator("#detailActivityForm").isVisible(),false,
+       "Premium activity form starts collapsed, even for writable accounts");
+      assert.equal(await page.locator("#detailActivityToggle").isVisible(),false);
+      if(!entry.readonly){
+       await page.locator("#detailModeToggle").click();
+       assert.equal(await page.locator("#detailEdit").isVisible(),true);
+       await page.locator("#detailActivityToggle").click();
+       assert.equal(await page.locator("#detailActivityForm").isVisible(),true);
+      }
      await page.locator("#detailPhotos img").first().waitFor({state:"attached"});
      await page.locator("#detailClose").click();
      // PDF factuel must still be launched even after expiry (it requires no writes).

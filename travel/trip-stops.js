@@ -66,8 +66,8 @@ function renderList(target,trip,editable,onEdit,onRemove){
  for(const stop of list){
   const length=days(stop.entry_date,stop.exit_date);
   const item=doc.createElement("div");item.className="tripStopRow";
-  const flag=doc.createElement("span");flag.className="tripStopFlag";flag.setAttribute("aria-hidden","true");
-  flag.textContent=String.fromCodePoint(...stop.country_code.split("").map(ch=>127397+ch.charCodeAt(0)));
+  const flag=doc.createElement("img");flag.className="tripStopFlag";flag.setAttribute("alt","");
+  flag.setAttribute("aria-hidden","true");flag.src="./assets/flags/"+stop.country_code.toLowerCase()+".svg";
   const info=doc.createElement("div");info.className="tripStopInfo";
   const name=doc.createElement("strong");name.textContent=country(stop.country_code);
   const location=doc.createElement("span");location.textContent=(cities(stop)||"Ville non précisée")+

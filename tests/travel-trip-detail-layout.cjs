@@ -48,10 +48,12 @@ async function run(){
      const elements=['.detailFacts','.detailFact','.detailGallery','.detailPhoto','.detailPhoto img',
        '.detailActivity','.detailActivityText','.detailActivityForm','.detailActivityForm input',
        '.detailStay','.stayThumb','.photoTap','.photoRoles']
-       .flatMap(selector=>[...sheet.querySelectorAll(selector)].map(node=>{
-        const rect=node.getBoundingClientRect();
-        return {selector,left:rect.left,right:rect.right}
-       }));
+       .flatMap(selector=>[...sheet.querySelectorAll(selector)]
+        .filter(node=>getComputedStyle(node).display!=="none"&&node.getClientRects().length>0)
+        .map(node=>{
+         const rect=node.getBoundingClientRect();
+         return {selector,left:rect.left,right:rect.right}
+        }));
      return {documentWidth:document.documentElement.scrollWidth,innerWidth,
        sheetLeft:outer.left,sheetRight:outer.right,
        sheetScroll:sheet.scrollWidth,sheetClient:sheet.clientWidth,left,right,elements};

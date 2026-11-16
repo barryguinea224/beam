@@ -42,7 +42,8 @@ assert.deepEqual(FILTERS.summary(FILTERS.apply(sample,{scope:"domestic"}),{scope
  "national filter switches displayed headline");
 assert.ok(script.includes('window.BEAM_TRAVEL_PDF.fetchRows(S,uid)'));
 assert.ok(script.includes('window.BEAM_TRAVEL_PDF.purposeName(x.purpose)'));
-assert.ok(script.includes('fact("Motif",window.BEAM_TRAVEL_PDF.purposeName(trip.purpose))'));
+assert.ok(script.includes('const purpose=window.BEAM_TRAVEL_PDF.purposeName(trip.purpose)'));
+assert.ok(script.includes('fact("Motif",purpose)'));
 assert.ok(script.includes('window.confirm("Retirer cette activité du voyage ?")'),"Activity confirmation must be retained");
 assert.ok(html.indexOf('src="./journal-stats.js"')<html.indexOf("<script>"),"Stats module loads before app");
 assert.ok(html.includes('id="homeStats"'),"accessible condensed figures on home");
