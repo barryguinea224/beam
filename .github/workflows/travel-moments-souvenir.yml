@@ -5,6 +5,7 @@ on:
     paths:
       - "travel/index.html"
       - "travel/trip-detail.js"
+      - "travel/trip-stops.js"
       - "travel/trip-premium.css"
       - "travel/sw.js"
       - "tests/travel-moments-souvenir.cjs"
@@ -29,12 +30,12 @@ jobs:
         run: |
           npm install --no-save --no-package-lock playwright@1.56.1
           npx playwright install --with-deps chromium
-      - name: Real Android 320–390 and screenshot
+      - name: Real Android 320–390, 420px headings, stage geometry and screenshot
         run: node tests/travel-moments-souvenir-mobile.cjs
-      - name: Upload synthetic 360 px Moments and souvenir
+      - name: Upload synthetic 360 px Étapes and Moments
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: jyetais-moments-souvenir-360px
-          path: test-artifacts/travel-moments-souvenir/moments-mon-souvenir-360.png
+          name: jyetais-etapes-moments-360px
+          path: test-artifacts/travel-moments-souvenir/etapes-moments-360.png
           if-no-files-found: warn
