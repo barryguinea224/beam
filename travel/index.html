@@ -346,7 +346,7 @@ html.travelAccessReadOnly #photoField,html.travelAccessReadOnly #saveTrip{displa
 .detailMomentActions{display:flex;gap:9px;flex-wrap:wrap;margin:8px 0}
 .detailMomentActions .btn,#detailAddMoment{min-height:44px;white-space:normal}
 @media(max-width:390px){.upcomingTripsSection{padding:10px}.detailMomentActions>*{flex:1 1 100%;max-width:100%}}
-</style><link rel="stylesheet" href="./photo-sheet.css"><link rel="stylesheet" href="./loyalty.css"><link rel="stylesheet" href="./account-settings.css"><link rel="stylesheet" href="./activity-duration.css"><link rel="stylesheet" href="./trip-stops.css"><link rel="stylesheet" href="./day-excursions.css"><link rel="stylesheet" href="./date-range-picker.css"><link rel="stylesheet" href="./flight-connections.css"><link rel="stylesheet" href="./visual-cards.css"><link rel="stylesheet" href="./dashboard-filters.css"><link rel="stylesheet" href="./home-simple.css"><link rel="stylesheet" href="./profile-cover.css"><link rel="stylesheet" href="./offline-readonly.css"><link rel="stylesheet" href="./trip-list.css">
+</style><link rel="stylesheet" href="./trip-premium.css"><link rel="stylesheet" href="./photo-sheet.css"><link rel="stylesheet" href="./loyalty.css"><link rel="stylesheet" href="./account-settings.css"><link rel="stylesheet" href="./activity-duration.css"><link rel="stylesheet" href="./trip-stops.css"><link rel="stylesheet" href="./day-excursions.css"><link rel="stylesheet" href="./date-range-picker.css"><link rel="stylesheet" href="./flight-connections.css"><link rel="stylesheet" href="./visual-cards.css"><link rel="stylesheet" href="./dashboard-filters.css"><link rel="stylesheet" href="./home-simple.css"><link rel="stylesheet" href="./profile-cover.css"><link rel="stylesheet" href="./offline-readonly.css"><link rel="stylesheet" href="./trip-list.css">
 <script src="/travel/offline-bootstrap.js"></script></head><body>
 <section id="offline" role="status" aria-live="polite"><div class="ey">J&#39;y étais</div><h1>Connexion nécessaire pour consulter votre carnet</h1><p>Vos voyages et photos sont privés et indisponibles hors ligne. Reconnectez-vous à Internet pour continuer.</p></section>
 <section id="auth" class="auth hidden"><img class="jyBrandLogo jyAuthLogo" src="./assets/brand/jyetais-logo.svg" alt="J&#39;y étais"><p class="jyAuthSignature">J&#39;y étais by BEAM</p><h1>Gardez vos voyages.<br>Retrouvez votre histoire.</h1><p class="sub">Un espace personnel pour vos destinations, dates, activités, souvenirs et photos.</p><form id="login"><div class="field"><label for="email">E-mail</label><input id="email" type="email" autocomplete="email" required></div><button class="btn">Recevoir un code</button></form><div id="otpBox" class="hidden"><p class="sub">Si cette adresse est autorisée, vous recevrez un code à 6 chiffres par e-mail.</p><form id="otpForm"><div class="field"><label for="otp">Code à 6 chiffres</label><input id="otp" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" aria-describedby="otpHelp" required><small id="otpHelp">Pas de code après 2 minutes ? Vérifiez vos spams, ou <a href="https://wa.me/224622095630" target="_blank" rel="noopener noreferrer">écrivez-nous sur WhatsApp</a>.</small></div><button class="btn">Continuer avec le code</button></form><div class="actions"><button id="resend" type="button" class="btn ghost" disabled>Renvoyer un code · 60 s</button></div></div><p id="loginMsg" class="notice hidden" role="status" aria-live="polite"></p><p class="sub" id="accessHelp">Ce carnet est réservé aux clients BEAM. <a href="https://wa.me/224622095630" target="_blank" rel="noopener noreferrer">Contactez-nous sur WhatsApp</a>.</p><div class="beamInstall" data-beam-install-area><button class="beamInstallButton" type="button" data-beam-install-action hidden>Installer J'y étais</button><details class="beamInstallHelp" data-beam-install-help><summary>Comment installer J'y étais</summary><p data-beam-install-steps>Depuis le menu de votre navigateur, cherchez « Installer l’application » ou « Ajouter à l’écran d’accueil », si cette option est proposée.</p></details><p class="beamInstallStatus" role="status" aria-live="polite" data-beam-install-status></p></div><aside class="authContact" aria-label="Contact"><strong>Contact</strong><p>WhatsApp : <a href="https://wa.me/224622095630" target="_blank" rel="noopener noreferrer">+224 622 09 56 30</a></p></aside><nav class="legalLinks legalLinksAuth" aria-label="Informations légales"><a href="./confidentialite.html">Confidentialité</a><span aria-hidden="true">·</span><a href="./conditions.html">Conditions d’utilisation</a></nav></section>
@@ -470,13 +470,28 @@ html.travelAccessReadOnly #photoField,html.travelAccessReadOnly #saveTrip{displa
 <div id="photoField" class="field"><label for="photos">Photos privées</label><p id="photoInfo" class="photoHelp">15 photos maximum par voyage · 8 Mo maximum par photo. JPEG, PNG ou WebP uniquement. Les images sont converties en WebP sans données GPS avant l'envoi.</p><input id="photos" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" multiple aria-describedby="photoInfo photoUsage photoLoadStatus"><p id="photoLoadStatus" class="photoHelp hidden" role="status" aria-live="polite"><span class="photoSpinner" aria-hidden="true"></span>Chargement de vos photos…</p><p id="photoUsage" class="photoHelp" role="status" aria-live="polite">0 / 10 photos enregistrées</p><div id="photoGallery" class="photoGrid" aria-label="Photos enregistrées et en attente"></div><p id="photoMessage" class="notice hidden" role="alert"></p><button id="photoRetry" type="button" class="btn ghost hidden">Réessayer</button></div><div class="field"><label>Souvenir / note privée</label><textarea name="note"></textarea></div><p id="tripMsg" class="notice hidden"></p><section id="tripOverlapOffer" class="tripOverlapOffer hidden" role="status" aria-live="polite" aria-label="Excursion pendant un voyage"><p id="tripOverlapText"></p><div class="tripOverlapActions"><button id="tripOverlapStop" type="button" class="btn">L'ajouter comme excursion à ce voyage</button><button id="tripOverlapActivity" type="button" class="btn">L'ajouter comme activité</button><button id="tripOverlapEditDates" type="button" class="btn ghost">Modifier les dates</button></div><p id="tripOverlapFeedback" class="tripOverlapFeedback" aria-live="polite"></p></section><button id="saveTrip" class="btn">Enregistrer</button></form></div>
 <div id="tripDetailModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="detailTitle" aria-describedby="detailIntro">
   <div id="detailSheet" class="sheet detailSheet" tabindex="-1">
-    <div class="detailTop"><div><div class="ey">Ma fiche voyage</div><h2 id="detailTitle">Voyage</h2><p id="detailIntro" class="detailIntro">Informations et souvenirs privés.</p><p id="detailLifecycle" class="detailLifecycle hidden" role="status"></p></div><button id="detailClose" type="button" class="btn ghost">Fermer</button></div>
-    <dl id="detailFacts" class="detailFacts"></dl>
-    <section id="detailStopsSection" class="tripStopsSection" aria-labelledby="detailStopsTitle">
+    <section class="detailHero" aria-label="Galerie du voyage">
+ <div id="detailPhotos" class="detailGallery" aria-live="polite"></div>
+ <div class="detailHeroControls">
+  <button id="detailClose" type="button" aria-label="Fermer la fiche">←</button>
+  <button id="detailShare" type="button" aria-label="Partager ce voyage sous forme d'image">Partager</button>
+ </div>
+ <span id="detailGalleryCount" role="status" aria-live="polite" hidden></span>
+</section>
+<header class="detailHeading">
+ <span id="detailCountryBadge"></span>
+ <h2 id="detailCountryTitle">Voyage</h2>
+ <p id="detailTitle">Ville</p>
+ <p id="detailIntro" class="detailIntro">Informations du voyage</p>
+ <p id="detailLifecycle" class="detailLifecycle hidden" role="status"></p>
+ <p id="detailShareHelp" role="status" aria-live="polite"></p>
+ <dl id="detailFacts" class="detailFacts"></dl>
+</header>
+<section id="detailStopsSection" class="tripStopsSection" aria-labelledby="detailStopsTitle">
       <h3 id="detailStopsTitle">Étapes</h3>
       <p class="mapInfo">Ajoutez les autres pays traversés pendant ce même voyage, sans créer de voyages qui se chevauchent.</p>
       <div id="detailStops" class="tripStopsList" aria-live="polite"></div>
-      <button type="button" id="addTripStop" class="btn ghost">+ Ajouter une étape</button>
+      
       <form id="tripStopForm" class="tripStopForm hidden" aria-label="Ajouter ou modifier une étape">
         <h4 id="tripStopFormTitle">Ajouter une étape</h4>
         <div class="field"><label for="tripStopCountry">Pays de l’étape</label><select id="tripStopCountry" name="country_code" required><option value="">Choisir un pays</option></select></div>
@@ -491,13 +506,10 @@ html.travelAccessReadOnly #photoField,html.travelAccessReadOnly #saveTrip{displa
         <div class="actions"><button type="button" id="tripStopDeleteYes" class="btn">Supprimer l’étape</button><button type="button" id="tripStopDeleteNo" class="btn ghost">Annuler</button></div>
       </div>
     </section>
-    <div class="actions"><button type="button" id="detailEdit" class="btn">Modifier le voyage</button><button type="button" id="detailAddMoment" class="btn hidden" aria-expanded="false" aria-controls="detailMomentActions">+ Ajouter un moment</button></div><div id="detailMomentActions" class="detailMomentActions hidden"><button type="button" id="detailMomentActivity" class="btn ghost">Ajouter une activité</button><button type="button" id="detailMomentPhoto" class="btn ghost">Ajouter une photo</button></div>
     <p id="detailVisaGuide" class="detailVisaGuide" hidden></p><p id="detailLoyaltyHint" class="loyaltyTripHint" hidden></p>
     <p id="detailStatus" role="alert" class="notice hidden"></p>
-    <section class="detailSection" aria-labelledby="detailPhotosTitle"><h3 id="detailPhotosTitle">Photos du voyage</h3><div id="detailPhotos" class="detailGallery" aria-live="polite"></div></section>
-    <section class="detailSection" aria-labelledby="detailNoteTitle"><h3 id="detailNoteTitle">Mon souvenir</h3><p id="detailNote" class="detailNote"></p></section>
-    <section class="detailSection" aria-labelledby="detailActivitiesTitle"><h3 id="detailActivitiesTitle">Activités</h3><div id="detailActivities" aria-live="polite"></div>
-      <form id="detailActivityForm" class="detailActivityForm"><h4>Ajouter une activité</h4>
+    <section id="detailActivitiesSection" class="detailSection" aria-labelledby="detailActivitiesTitle"><h3 id="detailActivitiesTitle">Moments</h3><div id="detailActivities" aria-live="polite"></div>
+      <form id="detailActivityForm" class="detailActivityForm hidden"><h4>Ajouter une activité</h4>
         <div class="field"><label for="activityTitle">Titre</label><input id="activityTitle" name="title" type="text" maxlength="160" placeholder="Ex. Visite du musée" required></div>
         <div class="two"><div class="field"><label for="activityPlace">Lieu (facultatif)</label><input id="activityPlace" name="place" type="text" maxlength="160" placeholder="Ex. Paris"></div>
           <div class="field"><label for="activityDate">Choisir un jour du voyage (facultatif)</label><select id="activityDate" name="happened_on"><option value="">Sans date</option></select></div></div>
@@ -513,8 +525,32 @@ html.travelAccessReadOnly #photoField,html.travelAccessReadOnly #saveTrip{displa
         <p id="detailActivityMessage" class="notice hidden" role="status" aria-live="polite"></p>
       </form>
     </section>
+<section id="detailNoteSection" class="detailSection" aria-labelledby="detailNoteTitle"><h3 id="detailNoteTitle">Notes</h3><p id="detailNote" class="detailNote"></p></section>
+<div class="detailBottomActions" id="detailBottomActions">
+ <button type="button" id="detailAddMoment" class="btn hidden" aria-expanded="false" aria-controls="detailMomentActions">Ajouter un moment</button>
+ <button type="button" id="detailEdit" class="btn">Modifier le voyage</button>
+ <button type="button" id="addTripStop" class="btn ghost">Ajouter une étape</button>
+ <button type="button" id="detailActivityToggle" class="btn ghost">Ajouter une activité</button>
+ <div id="detailMomentActions" class="detailMomentActions hidden"><button type="button" id="detailMomentActivity" class="btn ghost">Ajouter une activité</button><button type="button" id="detailMomentPhoto" class="btn ghost">Ajouter une photo</button></div>
+</div>
   </div>
 </div>
+<div id="detailLightbox" role="dialog" aria-modal="true" aria-label="Photo du voyage" aria-hidden="true">
+ <button type="button" id="detailLightboxClose">Fermer</button>
+ <img id="detailLightboxImage" alt="Photo du voyage en plein écran" referrerpolicy="no-referrer">
+ <p id="detailLightboxCaption"></p>
+ <button type="button" id="detailLightboxActions" hidden>Options de la photo</button>
+</div>
+<dialog id="detailShareDialog" aria-labelledby="detailShareTitle">
+ <h2 id="detailShareTitle">Partager ce voyage</h2>
+ <img id="detailSharePreview" alt="Aperçu privé de l'image à partager">
+ <p id="detailShareStatus" role="status" aria-live="polite"></p>
+ <div class="shareActions">
+  <button id="detailShareSend" type="button" hidden>Envoyer (WhatsApp, statut…)</button>
+  <button id="detailShareSave" type="button">Enregistrer l'image</button>
+  <button id="detailShareClose" type="button">Fermer</button>
+ </div>
+</dialog>
 <div id="photoActionOverlay" aria-hidden="true">
  <section id="photoActionDialog" role="dialog" aria-modal="true" aria-labelledby="photoActionTitle" tabindex="-1">
   <div class="photoSheetHead"><h2 id="photoActionTitle">Actions sur la photo</h2><button id="photoActionClose" type="button" aria-label="Fermer les actions">×</button></div>
@@ -543,7 +579,7 @@ html.travelAccessReadOnly #photoField,html.travelAccessReadOnly #saveTrip{displa
   <p id="photoActionStatus" role="status" aria-live="polite"></p>
  </section>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./config.js"></script><script src="./pwa.js"></script><script src="./access.js"></script><script src="./fr-accords.js"></script><script src="./photo-utils.js"></script><script src="./photo-upload.js"></script><script src="./avatar.js"></script><script src="./activity-durations.js"></script><script src="./trip-detail.js"></script><script src="./loyalty-programs.js"></script><script src="./loyalty-ui.js"></script><script src="./visa-guide.js"></script><script src="./countries.js"></script><script src="./trip-stops.js"></script><script src="./day-excursions.js"></script><script src="./date-range-picker.js"></script><script src="./country-picker.js"></script><script src="./factual-pdf.js"></script><script src="./factual-pdf-file.js"></script><script src="./trip-lifecycle.js"></script><script src="./journal-stats.js"></script><script src="./dashboard-filters.js"></script><script src="./visual-cards.js"></script><script src="./trip-list.js"></script><script src="./profile-cover.js"></script><script src="./profile-cover-ui.js"></script><script src="./offline-store.js"></script><script src="./flight-connections.js"></script><script src="./printable-journal.js"></script><script src="./family-booklet.js"></script><script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./config.js"></script><script src="./pwa.js"></script><script src="./access.js"></script><script src="./fr-accords.js"></script><script src="./photo-utils.js"></script><script src="./photo-upload.js"></script><script src="./avatar.js"></script><script src="./activity-durations.js"></script><script src="./trip-detail.js"></script><script src="./trip-share.js"></script><script src="./loyalty-programs.js"></script><script src="./loyalty-ui.js"></script><script src="./visa-guide.js"></script><script src="./countries.js"></script><script src="./trip-stops.js"></script><script src="./day-excursions.js"></script><script src="./date-range-picker.js"></script><script src="./country-picker.js"></script><script src="./factual-pdf.js"></script><script src="./factual-pdf-file.js"></script><script src="./trip-lifecycle.js"></script><script src="./journal-stats.js"></script><script src="./dashboard-filters.js"></script><script src="./visual-cards.js"></script><script src="./trip-list.js"></script><script src="./profile-cover.js"></script><script src="./profile-cover-ui.js"></script><script src="./offline-store.js"></script><script src="./flight-connections.js"></script><script src="./printable-journal.js"></script><script src="./family-booklet.js"></script><script>
 const C=window.BEAM_TRAVEL_CONFIG||{},ok=C.supabaseUrl&&!C.supabaseUrl.includes("YOUR_")&&C.supabaseAnonKey&&!C.supabaseAnonKey.includes("YOUR_"),S=ok&&typeof supabase!=="undefined"?supabase.createClient(C.supabaseUrl,C.supabaseAnonKey):null,$=s=>document.querySelector(s);let user,trips=[],accountState="loading";
 const LOYALTY=window.BEAM_LOYALTY_UI?.init({supabase:S,user:()=>user,isActive:()=>accountState==="active",canWrite:()=>canWrite(),onChange:()=>renderLoyaltyHint()});
 function view(id){$("#auth").classList.add("hidden");$("#app").classList.add("hidden");$(id).classList.remove("hidden");document.title="J'y étais"}
