@@ -109,7 +109,7 @@ async function main(){
   assert.equal(await page.locator("#travelMapPanel").isVisible(),true);
   assert.equal(await page.locator("#pdf").isVisible(),true);
   assert.equal(await page.locator("#printJournal").isVisible(),true);
-  assert.equal(await page.locator("#toggleFilters").isVisible(),true);
+  assert.equal(await page.locator("#tripListFilter").isVisible(),true);
   await page.screenshot({path:path.join(shots,"first-trip-360.png"),fullPage:true});
   await page.locator(".tripOpen").first().click();
   assert.equal(await page.locator("#activityDate option").first().innerText(),"Sans date");

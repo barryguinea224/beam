@@ -168,7 +168,7 @@ async function run(){
     await assertTopmost(page,"#myAccount",width,"Compte");
     await page.locator("#closeAccount").click();
     await page.locator("#accountOverlay:not(.accountOpen)").waitFor({state:"hidden"});
-    await page.locator("#toggleFilters").click();
+    await page.locator("#tripListFilter").click();
     await page.locator("#filterPanel.filterOpen").waitFor();
     await assertTopmost(page,"#filterPanel",width,"Filtres");
     await page.locator("#closeFilters").click();
