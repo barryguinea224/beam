@@ -88,7 +88,7 @@ async function run(){
     await page.locator("#modal.open").waitFor({state:"hidden"});
     await page.locator("#trips .tripOpen").first().click();
     await page.locator("#tripDetailModal.open").waitFor({state:"visible"});
-    const detailFont=await family("#detailCountryTitle");
+    const detailFont=await family(phase==="avant"?"#detailTitle":"#detailCountryTitle");
     await snapshot("fiche-voyage");
     await page.locator("#detailClose").click();
     await page.locator("#openAccount").click();

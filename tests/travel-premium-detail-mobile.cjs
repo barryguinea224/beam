@@ -100,8 +100,13 @@ async function main(){
     await page.goto(base,{waitUntil:"load"});
     await page.waitForFunction(()=>document.querySelector("#dashboardTitle")?.textContent==="Voyageuse Fictive");
     await page.locator("#trips .tripOpen").first().waitFor();
+    const journey=page.locator("#trips .journeyTrip").filter({hasText:"France"});
+    await journey.scrollIntoViewIfNeeded();
+    // The homepage may independently sign its cover on intersection. Wait for
+    // that unrelated request before measuring the detail's two-photo budget.
+    await page.waitForFunction(()=>window.__premiumFixture.signs.length>=1);
     const before=await page.evaluate(()=>window.__premiumFixture.signs.length);
-    await page.locator("#trips .journeyTrip").filter({hasText:"France"}).locator(".tripOpen").click();
+    await journey.locator(".tripOpen").click();
     await page.locator("#tripDetailModal.open").waitFor();
     await page.waitForFunction(()=>document.querySelectorAll("#detailPhotos .detailPhoto").length===4);
     const initial=await page.evaluate(()=>window.__premiumFixture.signs.length);
