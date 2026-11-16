@@ -110,7 +110,7 @@ assert.ok(js.includes('.eq("trip_id",tripId).eq("user_id",uid)'),
  "Photo lookup must be scoped to both trip and owner");
 assert.ok(js.includes("rows.filter(row=>row.trip_id===tripId&&row.user_id===uid"),
  "Signed images must belong to the requested owner and journey");
-assert.ok(js.includes("row.id===coverId")&&js.includes("p.is_favorite===true")&&js.includes("owned[0]"),
+assert.ok(js.includes("p.id===coverId")&&js.includes("p.is_favorite===true")&&js.includes("owned[0]"),
  "Priority: chosen cover, favorite, then first owned photo");
 assert.ok(js.includes("if(!owned.length)return"),"No photo badge when there is no photo");
 assert.ok(js.includes("offlineMode||!navigator.onLine"),"No private media while offline");
