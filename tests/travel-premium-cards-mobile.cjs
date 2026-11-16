@@ -87,7 +87,9 @@ async function main(){
     assert.ok(geometry.scrollWidth<=width+1,"No Android overflow: "+JSON.stringify(geometry));
     assert.ok(geometry.cards.every(x=>Math.abs(x.ratio-16/9)<.02&&x.mediaBeforeBody&&x.button&&x.right<=width+1));
     if(width===360){
+     await page.locator("#tripListToolbar").evaluate(bar=>{bar.style.position="static"});
      await page.locator(".completedTripsList").screenshot({path:path.join(dir,"liste-trois-cartes-360.png"),animations:"disabled"});
+     await page.locator("#tripListToolbar").evaluate(bar=>bar.style.removeProperty("position"));
      await page.locator(".upcomingTripsSection").screenshot({path:path.join(dir,"carte-a-venir-360.png"),animations:"disabled"});
     }
     const labels=()=>page.locator(".completedTripsList .journeyCountry").allTextContents();
