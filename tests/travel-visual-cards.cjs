@@ -64,6 +64,17 @@ assert.ok(html.includes('src="./assets/flags/fr.svg"'));
 assert.ok(html.includes('src="./assets/countries/fr.svg"'));
 assert.ok(html.includes("France"));
 assert.ok(html.includes("Tourisme"));
+assert.ok(html.indexOf('class="journeyMedia"')<html.indexOf('class="journeyContent"'),
+ "The visual precedes white-background information");
+assert.ok(html.indexOf('class="journeyContent"')<html.indexOf('class="tripOpen journeyLink"'),
+ "The only button belongs to the content, not the photo");
+assert.ok(!html.includes("journeyShade"),"No darkening overlay behind text");
+assert.ok(!html.includes("journeyPhotoCount"),"Private photo badge is added only after media verification");
+assert.ok(html.includes('class="journeyCountry"')&&html.includes('class="journeyCities"'));
+const extra=CARD.markup({...trip,stops:[{country_code:"CA"}],companions:"Aïssatou",airline:"Compagnie fictive"},"France","Tourisme","10 → 20 oct. 2026");
+assert.match(extra,/1 étape · Canada/);
+assert.match(extra,/Avec Aïssatou/);
+assert.match(extra,/Compagnie fictive/);
 assert.ok(!html.includes('<img src=x'),"Untrusted cities must not become markup");
 assert.ok(html.includes('&lt;img src=x onerror=alert(1)&gt;'),"Untrusted cities must be HTML-escaped");
 assert.ok(!html.includes("70000000-0000-4000-8000-000000000001"),
@@ -95,7 +106,14 @@ assert.ok(index.includes('src="./visual-cards.js"'));
 assert.ok(index.includes('href="./visual-cards.css"'));
 assert.ok(js.includes('window.BEAM_VISUAL_CARDS.markup('));
 assert.ok(js.includes('IntersectionObserver'));
-assert.ok(js.includes('.eq("id",coverId).eq("trip_id",tripId).eq("user_id",uid)'));
+assert.ok(js.includes('.eq("trip_id",tripId).eq("user_id",uid)'),
+ "Photo lookup must be scoped to both trip and owner");
+assert.ok(js.includes("rows.filter(row=>row.trip_id===tripId&&row.user_id===uid"),
+ "Signed images must belong to the requested owner and journey");
+assert.ok(js.includes("row.id===coverId")&&js.includes("p.is_favorite===true")&&js.includes("owned[0]"),
+ "Priority: chosen cover, favorite, then first owned photo");
+assert.ok(js.includes("if(!owned.length)return"),"No photo badge when there is no photo");
+assert.ok(js.includes("offlineMode||!navigator.onLine"),"No private media while offline");
 assert.ok(js.includes('createSignedUrl(row.storage_path,300)'));
 assert.ok(js.includes('trustedSignedUrl(signed.signedUrl,C.supabaseUrl)'));
 assert.ok(js.includes('writePhotoRole("cover_media_id")'),"cover selection opens the shared photo-action handler");
