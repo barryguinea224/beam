@@ -62,10 +62,10 @@
  color:var(--ink);margin:0 0 10px;
 }
 #trips .journeyTrip{border:0;background:none;padding:0;margin-bottom:12px}
-#trips .journeyTrip .tripOpen{border-radius:var(--home-card-radius);box-shadow:none}
-#trips .journeyCountry{font-size:clamp(21px,5.8vw,26px);font-weight:600}
+#trips .journeyTrip .tripOpen{border-radius:12px;box-shadow:none}
+#trips .journeyCountry{font-size:clamp(22px,5.8vw,29px);font-weight:700}
 #trips .journeyCode{letter-spacing:0}
-#trips .journeyLink{display:none}
+#trips .journeyLink{display:block}
 #app .w.emptyTravel>#welcomeCard{order:5!important;border:0;background:transparent;border-radius:0;padding:14px 0}
 #app .w.emptyTravel .welcomeStep{border-radius:var(--home-button-radius)}
 #app .w.emptyTravel .welcomeStep .check:empty{display:none}
