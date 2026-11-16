@@ -140,6 +140,9 @@ async function main(){
 
     // Same widget for stages, bounded by the parent trip. Stage writes remain unchanged.
     await france.locator(".tripOpen").click();
+    // The premium detail defaults to reading mode; stage editing is opt-in.
+    await page.locator("#detailModeToggle").click();
+    assert.equal(await page.locator("#detailModeToggle").innerText(),"Terminé");
     await page.locator("#addTripStop").click();
     assert.equal(await page.locator('#tripStopDatePicker [data-date="2026-11-07"]').isDisabled(),true);
     assert.equal(await page.locator('#tripStopDatePicker [data-date="2026-11-19"]').isDisabled(),true);
