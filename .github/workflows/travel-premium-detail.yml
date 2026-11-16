@@ -1,0 +1,44 @@
+name: J'y étais — fiche voyage premium et partage privé
+on:
+  pull_request:
+    branches: [feature/beam-travel-history-v1]
+    paths:
+      - "travel/index.html"
+      - "travel/trip-detail.js"
+      - "travel/trip-premium.css"
+      - "travel/trip-share.js"
+      - "travel/trip-stops.js"
+      - "travel/sw.js"
+      - "tests/travel-trip-share.cjs"
+      - "tests/travel-premium-detail-mobile.cjs"
+      - ".github/workflows/travel-premium-detail.yml"
+permissions:
+  contents: read
+jobs:
+  premium-detail:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Source, privacy and isolated unit tests
+        run: |
+          node --check travel/trip-detail.js
+          node --check travel/trip-share.js
+          node tests/travel-trip-share.cjs
+          node tests/travel-trip-detail.cjs
+      - name: Install isolated Chromium
+        run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Real app Android 320–390, share PNG, offline and read-only
+        run: node tests/travel-premium-detail-mobile.cjs
+      - name: Upload fictional 360px captures and actual canvas PNG
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jyetais-fiche-premium-360px-et-partage-png
+          path: test-artifacts/trip-premium/*.png
+          if-no-files-found: warn
