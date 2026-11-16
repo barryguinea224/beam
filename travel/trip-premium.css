@@ -77,3 +77,10 @@ html.travelAccessReadOnly #tripDetailModal .detailBottomActions,html.beamOffline
 #detailShareStatus{font:500 12px/1.4 system-ui,sans-serif;color:#42644c;margin:5px 0 0}
 @media(max-width:390px){#tripDetailModal .detailHeading{padding:19px 15px 13px}#tripDetailModal .detailSection,#tripDetailModal #detailStopsSection{padding:20px 15px}#tripDetailModal .detailBottomActions{padding-left:15px;padding-right:15px}#tripDetailModal #detailFacts.detailFacts{gap:6px}#tripDetailModal #detailFacts .detailFact{padding:9px 5px}}
 @media print{#detailLightbox,#detailShareDialog{display:none!important}}
+
+/* The flag outline remains visible against the white trip header. */
+#tripDetailModal #detailCountryBadge img{box-sizing:border-box;border:1px solid #9caaa1;border-radius:3px}
+/* Defense in depth: editing buttons never appear in consultation mode. */
+#tripDetailModal:not([data-mode="edit"]) :is(.tripStopActions,.detailRemoveActivity){display:none!important}
+#tripDetailModal #detailModeToggle[aria-pressed="true"]{border-color:#174d3a;background:#edf5ef;color:#174d3a}
+html.travelAccessReadOnly #tripDetailModal #detailModeToggle,html.beamOffline #tripDetailModal #detailModeToggle{display:none!important}

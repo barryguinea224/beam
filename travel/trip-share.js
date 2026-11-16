@@ -20,6 +20,16 @@
   const sw=Math.min(iw,ih*w/h),sh=Math.min(ih,iw*h/w);
   ctx.drawImage(img,(iw-sw)/2,(ih-sh)/2,sw,sh,x,y,w,h);return true;
  }
+ // Draw the outline inside the 68 x 48 flag area, at 1.5px export scale.
+ function drawOutlinedFlag(ctx,flag,x,y,w,h){
+  const strokeWidth=1.5,radius=4.5,inset=strokeWidth/2;
+  const rect=[x+inset,y+inset,w-strokeWidth,h-strokeWidth];
+  ctx.save();ctx.beginPath();ctx.roundRect(...rect,radius);ctx.clip();
+  ctx.drawImage(flag,x,y,w,h);
+  ctx.restore();
+  ctx.beginPath();ctx.roundRect(...rect,radius);
+  ctx.lineWidth=strokeWidth;ctx.strokeStyle="#9caaa1";ctx.stroke();
+ }
  function wrap(ctx,text,x,y,maxWidth,lineHeight,maxLines=2){
   const words=String(text||"").split(/\s+/u).filter(Boolean);
   let line="",lines=0;
@@ -43,7 +53,7 @@
   if(cover)crop(ctx,cover,0,0,WIDTH,570);
   ctx.fillStyle="#fff";ctx.fillRect(0,570,WIDTH,780);
   // Flags must be shown in full: center-crop can hide two stripes on SVGs without explicit dimensions.
-  if(flag)ctx.drawImage(flag,72,631,68,48);
+  if(flag)drawOutlinedFlag(ctx,flag,72,631,68,48);
   ctx.fillStyle="#174d3a";ctx.font="700 64px "+FONT;
   wrap(ctx,country,72,765,930,69,2);
   ctx.fillStyle="#42624f";ctx.font="500 38px system-ui, sans-serif";
