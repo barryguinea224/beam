@@ -1045,7 +1045,7 @@ function render(){
   }).join("");
   const tripCard=x=>window.BEAM_VISUAL_CARDS.markup(x,countryName(x.country_code),window.BEAM_TRAVEL_PDF.purposeName(x.purpose),tripCardDates(x.entry_date,x.exit_date));
   const countriesShown=new Set(visible.flatMap(t=>[t.country_code,...(Array.isArray(t.stops)?t.stops.map(s=>s.country_code):[])]).filter(Boolean));
-  $("#tripListSummary").textContent=FR.count(visible.length,"voyage")+" · "+FR.count(countriesShown.size,"pays");
+  $("#tripListSummary").textContent=FR.count(visible.length,"voyage")+" · "+FR.count(countriesShown.size,"pays","pays");
   $("#tripListToolbar").classList.toggle("hidden",!trips.length);
   for(const choice of document.querySelectorAll("#tripSortMenu [data-trip-sort]"))
    choice.setAttribute("aria-pressed",String(choice.dataset.tripSort===tripSortMode));

@@ -19,3 +19,7 @@ html,body{overflow-x:clip} /* Do not turn document into a sticky scroll containe
 #travelTripsPanel .upcomingTripsSection{padding:0;border:0;background:transparent}
 @media(min-width:721px) and (max-width:899px){#filterPanel.filterOpen{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:min(440px,calc(100vw - 36px));max-height:calc(100dvh - 40px);overflow:auto;box-shadow:0 0 0 100vmax #10241ab0}}
 @media(max-width:339px){#tripListToolbar{padding:10px 8px}.tripListTools{gap:5px}.tripListTools button.tripTool{font-size:12px;gap:4px}.tripListTools .tripTool svg{width:15px;height:15px}}
+
+/* The fixed + is 56px high and sits 16px above the safe-area bottom.
+   Provide another 16px between it and the final Voir la fiche action. */
+#trips{padding-bottom:calc(56px + 16px + 16px + env(safe-area-inset-bottom, 0px))}

@@ -17,6 +17,7 @@ function seededSupabase(){
  rows[0].cover_media_id="88888888-8888-4888-8888-888888888888";
  rows[0].companions="Aïssatou";
  rows[0].airline="Compagnie fictive";
+ rows[0].hotel="Hôtel fictif";
  const photo={id:rows[0].cover_media_id,trip_id:rows[0].id,user_id:user,
   storage_path:user+"/trip/photo-fictive.webp",is_favorite:true,created_at:"2026-11-01T12:00:00Z"};
  const create=window.supabase.createClient;
@@ -71,7 +72,15 @@ async function main(){
     assert.equal(await page.locator(".completedTripsList .journeyTrip").count(),3);
     assert.equal(await page.locator(".upcomingTripsSection .journeyTrip").count(),1);
     assert.match(await page.locator(".upcomingTripsSection").innerText(),/À venir/);
-    assert.match(await page.locator("#tripListSummary").innerText(),/4 voyages · 4 pays/);
+    assert.equal((await page.locator("#tripListSummary").innerText()).trim(),"4 voyages · 4 pays");
+    assert.doesNotMatch(await page.locator("#trips").innerText(),/payss/i);
+    const extras=page.locator(".completedTripsList .journeyTrip").first();
+    for(const [kind,word] of [["people","Avec Aïssatou"],["plane","Compagnie fictive"],["bed","Hôtel fictif"]]){
+     const item=extras.locator(".journeyExtra-"+kind);
+     assert.match(await item.innerText(),new RegExp(word));
+     assert.equal(await item.locator("svg[aria-hidden='true']").count(),1);
+     assert.equal(await item.locator("svg path, svg circle").count()>0,true);
+    }
     assert.equal(await page.locator(".journeyShade").count(),0);
     await page.locator(".completedTripsList .journeyTrip").first().scrollIntoViewIfNeeded();
     await page.waitForFunction(()=>document.querySelector(".journeyPhotoCount")?.textContent==="1/1");
@@ -119,6 +128,24 @@ async function main(){
     assert.equal(sticky.position,"sticky");
     assert.ok(sticky.top>=-1&&sticky.top<40,"Sticky toolbar should remain at top: "+JSON.stringify(sticky));
     if(width===360)await page.screenshot({path:path.join(dir,"barre-collee-defilement-360.png"),animations:"disabled"});
+    // At the physical bottom of the document, the final fiche action must not
+    // overlap the fixed 56px add shortcut, including its 16px bottom offset.
+    await page.evaluate(()=>window.scrollTo(0,document.documentElement.scrollHeight));
+    await page.waitForFunction(()=>{
+     const add=document.querySelector("#addFloating");
+     return !!add&&!add.hidden&&getComputedStyle(add).display!=="none";
+    });
+    const end=await page.evaluate(()=>{
+     const last=document.querySelector(".completedTripsList .journeyTrip:last-child .journeyLink").getBoundingClientRect();
+     const add=document.querySelector("#addFloating").getBoundingClientRect();
+     const overlap=last.left<add.right&&last.right>add.left&&last.top<add.bottom&&last.bottom>add.top;
+     return {last:{top:last.top,bottom:last.bottom,left:last.left,right:last.right},
+      add:{top:add.top,bottom:add.bottom,left:add.left,right:add.right},
+      overlap,viewport:innerHeight,scroll:scrollY};
+    });
+    assert.equal(end.overlap,false,"Floating + must never obscure the last Voir la fiche: "+JSON.stringify(end));
+    assert.ok(end.last.top>=0&&end.last.bottom<=end.viewport,
+      "Last fiche button must be fully visible at end of scroll: "+JSON.stringify(end));
     const before=privateRequests.length;
     await page.evaluate(()=>{
      showOfflineCopy({ownerId:"22222222-2222-4222-8222-222222222222",
