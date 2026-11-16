@@ -75,6 +75,21 @@ const extra=CARD.markup({...trip,stops:[{country_code:"CA"}],companions:"Aïssat
 assert.match(extra,/1 étape · Canada/);
 assert.match(extra,/Avec Aïssatou/);
 assert.match(extra,/Compagnie fictive/);
+const categorized=CARD.markup({...trip,
+ companions:"Aïssatou",airline:"Compagnie fictive",hotel:"Hôtel fictif",
+ stops:[{country_code:"CA"}]},"France","Tourisme","10 → 20 oct. 2026");
+for(const [kind,label] of [["stops","1 étape · Canada"],["people","Avec Aïssatou"],
+ ["plane","Compagnie fictive"],["bed","Hôtel fictif"]]){
+ const section=categorized.match(new RegExp('class="journeyExtra journeyExtra-'+kind+'"[^>]*>([\\s\\S]*?)<\\/span><\\/span>'));
+ assert.ok(section,"Missing semantic metadata "+kind);
+ assert.match(section[0],/aria-hidden="true"/);
+ assert.ok(section[0].includes(label),"Missing accessible label for "+kind);
+}
+assert.ok(!categorized.includes('M12 8v4l3 2'),"No generic clock icon in metadata");
+const htmlInjection=CARD.markup({...trip,hotel:'<img src=x onerror=alert(1)>'},
+ "France","Tourisme","10 → 20 oct. 2026");
+assert.ok(!htmlInjection.includes('<img src=x'),"Hotel metadata must be escaped");
+assert.ok(htmlInjection.includes('&lt;img src=x onerror=alert(1)&gt;'));
 assert.ok(!html.includes('<img src=x'),"Untrusted cities must not become markup");
 assert.ok(html.includes('&lt;img src=x onerror=alert(1)&gt;'),"Untrusted cities must be HTML-escaped");
 assert.ok(!html.includes("70000000-0000-4000-8000-000000000001"),

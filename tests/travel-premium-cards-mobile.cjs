@@ -73,7 +73,7 @@ async function main(){
     assert.equal(await page.locator(".upcomingTripsSection .journeyTrip").count(),1);
     assert.match(await page.locator(".upcomingTripsSection").innerText(),/À venir/);
     assert.equal((await page.locator("#tripListSummary").innerText()).trim(),"4 voyages · 4 pays");
-    assert.doesNotMatch(await page.locator("#trips").innerText(),/payss/i);
+    assert.doesNotMatch(await page.locator("#app").innerText(),/payss/i,"No malformed country plural anywhere in rendered app");
     const extras=page.locator(".completedTripsList .journeyTrip").first();
     for(const [kind,word] of [["people","Avec Aïssatou"],["plane","Compagnie fictive"],["bed","Hôtel fictif"]]){
      const item=extras.locator(".journeyExtra-"+kind);
@@ -118,6 +118,10 @@ async function main(){
     assert.deepEqual(await labels(),["France","Sénégal","Guinée"]);
     await page.locator("#tripListFilter").click();
     assert.equal(await page.locator("#filterPanel").getAttribute("aria-hidden"),"false");
+    await page.locator("#filterCountry").selectOption("FR");
+    assert.equal((await page.locator("#tripListSummary").innerText()).trim(),"1 voyage · 1 pays");
+    assert.doesNotMatch(await page.locator("#app").innerText(),/payss/i);
+    await page.locator("#resetFilters").click();
     await page.locator("#closeFilters").click();
     await page.evaluate(()=>{
      const bar=document.querySelector("#tripListToolbar");
