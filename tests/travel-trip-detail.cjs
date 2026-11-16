@@ -118,7 +118,7 @@ const S={
   };
   return q;
  },
- storage:{from:()=>({createSignedUrl:async()=>({data:{signedUrl:'https://signed.invalid/private.webp'},error:null})})}
+ storage:{from:()=>({createSignedUrl:async()=>({data:{signedUrl:'https://signed.invalid/storage/v1/object/sign/media/photo-fictive.webp?token=SYNTHETIC'},error:null})})}
 };
 const context=vm.createContext({
  window:{BEAM_TRIP_DETAIL:DETAIL,BEAM_TRAVEL_PDF:PDF,
