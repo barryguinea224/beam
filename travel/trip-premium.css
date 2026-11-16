@@ -36,6 +36,7 @@
 #tripDetailModal .detailMetaIcon{width:15px;height:15px;flex-shrink:0}
 #tripDetailModal .detailSection,#tripDetailModal #detailStopsSection{padding:22px 20px;border-top:1px solid #e1eae3;margin:0;min-width:0}
 #tripDetailModal .detailSection[hidden],#tripDetailModal #detailStopsSection[hidden]{display:none!important}
+#tripDetailModal #detailStopsSection>.mapInfo{display:none}
 #tripDetailModal .detailSection h3,#tripDetailModal #detailStopsSection h3{font:700 21px/1.25 Poppins,system-ui,sans-serif;color:#174d3a;margin:0 0 18px}
 #tripDetailModal .detailTimeline{display:grid;gap:0;margin:0;padding:0;list-style:none}
 #tripDetailModal .detailTimeline>li,.tripStopRow{position:relative;border:0;border-left:2px solid #b6d5c0;border-radius:0;background:transparent;margin-left:8px;padding:0 0 22px 19px;min-width:0}

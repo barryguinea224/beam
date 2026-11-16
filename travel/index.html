@@ -2037,7 +2037,7 @@ function openTripDetail(id){
  $("#detailShare").disabled=offlineMode;
  $("#detailShareHelp").textContent=offlineMode?"Photos disponibles avec une connexion.":"";
  const fact=(label,value)=>'<div class="detailFact"><dt>'+esc(label)+'</dt><dd>'+esc(value)+'</dd></div>';
- const stayFact=(label,value,role)=>'<div class="detailFact detailStay"><dt>'+detailIcon(role==="airline"?"plane":"bed")+esc(label)+'</dt><dd>'+
+ const stayFact=(label,value,role)=>'<div class="detailFact detailStay"><dt aria-label="'+esc(label)+'">'+detailIcon(role==="airline"?"plane":"bed")+esc(role==="airline"?"Compagnie":"Hôtel")+'</dt><dd>'+
   '<img class="stayThumb" data-stay-role="'+role+'" src="./assets/stay-'+role+'.svg" alt="" aria-hidden="true">'+
   '<span>'+esc(value)+'</span></dd></div>';
  $("#detailFacts").innerHTML=[
