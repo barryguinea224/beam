@@ -1,0 +1,40 @@
+name: J'y étais — Moments, souvenir et marges
+on:
+  pull_request:
+    branches: [feature/beam-travel-history-v1]
+    paths:
+      - "travel/index.html"
+      - "travel/trip-detail.js"
+      - "travel/trip-premium.css"
+      - "travel/sw.js"
+      - "tests/travel-moments-souvenir.cjs"
+      - "tests/travel-moments-souvenir-mobile.cjs"
+      - ".github/workflows/travel-moments-souvenir.yml"
+permissions:
+  contents: read
+jobs:
+  moments-souvenir:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Isolated formatting and privacy tests
+        run: |
+          node --check travel/trip-detail.js
+          node tests/travel-moments-souvenir.cjs
+      - name: Install Chromium
+        run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Real Android 320–390 and screenshot
+        run: node tests/travel-moments-souvenir-mobile.cjs
+      - name: Upload synthetic 360 px Moments and souvenir
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jyetais-moments-souvenir-360px
+          path: test-artifacts/travel-moments-souvenir/moments-mon-souvenir-360.png
+          if-no-files-found: warn
