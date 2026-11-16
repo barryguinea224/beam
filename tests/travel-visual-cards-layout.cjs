@@ -31,11 +31,15 @@ async function main(){
     });
     const state=await page.evaluate(()=>{
       const box=document.querySelector("#trips").getBoundingClientRect();
-      const cards=[...document.querySelectorAll(".tripOpen")].map(el=>{
+      const cards=[...document.querySelectorAll(".journeyTrip")].map(el=>{
         const b=el.getBoundingClientRect();
         return {left:b.left,right:b.right,width:b.width,height:b.height,label:el.textContent};
       });
       return {scrollWidth:document.documentElement.scrollWidth,innerWidth,cards,boxRight:box.right,
+       visualFirst:[...document.querySelectorAll(".journeyTrip")].every(card=>card.firstElementChild.classList.contains("journeyMedia")),
+       visualRatios:[...document.querySelectorAll(".journeyMedia")].map(el=>{const r=el.getBoundingClientRect();return r.width/r.height}),
+       noShade:!document.querySelector(".journeyShade"),
+       noBadge:!document.querySelector(".journeyPhotoCount"),
        flagUrls:[...document.querySelectorAll(".journeyFlag")].map(el=>el.getAttribute("src")),
        artUrls:[...document.querySelectorAll(".journeyBackdrop")].map(el=>el.getAttribute("src"))};
     });
@@ -45,6 +49,8 @@ async function main(){
         "Card clipped or too short at "+width+": "+JSON.stringify(c));
     }
     assert.equal(state.cards.length,4);
+    assert.ok(state.visualFirst&&state.noShade&&state.noBadge,"Cards must have an uncovered 16:9 visual before text");
+    assert.ok(state.visualRatios.every(n=>Math.abs(n-16/9)<.02),"Media ratio must be 16:9");
     assert.ok(state.cards[0].label.includes("France"));
     assert.ok(state.cards[1].label.includes("Séjour national"));
     assert.ok(state.cards[2].label.includes("Djeddah"));
