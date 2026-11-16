@@ -12,6 +12,12 @@ function seedMoments(){
  trip.entry_date="2026-08-05";trip.exit_date="2026-08-15";trip.duration_days=11;
  trip.note=("Souvenir fictif d'un magnifique voyage au mois d'août. " ).repeat(23);
  trip.airline="Compagnie fictive";
+ data.stops.push(
+  {id:"33333333-3333-4333-8333-333333333331",trip_id:trip.id,user_id:uid,
+   country_code:"DE",cities:["Berlin"],entry_date:"2026-08-06",exit_date:"2026-08-07",position:1},
+  {id:"33333333-3333-4333-8333-333333333332",trip_id:trip.id,user_id:uid,
+   country_code:"BE",cities:["Bruxelles"],entry_date:"2026-08-08",exit_date:"2026-08-09",position:2}
+ );
  const activities=[
   {id:"aaaa1111-aaaa-4111-8111-aaaaaaaaaaaa",trip_id:trip.id,user_id:uid,
    title:"Visite de Paris",place:"Paris",happened_on:"2026-08-09",duration_days:3},
@@ -42,7 +48,7 @@ async function main(){
  const server=serve();await new Promise(resolve=>server.listen(0,"127.0.0.1",resolve));
  const browser=await chromium.launch({headless:true,args:["--no-sandbox","--disable-dev-shm-usage"]});
  try{
-  for(const width of [320,360,390]){
+  for(const width of [320,360,390,420]){
    const context=await browser.newContext({viewport:{width,height:820},
     isMobile:true,hasTouch:true,deviceScaleFactor:1,serviceWorkers:"block"});
    const page=await context.newPage(),errors=[];
@@ -60,7 +66,8 @@ async function main(){
     await page.waitForFunction(()=>document.querySelector("#dashboardTitle")?.textContent==="Voyageuse Fictive");
     await page.locator("#trips .journeyTrip").filter({hasText:"France"}).locator(".tripOpen").click();
     await page.locator("#tripDetailModal.open").waitFor();
-    await page.waitForFunction(()=>document.querySelectorAll("#detailActivities .detailActivity").length===3);
+    await page.waitForFunction(()=>document.querySelectorAll("#detailActivities .detailActivity").length===3 &&
+     document.querySelectorAll("#detailStops .tripStopRow").length===2);
     const cards=page.locator("#detailActivities .detailActivity");
     assert.match(await cards.nth(0).innerText(),/Première promenade/);
     assert.match(await cards.nth(1).innerText(),/Visite de Paris/);
@@ -68,6 +75,12 @@ async function main(){
     assert.equal((await cards.nth(0).locator(".detailActivityDay").innerText()).trim(),"5");
     assert.equal((await cards.nth(0).locator(".detailActivityMonth").innerText()).trim(),"août");
     assert.match(await cards.nth(1).locator(".detailActivityMeta").innerText(),/Paris · 3 jours/);
+    assert.equal((await cards.nth(0).locator(".detailActivityMeta").innerText()).trim(),"Paris",
+     "One-day moment shows only its location");
+    assert.equal(await cards.nth(2).locator(".detailActivityMeta").count(),0,
+     "Undated, unlocated moment must not have a secondary line");
+    assert.doesNotMatch(await cards.nth(0).innerText(),/1 jour/,
+     "Single-day duration is omitted from moment cards");
     assert.equal(await cards.nth(2).locator("svg[aria-hidden=true]").count(),1);
     assert.equal(await cards.locator("img.detailActivityThumb").count(),0);
     assert.equal(await cards.locator(".detailRemoveActivity").count(),0);
@@ -108,10 +121,48 @@ async function main(){
      assert.ok(box.left>=15.9&&box.right>=15.9,
        "Detail content must be >=16px inset at "+width+": "+JSON.stringify(box));
     for(const h of metrics.headings){
-     assert.equal(h.size,"22px");assert.equal(h.weight,"600");
+     assert.equal(h.size,width<=390?"19px":"21px");assert.equal(h.weight,"600");
      assert.match(h.family,/Poppins/);
     }
     assert.ok(Math.abs(metrics.dateWidth-52)<1);
+    const stageGeometry=await page.evaluate(()=>{
+     const rows=[...document.querySelectorAll("#detailStops .tripStopRow")];
+     return rows.map(row=>{
+      const dot=row.querySelector(".tripStopDot"),card=row.querySelector(".tripStopCard"),
+       flag=row.querySelector(".tripStopFlag"),marker=row.querySelector(".tripStopMarker");
+      if(!dot||!card||!flag||!marker)throw Error("Stage needs separate dot, card, flag");
+      const d=dot.getBoundingClientRect(),c=card.getBoundingClientRect(),
+       f=flag.getBoundingClientRect(),css=getComputedStyle(marker,"::after");
+      const overlap=(a,b)=>a.left<b.right&&b.left<a.right&&a.top<b.bottom&&b.top<a.bottom;
+      return {clearance:c.left-d.right,inside:f.left-c.left,
+       dotCardOverlap:overlap(d,c),dotFlagOverlap:overlap(d,f),
+       lineContent:css.content,cardRight:c.right,viewport:innerWidth};
+     });
+    });
+    assert.equal(stageGeometry.length,2);
+    for(const stage of stageGeometry){
+     assert.ok(stage.clearance>=11.9,"Stage dot/card must be separated by >=12px: "+JSON.stringify(stage));
+     assert.ok(stage.inside>=11.9,"Stage flag needs >=12px inset: "+JSON.stringify(stage));
+     assert.equal(stage.dotCardOverlap,false,"Stage dot overlaps card");
+     assert.equal(stage.dotFlagOverlap,false,"Stage dot overlaps flag");
+     assert.ok(stage.cardRight<=width+1,"Stage card overflows viewport");
+    }
+    assert.notEqual(stageGeometry[0].lineContent,"none","Multiple stages must have a connecting line");
+    assert.equal(stageGeometry[1].lineContent,"none","Last stage has no trailing line");
+    await page.evaluate(()=>{
+     const fixture=window.__excursionFixture,trip=fixture.rows[0];
+     window.BEAM_TRIP_STOPS.renderList(document.getElementById("detailStops"),
+      {...trip,stops:fixture.stops.slice(0,1)},false);
+    });
+    assert.equal(await page.locator("#detailStops .tripStopRow").count(),1);
+    assert.equal(await page.locator("#detailStops .tripStopMarker").first()
+     .evaluate(el=>getComputedStyle(el,"::after").content),"none",
+     "A single stage must never draw a connecting line");
+    await page.evaluate(()=>{
+     const fixture=window.__excursionFixture,trip=fixture.rows[0];
+     window.BEAM_TRIP_STOPS.renderList(document.getElementById("detailStops"),
+      {...trip,stops:fixture.stops},false);
+    });
     assert.ok(metrics.noteLines<=6.05,"Souvenir should be clamped to six lines");
     // A real private photo is shown only if explicitly linked and signed;
     // the same link is rejected offline or from another storage origin.
@@ -130,19 +181,24 @@ async function main(){
     assert.doesNotMatch(thumbs.untrusted,/detailActivityThumb/);
     assert.doesNotMatch(thumbs.single,/detailActivityDate::after/);
     if(width===360){
-     // Temporary screenshot wrapper inside the original modal preserves styling.
+     // Capture the two sections of the REAL app using only synthetic fixtures.
      await page.evaluate(()=>{
-      const a=document.getElementById("detailActivitiesSection");
-      const b=document.getElementById("detailNoteSection");
+      const a=document.getElementById("detailStopsSection");
+      const b=document.getElementById("detailActivitiesSection");
+      const marker=document.createElement("span");marker.id="captureMomentsReturn";
+      b.before(marker);
       const wrapper=document.createElement("div");
-      wrapper.id="captureMomentsSouvenir";wrapper.style.background="#fff";
-      a.parentElement.insertBefore(wrapper,a);wrapper.append(a,b);
+      wrapper.id="captureEtapesMoments";wrapper.style.background="#fff";
+      a.before(wrapper);wrapper.append(a,b);
      });
-     await page.locator("#captureMomentsSouvenir").screenshot({
-      path:path.join(DIR,"moments-mon-souvenir-360.png"),animations:"disabled"});
+     await page.locator("#captureEtapesMoments").screenshot({
+      path:path.join(DIR,"etapes-moments-360.png"),animations:"disabled"});
      await page.evaluate(()=>{
-      const wrapper=document.getElementById("captureMomentsSouvenir");
-      wrapper.replaceWith(...wrapper.children);
+      const wrapper=document.getElementById("captureEtapesMoments");
+      const marker=document.getElementById("captureMomentsReturn");
+      wrapper.before(wrapper.children[0]);
+      marker.replaceWith(wrapper.children[0]);
+      wrapper.remove();
      });
     }
     await page.locator("#detailNoteToggle").click();
