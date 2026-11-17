@@ -33,6 +33,10 @@ for(const id of ["passportResidenceCode","travelerLocation","continentCount","de
  assert.ok(source.includes('id="'+id+'"'),"Missing "+id);
 }
 assert.match(sw,/jyetais-v60-passeport-diaporama/);
+assert.ok(sw.includes('"./vendor/supabase.umd.js"'));
+assert.ok(source.includes('src="./vendor/supabase.umd.js"'));
+assert.ok(!source.includes('src="https://cdn.jsdelivr.net'));
+
 for(const asset of ["continents.js","trip-slideshow.js","passport-home.css"]){
  assert.ok(sw.includes('./'+asset),"Precache "+asset);
 }
