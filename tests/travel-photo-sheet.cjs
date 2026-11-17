@@ -1,4 +1,5 @@
 'use strict';
+const {assertCacheName}=require("./helpers/cache-name.cjs");
 // Photo-action integration contract on actual index.html / trip-detail.js, no client data.
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
@@ -28,7 +29,7 @@ for(const field of ['airline','hotel','airline_media_id','hotel_media_id'])
 assert.match(print,/\.select\("id,storage_path,is_favorite,caption"\)/);
 assert.match(print,/photoCaptions\.push\(DETAIL\.captionValue\(row\.caption\)\)/);
 const sw=fs.readFileSync('travel/sw.js','utf8');
-assert.match(sw,/jyetais-v59-etapes-moments/);
+assertCacheName(sw);
 assert.match(sw,/"\.\/photo-sheet\.css"/);
 const malicious='<img src=x onerror=alert(1)> Bonjour';
 const images=DETAIL.photos([

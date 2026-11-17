@@ -1,4 +1,5 @@
 "use strict";
+const {assertCacheName}=require("./helpers/cache-name.cjs");
 // Contract + actual Chromium rendering for PUBLIC J'y étais legal pages.
 // No auth, backend, cookies, tracking or external resources are needed.
 const assert=require("node:assert/strict");
@@ -70,7 +71,7 @@ for(const [scope,html] of [["connexion",auth],["mon-compte",account]]){
 }
 assert.ok(account.indexOf("legalLinksAccount")>account.indexOf('id="loyaltyPanel"') && account.indexOf("legalLinksAccount")<account.indexOf('id="accountSession"'),
  "terms and privacy should be available after the account controls");
-assert.match(sw,/beam-travel-shell-v1-20261116-jyetais-v59-etapes-moments/);
+assertCacheName(sw);
 for(const file of ["confidentialite.html","conditions.html","legal.css"])
  assert.ok(sw.includes('"./'+file+'"'),"public legal shell asset not audited: "+file);
 assert.doesNotMatch(sw,/cache\.put\(/,"PWA must still forbid runtime private cache writes");

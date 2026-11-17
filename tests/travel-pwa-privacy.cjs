@@ -7,8 +7,13 @@ const worker = fs.readFileSync("travel/sw.js", "utf8");
 const helper = fs.readFileSync("travel/pwa.js", "utf8");
 const offlineBootstrap = fs.readFileSync("travel/offline-bootstrap.js","utf8");
 new vm.Script(offlineBootstrap, {filename:"travel/offline-bootstrap.js"});
-assert.ok(app.indexOf('<script src="/travel/offline-bootstrap.js"></script>') <
-  app.indexOf('https://cdn.jsdelivr.net/npm/@supabase/'), "offline guard must run before CDN");
+const scriptSources=[...app.matchAll(/<script\b[^>]*\bsrc\s*=\s*(["'])(.*?)\1[^>]*>/gi)].map(match=>match[2]);
+const guard=scriptSources.indexOf("/travel/offline-bootstrap.js");
+const localSdk=scriptSources.indexOf("./vendor/supabase.umd.js");
+assert.ok(guard>=0&&localSdk>=0&&guard<localSdk,
+ "offline guard must load before the same-origin Supabase SDK");
+assert.deepEqual(scriptSources.filter(src=>!(/^(?:\.\/|\/travel\/)[A-Za-z0-9_./-]+\.js$/.test(src)&&!src.includes(".."))),[],
+ "Application script tags must not load any external domain (CDN, fonts, images)");
 
 new vm.Script(worker, {filename:"travel/sw.js"});
 new vm.Script(helper, {filename:"travel/pwa.js"});

@@ -1,4 +1,5 @@
 "use strict";
+const {assertCacheName}=require("./helpers/cache-name.cjs");
 const assert=require("node:assert/strict");
 const fs=require("node:fs");
 const os=require("node:os");
@@ -86,7 +87,7 @@ try{
  assert.match(links,/<a href="\/visas\/secrets\/"><span>Les secrets des voyageurs intelligents<\/span>/);
  assert.equal((links.match(/<a /g)||[]).length,3,"the new guide link belongs among existing account links");
  const sw=fs.readFileSync(path.join(root,"travel/sw.js"),"utf8");
- assert.match(sw,/jyetais-v59-etapes-moments/);
+ assertCacheName(sw);
  assert.match(sw,/if \(url\.pathname\.startsWith\("\/visas\/"\)\) return;/);
  const netlify=fs.readFileSync(path.join(root,"netlify.toml"),"utf8");
  assert.ok(netlify.includes('from = "/visas/data/*"'),
