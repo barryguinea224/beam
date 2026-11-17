@@ -56,7 +56,7 @@ async function main(){
    await page.route("**/*",route=>{
     const u=new URL(route.request().url);
     if(u.hostname==="cdn.jsdelivr.net")return route.fulfill({status:200,contentType:"application/javascript",
-     body:"("+fictionalSupabase.toString()+")();"+patch});
+     body:"("+fictionalSupabase.toString().replace('country_of_residence:"GN",','home_city:"Conakry",country_of_residence:"GN",')+")();"+patch});
     if(u.hostname==="fixture.invalid"&&u.pathname.startsWith("/storage/v1/object/sign/media/"))
      return route.fulfill({status:200,contentType:"image/svg+xml",headers:{"cache-control":"no-store"},body:photoSvg});
     if(u.hostname==="127.0.0.1")return route.continue();
@@ -81,7 +81,7 @@ async function main(){
     });
     assert.equal(snap.code,"GN");
     assert.equal(snap.codeVisible,true);
-    assert.match(snap.location,/Guinée/);
+    assert.equal(snap.location,"Conakry, Guinée");
     assert.match(snap.titleFont,/Poppins/);
     assert.equal(snap.continent,"4 continents");
     assert.ok(snap.scroll<=width+1,"Horizontal overflow "+width+": "+JSON.stringify(snap));
@@ -99,7 +99,7 @@ async function main(){
     await page.locator("#pdf").click();
     assert.equal(await page.locator("#pdfDialog").isVisible(),true,"PDF consent remains");
     await page.locator("#pdfDialogClose").click();
-    await page.locator('#trips .journeyTrip .tripOpen').first().click();
+    await page.locator("#trips .journeyTrip").filter({hasText:"France"}).first().locator(".tripOpen").click();
     await page.locator("#tripDetailModal.open").waitFor();
     await page.waitForFunction(()=>document.querySelector("#detailSlideshowOpen")?.hidden===false);
     assert.equal(await page.locator("#detailSlideshowOpen").isEnabled(),true);
