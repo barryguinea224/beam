@@ -48,6 +48,9 @@ async function run(){
     }
     if(url.hostname==="127.0.0.1"&&url.pathname==="/travel/vendor/supabase.umd.js")
      return route.fulfill({status:200,contentType:"application/javascript",body:"("+fictionalSupabase.toString()+")();"});
+    // The comparison's historic v46 HTML used a CDN; only mock it for "avant".
+    if(phase==="avant"&&url.hostname==="cdn.jsdelivr.net")
+     return route.fulfill({status:200,contentType:"application/javascript",body:"("+fictionalSupabase.toString()+")();"});
     if(url.hostname!=="127.0.0.1")return route.abort();
     const name=url.pathname==="/travel/"?"index.html":url.pathname.slice("/travel/".length);
     if(phase==="avant"&&Object.hasOwn(beforeAssets,name))

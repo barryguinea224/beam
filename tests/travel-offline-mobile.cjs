@@ -52,9 +52,9 @@ function fakeSupabase(){
   }
  }}};
 }
-async function pageFor(browser,server,width){
+async function pageFor(browser,server,width,blockWorker=false){
  const context=await browser.newContext({viewport:{width,height:800},isMobile:true,hasTouch:true,
-  deviceScaleFactor:1,acceptDownloads:true});
+  deviceScaleFactor:1,acceptDownloads:true,serviceWorkers:blockWorker?"block":"allow"});
  const page=await context.newPage(),errors=[];
  page.on("pageerror",error=>errors.push(error.message));
  await page.route("**/*",route=>{
@@ -140,7 +140,9 @@ async function main(){
     }
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true);
     // Make sure a controlled shell is installed before switching the network off.
-    await page.reload({waitUntil:"load"});
+    // clients.claim() activates the installed worker without reloading an online
+    // mock session (a reload can substitute the real cached SDK for the fixture).
+
     await page.waitForFunction(()=>!!navigator.serviceWorker.controller,{timeout:20000});
     // This is the REAL installed SW and its CacheStorage, not a mocked fetch.
     assert.equal(await page.evaluate(async()=>{
@@ -248,7 +250,7 @@ async function main(){
   }
   // Separate authenticated session: old owner's data must be removed first.
   {
-   const {context,page,url,errors}=await pageFor(browser,server,360);
+   const {context,page,url,errors}=await pageFor(browser,server,360,true);
    try{
     await seed(page,url);
     await page.evaluate(()=>localStorage.setItem("jy-test-uid","22222222-2222-4222-8222-222222222222"));
@@ -287,7 +289,8 @@ async function main(){
    const {context,page,url,errors}=await pageFor(browser,server,360);
    try{
     await seed(page,url);
-    await page.reload({waitUntil:"load"});
+    // Wait for the already-claimed worker instead of recreating the mock session.
+
     await page.waitForFunction(()=>!!navigator.serviceWorker.controller);
     await page.evaluate(async()=>{
      const req=indexedDB.open("jyetais-offline");
