@@ -54,7 +54,7 @@ async function main(){
    const page=await ctx.newPage(),errors=[],external=[];
    page.on("pageerror",error=>errors.push(error.message));
    await page.route("**/*",route=>{
-    const u=new URL(route.request().url);
+    const u=new URL(route.request().url());
     if(u.hostname==="cdn.jsdelivr.net")return route.fulfill({status:200,contentType:"application/javascript",
      body:"("+fictionalSupabase.toString().replace('country_of_residence:"GN",','home_city:"Conakry",country_of_residence:"GN",')+")();"+patch});
     if(u.hostname==="fixture.invalid"&&u.pathname.startsWith("/storage/v1/object/sign/media/"))
