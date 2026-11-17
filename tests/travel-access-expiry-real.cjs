@@ -73,7 +73,7 @@ async function main(){
     await page.addInitScript(until=>{window.__fixtureUntil=until},entry.until);
     await page.route("**/*",route=>{
      const u=new URL(route.request().url());
-     if(u.hostname==="cdn.jsdelivr.net")return route.fulfill({status:200,contentType:"application/javascript",body:"("+fakeSupabase.toString()+")();"});
+     if(u.hostname==="127.0.0.1"&&u.pathname==="/travel/vendor/supabase.umd.js")return route.fulfill({status:200,contentType:"application/javascript",body:"("+fakeSupabase.toString()+")();"});
      if(u.hostname==="127.0.0.1")return route.continue();
      return route.abort();
     });

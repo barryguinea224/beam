@@ -136,7 +136,7 @@ async function main(){
     await p.addInitScript(fixture=>{window.__avatarFixture=fixture},cfg);
     await p.route("**/*",route=>{
      const hostname=new URL(route.request().url()).hostname;
-     if(hostname==="cdn.jsdelivr.net")return route.fulfill({status:200,
+     if(new URL(route.request().url()).pathname==="/travel/vendor/supabase.umd.js")return route.fulfill({status:200,
        contentType:"text/javascript",body:"("+fakeSupabase.toString()+")();"});
      if(hostname==="127.0.0.1")return route.continue();
      return route.abort();
