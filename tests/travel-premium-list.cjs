@@ -35,5 +35,5 @@ assert.match(html,/LIST\.order\(visible\.filter\(/);
 assert.match(html,/LIST\.write\(sortStorage\(\),choice\.dataset\.tripSort\)/);
 assert.ok(html.includes('scrollIntoView({behavior:"smooth",block:"start"})'));
 assert.ok(sw.includes("./trip-list.js")&&sw.includes("./trip-list.css"));
-assert.ok(sw.includes("beam-travel-shell-v1-20261116-jyetais-v59-etapes-moments"));
+assert.ok(sw.includes("beam-travel-shell-v1-20261116-jyetais-v60-passeport-diaporama"));
 console.log("PASS premium list: three sort modes, local storage, toolbar and cache");
