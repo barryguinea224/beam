@@ -20,7 +20,7 @@ const html=fs.readFileSync("travel/index.html","utf8"),sw=fs.readFileSync("trave
 assert.match(html,/id="coverPickerOpen"/);
 assert.match(html,/id="photoProfileCover"/);
 assert.match(html,/id="coverAuto"/);
-assert.match(sw,/jyetais-v59-etapes-moments/);
+assert.match(sw,/jyetais-v60-passeport-diaporama/);
 assert.doesNotMatch(sw,/caches\.put\(/);
 const dir=path.resolve("test-artifacts/cover-profile");
 fs.mkdirSync(dir,{recursive:true});
@@ -88,8 +88,8 @@ async function main(){
        overflow:document.documentElement.scrollWidth-innerWidth};
     });
     assert.equal(measurements.coverTop,0,"Cover must start at viewport top at width "+width);
-    assert.ok(measurements.coverHeight<=180&&measurements.coverHeight>=100,JSON.stringify(measurements));
-    assert.ok(measurements.avatarTop<measurements.coverBottom&&measurements.overflow<=1,JSON.stringify(measurements));
+    assert.ok(measurements.coverHeight>=240,"Passport cover must fill the dark card: "+JSON.stringify(measurements));
+    assert.ok(measurements.avatarTop>=measurements.coverTop&&measurements.avatarTop<measurements.coverBottom&&measurements.overflow<=1,JSON.stringify(measurements));
     if(width===360)await page.screenshot({path:path.join(dir,"accueil-couverture-360.png"),animations:"disabled"});
     if(width===360){
       const countries=[["FR","France","Paris"],["MA","Maroc","Marrakech"],["GN","Guinée","Labé"],["SA","Arabie saoudite","Riyad"],["TR","Turquie","Istanbul"]];
