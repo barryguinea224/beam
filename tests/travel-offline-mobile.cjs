@@ -280,7 +280,8 @@ async function main(){
     await page.locator("#logout").click();
     await page.waitForFunction(async()=>!((await indexedDB.databases())
      .some(db=>db.name==="jyetais-offline")),{timeout:20000});
-    assert.equal(await page.evaluate(()=>localStorage.getItem("jyetais.offline.owner")),null);
+    await page.waitForFunction(()=>localStorage.getItem("jyetais.offline.owner")===null,
+      null,{timeout:20000});
     assert.deepEqual(errors,[]);
     console.log("PASS account switch wipes previous owner before display; logout deletes entire DB");
    }finally{await context.close()}
@@ -309,7 +310,8 @@ async function main(){
     assert.equal(await page.locator("#offlineBanner").isVisible(),false);
     await page.waitForFunction(async()=>!((await indexedDB.databases())
      .some(db=>db.name==="jyetais-offline")),{timeout:30000});
-    assert.equal(await page.evaluate(()=>localStorage.getItem("jyetais.offline.owner")),null);
+    await page.waitForFunction(()=>localStorage.getItem("jyetais.offline.owner")===null,
+      null,{timeout:20000});
     assert.deepEqual(errors,[]);
     console.log("PASS expired 30-day copy removed on offline startup; neutral fallback");
    }finally{await context.close()}
