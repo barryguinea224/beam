@@ -1,4 +1,5 @@
 "use strict";
+const {assertCacheName}=require("./helpers/cache-name.cjs");
 // Typography source audit and real 360px Chromium screenshots. All users and trips are fictional.
 const assert=require("node:assert/strict");
 const fs=require("node:fs");
@@ -16,7 +17,7 @@ for(const file of files){
  assert.doesNotMatch(source,/(?<!sans-)\bserif\b/i,"Serif fallback in travel/"+file);
 }
 const sw=fs.readFileSync(path.join(root,"sw.js"),"utf8");
-assert.match(sw,/jyetais-v60-passeport-diaporama/);
+assertCacheName(sw);
 assert.doesNotMatch(sw,/\bGeorgia\b/i);
 for(const file of ["index.html","account-settings.css","visual-cards.css","photo-sheet.css","legal.css"])
  assert.match(fs.readFileSync(path.join(root,file),"utf8"),/Poppins,system-ui,sans-serif/,"Source-family contract "+file);

@@ -83,6 +83,7 @@ function box(){
 const ids=['#modal','#tripDetailModal','#detailTitle','#detailCountryTitle','#detailCountryBadge',
  '#detailIntro','#detailFacts','#detailNote','#detailNoteToggle','#detailNoteDate','#detailNoteSection','#detailActivitiesSection','#detailStopsSection',
  '#detailHero','#detailGalleryCount','#detailShare','#detailShareHelp','#detailShareDialog','#detailShareSend',
+ '#detailSlideshow','#detailSlideshowOpen','#detailSlideshowClose','#slideStage','#slideImageBox','#slideCaption','#slideCounter','#slideStatus',
  '#detailShareClose','#detailShareSave','#detailSharePreview','#detailShareStatus',
  '#detailLightbox','#detailLightboxImage','#detailLightboxClose','#detailLightboxCaption','#detailLightboxActions',
  '#detailActivityToggle',
@@ -123,11 +124,13 @@ const S={
 const context=vm.createContext({
  window:{BEAM_TRIP_DETAIL:DETAIL,BEAM_TRAVEL_PDF:PDF,
   BEAM_TRIP_SHARE:require("../travel/trip-share.js"),
+   // This VM test exercises detail handlers. Slideshow interactions are tested in Android.
+   BEAM_TRIP_SLIDESHOW:{init(){return {open(){return false},close(){}}}},
   BEAM_VISUAL_CARDS:require("../travel/visual-cards.js"),confirm:()=>true},
  STOPS:{renderList:()=>{},valid:()=>true,byOrder:rows=>rows||[],cities:()=>'',country:()=>''},
  COUNTRY_NAMES:{FR:'France',DE:'Allemagne'},
  Option:class {constructor(label,value){this.text=label;this.value=value}},
- document:{activeElement:null},
+ document:{activeElement:null},navigator:{onLine:true},
  S,C:{supabaseUrl:"https://signed.invalid"},DAY,LIFE,FR:require("../travel/fr-accords.js"),
  tripCardDates:(a,b)=>a+" → "+b,setStopMode:()=>{},stopPicker:{clear(){},setBounds(){},setMode(){},setExisting(){},sync(){}},user:{id:'owner'},accountState:'active',offlineMode:false,offlineActivities:[],trips:[tripRecord],canWrite:()=>true,
  LOYALTY:{hintFor:airline=>airline==='Compagnie fictive'?"Pensez à donner votre numéro Flying Blue à la réservation.":""},

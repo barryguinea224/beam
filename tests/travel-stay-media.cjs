@@ -1,4 +1,5 @@
 "use strict";
+const {assertCacheName}=require("./helpers/cache-name.cjs");
 // Real-source contract: private stay images, explicit print queries, no brand assets.
 const assert=require("node:assert/strict");
 const fs=require("node:fs");
@@ -46,7 +47,7 @@ for(const role of ["airline","hotel"]){
  assert.ok(migration.includes("trips_"+role+"_same_trip_owner"));
  assert.ok(app.includes('data-stay-role'),"photo selection controls must be present");
 }
-assert.ok(sw.includes("jyetais-v59-etapes-moments"),"cache revision");
+assertCacheName(sw);
 assert.doesNotMatch(sw,/cache\.put\(/,"no runtime caching of private signed images");
 const factual=schema.split("create view public.travel_history_pdf")[1]?.split(";")[0];
 assert.ok(factual);

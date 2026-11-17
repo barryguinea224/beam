@@ -156,7 +156,21 @@ async function main(){
     });
     await context.setOffline(true);
     await page.goto(url,{waitUntil:"domcontentloaded",timeout:30000});
-    await page.locator("#offlineBanner").waitFor({state:"visible",timeout:30000});
+    try{
+      await page.locator("#offlineBanner").waitFor({state:"visible",timeout:15000});
+     }catch(error){
+      const debug=await page.evaluate(async()=>{
+       let exists=null;
+       try{exists=!!(await window.JYETAIS_OFFLINE?.readLast())}catch{exists=false}
+       return {navigatorOnline:navigator.onLine,htmlClass:document.documentElement.className,
+        hasOfflineStore:!!window.JYETAIS_OFFLINE,hasLocalSnapshot:exists,
+        previewBannerHidden:document.querySelector("#offlineBanner")?.hidden,
+        appClass:document.querySelector("#app")?.className,
+        offlineDisplay:getComputedStyle(document.querySelector("#offline")).display};
+      });
+      throw new Error("Offline preview not hydrated: "+JSON.stringify(debug)+
+       "; page errors: "+JSON.stringify(errors)+"; "+String(error));
+     }
     assert.match(await page.locator("#offlineBanner").textContent(),/Hors ligne · voyages du/);
     assert.match(await page.locator("#dashboardTitle").textContent(),/Voyageuse Fictive/);
     assert.equal(await page.locator("#add").isDisabled(),true);

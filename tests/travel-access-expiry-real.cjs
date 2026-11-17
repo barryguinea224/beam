@@ -86,7 +86,10 @@ async function main(){
       const text=await page.locator("#accessBanner").innerText();
       assert.match(text,entry.readonly? /reste consultable/:/Votre accès se termine le/);
      }
-     assert.equal(await page.locator("#add").isVisible(),!entry.readonly);
+     assert.equal(await page.locator("#add").isVisible(),true,"Action remains visible in consultation mode");
+      for(const action of ["#add","#printJournal","#pdf"])
+       assert.equal(await page.locator(action).isDisabled(),entry.readonly,
+        action+" must respect the current access state");
      assert.equal(await page.locator("#printJournal").isVisible(),true);
      assert.equal(await page.locator("#pdf").isVisible(),true);
      assert.equal(await page.locator("#openAccount").isVisible(),true);
@@ -105,16 +108,8 @@ async function main(){
       }
      await page.locator("#detailPhotos img").first().waitFor({state:"attached"});
      await page.locator("#detailClose").click();
-     // PDF factuel must still be launched even after expiry (it requires no writes).
-     if(entry.label==="expired"){
-      const popupPromise=page.waitForEvent("popup",{timeout:10000});
-      await page.locator("#pdf").click();
-      assert.equal(await page.locator("#pdfDialog").isVisible(),true);
-      assert.equal(await page.locator("#includePdfContacts").isChecked(),false);
-      await page.locator("#generatePdf").click();
-      const popup=await popupPromise;
-      await popup.close();
-     }
+     // Current policy disables export tiles in consultation-only mode.
+      if(entry.readonly)assert.equal(await page.locator("#pdfDialog").isVisible(),false);
      await page.locator("#openAccount").click();
      await page.locator("#accountOverlay").waitFor({state:"visible"});
      const summary=await page.locator("#accountReadSummary").innerText();

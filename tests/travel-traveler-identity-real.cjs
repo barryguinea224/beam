@@ -98,7 +98,7 @@ async function main(){
     assert.deepEqual([stats.voyages,stats.pays,stats.jours],["2","2","12"],
       "two foreign trips must produce EXACT current headline, ignoring domestic");
     assert.deepEqual(stats.labels,["voyages","pays","jours"]);
-    assert.match(stats.compact,/2 voyages.*2 pays.*12 jours/s);
+    assert.match(stats.compact,/2\s*voyages\s*2\s*pays\s*12\s*jours/s);
     const head=await page.evaluate(()=>{
       const name="Mariama Djouldé Doumbouya Camara Binta Barry";
       const el=document.querySelector("#dashboardTitle");

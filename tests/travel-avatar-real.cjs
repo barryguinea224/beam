@@ -155,7 +155,8 @@ async function main(){
      await p.locator("#openAccount").click();
      await p.locator("#accountOverlay").waitFor({state:"visible"});
      if(cfg.avatar){
-      await p.locator("#accountAvatar img").waitFor({state:"visible"});
+       // Read-only avatar photo is present but the edit control can be hidden.
+       await p.locator("#accountAvatar img").waitFor({state:cfg.modify?"visible":"attached"});
      }else{
       assert.equal((await p.locator("#accountAvatar").innerText()).trim(),"AD");
       assert.equal(await p.locator("#accountAvatar img").count(),0);

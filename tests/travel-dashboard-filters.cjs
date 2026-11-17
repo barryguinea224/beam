@@ -1,4 +1,5 @@
 "use strict";
+const {assertCacheName}=require("./helpers/cache-name.cjs");
 const assert=require("node:assert/strict");
 const fs=require("node:fs");
 const vm=require("node:vm");
@@ -115,8 +116,7 @@ for(const id of ["filterCountry","filterYear","filterPurpose","filterScope","res
 assert.ok(app.includes('<script src="./dashboard-filters.js"></script>'));
 const sw=fs.readFileSync("travel/sw.js","utf8");
 assert.ok(sw.includes("./dashboard-filters.js")&&sw.includes("./dashboard-filters.css"));
-assert.match(sw,/beam-travel-shell-v1-20261116-jyetais-v59-etapes-moments/);
-assert.ok(!sw.includes('beam-travel-shell-v1-20261030'),
- "PWA cache must not regress to the old static shell");
+assertCacheName(sw);
+
 
 console.log("PASS dashboard filter composition, country toggle, profile header, account Session logout and PDF isolation");
