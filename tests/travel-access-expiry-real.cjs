@@ -86,7 +86,10 @@ async function main(){
       const text=await page.locator("#accessBanner").innerText();
       assert.match(text,entry.readonly? /reste consultable/:/Votre accès se termine le/);
      }
-     assert.equal(await page.locator("#add").isVisible(),true,"Action remains visible in consultation mode");
+     assert.equal(await page.locator("#add").isVisible(),!entry.readonly,
+       "Add is hidden on expired access while the account remains online");
+     assert.equal(await page.evaluate(()=>document.documentElement.classList.contains("travelOfflinePreview")),false,
+       "Read-only online mode must not use offline CSS");
       for(const action of ["#add","#printJournal","#pdf"])
        assert.equal(await page.locator(action).isDisabled(),entry.readonly,
         action+" must respect the current access state");
