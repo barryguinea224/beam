@@ -21,6 +21,22 @@ jobs:
         with: {persist-credentials: false}
       - uses: actions/setup-node@v4
         with: {node-version: "22"}
+      - name: Verify vendored SDK against the official pinned npm tarball
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/official-supabase
+          tarball=$(npm pack --silent @supabase/supabase-js@2.58.0 --pack-destination /tmp/official-supabase)
+          tar -xOf "/tmp/official-supabase/$tarball" package/dist/umd/supabase.js > /tmp/official-supabase/official.js
+          node - <<'NODE'
+          const fs=require("fs"),assert=require("node:assert/strict"),crypto=require("node:crypto");
+          const local=fs.readFileSync("travel/vendor/supabase.umd.js","utf8");
+          const marker=local.indexOf("!function(");
+          assert.ok(marker>0,"Vendored UMD preamble missing");
+          const expected=fs.readFileSync("/tmp/official-supabase/official.js","utf8");
+          const digest=value=>crypto.createHash("sha256").update(value.trim()).digest("hex");
+          assert.equal(digest(local.slice(marker)),digest(expected),"Vendored SDK differs from official npm release");
+          console.log("PASS vendored @supabase/supabase-js@2.58.0 matches official npm");
+          NODE
       - name: Local country and privacy contracts
         run: |
           node --check travel/continents.js
