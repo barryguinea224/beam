@@ -109,7 +109,7 @@ async function start(){
    page.on("dialog",d=>{throw Error("Unexpected native dialog: "+d.message())});
    await page.route("**/*",route=>{
     const u=new URL(route.request().url());
-    if(u.hostname==="cdn.jsdelivr.net")
+    if(u.hostname==="127.0.0.1"&&u.pathname==="/travel/vendor/supabase.umd.js")
      return route.fulfill({status:200,contentType:"application/javascript",
       body:"("+fictionalSupabase.toString()+")();"});
     if(u.hostname==="127.0.0.1")return route.continue();

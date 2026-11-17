@@ -45,7 +45,7 @@ async function run(){
     if(/fonts\.(googleapis|gstatic)\.com/.test(url.hostname)||(/\.(woff2?|ttf|otf)$/i.test(url.pathname)&&url.hostname!=="127.0.0.1")){
      externalFonts.push(url.href);return route.abort();
     }
-    if(url.hostname==="cdn.jsdelivr.net")
+    if(url.hostname==="127.0.0.1"&&url.pathname==="/travel/vendor/supabase.umd.js")
      return route.fulfill({status:200,contentType:"application/javascript",body:"("+fictionalSupabase.toString()+")();"});
     if(url.hostname!=="127.0.0.1")return route.abort();
     const name=url.pathname==="/travel/"?"index.html":url.pathname.slice("/travel/".length);

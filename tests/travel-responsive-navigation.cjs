@@ -94,7 +94,7 @@ async function main(){
    page.on("dialog",d=>{throw Error("Native window.confirm is forbidden: "+d.message())});
    await page.route("**/*",route=>{
     const u=new URL(route.request().url());
-    if(u.hostname==="cdn.jsdelivr.net")return route.fulfill({status:200,contentType:"application/javascript",body:"("+fakeSupabase.toString()+")();"});
+    if(u.hostname==="127.0.0.1"&&u.pathname==="/travel/vendor/supabase.umd.js")return route.fulfill({status:200,contentType:"application/javascript",body:"("+fakeSupabase.toString()+")();"});
     if(u.hostname==="127.0.0.1")return route.continue();
     return route.abort();
    });
@@ -201,7 +201,7 @@ async function main(){
    const page=await context.newPage();
    await page.route("**/*",route=>{
     const u=new URL(route.request().url());
-    if(u.hostname==="cdn.jsdelivr.net")return route.fulfill({status:200,contentType:"application/javascript",body:"("+fakeSupabase.toString()+")();"});
+    if(u.hostname==="127.0.0.1"&&u.pathname==="/travel/vendor/supabase.umd.js")return route.fulfill({status:200,contentType:"application/javascript",body:"("+fakeSupabase.toString()+")();"});
     if(u.hostname==="127.0.0.1")return route.continue();
     return route.abort();
    });
