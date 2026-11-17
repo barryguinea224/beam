@@ -88,7 +88,7 @@ async function seed(page,url){
 }
 async function main(){
  await fs.mkdir(DIR,{recursive:true});
- const server=serve();
+ const server=serve({vendorSdk:"("+fakeSupabase.toString()+")();"});
  await new Promise(resolve=>server.listen(0,"127.0.0.1",resolve));
  const browser=await chromium.launch({headless:true,args:["--no-sandbox","--disable-dev-shm-usage"]});
  try{
@@ -149,19 +149,8 @@ async function main(){
      const url=new URL("/travel/assets/world-map.svg",location.href).href;
      return !!(await caches.match(url));
     }),true,"The actual service worker precached world-map.svg");
-    // Service-worker cache responses bypass Playwright routing offline.
-    // Supply the same public mock SDK from the disposable test cache only.
-    // This never changes the real app or stores private fixture data.
-    await page.evaluate(async fixture=>{
-     const keys=(await caches.keys()).filter(name=>name.startsWith("beam-travel-shell-v1-"));
-     if(keys.length!==1)throw Error("Expected one offline test shell cache");
-     const cache=await caches.open(keys[0]);
-     const url=new URL("/travel/vendor/supabase.umd.js",location.href).href;
-     if(!(await cache.match(url)))throw Error("Pinned public SDK not precached");
-     await cache.put(url,new Response("("+fixture+")();",{
-      status:200,headers:{"content-type":"application/javascript"}
-     }));
-    },fakeSupabase.toString());
+    // Same-origin SDK is served by the disposable HTTP fixture for both
+    // the browser and the real service worker (including its precache).
     const privateOfflineRequests=[];
     page.on("request",request=>{
      if(/\/storage\/v1\/|\/rest\/v1\/|\/auth\/v1\/|signedUrl/i.test(request.url()))
