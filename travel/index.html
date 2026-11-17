@@ -1091,10 +1091,10 @@ async function fetchOwnedStops(rows,uid){
 
 function render(){
  const api=window.BEAM_DASHBOARD_FILTERS;renderFilterOptions();
- const visible=api.apply(trips,dashboardFilters),asOf=LIFE.today(),stats=api.summary(visible,dashboardFilters,asOf),country=countryState(),counts=country.visited,active=Object.values(dashboardFilters).some(Boolean);
+ // The passport headline always covers the whole history, never map/list filters.
+ const visible=api.apply(trips,dashboardFilters),asOf=LIFE.today(),stats=api.summary(trips,api.EMPTY,asOf),country=countryState(),counts=country.visited,active=Object.values(dashboardFilters).some(Boolean);
  const name=typeof profile.display_name==="string"?profile.display_name.trim().replace(/\s+/g," "):"";
  setDashboardTitle(name);updateWelcome(name);renderAccessUi();
- const national=dashboardFilters.scope==="domestic";
  $("#nt").textContent=stats.trips;
  $("#ntl").textContent=FR.word(stats.trips,"voyage","voyages");
  $("#nc").textContent=stats.countries;

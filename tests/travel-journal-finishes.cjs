@@ -24,10 +24,9 @@ assert.deepEqual(STATS.summarize(finished([
 assert.equal(PDF.purposeName("tourisme"),"Tourisme");
 assert.equal(PDF.purposeName("etudes"),"Études");
 assert.equal(PDF.factualRows([{country_code:"FR",cities:["Paris"],entry_date:"2026-01-01",exit_date:"2026-01-02",duration_days:2,purpose:"etudes"}])[0].purpose,PDF.purposeName("etudes"));
-// The original international-only helper remains valid for legacy consumers.
- // The new dashboard intentionally shows all visible filtered journeys, domestic too.
+// The map/list still use filtered journeys; the passport totals must never do so.
 assert.ok(script.includes('const visible=api.apply(trips,dashboardFilters)'));
-assert.ok(script.includes('stats=api.summary(visible,dashboardFilters,asOf)'));
+assert.ok(script.includes('stats=api.summary(trips,api.EMPTY,asOf)'));
 const FILTERS=require("../travel/dashboard-filters.js");
 const sample=finished([
  {country_code:"FR",duration_days:11,is_domestic:false},
@@ -39,7 +38,7 @@ assert.deepEqual(FILTERS.summary(sample,FILTERS.EMPTY,AS_OF),
  "foreign-only headline is preserved by default");
 assert.deepEqual(FILTERS.summary(FILTERS.apply(sample,{scope:"domestic"}),{scope:"domestic"},AS_OF),
  {trips:1,countries:1,days:1269,domestic:1},
- "national filter switches displayed headline");
+ "summary helper still supports national data without changing passport totals");
 assert.ok(script.includes('window.BEAM_TRAVEL_PDF.fetchRows(S,uid)'));
 assert.ok(script.includes('window.BEAM_TRAVEL_PDF.purposeName(x.purpose)'));
 assert.ok(script.includes('const purpose=window.BEAM_TRAVEL_PDF.purposeName(trip.purpose)'));

@@ -20,7 +20,9 @@ const patch=String.raw`
    {id:"aaaa0000-0000-4000-8000-000000000002",country_code:"JP",cities:["Tokyo"],
     entry_date:"2026-03-01",exit_date:"2026-03-05",duration_days:5,purpose:"tourisme",is_domestic:false,deleting:false},
    {id:"aaaa0000-0000-4000-8000-000000000003",country_code:"US",cities:["New York"],
-    entry_date:"2026-04-01",exit_date:"2026-04-06",duration_days:6,purpose:"tourisme",is_domestic:false,deleting:false}
+    entry_date:"2026-04-01",exit_date:"2026-04-06",duration_days:6,purpose:"tourisme",is_domestic:false,deleting:false},
+   {id:"aaaa0000-0000-4000-8000-000000000004",country_code:"SN",cities:["Dakar"],
+    entry_date:"2026-06-01",exit_date:"2026-06-06",duration_days:6,purpose:"tourisme",is_domestic:false,deleting:false}
   );
   const mediaRows=Array.from({length:3},(_,i)=>({
    id:"test-photo-"+i,user_id:uid,trip_id:"11111111-1111-4111-8111-111111111111",
@@ -73,7 +75,9 @@ async function main(){
      const hero=get("travelHero"),title=get("dashboardTitle"),code=get("passportResidenceCode"),badge=get("continentCount");
      const stats=["nt","nc","nd"].map(id=>Number(get(id).textContent));
      return {scroll:document.documentElement.scrollWidth,innerWidth,
-      heroTop:hero.getBoundingClientRect().top,heroBg:getComputedStyle(hero).backgroundColor,
+      heroTop:hero.getBoundingClientRect().top,
+      heroLeft:hero.getBoundingClientRect().left,heroRight:hero.getBoundingClientRect().right,
+      heroBg:getComputedStyle(hero).backgroundColor,
       titleFont:getComputedStyle(title).fontFamily,
       stats,code:code.textContent,codeVisible:!code.hidden,
       location:get("travelerLocationText").textContent,continent:badge.textContent,
@@ -84,7 +88,10 @@ async function main(){
     assert.equal(snap.location,"Conakry, Guinée");
     assert.match(snap.titleFont,/Poppins/);
     assert.equal(snap.continent,"4 continents");
-    assert.ok(snap.scroll<=width+1,"Horizontal overflow "+width+": "+JSON.stringify(snap));
+    assert.ok(Math.abs(snap.heroLeft)<=1,"Passport must touch viewport left "+width+": "+JSON.stringify(snap));
+    assert.ok(Math.abs(snap.heroRight-snap.innerWidth)<=1,
+      "Passport must touch viewport right "+width+": "+JSON.stringify(snap));
+    assert.equal(snap.scroll,snap.innerWidth,"No horizontal overflow at "+width+"px");
     assert.equal(snap.tiles.length,2);
     assert.match(snap.tiles[0],/Mon carnet/);
     assert.match(snap.tiles[1],/PDF ambassade/);
@@ -96,6 +103,46 @@ async function main(){
      await page.locator("#travelMapPanel").screenshot({path:path.join(out,"360-carte-continents.png"),animations:"disabled"});
      await page.locator("#homeActions").screenshot({path:path.join(out,"360-tuiles-actions.png"),animations:"disabled"});
     }
+    // Selecting a country must filter ONLY map/routes, trip cards and list summary.
+    // Header totals and continent badge stay global, in the installed-sized viewport.
+    const startingList=await page.locator("#trips .journeyTrip").count();
+    assert.ok(startingList>1,"Fixture must contain multiple destinations");
+    await page.waitForFunction(()=>document.querySelectorAll("#map .flightArc").length>=1,
+      null,{timeout:20000});
+    await page.locator('#countryList .countryChip[data-country="SN"]').click();
+    await page.waitForFunction(()=>
+      document.querySelector('#countryList .countryChip[data-country="SN"]')?.getAttribute("aria-pressed")==="true"&&
+      document.querySelectorAll("#map .flightArc").length===1,null,{timeout:20000});
+    const selected=await page.evaluate(()=>({
+      stats:["nt","nc","nd"].map(id=>Number(document.getElementById(id).textContent)),
+      continent:document.getElementById("continentCount").textContent,
+      list:document.getElementById("tripListSummary").textContent,
+      countries:[...document.querySelectorAll("#trips .journeyTrip")].map(card=>card.textContent),
+      routes:document.querySelectorAll("#map .flightArc").length,
+      scroll:document.documentElement.scrollWidth,innerWidth:window.innerWidth,
+      left:document.getElementById("travelHero").getBoundingClientRect().left,
+      right:document.getElementById("travelHero").getBoundingClientRect().right
+    }));
+    assert.deepEqual(selected.stats,snap.stats,"Country filter must NOT change passport totals at "+width);
+    assert.equal(selected.continent,snap.continent,"Continent total must stay global");
+    assert.equal(selected.list,"1 voyage · 1 pays","Trip list summary must reflect Sénégal");
+    assert.equal(selected.countries.length,1,"Only Sénégal is shown in the trip cards");
+    assert.match(selected.countries[0],/Sénégal/);
+    assert.equal(selected.routes,1,"Only the selected destination flight route should remain");
+    assert.ok(Math.abs(selected.left)<=1&&Math.abs(selected.right-selected.innerWidth)<=1,
+      "The passport must stay edge-to-edge with an active filter at "+width);
+    assert.equal(selected.scroll,selected.innerWidth,"No overflow while a filter is active");
+    if(width===360){
+     await hero.screenshot({path:path.join(out,"360-entete-filtre-senegal.png"),animations:"disabled"});
+     await page.screenshot({path:path.join(out,"360-page-filtre-senegal.png"),fullPage:true,animations:"disabled"});
+    }
+    await page.locator('#countryList .countryChip[data-country="SN"]').click();
+    await page.waitForFunction(()=>document.querySelector('#countryList .countryChip[data-country="SN"]')?.getAttribute("aria-pressed")==="false");
+    assert.deepEqual(await page.evaluate(()=>
+      ["nt","nc","nd"].map(id=>Number(document.getElementById(id).textContent))),snap.stats,
+      "Deselecting Sénégal must also keep global passport totals");
+    assert.equal(await page.locator("#trips .journeyTrip").count(),startingList,
+      "Clearing the country filter restores the complete trip list");
     await page.locator("#pdf").click();
     assert.equal(await page.locator("#pdfDialog").isVisible(),true,"PDF consent remains");
     await page.locator("#pdfDialogClose").click();
