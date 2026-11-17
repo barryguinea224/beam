@@ -1,4 +1,5 @@
 "use strict";
+const {assertCacheName}=require("./helpers/cache-name.cjs");
 const assert=require("node:assert/strict");
 const fs=require("node:fs");
 const path=require("node:path");
@@ -98,7 +99,7 @@ async function main(){
   assert.doesNotMatch(opening,/target=|onclick=|onmousedown=/i);
   assert.doesNotMatch(opening,/\?|#/);
  }
- assert.match(sw,/jyetais-v59-etapes-moments/);
+ assertCacheName(sw);
  assert.match(sw,/if \(url\.origin !== self\.location\.origin\) return;/);
  const precache=sw.match(/const PUBLIC_SHELL = \[([\s\S]*?)\];/)?.[1] || "";
  assert.doesNotMatch(precache,/ididentite\.com/,"the worker must never pre-cache identité");

@@ -24,7 +24,7 @@ async function main(){
        (/\.(?:woff2?|ttf|otf)$/i.test(url.pathname)&&url.hostname!=="127.0.0.1")){
       externalFonts.push(url.href);return route.abort();
      }
-     if(url.hostname==="cdn.jsdelivr.net")return route.fulfill({status:200,contentType:"application/javascript",body:"("+fictionalSupabase.toString()+")();"});
+     if(url.hostname==="127.0.0.1"&&url.pathname==="/travel/vendor/supabase.umd.js")return route.fulfill({status:200,contentType:"application/javascript",body:"("+fictionalSupabase.toString()+")();"});
      if(url.hostname==="127.0.0.1"){
       if(phase==="avant"&&url.pathname==="/travel/")
        return route.fulfill({status:200,contentType:"text/html; charset=utf-8",body:baseline.replace('<script src="./photo-utils.js"></script>','<script src="./fr-accords.js"></script><script src="./photo-utils.js"></script>')});

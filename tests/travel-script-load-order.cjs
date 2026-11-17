@@ -1,4 +1,5 @@
 "use strict";
+const {assertCacheName}=require("./helpers/cache-name.cjs");
 // Check the REAL script tags in travel/index.html, not the order in a test fixture.
 // Classic scripts execute in document order: every browser-side dependency must
 // already be defined by the time its consumer initializes.
@@ -67,6 +68,6 @@ const journal=fs.readFileSync(path.join(__dirname,"..","travel","printable-journ
 assert.match(journal,/BEAM_DASHBOARD_FILTERS/, "the journal's filter dependency must remain explicitly checked");
 assert.match(journal,/BEAM_COUNTRIES/, "the journal's country dependency must remain explicitly checked");
 const sw=fs.readFileSync(path.join(__dirname,"..","travel","sw.js"),"utf8");
-assert.match(sw,/beam-travel-shell-v1-20261116-jyetais-v59-etapes-moments/);
+assertCacheName(sw);
 assert.ok(sw.includes('"./printable-journal.js"')&&sw.includes('"./dashboard-filters.js"')&&sw.includes('"./visual-cards.js"'));
 console.log("PASS real index.html script dependency graph and PWA shell version");

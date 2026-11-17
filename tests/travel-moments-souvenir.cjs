@@ -1,4 +1,5 @@
 "use strict";
+const {assertCacheName}=require("./helpers/cache-name.cjs");
 const assert=require("node:assert/strict");
 const fs=require("node:fs");
 const DETAIL=require("../travel/trip-detail.js");
@@ -45,5 +46,5 @@ assert.match(index,/id="detailNoteToggle"/);
 assert.match(index,/id="detailNoteDate"/);
 assert.match(index,/Mon souvenir/);
 assert.match(index,/detailMeasureSouvenir/);
-assert.match(sw,/jyetais-v59-etapes-moments/);
+assertCacheName(sw);
 console.log("PASS dated moment cards, stable sort, privacy, clipped souvenir, dates and layout rules");

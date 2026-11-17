@@ -93,8 +93,7 @@ async function main(){
   assert.match(actual.fallback,/Configuration Supabase requise/,"no client must fail closed");
   assert.deepEqual(errors,[],"uncaught page errors are forbidden");
   assert.deepEqual(consoleErrors,[],"console errors while loading the real page are forbidden");
-  assert.ok(remote.every(origin=>origin.startsWith("https://cdn.jsdelivr.net")),
-   "unexpected external request: "+remote.join(", "));
+  assert.deepEqual(remote,[],"Real application must not request an external domain");
   console.log("PASS real travel/index.html Chrome 360px: 4 globals, journal click, no errors or remote private access");
   await context.close();
  }finally{

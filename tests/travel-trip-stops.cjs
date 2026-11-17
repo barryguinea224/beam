@@ -1,4 +1,5 @@
 "use strict";
+const {assertCacheName}=require("./helpers/cache-name.cjs");
 const assert=require("node:assert/strict"),fs=require("node:fs"),vm=require("node:vm");
 const STOPS=require("../travel/trip-stops.js");
 const PDF=require("../travel/factual-pdf.js");
@@ -73,7 +74,7 @@ for(const file of ["travel/printable-journal.js","travel/family-booklet.js"]){
  assert.match(src,/trip\.stops/,"Personal carnet must contain stages");
 }
 assert.match(index,/pack\[position\]=\{trip,stops:trip\.stops/);
-assert.equal(fs.readFileSync("travel/sw.js","utf8").includes("jyetais-v59-etapes-moments"),true);
+assertCacheName(fs.readFileSync("travel/sw.js","utf8"));
 const sql=fs.readFileSync("travel/supabase/migrations/20261107150000_trip_stops.sql","utf8");
 assert.match(sql,/foreign key\(trip_id,user_id\)/i);
 assert.match(sql,/constraint trip_stops_no_overlap exclude using gist/i);

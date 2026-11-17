@@ -1,7 +1,7 @@
 // J'y étais PWA — PRIVATE BY DEFAULT.
 // Cache only audited public assets; the shell itself never contains private data.
 // Never cache Supabase, signed links, personal trips, photos or API responses.
-const CACHE_NAME = "beam-travel-shell-v1-20261116-jyetais-v59-etapes-moments";
+const CACHE_NAME = "beam-travel-shell-v1-20261117-jyetais-v60-passeport-diaporama";
 const SCOPE_PATH = "/travel/";
 const PUBLIC_SHELL = [
   "./index.html", "./config.js", "./offline-bootstrap.js", "./pwa.js", "./offline-store.js", "./offline-readonly.css",
@@ -13,6 +13,7 @@ const PUBLIC_SHELL = [
   "./visual-cards.js", "./visual-cards.css", "./trip-list.js", "./trip-list.css", "./photo-sheet.css",
   "./profile-cover.js", "./profile-cover-ui.js", "./profile-cover.css",
   "./flight-connections.js", "./flight-connections.css",
+  "./continents.js", "./trip-slideshow.js", "./passport-home.css", "./vendor/supabase.umd.js",
   "./loyalty-programs.js", "./loyalty-ui.js", "./loyalty.css", "./account-settings.css",
   "./activity-durations.js", "./activity-duration.css",
   "./trip-stops.js", "./trip-stops.css", "./day-excursions.js", "./trip-lifecycle.js", "./day-excursions.css", "./date-range-picker.js", "./date-range-picker.css",

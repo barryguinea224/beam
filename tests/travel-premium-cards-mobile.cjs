@@ -53,7 +53,7 @@ async function main(){
    page.on("pageerror",error=>errors.push(error.message));
    await page.route("**/*",route=>{
     const url=new URL(route.request().url());
-    if(url.hostname==="cdn.jsdelivr.net")
+    if(url.hostname==="127.0.0.1"&&url.pathname==="/travel/vendor/supabase.umd.js")
      return route.fulfill({status:200,contentType:"application/javascript",
       body:"("+fictionalSupabase.toString()+")();("+seededSupabase.toString()+")();"});
     if(url.hostname==="fixture.invalid"){

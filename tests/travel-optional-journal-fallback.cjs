@@ -77,7 +77,7 @@ async function main(){
    if(url.pathname==="/travel/printable-journal.js"&&url.hostname==="127.0.0.1")
     return route.fulfill({status:200,contentType:"application/javascript",
      body:"/* optional journal module deliberately unavailable */"});
-   if(url.hostname==="cdn.jsdelivr.net")
+   if(url.hostname==="127.0.0.1"&&url.pathname==="/travel/vendor/supabase.umd.js")
     return route.fulfill({status:200,contentType:"application/javascript",
      body:"("+mockedSupabase.toString()+")();"});
    if(url.hostname==="127.0.0.1")return route.continue();

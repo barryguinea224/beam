@@ -1,4 +1,5 @@
 "use strict";
+const {assertCacheName}=require("./helpers/cache-name.cjs");
 const assert=require("node:assert/strict");
 const fs=require("node:fs");
 const LIST=require("../travel/trip-list.js");
@@ -35,5 +36,5 @@ assert.match(html,/LIST\.order\(visible\.filter\(/);
 assert.match(html,/LIST\.write\(sortStorage\(\),choice\.dataset\.tripSort\)/);
 assert.ok(html.includes('scrollIntoView({behavior:"smooth",block:"start"})'));
 assert.ok(sw.includes("./trip-list.js")&&sw.includes("./trip-list.css"));
-assert.ok(sw.includes("beam-travel-shell-v1-20261116-jyetais-v59-etapes-moments"));
+assertCacheName(sw);
 console.log("PASS premium list: three sort modes, local storage, toolbar and cache");

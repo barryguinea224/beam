@@ -95,7 +95,7 @@ async function main(){
    const errors=[];page.on("pageerror",err=>errors.push(err.message));
    await page.route("**/*",route=>{
     const hostname=new URL(route.request().url()).hostname;
-    if(hostname==="cdn.jsdelivr.net")return route.fulfill({status:200,contentType:"application/javascript",body:"("+fakeSupabase.toString()+")();"});
+    if(new URL(route.request().url()).pathname==="/travel/vendor/supabase.umd.js")return route.fulfill({status:200,contentType:"application/javascript",body:"("+fakeSupabase.toString()+")();"});
     if(hostname==="127.0.0.1")return route.continue();
     return route.abort();
    });

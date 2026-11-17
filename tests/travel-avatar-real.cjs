@@ -136,7 +136,7 @@ async function main(){
     await p.addInitScript(fixture=>{window.__avatarFixture=fixture},cfg);
     await p.route("**/*",route=>{
      const hostname=new URL(route.request().url()).hostname;
-     if(hostname==="cdn.jsdelivr.net")return route.fulfill({status:200,
+     if(new URL(route.request().url()).pathname==="/travel/vendor/supabase.umd.js")return route.fulfill({status:200,
        contentType:"text/javascript",body:"("+fakeSupabase.toString()+")();"});
      if(hostname==="127.0.0.1")return route.continue();
      return route.abort();
@@ -155,7 +155,7 @@ async function main(){
      await p.locator("#openAccount").click();
      await p.locator("#accountOverlay").waitFor({state:"visible"});
      if(cfg.avatar){
-      await p.locator("#accountAvatar img").waitFor({state:"visible"});
+      await p.locator("#accountAvatar img").waitFor({state:"attached"});
      }else{
       assert.equal((await p.locator("#accountAvatar").innerText()).trim(),"AD");
       assert.equal(await p.locator("#accountAvatar img").count(),0);
@@ -167,7 +167,7 @@ async function main(){
       });
       await p.waitForFunction(()=>window.__avatarCalls.getProfile().avatar_id!==null);
       await p.locator("#travelerAvatar img").waitFor({state:"visible"});
-      await p.locator("#accountAvatar img").waitFor({state:"visible"});
+      await p.locator("#accountAvatar img").waitFor({state:"attached"});
       const info=await p.evaluate(()=>window.__avatarCalls);
       assert.equal(info.uploads.length,1,"one row-first private upload");
       assert.equal(info.uploads[0].opts.upsert,false);

@@ -1,0 +1,69 @@
+name: "J'y étais — passeport et diaporama (Android fictif)"
+on:
+  pull_request:
+    branches: [feature/beam-travel-history-v1]
+    paths:
+      - "travel/index.html"
+      - "travel/passport-home.css"
+      - "travel/trip-slideshow.js"
+      - "travel/continents.js"
+      - "travel/sw.js"
+      - "tests/travel-passport-*.cjs"
+      - ".github/workflows/travel-passport-slideshow.yml"
+permissions:
+  contents: read
+jobs:
+  passport-contract:
+    name: Carte, continents, conformité et syntaxe
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: "22"}
+      - name: Verify vendored SDK against the official pinned npm tarball
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/official-supabase
+          tarball=$(npm pack --silent @supabase/supabase-js@2.58.0 --pack-destination /tmp/official-supabase)
+          tar -xOf "/tmp/official-supabase/$tarball" package/dist/umd/supabase.js > /tmp/official-supabase/official.js
+          node - <<'NODE'
+          const fs=require("fs"),assert=require("node:assert/strict"),crypto=require("node:crypto");
+          const local=fs.readFileSync("travel/vendor/supabase.umd.js","utf8");
+          const marker=local.indexOf("!function(");
+          assert.ok(marker>0,"Vendored UMD preamble missing");
+          const expected=fs.readFileSync("/tmp/official-supabase/official.js","utf8");
+          const digest=value=>crypto.createHash("sha256").update(value.trim()).digest("hex");
+          assert.equal(digest(local.slice(marker)),digest(expected),"Vendored SDK differs from official npm release");
+          console.log("PASS vendored @supabase/supabase-js@2.58.0 matches official npm");
+          NODE
+      - name: Local country and privacy contracts
+        run: |
+          node --check travel/continents.js
+          node --check travel/trip-slideshow.js
+          node --check tests/travel-passport-mobile.cjs
+          node tests/travel-passport-continents.cjs
+          node tests/travel-fr-accords.cjs
+  passport-android:
+    name: Android 320–390, images fictives et captures 360 px
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: "22"}
+      - name: Install isolated Chromium
+        run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Verify real page and slideshow with synthetic private images
+        run: node tests/travel-passport-mobile.cjs
+      - name: Attach four Android 360px views
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jyetais-passeport-diaporama-360px-fictif
+          path: test-artifacts/passport-slideshow/*.png
+          if-no-files-found: warn
+          retention-days: 14

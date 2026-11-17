@@ -54,7 +54,7 @@ async function main(){
   const page=await browser.newPage({viewport:{width:360,height:800},isMobile:true,hasTouch:true,serviceWorkers:"block"});
   await page.route("**/*",route=>{
    const u=new URL(route.request().url());
-   if(u.hostname==="cdn.jsdelivr.net")return route.fulfill({status:200,contentType:"application/javascript",body:"("+fakeSupabase.toString()+")();"});
+   if(u.hostname==="127.0.0.1"&&u.pathname==="/travel/vendor/supabase.umd.js")return route.fulfill({status:200,contentType:"application/javascript",body:"("+fakeSupabase.toString()+")();"});
    if(u.hostname==="127.0.0.1")return route.continue();
    return route.abort();
   });

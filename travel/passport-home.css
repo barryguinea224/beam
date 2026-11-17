@@ -1,0 +1,138 @@
+/* Passport-inspired home: local Poppins, original vector icons, no photo overlays. */
+#travelHero,#app .w.emptyTravel #travelHero{
+  position:relative!important;isolation:isolate;overflow:hidden;
+  display:flex!important;flex-direction:column;justify-content:flex-start;
+  gap:0;min-width:0;min-height:255px;
+  padding:20px 24px 26px!important;margin:0 0 23px!important;
+  border:0;border-radius:0 0 28px 28px;
+  background:linear-gradient(125deg,#1B4332,#0F291E);
+  color:#fff;box-shadow:0 10px 22px #0c24172b;
+}
+#travelHero #profileCover{
+  position:absolute!important;inset:0!important;z-index:-1;
+  width:100%!important;height:100%!important;min-height:0!important;max-height:none!important;
+  margin:0!important;padding:0!important;border:0!important;border-radius:0!important;
+  aspect-ratio:auto!important;background:#173e2c;overflow:hidden;
+}
+#travelHero #profileCover::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(115deg,#0f291ed9,#123a2bdc)}
+#travelHero #profileCoverImage{width:100%;height:100%;object-fit:cover;opacity:.15}
+#travelHero .passportTop{position:relative;z-index:1;display:flex;justify-content:flex-end;min-height:47px}
+#travelHero #openAccount.travelerAccountLink{
+  position:static!important;margin:0!important;width:44px;height:44px;min-width:44px;
+  display:grid;place-items:center;padding:0;border:1px solid #ffffff2b!important;border-radius:50%;
+  background:#ffffff1a!important;color:#fff!important;box-shadow:none!important;
+}
+#travelHero #openAccount svg{display:block;width:22px;height:22px}
+#travelHero>.travelerIdentity,#travelHero>.travelerIdentity:first-child{
+  position:relative;z-index:1;display:grid!important;grid-template-columns:64px minmax(0,1fr);
+  gap:14px!important;align-items:center!important;margin:13px 0 20px!important;
+  padding:0!important;min-width:0;
+}
+#travelHero .travelerPhotoWrap{position:relative;width:64px;height:64px;min-width:64px}
+#travelHero #travelerAvatar{
+  display:grid;place-items:center;width:64px!important;height:64px!important;min-width:64px!important;
+  margin:0;outline:0!important;border:2px solid #C9962E!important;border-radius:50%;
+  background:#dbece2;color:#164632;font:700 18px Poppins,system-ui,sans-serif;overflow:hidden;
+}
+#travelHero #travelerAvatar img{width:100%;height:100%;object-fit:cover}
+#travelHero .passportResidenceCode{
+  position:absolute;right:-5px;bottom:-4px;z-index:2;display:grid;place-items:center;
+  width:28px;height:28px;border:2px solid #102b20;border-radius:50%;
+  background:#C9962E;color:#11291e;font:700 10px/1 Poppins,system-ui,sans-serif;letter-spacing:0;
+}
+#travelHero .passportResidenceCode[hidden]{display:none}
+#travelHero .travelerNameBlock{padding:0!important;min-width:0}
+#travelHero #dashboardTitle,#travelHero #dashboardTitle.longTitle,
+#travelHero #dashboardTitle.extraLongTitle{
+  font:700 clamp(18px,5.2vw,26px)/1.25 Poppins,system-ui,sans-serif!important;
+  color:#fff!important;letter-spacing:0!important;margin:0 0 7px!important;
+  text-wrap:pretty;overflow-wrap:anywhere;
+}
+#travelHero #travelerLocation{
+  display:flex;align-items:center;gap:5px;min-width:0;margin:0;
+  color:#e3eee6;font:400 12px/1.5 system-ui,sans-serif;overflow-wrap:anywhere;
+}
+#travelHero #travelerLocation[hidden]{display:none}
+#travelHero #travelerLocation svg{width:15px;height:15px;flex:0 0 15px}
+#travelHero #homeStats{
+  position:relative;z-index:1;
+  display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;
+  padding:17px 0 0;margin:0;border-top:1px solid #ffffff29;color:#fff;
+}
+#travelHero #homeStats.hidden{display:none!important}
+#travelHero .passportStat{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;
+  min-width:0;min-height:95px;padding:10px 5px;
+  border:1px solid #ffffff14;border-radius:15px;background:#ffffff0d;text-align:center;
+}
+#travelHero .passportStat .passportNumber{
+  color:#fff;font:700 clamp(23px,6vw,32px)/1.1 Poppins,system-ui,sans-serif;letter-spacing:0;
+}
+#travelHero .passportStat:first-child .passportNumber{color:#C9962E}
+#travelHero .passportStat .passportLabel{color:#e0e9e2;font:400 12px/1.3 system-ui,sans-serif;letter-spacing:0;text-transform:none}
+#travelMapPanel .passportMapHeading{display:flex;gap:10px;align-items:center;justify-content:space-between;min-width:0;margin-bottom:10px}
+#travelMapPanel .passportMapHeading h2{margin:0!important;font:600 19px/1.3 Poppins,system-ui,sans-serif;letter-spacing:0}
+#continentCount{display:inline-block;max-width:50%;border-radius:99px;background:#e4eee6;
+  padding:7px 11px;color:#1B4332;white-space:nowrap;font:500 12px/1.3 system-ui,sans-serif}
+#continentCount[hidden]{display:none!important}
+#secondaryActions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px!important;align-items:stretch!important}
+#secondaryActions>button{
+  display:flex!important;flex-direction:column;align-items:flex-start;justify-content:center;
+  gap:8px;min-width:0;min-height:102px;padding:14px 13px!important;
+  border:1px solid #d2e0d6!important;border-radius:14px!important;
+  background:#fff!important;color:#193d2b!important;text-align:left;
+  text-decoration:none!important;box-shadow:0 3px 10px #1631220e;
+}
+#secondaryActions>#printJournal{background:#1B4332!important;border-color:#1B4332!important;color:#fff!important}
+#secondaryActions>button .tileHead{display:flex;align-items:center;gap:7px;min-width:0}
+#secondaryActions>button .tileHead svg{width:20px;height:20px;flex:0 0 20px}
+#secondaryActions>button .tileTitle{font:600 13px/1.3 Poppins,system-ui,sans-serif;overflow-wrap:anywhere}
+#secondaryActions>button .tileSubtitle{font:400 11px/1.45 system-ui,sans-serif;opacity:.84;text-decoration:none;overflow-wrap:anywhere}
+#secondaryActions>button:disabled{opacity:.55;cursor:not-allowed}
+#secondaryActions>button:focus-visible{outline:3px solid #C9962E;outline-offset:2px}
+#tripDetailModal #detailSlideshowOpen{
+  display:inline-flex;gap:5px;align-items:center;justify-content:center;
+}
+#tripDetailModal #detailSlideshowOpen svg{width:15px;height:15px;flex:none}
+#tripDetailModal .detailHeroControls .detailHeroRight{display:flex;gap:7px;align-items:center;margin-left:auto;min-width:0}
+#tripDetailModal #detailSlideshowOpen[hidden]{display:none!important}
+#tripDetailModal #detailSlideshowOpen:disabled{opacity:.55;cursor:not-allowed}
+#detailSlideshow[hidden]{display:none!important}
+#detailSlideshow.open{position:fixed;inset:0;z-index:210;display:flex;flex-direction:column;
+  background:#000;color:#fff;overflow:hidden;overscroll-behavior:contain}
+#detailSlideshowClose{position:absolute;z-index:3;right:16px;top:max(16px,env(safe-area-inset-top,0px));
+  min-width:44px;min-height:44px;border:1px solid #ffffff70;border-radius:50%;
+  background:#0009;color:#fff;font:400 29px/1 system-ui,sans-serif}
+#slideStage{display:grid;place-items:center;flex:1;min-height:0;outline:none;
+  touch-action:pan-y;cursor:pointer;overflow:hidden}
+#slideStage:focus-visible{outline:3px solid #C9962E;outline-offset:-4px}
+#slideImageBox{display:grid;place-items:center;width:100%;height:100%;overflow:hidden}
+#slideImageBox img{display:block;width:100%;height:100%;object-fit:contain;
+ animation:slideSlowZoom 5s linear both}
+@keyframes slideSlowZoom{from{transform:scale(1.02);opacity:0}5%{opacity:1}to{transform:scale(1.10);opacity:1}}
+#slideImageBox p{color:#eee;text-align:center;padding:16px}
+#slideFoot{display:grid;gap:7px;padding:14px 19px calc(24px + env(safe-area-inset-bottom,0px));
+  background:#000a;text-align:center}
+#slideCaption{margin:0;color:#fff;font:400 13px/1.55 system-ui,sans-serif;white-space:pre-wrap;overflow-wrap:anywhere}
+#slideCaption[hidden]{display:none}
+#slideCounter{color:#fff;font:600 14px/1.3 Poppins,system-ui,sans-serif}
+#slideStatus{font:400 11px/1.3 system-ui,sans-serif;color:#d7ded8}
+@media(prefers-reduced-motion:reduce){
+ #slideImageBox img{animation:slideSimpleFade .18s ease both!important;transform:none!important}
+ @keyframes slideSimpleFade{from{opacity:0}to{opacity:1}}
+}
+@media(max-width:420px){
+ #travelHero,#app .w.emptyTravel #travelHero{
+  margin:0 -14px 22px!important;padding:calc(17px + env(safe-area-inset-top,0px)) 18px 23px!important;
+  border-radius:0 0 28px 28px;
+ }
+ #travelHero>.travelerIdentity,#travelHero>.travelerIdentity:first-child{gap:12px!important}
+ #travelHero #homeStats{gap:7px}
+ #travelHero .passportStat{min-height:91px;padding:9px 2px}
+ #travelHero .passportStat .passportLabel{font-size:11px}
+ #travelMapPanel .passportMapHeading h2{font-size:18px}
+ #continentCount{font-size:11px;padding:7px 9px}
+ #tripDetailModal .detailHeroControls{inset:9px 9px auto;gap:5px}
+ #tripDetailModal .detailHeroControls button{padding:9px 10px;font-size:12px}
+}

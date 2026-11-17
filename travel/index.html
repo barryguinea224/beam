@@ -346,7 +346,7 @@ html.travelAccessReadOnly #photoField,html.travelAccessReadOnly #saveTrip{displa
 .detailMomentActions{display:flex;gap:9px;flex-wrap:wrap;margin:8px 0}
 .detailMomentActions .btn,#detailAddMoment{min-height:44px;white-space:normal}
 @media(max-width:390px){.upcomingTripsSection{padding:10px}.detailMomentActions>*{flex:1 1 100%;max-width:100%}}
-</style><link rel="stylesheet" href="./trip-premium.css"><link rel="stylesheet" href="./photo-sheet.css"><link rel="stylesheet" href="./loyalty.css"><link rel="stylesheet" href="./account-settings.css"><link rel="stylesheet" href="./activity-duration.css"><link rel="stylesheet" href="./trip-stops.css"><link rel="stylesheet" href="./day-excursions.css"><link rel="stylesheet" href="./date-range-picker.css"><link rel="stylesheet" href="./flight-connections.css"><link rel="stylesheet" href="./visual-cards.css"><link rel="stylesheet" href="./dashboard-filters.css"><link rel="stylesheet" href="./home-simple.css"><link rel="stylesheet" href="./profile-cover.css"><link rel="stylesheet" href="./offline-readonly.css"><link rel="stylesheet" href="./trip-list.css">
+</style><link rel="stylesheet" href="./trip-premium.css"><link rel="stylesheet" href="./photo-sheet.css"><link rel="stylesheet" href="./loyalty.css"><link rel="stylesheet" href="./account-settings.css"><link rel="stylesheet" href="./activity-duration.css"><link rel="stylesheet" href="./trip-stops.css"><link rel="stylesheet" href="./day-excursions.css"><link rel="stylesheet" href="./date-range-picker.css"><link rel="stylesheet" href="./flight-connections.css"><link rel="stylesheet" href="./visual-cards.css"><link rel="stylesheet" href="./dashboard-filters.css"><link rel="stylesheet" href="./home-simple.css"><link rel="stylesheet" href="./profile-cover.css"><link rel="stylesheet" href="./offline-readonly.css"><link rel="stylesheet" href="./trip-list.css"><link rel="stylesheet" href="./passport-home.css">
 <script src="/travel/offline-bootstrap.js"></script></head><body>
 <section id="offline" role="status" aria-live="polite"><div class="ey">J&#39;y étais</div><h1>Connexion nécessaire pour consulter votre carnet</h1><p>Vos voyages et photos sont privés et indisponibles hors ligne. Reconnectez-vous à Internet pour continuer.</p></section>
 <section id="auth" class="auth hidden"><img class="jyBrandLogo jyAuthLogo" src="./assets/brand/jyetais-logo.svg" alt="J&#39;y étais"><p class="jyAuthSignature">J&#39;y étais by BEAM</p><h1>Gardez vos voyages.<br>Retrouvez votre histoire.</h1><p class="sub">Un espace personnel pour vos destinations, dates, activités, souvenirs et photos.</p><form id="login"><div class="field"><label for="email">E-mail</label><input id="email" type="email" autocomplete="email" required></div><button class="btn">Recevoir un code</button></form><div id="otpBox" class="hidden"><p class="sub">Si cette adresse est autorisée, vous recevrez un code à 6 chiffres par e-mail.</p><form id="otpForm"><div class="field"><label for="otp">Code à 6 chiffres</label><input id="otp" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" aria-describedby="otpHelp" required><small id="otpHelp">Pas de code après 2 minutes ? Vérifiez vos spams, ou <a href="https://wa.me/224622095630" target="_blank" rel="noopener noreferrer">écrivez-nous sur WhatsApp</a>.</small></div><button class="btn">Continuer avec le code</button></form><div class="actions"><button id="resend" type="button" class="btn ghost" disabled>Renvoyer un code · 60 s</button></div></div><p id="loginMsg" class="notice hidden" role="status" aria-live="polite"></p><p class="sub" id="accessHelp">Ce carnet est réservé aux clients BEAM. <a href="https://wa.me/224622095630" target="_blank" rel="noopener noreferrer">Contactez-nous sur WhatsApp</a>.</p><div class="beamInstall" data-beam-install-area><button class="beamInstallButton" type="button" data-beam-install-action hidden>Installer J'y étais</button><details class="beamInstallHelp" data-beam-install-help><summary>Comment installer J'y étais</summary><p data-beam-install-steps>Depuis le menu de votre navigateur, cherchez « Installer l’application » ou « Ajouter à l’écran d’accueil », si cette option est proposée.</p></details><p class="beamInstallStatus" role="status" aria-live="polite" data-beam-install-status></p></div><aside class="authContact" aria-label="Contact"><strong>Contact</strong><p>WhatsApp : <a href="https://wa.me/224622095630" target="_blank" rel="noopener noreferrer">+224 622 09 56 30</a></p></aside><nav class="legalLinks legalLinksAuth" aria-label="Informations légales"><a href="./confidentialite.html">Confidentialité</a><span aria-hidden="true">·</span><a href="./conditions.html">Conditions d’utilisation</a></nav></section>
@@ -358,12 +358,21 @@ html.travelAccessReadOnly #photoField,html.travelAccessReadOnly #saveTrip{displa
 </section><div class="w"><header class="top" aria-label="Actions du carnet"><div id="headerActions" class="headerActions"></div></header>
 <section id="accessBanner" class="hidden" role="status" aria-live="polite" aria-label="Durée d'accès"></section>
 <section id="welcomeCard" class="hidden" aria-labelledby="welcomeTitle"><h2 id="welcomeTitle">Votre carnet</h2><div class="welcomeSteps"><button id="welcomeName" class="welcomeStep" type="button"><span class="check" aria-hidden="true"></span><span>Ajouter mon nom</span></button><button id="welcomeTrip" class="welcomeStep" type="button"><span class="check" aria-hidden="true"></span><span>Ajouter un voyage</span></button><button id="welcomePdf" class="welcomeStep" type="button"><span class="check" aria-hidden="true"></span><span>PDF ambassade</span></button></div><p id="welcomeHint" role="status" aria-live="polite"></p></section>
-<section id="travelHero" class="hero" aria-label="Mon profil"><div id="profileCover" class="profileCover" role="img" aria-label="Couverture de votre carnet"><img id="profileCoverImage" alt="" referrerpolicy="no-referrer" hidden></div><div class="travelerIdentity">
- <span id="travelerAvatar" class="travelerAvatar" aria-hidden="true">V</span>
- <div class="travelerNameBlock"><h1 id="dashboardTitle">Voyageur</h1>
- <p id="homeStats" aria-live="polite"><span id="nt">0</span> <span id="ntl">voyages</span><span aria-hidden="true"> · </span><span id="nc">0</span> <span id="ncl">pays</span><span aria-hidden="true"> · </span><span id="nd">0</span> <span id="ndl">jours</span></p></div>
- <button type="button" id="openAccount" class="travelerAccountLink accountSettingsIcon" aria-label="Paramètres du compte" title="Paramètres du compte" aria-controls="accountOverlay" aria-expanded="false"><span aria-hidden="true">⚙</span></button>
-</div></section>
+<section id="travelHero" class="hero" aria-label="Mon profil">
+ <div id="profileCover" class="profileCover" role="img" aria-label="Couverture de votre carnet"><img id="profileCoverImage" alt="" referrerpolicy="no-referrer" hidden></div>
+ <div class="passportTop"><button type="button" id="openAccount" class="travelerAccountLink accountSettingsIcon" aria-label="Paramètres du compte" title="Paramètres du compte" aria-controls="accountOverlay" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5l1.4 1.2 1.9-.3.8 1.7 1.9.6v2l1.4 1.3-1 1.7 1 1.7-1.4 1.3v2l-1.9.6-.8 1.7-1.9-.3-1.4 1.2-1.4-1.2-1.9.3-.8-1.7-1.9-.6v-2L4.6 13l1-1.7-1-1.7L6 8.3v-2l1.9-.6.8-1.7 1.9.3z"/><circle cx="12" cy="11.3" r="3.1"/></svg></button></div>
+ <div class="travelerIdentity"><div class="travelerPhotoWrap">
+  <span id="travelerAvatar" class="travelerAvatar" aria-hidden="true">V</span>
+  <span id="passportResidenceCode" class="passportResidenceCode" hidden></span>
+ </div><div class="travelerNameBlock"><h1 id="dashboardTitle">Voyageur</h1>
+  <p id="travelerLocation" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg><span id="travelerLocationText"></span></p>
+ </div></div>
+ <div id="homeStats" aria-live="polite">
+  <div class="passportStat"><b id="nt" class="passportNumber">0</b><span id="ntl" class="passportLabel">voyage</span></div>
+  <div class="passportStat"><b id="nc" class="passportNumber">0</b><span id="ncl" class="passportLabel">pays</span></div>
+  <div class="passportStat"><b id="nd" class="passportNumber">0</b><span id="ndl" class="passportLabel">jour</span></div>
+ </div>
+</section>
 <section id="accountStatusChecking" class="panel" role="status" aria-live="polite"><p>Vérification de votre compte…</p></section>
 <section id="deletionPending" class="panel hidden" role="status" aria-live="polite">
 <h2>Suppression de votre compte en cours</h2>
@@ -372,8 +381,11 @@ html.travelAccessReadOnly #photoField,html.travelAccessReadOnly #saveTrip{displa
 <p id="finishDeletionMessage" class="notice hidden" role="status" aria-live="polite"></p>
 </section>
 <section id="accountStatusUnavailable" class="panel hidden" role="alert"><h2>État du compte indisponible</h2><p>Impossible de vérifier si votre compte est en cours de suppression. Les modifications restent désactivées. Réessayez, ou déconnectez-vous puis reconnectez-vous.</p><button id="retryAccountStatus" type="button" class="btn ghost">Réessayer</button></section>
-<p id="appMsg" class="notice hidden"></p><div id="filterAnchor" class="filterAnchor"><button id="toggleFilters" class="btn ghost" type="button" aria-expanded="false" aria-controls="filterPanel">Filtrer les voyages</button><div id="activeFilterChips" class="activeFilterChips" aria-label="Filtres actifs"></div><section id="filterPanel" class="panel" aria-labelledby="filterTitle" role="dialog" aria-modal="false" aria-hidden="true" tabindex="-1"><div class="top"><h2 id="filterTitle">Filtrer mon carnet</h2><button id="closeFilters" class="btn ghost" type="button" aria-label="Fermer les filtres">✕</button></div><div class="dashboardFilters"><div class="field"><label for="filterCountry">Pays</label><select id="filterCountry"><option value="">Tous les pays</option></select></div><div class="field"><label for="filterYear">Année d’entrée</label><select id="filterYear"><option value="">Toutes les années</option></select></div><div class="field"><label for="filterPurpose">Motif</label><select id="filterPurpose"><option value="">Tous les motifs</option><option value="tourisme">Tourisme</option><option value="affaires">Affaires</option><option value="etudes">Études</option><option value="famille">Famille</option><option value="sante">Santé</option><option value="transit">Transit</option><option value="autre">Autre</option></select></div><div class="field"><label for="filterScope">Type de voyage</label><select id="filterScope"><option value="">Tous les types</option><option value="foreign">Voyages à l’étranger</option><option value="domestic">Séjours nationaux</option></select></div></div><div class="dashboardFiltersActions"><button id="applyFilters" type="button" class="btn">Voir les voyages</button><button id="resetFilters" type="button" class="btn ghost">Tout afficher</button><p id="filterStatus" role="status" aria-live="polite">Tous les voyages sont affichés.</p></div></section></div><section id="travelMapPanel" class="panel" aria-labelledby="travelMapTitle"><h2 id="travelMapTitle">Ma carte</h2><div class="map" id="map" aria-live="polite">Chargement de la carte…</div><p id="mapInfo" class="mapInfo hidden"></p><span id="plannedLegend" class="travelMapLegend hidden">À venir</span><div id="countryList" class="countryList" aria-label="Pays visités et prévus"></div></section>
-<section id="homeActions" aria-label="Actions"><button id="add" class="btn" type="button">+ Ajouter un voyage</button><div id="secondaryActions"><button id="pdf" type="button">PDF ambassade</button><button id="printJournal" type="button">Mon carnet</button></div><p id="offlineActionNote" role="status" hidden>Disponible avec une connexion</p></section>
+<p id="appMsg" class="notice hidden"></p><div id="filterAnchor" class="filterAnchor"><button id="toggleFilters" class="btn ghost" type="button" aria-expanded="false" aria-controls="filterPanel">Filtrer les voyages</button><div id="activeFilterChips" class="activeFilterChips" aria-label="Filtres actifs"></div><section id="filterPanel" class="panel" aria-labelledby="filterTitle" role="dialog" aria-modal="false" aria-hidden="true" tabindex="-1"><div class="top"><h2 id="filterTitle">Filtrer mon carnet</h2><button id="closeFilters" class="btn ghost" type="button" aria-label="Fermer les filtres">✕</button></div><div class="dashboardFilters"><div class="field"><label for="filterCountry">Pays</label><select id="filterCountry"><option value="">Tous les pays</option></select></div><div class="field"><label for="filterYear">Année d’entrée</label><select id="filterYear"><option value="">Toutes les années</option></select></div><div class="field"><label for="filterPurpose">Motif</label><select id="filterPurpose"><option value="">Tous les motifs</option><option value="tourisme">Tourisme</option><option value="affaires">Affaires</option><option value="etudes">Études</option><option value="famille">Famille</option><option value="sante">Santé</option><option value="transit">Transit</option><option value="autre">Autre</option></select></div><div class="field"><label for="filterScope">Type de voyage</label><select id="filterScope"><option value="">Tous les types</option><option value="foreign">Voyages à l’étranger</option><option value="domestic">Séjours nationaux</option></select></div></div><div class="dashboardFiltersActions"><button id="applyFilters" type="button" class="btn">Voir les voyages</button><button id="resetFilters" type="button" class="btn ghost">Tout afficher</button><p id="filterStatus" role="status" aria-live="polite">Tous les voyages sont affichés.</p></div></section></div><section id="travelMapPanel" class="panel" aria-labelledby="travelMapTitle"><div class="passportMapHeading"><h2 id="travelMapTitle">Ma carte</h2><span id="continentCount" hidden></span></div><div class="map" id="map" aria-live="polite">Chargement de la carte…</div><p id="mapInfo" class="mapInfo hidden"></p><span id="plannedLegend" class="travelMapLegend hidden">À venir</span><div id="countryList" class="countryList" aria-label="Pays visités et prévus"></div></section>
+<section id="homeActions" aria-label="Actions"><button id="add" class="btn" type="button">+ Ajouter un voyage</button><div id="secondaryActions">
+ <button id="printJournal" type="button"><span class="tileHead"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6c-2-2-5-2.5-9-2v15c4-.5 7 0 9 2m0-15c2-2 5-2.5 9-2v15c-4-.5-7 0-9 2m0-15v15"/></svg><span class="tileTitle">Mon carnet</span></span><span class="tileSubtitle">Récits et photos</span></button>
+ <button id="pdf" type="button"><span class="tileHead"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h9l5 5v13H5zM14 3v5h5M8 12h8M8 16h8"/></svg><span class="tileTitle">PDF ambassade</span></span><span class="tileSubtitle">Historique pour vos visas</span></button>
+ </div><p id="offlineActionNote" role="status" hidden>Disponible avec une connexion</p></section>
 <dialog id="pdfDialog" aria-labelledby="pdfDialogTitle"><div class="pdfDialogHeader"><h2 id="pdfDialogTitle">PDF ambassade</h2><button id="pdfDialogClose" type="button" aria-label="Fermer la fenêtre PDF">Fermer</button></div><label class="pdfContactChoice" for="includePdfContacts"><input id="includePdfContacts" type="checkbox" autocomplete="off" disabled> Inclure mes coordonnées dans ce PDF</label><p id="pdfExclusionNote" class="pdfExclusionNote hidden">Les voyages à venir ou en cours n’apparaissent pas dans le PDF.</p><button id="generatePdf" class="btn" type="button">Générer le PDF</button></dialog>
 <div id="travelPanels" class="grid"><section class="panel" id="travelTripsPanel"><div id="tripListToolbar" class="tripListToolbar" role="group" aria-label="Navigation des voyages">
  <p id="tripListSummary" aria-live="polite">0 voyage · 0 pays</p>
@@ -474,7 +486,7 @@ html.travelAccessReadOnly #photoField,html.travelAccessReadOnly #saveTrip{displa
  <div id="detailPhotos" class="detailGallery" aria-live="polite"></div>
  <div class="detailHeroControls">
   <button id="detailClose" type="button" aria-label="Fermer la fiche">←</button>
-  <button id="detailShare" type="button" aria-label="Partager ce voyage sous forme d'image">Partager</button>
+  <div class="detailHeroRight"><button id="detailSlideshowOpen" type="button" hidden disabled><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m8 5 12 7-12 7z"/></svg>Diaporama</button><button id="detailShare" type="button" aria-label="Partager ce voyage sous forme d'image">Partager</button></div>
  </div>
  <span id="detailGalleryCount" role="status" aria-live="polite" hidden></span>
 </section>
@@ -549,6 +561,11 @@ html.travelAccessReadOnly #photoField,html.travelAccessReadOnly #saveTrip{displa
  <p id="detailLightboxCaption"></p>
  <button type="button" id="detailLightboxActions" hidden>Options de la photo</button>
 </div>
+<div id="detailSlideshow" role="dialog" aria-modal="true" aria-label="Diaporama des photos du voyage" aria-hidden="true" hidden>
+ <button id="detailSlideshowClose" type="button" aria-label="Fermer le diaporama">×</button>
+ <div id="slideStage" role="button" tabindex="0" aria-label="Mettre en pause le diaporama"><div id="slideImageBox"></div></div>
+ <div id="slideFoot"><p id="slideCaption" hidden></p><span id="slideCounter" aria-live="polite"></span><span id="slideStatus" aria-live="polite"></span></div>
+</div>
 <dialog id="detailShareDialog" aria-labelledby="detailShareTitle">
  <h2 id="detailShareTitle">Partager ce voyage</h2>
  <img id="detailSharePreview" alt="Aperçu privé de l'image à partager">
@@ -587,7 +604,7 @@ html.travelAccessReadOnly #photoField,html.travelAccessReadOnly #saveTrip{displa
   <p id="photoActionStatus" role="status" aria-live="polite"></p>
  </section>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./config.js"></script><script src="./pwa.js"></script><script src="./access.js"></script><script src="./fr-accords.js"></script><script src="./photo-utils.js"></script><script src="./photo-upload.js"></script><script src="./avatar.js"></script><script src="./activity-durations.js"></script><script src="./trip-detail.js"></script><script src="./trip-share.js"></script><script src="./loyalty-programs.js"></script><script src="./loyalty-ui.js"></script><script src="./visa-guide.js"></script><script src="./countries.js"></script><script src="./trip-stops.js"></script><script src="./day-excursions.js"></script><script src="./date-range-picker.js"></script><script src="./country-picker.js"></script><script src="./factual-pdf.js"></script><script src="./factual-pdf-file.js"></script><script src="./trip-lifecycle.js"></script><script src="./journal-stats.js"></script><script src="./dashboard-filters.js"></script><script src="./visual-cards.js"></script><script src="./trip-list.js"></script><script src="./profile-cover.js"></script><script src="./profile-cover-ui.js"></script><script src="./offline-store.js"></script><script src="./flight-connections.js"></script><script src="./printable-journal.js"></script><script src="./family-booklet.js"></script><script>
+<script src="./vendor/supabase.umd.js"></script><script src="./config.js"></script><script src="./pwa.js"></script><script src="./access.js"></script><script src="./fr-accords.js"></script><script src="./photo-utils.js"></script><script src="./photo-upload.js"></script><script src="./avatar.js"></script><script src="./activity-durations.js"></script><script src="./trip-detail.js"></script><script src="./trip-share.js"></script><script src="./loyalty-programs.js"></script><script src="./loyalty-ui.js"></script><script src="./visa-guide.js"></script><script src="./countries.js"></script><script src="./trip-stops.js"></script><script src="./day-excursions.js"></script><script src="./date-range-picker.js"></script><script src="./country-picker.js"></script><script src="./factual-pdf.js"></script><script src="./factual-pdf-file.js"></script><script src="./trip-lifecycle.js"></script><script src="./continents.js"></script><script src="./trip-slideshow.js"></script><script src="./journal-stats.js"></script><script src="./dashboard-filters.js"></script><script src="./visual-cards.js"></script><script src="./trip-list.js"></script><script src="./profile-cover.js"></script><script src="./profile-cover-ui.js"></script><script src="./offline-store.js"></script><script src="./flight-connections.js"></script><script src="./printable-journal.js"></script><script src="./family-booklet.js"></script><script>
 const C=window.BEAM_TRAVEL_CONFIG||{},ok=C.supabaseUrl&&!C.supabaseUrl.includes("YOUR_")&&C.supabaseAnonKey&&!C.supabaseAnonKey.includes("YOUR_"),S=ok&&typeof supabase!=="undefined"?supabase.createClient(C.supabaseUrl,C.supabaseAnonKey):null,$=s=>document.querySelector(s);let user,trips=[],accountState="loading";
 const LOYALTY=window.BEAM_LOYALTY_UI?.init({supabase:S,user:()=>user,isActive:()=>accountState==="active",canWrite:()=>canWrite(),onChange:()=>renderLoyaltyHint()});
 function view(id){$("#auth").classList.add("hidden");$("#app").classList.add("hidden");$(id).classList.remove("hidden");document.title="J'y étais"}
@@ -603,15 +620,16 @@ function setSkeleton(visible){
 }
 function updateOfflineSettings(){$("#offlineToggle").checked=OFFLINE.enabled()}
 function syncOfflineActions(){
- const blocked=offlineMode;
+ const blocked=offlineMode||(accountState==="active"&&!accessState().canWrite);
  for(const selector of ["#add","#pdf","#printJournal","#generatePdf"]){
   const el=$(selector);if(!el)continue;
   const journalUnavailable=selector==="#printJournal"&&typeof window.BEAM_FAMILY_BOOKLET?.render!=="function";
   el.disabled=blocked||journalUnavailable;
-  el.title=blocked?"Disponible avec une connexion":journalUnavailable?"Le carnet imprimable est temporairement indisponible ; vos voyages restent accessibles.":"";
+  el.title=blocked?(offlineMode?"Disponible avec une connexion":"Disponible lorsque votre accès permet les modifications"):journalUnavailable?"Le carnet imprimable est temporairement indisponible ; vos voyages restent accessibles.":"";
  }
  $("#offlineActionNote").hidden=!blocked;
- document.documentElement.classList.toggle("travelOfflinePreview",blocked);
+ // Expired online access is read-only, NOT an offline preview: account deletion remains available.
+ document.documentElement.classList.toggle("travelOfflinePreview",offlineMode);
  updateFloatingAdd();
 }
 function showOfflineCopy(snapshot){
@@ -743,6 +761,7 @@ function sortStorage(){try{return window.localStorage}catch{return null}}
 let tripSortMode=LIST.read(sortStorage());
 const COUNTRY_NAMES=window.BEAM_COUNTRIES.NAMES;
 const STOPS=window.BEAM_TRIP_STOPS;
+ const CONTINENTS=window.BEAM_CONTINENTS;
  const LIFE=window.BEAM_TRIP_LIFECYCLE;
  const COVER_UI=window.BEAM_PROFILE_COVER_UI?.init?.({client:S,projectUrl:C.supabaseUrl,
   getUser:()=>user,getProfile:()=>profile,getTrips:()=>trips,getToday:()=>LIFE.today(),
@@ -775,10 +794,18 @@ function travelerInitials(name){
  const first=Array.from(parts[0])[0]||"V",last=parts.length>1?Array.from(parts.at(-1))[0]:"";
  return (first+last).toLocaleUpperCase("fr-FR");
 }
+function renderPassportResidence(){
+ const code=/^[A-Z]{2}$/.test(profile.country_of_residence||"")&&COUNTRY_NAMES[profile.country_of_residence]?profile.country_of_residence:"";
+ const city=typeof profile.home_city==="string"?profile.home_city.trim().slice(0,80):"";
+ const badge=$("#passportResidenceCode"),line=$("#travelerLocation");
+ badge.textContent=code;badge.hidden=!code;
+ const text=[city,code?countryName(code):""].filter(Boolean).join(", ");
+ $("#travelerLocationText").textContent=text;line.hidden=!text;
+}
 function setDashboardTitle(name){
  const heading=$("#dashboardTitle"),clean=String(name||"").trim().replace(/\s+/gu," ");
  heading.textContent=clean||"Voyageur";
- renderAvatar();
+ renderAvatar();renderPassportResidence();
  // Never truncate names; allow natural wrapping on narrow screens.
  heading.classList.toggle("longTitle",clean.length>28);
  heading.classList.toggle("extraLongTitle",clean.length>55);
@@ -1074,6 +1101,9 @@ function render(){
  $("#ncl").textContent="pays";
  $("#nd").textContent=stats.days;
  $("#ndl").textContent=FR.word(stats.days,"jour","jours");
+ const continentTotal=CONTINENTS.count(trips,asOf),continentBadge=$("#continentCount");
+ continentBadge.textContent=continentTotal?FR.count(continentTotal,"continent"):"";
+ continentBadge.hidden=continentTotal===0;
 
 
  $("#filterStatus").textContent=active?FR.count(visible.length,"voyage")+" "+FR.word(visible.length,"correspondant","correspondants")+" aux filtres.":"Tous les voyages sont affichés.";
@@ -1637,6 +1667,16 @@ const DETAIL=window.BEAM_TRIP_DETAIL;
 let detailTripId=null,detailRequest=0,detailActivityBusy=false,detailMediaBusy=false,detailMediaIds=[],detailPhotoRows=[],detailActivitiesRows=[],detailReturnFocus=null;
 const SHARE=window.BEAM_TRIP_SHARE;
 let detailGalleryIndex=0,detailGalleryLoads=new Set(),detailLightboxRow=null,detailShareFile=null,detailShareObjectUrl=null,detailShareBusy=false,detailEditing=false;
+const SLIDESHOW=window.BEAM_TRIP_SLIDESHOW.init({
+ overlay:$("#detailSlideshow"),stage:$("#slideStage"),closeButton:$("#detailSlideshowClose"),
+ imageBox:$("#slideImageBox"),caption:$("#slideCaption"),counter:$("#slideCounter"),status:$("#slideStatus"),
+ getRows:()=>detailPhotoRows,sign:index=>detailSignPhoto(index),
+ available:()=>!offlineMode&&navigator.onLine&&accountState==="active"&&detailPhotoRows.length>=2
+});
+function detailSyncSlideshow(){
+ const button=$("#detailSlideshowOpen"),show=detailPhotoRows.length>=2;
+ button.hidden=!show;button.disabled=offlineMode||!navigator.onLine||!show;
+}
 const detailSvg={
  plane:'<path d="M2 16l8-3 5-10a2 2 0 0 1 3 2l-2 9 5 3-1 3-7-2-5 2-6-1Z"/>',
  bed:'<path d="M3 4v16M3 17h18v3M3 12h18v5H3zM6 9h5v3H6zM13 9h5v3h-5z"/>',
@@ -1674,7 +1714,7 @@ function detailNoPhoto(trip){
  $("#detailPhotos").innerHTML='<div class="detailHeroFallback">'+
   (art?'<img class="detailCountryArt" src="'+art+'" alt="Illustration du pays">':
    flag?'<img class="detailFallbackFlag" src="'+flag+'" alt="Drapeau du pays">':'')+'</div>';
- $("#detailGalleryCount").hidden=true;
+ $("#detailGalleryCount").hidden=true;detailSyncSlideshow();
 }
 function detailCounter(){
  const count=$("#detailGalleryCount"),len=detailPhotoRows.length;
@@ -1717,7 +1757,7 @@ function detailGalleryRender(trip){
   canEdit:detailCanEdit(),coverMediaId:trip.cover_media_id,airline:!!trip.airline?.trim(),
   hotel:!!trip.hotel?.trim(),airlineMediaId:trip.airline_media_id,hotelMediaId:trip.hotel_media_id
  });
- detailGalleryIndex=0;box.scrollLeft=0;detailCounter();
+ detailGalleryIndex=0;box.scrollLeft=0;detailCounter();detailSyncSlideshow();
 }
 async function detailSignPhoto(index,id=detailTripId,token=detailRequest){
  const row=detailPhotoRows[index];
@@ -1837,7 +1877,7 @@ function detailActivityMessage(message){
 }
 function closeTripDetail(){
  detailEditing=false;
- detailLightboxClose();detailShareReset();detailGalleryLoads.clear();
+ SLIDESHOW.close();detailLightboxClose();detailShareReset();detailGalleryLoads.clear();
  if(typeof photoSheetState!=="undefined"&&photoSheetState?.context==="detail")closePhotoActions();
  detailRequest++;detailTripId=null;detailActivitiesRows=[];detailMediaIds=[];detailPhotoRows=[];stopEditingId=null;stopDeleteTarget=null;
  $("#tripStopForm").classList.add("hidden");$("#tripStopDeleteConfirm").classList.add("hidden");
@@ -2061,7 +2101,7 @@ function openTripDetail(id){
  if(!trip)return;
  detailEditing=false;
  if(!$("#tripDetailModal").classList.contains("open"))detailReturnFocus=document.activeElement;
- detailTripId=id;detailRequest++;detailPhotoRows=[];detailMediaIds=[];detailGalleryIndex=0;detailGalleryLoads.clear();
+ SLIDESHOW.close();detailTripId=id;detailRequest++;detailPhotoRows=[];detailMediaIds=[];detailGalleryIndex=0;detailGalleryLoads.clear();detailSyncSlideshow();
  const city=(trip.cities||[]).join(", ");
  $("#detailCountryTitle").textContent=countryName(trip.country_code);
  $("#detailTitle").textContent=city||countryName(trip.country_code);
@@ -2176,6 +2216,7 @@ $("#detailPhotos").onclick=e=>{
  const index=detailPhotoRows.findIndex(photo=>photo.id===button.dataset.id);
  if(index>=0)void detailOpenLightbox(index,button);
 };
+$("#detailSlideshowOpen").onclick=()=>{if(!offlineMode)SLIDESHOW.open()};
 $("#detailClose").onclick=closeTripDetail;
 $("#detailModeToggle").onclick=()=>{
  if(!detailTripId||offlineMode||!canWrite())return;
@@ -2924,7 +2965,7 @@ $("#printJournal").onclick=async()=>{
  const tab=window.open("","_blank");
  if(!tab){$("#appMsg").textContent="Autorisez l’aperçu du carnet dans Chrome, puis réessayez.";$("#appMsg").classList.remove("hidden");return}
  try{tab.opener=null}catch{}
- const button=$("#printJournal");journalPrintBusy=true;button.disabled=true;button.textContent="Préparation du carnet…";
+ const button=$("#printJournal");journalPrintBusy=true;button.disabled=true;button.querySelector(".tileTitle").textContent="Préparation…";
  const fail=()=>{if(!tab.closed){tab.document.body.replaceChildren();tab.document.body.textContent="Impossible de préparer le carnet privé. Fermez cet onglet et réessayez."}};
  try{
   tab.document.body.textContent="Chargement de votre carnet personnel…";
@@ -3019,7 +3060,7 @@ $("#printJournal").onclick=async()=>{
    unoptimized:prepared.unoptimized,limitReached:remaining===0,generatedAt:new Date()
   });
  }catch{fail();$("#appMsg").textContent="Impossible de préparer le carnet imprimable. Vérifiez votre connexion et réessayez.";$("#appMsg").classList.remove("hidden")}
- finally{journalPrintBusy=false;button.disabled=false;button.textContent="Mon carnet"}
+ finally{journalPrintBusy=false;button.disabled=offlineMode||!canWrite();button.querySelector(".tileTitle").textContent="Mon carnet"}
 };
 
 function openPdfDialog(){

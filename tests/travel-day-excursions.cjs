@@ -1,4 +1,5 @@
 "use strict";
+const {assertCacheName}=require("./helpers/cache-name.cjs");
 const assert=require("node:assert/strict");
 const fs=require("node:fs");
 const vm=require("node:vm");
@@ -146,7 +147,7 @@ assert.match(html,/showTripOverlap\(p,match,!wasEditing\)/);
 assert.match(html,/if\(error\.code==="23P01"/);
 assert.doesNotMatch(html,/msg\.textContent=error\.message/);
 const sw=fs.readFileSync("travel/sw.js","utf8");
-assert.match(sw,/jyetais-v59-etapes-moments/);
+assertCacheName(sw);
 assert.ok(sw.includes('"./day-excursions.js"')&&sw.includes('"./day-excursions.css"'));
 const style=fs.readFileSync("travel/day-excursions.css","utf8");
 assert.ok(style.includes(".dayModeChoices")&&style.includes(".tripOverlapOffer"));
