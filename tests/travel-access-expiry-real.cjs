@@ -116,7 +116,18 @@ async function main(){
      assert.match(summary,entry.until?/Accès jusqu'au/:/À activer/);
      assert.equal(await page.locator("#editAccount").isVisible(),!entry.readonly);
      if(entry.label==="expired"){
-      assert.equal(await page.locator("#accountSensitive").isVisible(),true);
+      const sensitiveVisible=await page.locator("#accountSensitive").isVisible();
+       if(!sensitiveVisible){
+        const details=await page.evaluate(()=>{
+         const el=document.querySelector("#accountSensitive"),button=document.querySelector("#deleteAccountOpen");
+         return {sectionClass:el?.className,buttonClass:button?.className,
+          sectionDisplay:el?getComputedStyle(el).display:null,
+          buttonDisplay:button?getComputedStyle(button).display:null,
+          overlayClass:document.querySelector("#accountOverlay")?.className,
+          htmlClass:document.documentElement.className};
+        });
+        throw Error("Read-only account deletion must remain visible: "+JSON.stringify(details));
+       }
       await page.locator("#deleteAccountOpen").click();
       await page.locator("#deleteAccountConfirm").fill("SUPPRIMER");
       await page.locator("#deleteAccountSubmit").click();
