@@ -182,8 +182,8 @@ async function main(){
         typography.rect.right<=typography.block.right+1,
         "title must remain within the avatar-aligned text column: "+JSON.stringify(typography));
       assert.ok(typography.avatar.right<typography.rect.left &&
-        typography.avatar.center<typography.identity.center,
-        "avatar must overlap cover and remain left aligned: "+JSON.stringify(typography));
+        Math.abs(typography.avatar.center-typography.identity.center)<=1,
+        "passport avatar must remain centered at left: "+JSON.stringify(typography));
       assert.ok(typography.scrollWidth<=width+1,
         "sample name must not produce horizontal overflow at "+width+"px");
       console.log("PASS local Poppins traveler name at "+width+"px",JSON.stringify(typography));

@@ -108,16 +108,11 @@ async function main(){
       }
      await page.locator("#detailPhotos img").first().waitFor({state:"attached"});
      await page.locator("#detailClose").click();
-     // PDF factuel must still be launched even after expiry (it requires no writes).
-     if(entry.label==="expired"){
-      const popupPromise=page.waitForEvent("popup",{timeout:10000});
-      await page.locator("#pdf").click();
-      assert.equal(await page.locator("#pdfDialog").isVisible(),true);
-      assert.equal(await page.locator("#includePdfContacts").isChecked(),false);
-      await page.locator("#generatePdf").click();
-      const popup=await popupPromise;
-      await popup.close();
-     }
+     // The passport action tiles are visible but disabled in read-only accounts.
+     assert.equal(await page.locator("#pdf").isDisabled(),entry.readonly);
+     assert.equal(await page.locator("#printJournal").isDisabled(),entry.readonly);
+     if(entry.label==="expired")
+      assert.equal(await page.locator("#pdfDialog").isVisible(),false);
      await page.locator("#openAccount").click();
      await page.locator("#accountOverlay").waitFor({state:"visible"});
      const summary=await page.locator("#accountReadSummary").innerText();
