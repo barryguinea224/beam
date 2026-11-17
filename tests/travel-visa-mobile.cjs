@@ -8,7 +8,7 @@ const html=fs.readFileSync(path.join(root,"travel/index.html"),"utf8");
 const moduleSource=fs.readFileSync(path.join(root,"travel/visa-guide.js"),"utf8");
 const style=html.match(/<style>([\s\S]*?)<\/style>/)?.[1]+fs.readFileSync(path.join(root,"travel/account-settings.css"),"utf8");
 const startHero=html.indexOf('<section id="travelHero"'),endHero=html.indexOf('<section id="accountStatusChecking"');
-const startDetail=html.indexOf('<div id="tripDetailModal"'),endDetail=html.indexOf('<script src="https://cdn.jsdelivr.net',startDetail);
+const startDetail=html.indexOf('<div id="tripDetailModal"'),endDetail=html.indexOf('<script src="./vendor/supabase.umd.js"',startDetail);
 const startAccount=html.indexOf('<div id="accountOverlay"'),endAccount=html.indexOf('<div id="modal"',startAccount);
 assert.ok(startAccount>0&&endAccount>startAccount,"read real BTH Mon compte drawer");
 const accountFragment=html.slice(startAccount,endAccount).replace(/<\/div><\/main>\s*$/,"");

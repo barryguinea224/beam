@@ -16,7 +16,7 @@ for(const file of files){
  assert.doesNotMatch(source,/(?<!sans-)\bserif\b/i,"Serif fallback in travel/"+file);
 }
 const sw=fs.readFileSync(path.join(root,"sw.js"),"utf8");
-assert.match(sw,/jyetais-v59-etapes-moments/);
+assert.match(sw,/jyetais-v60-passeport-diaporama/);
 assert.doesNotMatch(sw,/\bGeorgia\b/i);
 for(const file of ["index.html","account-settings.css","visual-cards.css","photo-sheet.css","legal.css"])
  assert.match(fs.readFileSync(path.join(root,file),"utf8"),/Poppins,system-ui,sans-serif/,"Source-family contract "+file);
@@ -45,7 +45,7 @@ async function run(){
     if(/fonts\.(googleapis|gstatic)\.com/.test(url.hostname)||(/\.(woff2?|ttf|otf)$/i.test(url.pathname)&&url.hostname!=="127.0.0.1")){
      externalFonts.push(url.href);return route.abort();
     }
-    if(url.hostname==="cdn.jsdelivr.net")
+    if(url.hostname==="127.0.0.1"&&url.pathname==="/travel/vendor/supabase.umd.js")
      return route.fulfill({status:200,contentType:"application/javascript",body:"("+fictionalSupabase.toString()+")();"});
     if(url.hostname!=="127.0.0.1")return route.abort();
     const name=url.pathname==="/travel/"?"index.html":url.pathname.slice("/travel/".length);
