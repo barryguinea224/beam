@@ -13,7 +13,7 @@ const PUBLIC_SHELL = [
   "./visual-cards.js", "./visual-cards.css", "./trip-list.js", "./trip-list.css", "./photo-sheet.css",
   "./profile-cover.js", "./profile-cover-ui.js", "./profile-cover.css",
   "./flight-connections.js", "./flight-connections.css",
-  "./continents.js", "./trip-slideshow.js", "./passport-home.css",
+  "./continents.js", "./trip-slideshow.js", "./passport-home.css", "./vendor/supabase.umd.js",
   "./loyalty-programs.js", "./loyalty-ui.js", "./loyalty.css", "./account-settings.css",
   "./activity-durations.js", "./activity-duration.css",
   "./trip-stops.js", "./trip-stops.css", "./day-excursions.js", "./trip-lifecycle.js", "./day-excursions.css", "./date-range-picker.js", "./date-range-picker.css",
