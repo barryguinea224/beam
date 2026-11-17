@@ -627,8 +627,9 @@ function syncOfflineActions(){
   el.disabled=blocked||journalUnavailable;
   el.title=blocked?(offlineMode?"Disponible avec une connexion":"Disponible lorsque votre accès permet les modifications"):journalUnavailable?"Le carnet imprimable est temporairement indisponible ; vos voyages restent accessibles.":"";
  }
- $("#offlineActionNote").hidden=!blocked;
- document.documentElement.classList.toggle("travelOfflinePreview",blocked);
+ $("#offlineActionNote").hidden=!offlineMode;
+ // Read-only online is not an offline preview: keep account deletion accessible.
+ document.documentElement.classList.toggle("travelOfflinePreview",offlineMode);
  updateFloatingAdd();
 }
 function showOfflineCopy(snapshot){

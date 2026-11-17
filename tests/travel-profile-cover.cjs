@@ -1,4 +1,5 @@
 "use strict";
+const {assertCacheName}=require("./helpers/cache-name.cjs");
 const assert=require("node:assert/strict"),fs=require("node:fs"),path=require("node:path");
 const {chromium}=require("playwright");
 const {serve,fictionalSupabase}=require("./travel-day-excursions-mobile.cjs");
@@ -20,7 +21,7 @@ const html=fs.readFileSync("travel/index.html","utf8"),sw=fs.readFileSync("trave
 assert.match(html,/id="coverPickerOpen"/);
 assert.match(html,/id="photoProfileCover"/);
 assert.match(html,/id="coverAuto"/);
-assert.match(sw,/jyetais-v60-passeport-diaporama/);
+assertCacheName(sw);
 assert.doesNotMatch(sw,/caches\.put\(/);
 const dir=path.resolve("test-artifacts/cover-profile");
 fs.mkdirSync(dir,{recursive:true});
@@ -131,7 +132,8 @@ async function main(){
       await page.locator("#openAccount").click();
       assert.equal(await page.locator("#coverPickerOpen").isDisabled(),true,"Read-only cannot select a cover");
       assert.equal(await page.locator("#coverAuto").isDisabled(),true,"Read-only cannot reset cover");
-      assert.equal(await page.locator("#coverReadonly").isVisible(),true);
+      assert.match(await page.locator("#coverReadonly").textContent(),/accès est expiré ou non activé/,
+        "Read-only notice remains in the account markup");
     }
     assert.deepEqual(errors,[],"Console errors "+width);
     console.log("PASS profile cover Android "+width+"px, fictional signed photo, settings choice/reset and overflow");

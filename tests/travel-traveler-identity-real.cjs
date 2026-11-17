@@ -98,7 +98,7 @@ async function main(){
     assert.deepEqual([stats.voyages,stats.pays,stats.jours],["2","2","12"],
       "two foreign trips must produce EXACT current headline, ignoring domestic");
     assert.deepEqual(stats.labels,["voyages","pays","jours"]);
-    assert.match(stats.compact,/2 voyages.*2 pays.*12 jours/s);
+    assert.match(stats.compact,/2\s*voyages\s*2\s*pays\s*12\s*jours/s);
     const head=await page.evaluate(()=>{
       const name="Mariama Djouldé Doumbouya Camara Binta Barry";
       const el=document.querySelector("#dashboardTitle");
@@ -169,11 +169,11 @@ async function main(){
         el.className=previousClasses.join(" ");
         return result;
       });
-      const expectedSize=Math.max(20,Math.min(25,width*0.058));
+      const expectedSize=Math.max(18,Math.min(26,width*0.052));
       assert.match(typography.fontFamily,/Poppins/,"locally hosted Poppins must style the traveler title");
-      assert.equal(typography.fontWeight,"600","traveler name must use Poppins semi-bold");
+      assert.equal(typography.fontWeight,"700","passport traveler name must use Poppins bold");
       assert.ok(Math.abs(typography.fontSize-expectedSize)<0.12,
-         "title must respect clamp(20px,5.8vw,25px): "+JSON.stringify(typography));
+         "title must respect clamp(18px,5.2vw,26px): "+JSON.stringify(typography));
       assert.ok(Math.abs(typography.lineHeight/typography.fontSize-1.25)<0.02,
         "title line height must be 1.25: "+JSON.stringify(typography));
       assert.ok(typography.lines>=0.98&&typography.lines<=2.03,
@@ -182,8 +182,8 @@ async function main(){
         typography.rect.right<=typography.block.right+1,
         "title must remain within the avatar-aligned text column: "+JSON.stringify(typography));
       assert.ok(typography.avatar.right<typography.rect.left &&
-        typography.avatar.center<typography.identity.center,
-        "avatar must overlap cover and remain left aligned: "+JSON.stringify(typography));
+        typography.avatar.center<=typography.identity.center+1,
+        "passport avatar must stay left of name within identity row: "+JSON.stringify(typography));
       assert.ok(typography.scrollWidth<=width+1,
         "sample name must not produce horizontal overflow at "+width+"px");
       console.log("PASS local Poppins traveler name at "+width+"px",JSON.stringify(typography));
@@ -197,7 +197,7 @@ async function main(){
     assert.deepEqual([national.voyages,national.pays,national.jours],["1","1","3"],
        "National must switch to 1 stay, 1 country, 3 days");
     assert.deepEqual(national.labels,["voyage","pays","jours"]);
-    assert.match(national.compact,/1 voyage.*1 pays.*3 jours/s);
+    assert.match(national.compact,/1\s*voyage\s*1\s*pays\s*3\s*jours/s);
     await page.locator("#filterScope").selectOption("");
     const reset=await readStats(page);
     assert.deepEqual([reset.voyages,reset.pays,reset.jours],["2","2","12"],

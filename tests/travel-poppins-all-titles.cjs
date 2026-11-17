@@ -1,4 +1,5 @@
 "use strict";
+const {assertCacheName}=require("./helpers/cache-name.cjs");
 // Typography source audit and real 360px Chromium screenshots. All users and trips are fictional.
 const assert=require("node:assert/strict");
 const fs=require("node:fs");
@@ -16,7 +17,7 @@ for(const file of files){
  assert.doesNotMatch(source,/(?<!sans-)\bserif\b/i,"Serif fallback in travel/"+file);
 }
 const sw=fs.readFileSync(path.join(root,"sw.js"),"utf8");
-assert.match(sw,/jyetais-v60-passeport-diaporama/);
+assertCacheName(sw);
 assert.doesNotMatch(sw,/\bGeorgia\b/i);
 for(const file of ["index.html","account-settings.css","visual-cards.css","photo-sheet.css","legal.css"])
  assert.match(fs.readFileSync(path.join(root,file),"utf8"),/Poppins,system-ui,sans-serif/,"Source-family contract "+file);
@@ -46,6 +47,9 @@ async function run(){
      externalFonts.push(url.href);return route.abort();
     }
     if(url.hostname==="127.0.0.1"&&url.pathname==="/travel/vendor/supabase.umd.js")
+     return route.fulfill({status:200,contentType:"application/javascript",body:"("+fictionalSupabase.toString()+")();"});
+    // The comparison's historic v46 HTML used a CDN; only mock it for "avant".
+    if(phase==="avant"&&url.hostname==="cdn.jsdelivr.net")
      return route.fulfill({status:200,contentType:"application/javascript",body:"("+fictionalSupabase.toString()+")();"});
     if(url.hostname!=="127.0.0.1")return route.abort();
     const name=url.pathname==="/travel/"?"index.html":url.pathname.slice("/travel/".length);

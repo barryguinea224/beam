@@ -52,9 +52,9 @@ function fakeSupabase(){
   }
  }}};
 }
-async function pageFor(browser,server,width){
+async function pageFor(browser,server,width,blockWorker=false){
  const context=await browser.newContext({viewport:{width,height:800},isMobile:true,hasTouch:true,
-  deviceScaleFactor:1,acceptDownloads:true});
+  deviceScaleFactor:1,acceptDownloads:true,serviceWorkers:blockWorker?"block":"allow"});
  const page=await context.newPage(),errors=[];
  page.on("pageerror",error=>errors.push(error.message));
  await page.route("**/*",route=>{
@@ -80,11 +80,11 @@ async function stored(page){
   });db.close();return raw;
  });
 }
-async function seed(page,url){
+async function seed(page,url,{expectWorker=true}={}){
  await page.goto(url,{waitUntil:"load",timeout:30000});
  await page.waitForFunction(async()=>((await window.JYETAIS_OFFLINE?.readLast())?.trips?.length||0)>0,
   null,{timeout:30000});
- await page.evaluate(async()=>{await navigator.serviceWorker.ready});
+ if(expectWorker)await page.evaluate(async()=>{await navigator.serviceWorker.ready});
 }
 async function main(){
  await fs.mkdir(DIR,{recursive:true});
@@ -140,7 +140,9 @@ async function main(){
     }
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true);
     // Make sure a controlled shell is installed before switching the network off.
-    await page.reload({waitUntil:"load"});
+    // clients.claim() activates the installed worker without reloading an online
+    // mock session (a reload can substitute the real cached SDK for the fixture).
+
     await page.waitForFunction(()=>!!navigator.serviceWorker.controller,{timeout:20000});
     // This is the REAL installed SW and its CacheStorage, not a mocked fetch.
     assert.equal(await page.evaluate(async()=>{
@@ -156,7 +158,21 @@ async function main(){
     });
     await context.setOffline(true);
     await page.goto(url,{waitUntil:"domcontentloaded",timeout:30000});
-    await page.locator("#offlineBanner").waitFor({state:"visible",timeout:30000});
+    try{
+      await page.locator("#offlineBanner").waitFor({state:"visible",timeout:15000});
+     }catch(error){
+      const debug=await page.evaluate(async()=>{
+       let exists=null;
+       try{exists=!!(await window.JYETAIS_OFFLINE?.readLast())}catch{exists=false}
+       return {navigatorOnline:navigator.onLine,htmlClass:document.documentElement.className,
+        hasOfflineStore:!!window.JYETAIS_OFFLINE,hasLocalSnapshot:exists,
+        previewBannerHidden:document.querySelector("#offlineBanner")?.hidden,
+        appClass:document.querySelector("#app")?.className,
+        offlineDisplay:getComputedStyle(document.querySelector("#offline")).display};
+      });
+      throw new Error("Offline preview not hydrated: "+JSON.stringify(debug)+
+       "; page errors: "+JSON.stringify(errors)+"; "+String(error));
+     }
     assert.match(await page.locator("#offlineBanner").textContent(),/Hors ligne · voyages du/);
     assert.match(await page.locator("#dashboardTitle").textContent(),/Voyageuse Fictive/);
     assert.equal(await page.locator("#add").isDisabled(),true);
@@ -234,9 +250,10 @@ async function main(){
   }
   // Separate authenticated session: old owner's data must be removed first.
   {
-   const {context,page,url,errors}=await pageFor(browser,server,360);
+   const {context,page,url,errors}=await pageFor(browser,server,360,true);
    try{
-    await seed(page,url);
+    // Account-switch fixture deliberately blocks service workers; do not await ready.
+    await seed(page,url,{expectWorker:false});
     await page.evaluate(()=>localStorage.setItem("jy-test-uid","22222222-2222-4222-8222-222222222222"));
     await page.reload({waitUntil:"load"});
     await page.waitForFunction(()=>document.querySelector("#dashboardTitle")?.textContent==="Voyageur Second");
@@ -263,7 +280,8 @@ async function main(){
     await page.locator("#logout").click();
     await page.waitForFunction(async()=>!((await indexedDB.databases())
      .some(db=>db.name==="jyetais-offline")),{timeout:20000});
-    assert.equal(await page.evaluate(()=>localStorage.getItem("jyetais.offline.owner")),null);
+    await page.waitForFunction(()=>localStorage.getItem("jyetais.offline.owner")===null,
+      null,{timeout:20000});
     assert.deepEqual(errors,[]);
     console.log("PASS account switch wipes previous owner before display; logout deletes entire DB");
    }finally{await context.close()}
@@ -273,7 +291,8 @@ async function main(){
    const {context,page,url,errors}=await pageFor(browser,server,360);
    try{
     await seed(page,url);
-    await page.reload({waitUntil:"load"});
+    // Wait for the already-claimed worker instead of recreating the mock session.
+
     await page.waitForFunction(()=>!!navigator.serviceWorker.controller);
     await page.evaluate(async()=>{
      const req=indexedDB.open("jyetais-offline");
@@ -291,7 +310,8 @@ async function main(){
     assert.equal(await page.locator("#offlineBanner").isVisible(),false);
     await page.waitForFunction(async()=>!((await indexedDB.databases())
      .some(db=>db.name==="jyetais-offline")),{timeout:30000});
-    assert.equal(await page.evaluate(()=>localStorage.getItem("jyetais.offline.owner")),null);
+    await page.waitForFunction(()=>localStorage.getItem("jyetais.offline.owner")===null,
+      null,{timeout:20000});
     assert.deepEqual(errors,[]);
     console.log("PASS expired 30-day copy removed on offline startup; neutral fallback");
    }finally{await context.close()}

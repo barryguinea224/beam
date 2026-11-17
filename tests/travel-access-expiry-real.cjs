@@ -86,7 +86,13 @@ async function main(){
       const text=await page.locator("#accessBanner").innerText();
       assert.match(text,entry.readonly? /reste consultable/:/Votre accès se termine le/);
      }
-     assert.equal(await page.locator("#add").isVisible(),!entry.readonly);
+     assert.equal(await page.locator("#add").isVisible(),!entry.readonly,
+       "Add is hidden on expired access while the account remains online");
+     assert.equal(await page.evaluate(()=>document.documentElement.classList.contains("travelOfflinePreview")),false,
+       "Read-only online mode must not use offline CSS");
+      for(const action of ["#add","#printJournal","#pdf"])
+       assert.equal(await page.locator(action).isDisabled(),entry.readonly,
+        action+" must respect the current access state");
      assert.equal(await page.locator("#printJournal").isVisible(),true);
      assert.equal(await page.locator("#pdf").isVisible(),true);
      assert.equal(await page.locator("#openAccount").isVisible(),true);
@@ -105,23 +111,26 @@ async function main(){
       }
      await page.locator("#detailPhotos img").first().waitFor({state:"attached"});
      await page.locator("#detailClose").click();
-     // PDF factuel must still be launched even after expiry (it requires no writes).
-     if(entry.label==="expired"){
-      const popupPromise=page.waitForEvent("popup",{timeout:10000});
-      await page.locator("#pdf").click();
-      assert.equal(await page.locator("#pdfDialog").isVisible(),true);
-      assert.equal(await page.locator("#includePdfContacts").isChecked(),false);
-      await page.locator("#generatePdf").click();
-      const popup=await popupPromise;
-      await popup.close();
-     }
+     // Current policy disables export tiles in consultation-only mode.
+      if(entry.readonly)assert.equal(await page.locator("#pdfDialog").isVisible(),false);
      await page.locator("#openAccount").click();
      await page.locator("#accountOverlay").waitFor({state:"visible"});
      const summary=await page.locator("#accountReadSummary").innerText();
      assert.match(summary,entry.until?/Accès jusqu'au/:/À activer/);
      assert.equal(await page.locator("#editAccount").isVisible(),!entry.readonly);
      if(entry.label==="expired"){
-      assert.equal(await page.locator("#accountSensitive").isVisible(),true);
+      const sensitiveVisible=await page.locator("#accountSensitive").isVisible();
+       if(!sensitiveVisible){
+        const details=await page.evaluate(()=>{
+         const el=document.querySelector("#accountSensitive"),button=document.querySelector("#deleteAccountOpen");
+         return {sectionClass:el?.className,buttonClass:button?.className,
+          sectionDisplay:el?getComputedStyle(el).display:null,
+          buttonDisplay:button?getComputedStyle(button).display:null,
+          overlayClass:document.querySelector("#accountOverlay")?.className,
+          htmlClass:document.documentElement.className};
+        });
+        throw Error("Read-only account deletion must remain visible: "+JSON.stringify(details));
+       }
       await page.locator("#deleteAccountOpen").click();
       await page.locator("#deleteAccountConfirm").fill("SUPPRIMER");
       await page.locator("#deleteAccountSubmit").click();

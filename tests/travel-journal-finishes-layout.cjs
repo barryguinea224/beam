@@ -11,13 +11,15 @@ async function main(){
    try{
     await page.setContent(html);
     await page.addStyleTag({content:fs.readFileSync("travel/home-simple.css","utf8")});
+     await page.addStyleTag({content:fs.readFileSync("travel/passport-home.css","utf8")});
     await page.evaluate(()=>{
      document.querySelector("#app").classList.remove("hidden");
      for(const selector of ["#travelHero","#travelMapPanel","#homeActions","#residencePanel","#travelPanels","#myAccount"])document.querySelector(selector).classList.remove("hidden");
      document.querySelector("#nd").textContent="1286";
      document.querySelector("#nt").textContent="12345";
      document.querySelector("#nc").textContent="249";
-     if(document.querySelector("#homeStats").querySelectorAll("span[id]").length!==6)throw Error("Condensed statistics must keep all six value and label nodes");
+     if(["nt","ntl","nc","ncl","nd","ndl"].some(id=>!document.getElementById(id)))
+       throw Error("Passport statistics must keep all three values and labels");
      const select=document.querySelector("#residence");
      const option=document.createElement("option");option.value="AE";option.textContent="Émirats arabes unis";select.appendChild(option);select.value="AE";
      document.querySelector("#countryList").innerHTML='<button class="countryChip">Guinée</button> <button class="countryChip">Arabie saoudite</button>';
