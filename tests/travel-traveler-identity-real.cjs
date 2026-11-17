@@ -82,7 +82,7 @@ async function main(){
    const page=await context.newPage();
    await page.route("**/*",route=>{
     const url=new URL(route.request().url());
-    if(url.hostname==="cdn.jsdelivr.net")
+    if(url.hostname==="127.0.0.1"&&url.pathname==="/travel/vendor/supabase.umd.js")
      return route.fulfill({status:200,contentType:"application/javascript",
        body:"("+fakeSupabase.toString()+")();"});
     if(url.hostname==="127.0.0.1")return route.continue();
