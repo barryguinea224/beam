@@ -80,11 +80,11 @@ async function stored(page){
   });db.close();return raw;
  });
 }
-async function seed(page,url){
+async function seed(page,url,{expectWorker=true}={}){
  await page.goto(url,{waitUntil:"load",timeout:30000});
  await page.waitForFunction(async()=>((await window.JYETAIS_OFFLINE?.readLast())?.trips?.length||0)>0,
   null,{timeout:30000});
- await page.evaluate(async()=>{await navigator.serviceWorker.ready});
+ if(expectWorker)await page.evaluate(async()=>{await navigator.serviceWorker.ready});
 }
 async function main(){
  await fs.mkdir(DIR,{recursive:true});
@@ -252,7 +252,8 @@ async function main(){
   {
    const {context,page,url,errors}=await pageFor(browser,server,360,true);
    try{
-    await seed(page,url);
+    // Account-switch fixture deliberately blocks service workers; do not await ready.
+    await seed(page,url,{expectWorker:false});
     await page.evaluate(()=>localStorage.setItem("jy-test-uid","22222222-2222-4222-8222-222222222222"));
     await page.reload({waitUntil:"load"});
     await page.waitForFunction(()=>document.querySelector("#dashboardTitle")?.textContent==="Voyageur Second");
