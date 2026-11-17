@@ -46,7 +46,10 @@ async function run(){
     if(/fonts\.(googleapis|gstatic)\.com/.test(url.hostname)||(/\.(woff2?|ttf|otf)$/i.test(url.pathname)&&url.hostname!=="127.0.0.1")){
      externalFonts.push(url.href);return route.abort();
     }
-    if(url.hostname==="127.0.0.1"&&url.pathname==="/travel/vendor/supabase.umd.js")
+    // The historical v46 baseline used a CDN, whereas the live app vendors the SDK.
+    // Intercept BOTH with the exact same synthetic client; no third-party fetch occurs.
+    if((url.hostname==="127.0.0.1"&&url.pathname==="/travel/vendor/supabase.umd.js")||
+       (phase==="avant"&&url.hostname==="cdn.jsdelivr.net"&&url.pathname.includes("supabase-js")))
      return route.fulfill({status:200,contentType:"application/javascript",body:"("+fictionalSupabase.toString()+")();"});
     if(url.hostname!=="127.0.0.1")return route.abort();
     const name=url.pathname==="/travel/"?"index.html":url.pathname.slice("/travel/".length);
