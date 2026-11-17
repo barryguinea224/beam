@@ -1,4 +1,5 @@
 "use strict";
+const {assertCacheName}=require("./helpers/cache-name.cjs");
 const assert=require("node:assert/strict");
 const fs=require("node:fs");
 const path=require("node:path");
@@ -32,7 +33,7 @@ for(const id of ["passportResidenceCode","travelerLocation","continentCount","de
  "detailSlideshowClose","slideCounter","slideCaption","slideImageBox"]){
  assert.ok(source.includes('id="'+id+'"'),"Missing "+id);
 }
-assert.match(sw,/jyetais-v60-passeport-diaporama/);
+assertCacheName(sw);
 assert.ok(sw.includes('"./vendor/supabase.umd.js"'));
 assert.ok(source.includes('src="./vendor/supabase.umd.js"'));
 assert.ok(!source.includes('src="https://cdn.jsdelivr.net'));

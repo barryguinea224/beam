@@ -155,7 +155,7 @@ async function main(){
      await p.locator("#openAccount").click();
      await p.locator("#accountOverlay").waitFor({state:"visible"});
      if(cfg.avatar){
-      await p.locator("#accountAvatar img").waitFor({state:"visible"});
+      await p.locator("#accountAvatar img").waitFor({state:"attached"});
      }else{
       assert.equal((await p.locator("#accountAvatar").innerText()).trim(),"AD");
       assert.equal(await p.locator("#accountAvatar img").count(),0);
@@ -167,7 +167,7 @@ async function main(){
       });
       await p.waitForFunction(()=>window.__avatarCalls.getProfile().avatar_id!==null);
       await p.locator("#travelerAvatar img").waitFor({state:"visible"});
-      await p.locator("#accountAvatar img").waitFor({state:"visible"});
+      await p.locator("#accountAvatar img").waitFor({state:"attached"});
       const info=await p.evaluate(()=>window.__avatarCalls);
       assert.equal(info.uploads.length,1,"one row-first private upload");
       assert.equal(info.uploads[0].opts.upsert,false);

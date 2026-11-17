@@ -88,7 +88,7 @@ async function seed(page,url){
 }
 async function main(){
  await fs.mkdir(DIR,{recursive:true});
- const server=serve();
+ const server=serve({vendorSdk:"("+fakeSupabase.toString()+")();"});
  await new Promise(resolve=>server.listen(0,"127.0.0.1",resolve));
  const browser=await chromium.launch({headless:true,args:["--no-sandbox","--disable-dev-shm-usage"]});
  try{
@@ -149,6 +149,8 @@ async function main(){
      const url=new URL("/travel/assets/world-map.svg",location.href).href;
      return !!(await caches.match(url));
     }),true,"The actual service worker precached world-map.svg");
+    // Same-origin SDK is served by the disposable HTTP fixture for both
+    // the browser and the real service worker (including its precache).
     const privateOfflineRequests=[];
     page.on("request",request=>{
      if(/\/storage\/v1\/|\/rest\/v1\/|\/auth\/v1\/|signedUrl/i.test(request.url()))
@@ -156,7 +158,16 @@ async function main(){
     });
     await context.setOffline(true);
     await page.goto(url,{waitUntil:"domcontentloaded",timeout:30000});
-    await page.locator("#offlineBanner").waitFor({state:"visible",timeout:30000});
+    try{await page.locator("#offlineBanner").waitFor({state:"visible",timeout:15000})}
+    catch(error){
+     const details=await page.evaluate(()=>({
+      online:navigator.onLine,offlineClass:document.documentElement.className,
+      bannerHidden:document.querySelector("#offlineBanner")?.hidden,
+      app:document.querySelector("#app")?.className,
+      owner:localStorage.getItem("jyetais.offline.owner")
+     }));
+     throw new Error("Offline hydration: "+JSON.stringify(details)+" "+errors.join("; ")+" "+error.message);
+    }
     assert.match(await page.locator("#offlineBanner").textContent(),/Hors ligne · voyages du/);
     assert.match(await page.locator("#dashboardTitle").textContent(),/Voyageuse Fictive/);
     assert.equal(await page.locator("#add").isDisabled(),true);
@@ -262,8 +273,10 @@ async function main(){
     await page.locator("#openAccount").click();
     await page.locator("#logout").click();
     await page.waitForFunction(async()=>!((await indexedDB.databases())
-     .some(db=>db.name==="jyetais-offline")),{timeout:20000});
-    assert.equal(await page.evaluate(()=>localStorage.getItem("jyetais.offline.owner")),null);
+     .some(db=>db.name==="jyetais-offline")),null,{timeout:20000});
+    // Logout/expiration can navigate during storage cleanup; poll across navigation.
+    await page.waitForFunction(()=>localStorage.getItem("jyetais.offline.owner")===null,
+      null,{timeout:15000});
     assert.deepEqual(errors,[]);
     console.log("PASS account switch wipes previous owner before display; logout deletes entire DB");
    }finally{await context.close()}
@@ -290,8 +303,10 @@ async function main(){
     await page.locator("#offline").waitFor({state:"visible",timeout:30000});
     assert.equal(await page.locator("#offlineBanner").isVisible(),false);
     await page.waitForFunction(async()=>!((await indexedDB.databases())
-     .some(db=>db.name==="jyetais-offline")),{timeout:30000});
-    assert.equal(await page.evaluate(()=>localStorage.getItem("jyetais.offline.owner")),null);
+     .some(db=>db.name==="jyetais-offline")),null,{timeout:30000});
+    // Logout/expiration can navigate during storage cleanup; poll across navigation.
+    await page.waitForFunction(()=>localStorage.getItem("jyetais.offline.owner")===null,
+      null,{timeout:15000});
     assert.deepEqual(errors,[]);
     console.log("PASS expired 30-day copy removed on offline startup; neutral fallback");
    }finally{await context.close()}

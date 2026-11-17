@@ -10,10 +10,15 @@ const ROOT=path.resolve(__dirname,"../travel");
 const mime={".html":"text/html; charset=utf-8",".js":"application/javascript; charset=utf-8",
  ".css":"text/css; charset=utf-8",".svg":"image/svg+xml",".json":"application/json",
  ".webmanifest":"application/manifest+json",".png":"image/png",".webp":"image/webp"};
-function serve(){
+function serve({vendorSdk}={}){
  return http.createServer(async(req,res)=>{
   if(syntheticTravelConfig(req,res))return;
   const pathname=new URL(req.url,"http://localhost").pathname;
+  // Offline SW fetches run below page.route; serve test-only SDK at HTTP layer.
+  if(typeof vendorSdk==="string"&&pathname==="/travel/vendor/supabase.umd.js"){
+   res.writeHead(200,{"content-type":"application/javascript; charset=utf-8","cache-control":"no-store"});
+   res.end(vendorSdk);return;
+  }
   if(!pathname.startsWith("/travel/")){res.writeHead(404);res.end();return}
   const target=path.resolve(ROOT,pathname.slice("/travel/".length)||"index.html");
   if(!target.startsWith(ROOT+path.sep)){res.writeHead(403);res.end();return}

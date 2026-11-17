@@ -86,7 +86,10 @@ async function main(){
       const text=await page.locator("#accessBanner").innerText();
       assert.match(text,entry.readonly? /reste consultable/:/Votre accès se termine le/);
      }
-     assert.equal(await page.locator("#add").isVisible(),!entry.readonly);
+     assert.equal(await page.locator("#add").isVisible(),!entry.readonly,
+       "Read-only accounts must not show the add journey action");
+     assert.equal(await page.locator("#add").isDisabled(),entry.readonly,
+       "Expired access must prevent creating journeys");
      assert.equal(await page.locator("#printJournal").isVisible(),true);
      assert.equal(await page.locator("#pdf").isVisible(),true);
      assert.equal(await page.locator("#openAccount").isVisible(),true);
@@ -105,23 +108,22 @@ async function main(){
       }
      await page.locator("#detailPhotos img").first().waitFor({state:"attached"});
      await page.locator("#detailClose").click();
-     // PDF factuel must still be launched even after expiry (it requires no writes).
-     if(entry.label==="expired"){
-      const popupPromise=page.waitForEvent("popup",{timeout:10000});
-      await page.locator("#pdf").click();
-      assert.equal(await page.locator("#pdfDialog").isVisible(),true);
-      assert.equal(await page.locator("#includePdfContacts").isChecked(),false);
-      await page.locator("#generatePdf").click();
-      const popup=await popupPromise;
-      await popup.close();
-     }
+     // The passport action tiles are visible but disabled in read-only accounts.
+     assert.equal(await page.locator("#pdf").isDisabled(),entry.readonly);
+     assert.equal(await page.locator("#printJournal").isDisabled(),entry.readonly);
+     if(entry.label==="expired")
+      assert.equal(await page.locator("#pdfDialog").isVisible(),false);
      await page.locator("#openAccount").click();
      await page.locator("#accountOverlay").waitFor({state:"visible"});
      const summary=await page.locator("#accountReadSummary").innerText();
      assert.match(summary,entry.until?/Accès jusqu'au/:/À activer/);
      assert.equal(await page.locator("#editAccount").isVisible(),!entry.readonly);
      if(entry.label==="expired"){
-      assert.equal(await page.locator("#accountSensitive").isVisible(),true);
+      assert.equal(await page.locator("#accountSensitive").isVisible(),true,
+        "Account deletion must remain available after expiry (not an offline preview)");
+       assert.equal(await page.evaluate(()=>
+        document.documentElement.classList.contains("travelOfflinePreview")),false,
+        "Expired online access must not be treated as airplane mode");
       await page.locator("#deleteAccountOpen").click();
       await page.locator("#deleteAccountConfirm").fill("SUPPRIMER");
       await page.locator("#deleteAccountSubmit").click();
