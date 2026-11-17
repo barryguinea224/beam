@@ -136,3 +136,15 @@
  #tripDetailModal .detailHeroControls{inset:9px 9px auto;gap:5px}
  #tripDetailModal .detailHeroControls button{padding:9px 10px;font-size:12px}
 }
+
+/* Mobile full-bleed passport: negative margins alone leave a right gap because
+   the hero remains only as wide as the padded content. The width AND offset
+   must both follow the viewport, including PWA viewport-fit=cover. */
+@media(max-width:899px){
+ #travelHero,#app .w.emptyTravel #travelHero{
+  box-sizing:border-box;
+  width:100vw!important;max-width:100vw!important;
+  margin-left:calc(50% - 50vw)!important;
+  margin-right:calc(50% - 50vw)!important;
+ }
+}
