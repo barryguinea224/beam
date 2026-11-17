@@ -119,7 +119,11 @@ async function main(){
      assert.match(summary,entry.until?/Accès jusqu'au/:/À activer/);
      assert.equal(await page.locator("#editAccount").isVisible(),!entry.readonly);
      if(entry.label==="expired"){
-      assert.equal(await page.locator("#accountSensitive").isVisible(),true);
+      assert.equal(await page.locator("#accountSensitive").isVisible(),true,
+        "Account deletion must remain available after expiry (not an offline preview)");
+       assert.equal(await page.evaluate(()=>
+        document.documentElement.classList.contains("travelOfflinePreview")),false,
+        "Expired online access must not be treated as airplane mode");
       await page.locator("#deleteAccountOpen").click();
       await page.locator("#deleteAccountConfirm").fill("SUPPRIMER");
       await page.locator("#deleteAccountSubmit").click();
