@@ -273,8 +273,10 @@ async function main(){
     await page.locator("#openAccount").click();
     await page.locator("#logout").click();
     await page.waitForFunction(async()=>!((await indexedDB.databases())
-     .some(db=>db.name==="jyetais-offline")),{timeout:20000});
-    assert.equal(await page.evaluate(()=>localStorage.getItem("jyetais.offline.owner")),null);
+     .some(db=>db.name==="jyetais-offline")),null,{timeout:20000});
+    // Logout/expiration can navigate during storage cleanup; poll across navigation.
+    await page.waitForFunction(()=>localStorage.getItem("jyetais.offline.owner")===null,
+      null,{timeout:15000});
     assert.deepEqual(errors,[]);
     console.log("PASS account switch wipes previous owner before display; logout deletes entire DB");
    }finally{await context.close()}
@@ -301,8 +303,10 @@ async function main(){
     await page.locator("#offline").waitFor({state:"visible",timeout:30000});
     assert.equal(await page.locator("#offlineBanner").isVisible(),false);
     await page.waitForFunction(async()=>!((await indexedDB.databases())
-     .some(db=>db.name==="jyetais-offline")),{timeout:30000});
-    assert.equal(await page.evaluate(()=>localStorage.getItem("jyetais.offline.owner")),null);
+     .some(db=>db.name==="jyetais-offline")),null,{timeout:30000});
+    // Logout/expiration can navigate during storage cleanup; poll across navigation.
+    await page.waitForFunction(()=>localStorage.getItem("jyetais.offline.owner")===null,
+      null,{timeout:15000});
     assert.deepEqual(errors,[]);
     console.log("PASS expired 30-day copy removed on offline startup; neutral fallback");
    }finally{await context.close()}
