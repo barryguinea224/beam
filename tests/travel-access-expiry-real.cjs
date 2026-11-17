@@ -86,8 +86,8 @@ async function main(){
       const text=await page.locator("#accessBanner").innerText();
       assert.match(text,entry.readonly? /reste consultable/:/Votre accès se termine le/);
      }
-     assert.equal(await page.locator("#add").isVisible(),true,
-       "The add action remains visible in the read-only passport layout");
+     assert.equal(await page.locator("#add").isVisible(),!entry.readonly,
+       "Read-only accounts must not show the add journey action");
      assert.equal(await page.locator("#add").isDisabled(),entry.readonly,
        "Expired access must prevent creating journeys");
      assert.equal(await page.locator("#printJournal").isVisible(),true);
