@@ -190,14 +190,18 @@ async function main(){
     }
     if(width===360)assert.ok(head.mapTop<780,
      "map must begin within first screen at 360px: "+JSON.stringify(head));
-    // National filter keeps its existing switching behavior and DOES NOT inflate foreign totals.
+    // National changes only the map/list, never the passport totals.
     await page.locator("#tripListFilter").click();
     await page.locator("#filterScope").selectOption("domestic");
     const national=await readStats(page);
-    assert.deepEqual([national.voyages,national.pays,national.jours],["1","1","3"],
-       "National must switch to 1 stay, 1 country, 3 days");
-    assert.deepEqual(national.labels,["voyage","pays","jours"]);
-    assert.match(national.compact,/1\s*voyage\s*1\s*pays\s*3\s*jours/s);
+    assert.deepEqual([national.voyages,national.pays,national.jours],["2","2","12"],
+      "National must leave the traveler passport totals unchanged");
+    assert.deepEqual(national.labels,["voyages","pays","jours"]);
+    assert.match(national.compact,/2\s*voyages\s*2\s*pays\s*12\s*jours/s);
+    assert.match(await page.locator("#tripListSummary").innerText(),/1 voyage · 1 pays/,
+      "The trip-list summary must reflect the selected National scope");
+    assert.equal(await page.locator("#trips .journeyTrip").count(),1,
+      "The filtered list shows only the domestic journey");
     await page.locator("#filterScope").selectOption("");
     const reset=await readStats(page);
     assert.deepEqual([reset.voyages,reset.pays,reset.jours],["2","2","12"],

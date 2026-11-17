@@ -91,10 +91,10 @@ assert.ok(!/dashboardFilters|filterCountry|filterYear|filterPurpose|filterScope/
  "PDF generation must never consume dashboard filters");
 assert.match(inline,/const visible=api\.apply\(trips,dashboardFilters\)/,
  "filtered rows must drive dashboard");
-assert.match(inline,/stats=api\.summary\(visible,dashboardFilters,asOf\)/,
- "headline statistics must receive selected scope");
-assert.match(inline,/national=dashboardFilters\.scope==="domestic"/,
- "only explicit national scope changes headline to domestic stays");
+assert.match(inline,/stats=api\.summary\(trips,api\.EMPTY,asOf\)/,
+ "passport statistics must count all started foreign journeys, irrespective of filters");
+assert.doesNotMatch(inline,/stats=api\.summary\(visible,dashboardFilters,asOf\)/,
+ "country, year, purpose and National filters must not change passport statistics");
 assert.match(inline,/active\?FR\.count\(visible\.length,"voyage"\)/,
  "filter status must reflect displayed trip count, not foreign headline");
 assert.match(inline,/const name=typeof profile\.display_name/,
