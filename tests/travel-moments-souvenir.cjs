@@ -45,5 +45,5 @@ assert.match(index,/id="detailNoteToggle"/);
 assert.match(index,/id="detailNoteDate"/);
 assert.match(index,/Mon souvenir/);
 assert.match(index,/detailMeasureSouvenir/);
-assert.match(sw,/jyetais-v59-etapes-moments/);
+assert.match(sw,/jyetais-v60-passeport-diaporama/);
 console.log("PASS dated moment cards, stable sort, privacy, clipped souvenir, dates and layout rules");
