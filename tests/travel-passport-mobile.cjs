@@ -55,7 +55,7 @@ async function main(){
    page.on("pageerror",error=>errors.push(error.message));
    await page.route("**/*",route=>{
     const u=new URL(route.request().url());
-    if(u.hostname==="cdn.jsdelivr.net")return route.fulfill({status:200,contentType:"application/javascript",
+    if(u.hostname==="127.0.0.1"&&u.pathname==="/travel/vendor/supabase.umd.js")return route.fulfill({status:200,contentType:"application/javascript",
      body:"("+fictionalSupabase.toString().replace('country_of_residence:"GN",','home_city:"Conakry",country_of_residence:"GN",')+")();"+patch});
     if(u.hostname==="fixture.invalid"&&u.pathname.startsWith("/storage/v1/object/sign/media/"))
      return route.fulfill({status:200,contentType:"image/svg+xml",headers:{"cache-control":"no-store"},body:photoSvg});
