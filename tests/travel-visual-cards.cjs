@@ -63,32 +63,26 @@ assert.ok(html.includes('loading="lazy"'));
 assert.ok(html.includes('src="./assets/flags/fr.svg"'));
 assert.ok(html.includes('src="./assets/countries/fr.svg"'));
 assert.ok(html.includes("France"));
-assert.ok(html.includes("Tourisme"));
-assert.ok(html.indexOf('class="journeyMedia"')<html.indexOf('class="journeyContent"'),
- "The visual precedes white-background information");
-assert.ok(html.indexOf('class="journeyContent"')<html.indexOf('class="tripOpen journeyLink"'),
- "The only button belongs to the content, not the photo");
-assert.ok(!html.includes("journeyShade"),"No darkening overlay behind text");
+assert.ok(!html.includes("Tourisme"),"Purpose remains in the detail, not the cover");
+assert.equal((html.match(/<button\\b/g)||[]).length,1,"One button wraps the complete card");
+assert.ok(html.indexOf('class="tripOpen journeyLink"')<html.indexOf('class="journeyMedia"'));
+assert.ok(html.indexOf('class="journeyMedia"')<html.indexOf('class="journeyContent"'));
+assert.match(html,/Ouvrir le récit ›/);
+assert.ok(!html.includes("journeyShade"),"The gradient is CSS, on the bottom only");
 assert.ok(!html.includes("journeyPhotoCount"),"Private photo badge is added only after media verification");
 assert.ok(html.includes('class="journeyCountry"')&&html.includes('class="journeyCities"'));
-const extra=CARD.markup({...trip,stops:[{country_code:"CA"}],companions:"Aïssatou",airline:"Compagnie fictive"},"France","Tourisme","10 → 20 oct. 2026");
-assert.match(extra,/1 étape · Canada/);
-assert.match(extra,/Avec Aïssatou/);
-assert.match(extra,/Compagnie fictive/);
-const categorized=CARD.markup({...trip,
- companions:"Aïssatou",airline:"Compagnie fictive",hotel:"Hôtel fictif",
- stops:[{country_code:"CA"}]},"France","Tourisme","10 → 20 oct. 2026");
-for(const [kind,label] of [["stops","1 étape · Canada"],["people","Avec Aïssatou"],
- ["plane","Compagnie fictive"],["bed","Hôtel fictif"]]){
- const section=categorized.match(new RegExp('class="journeyExtra journeyExtra-'+kind+'"[^>]*>([\\s\\S]*?)<\\/span><\\/span>'));
- assert.ok(section,"Missing semantic metadata "+kind);
- assert.match(section[0],/aria-hidden="true"/);
- assert.ok(section[0].includes(label),"Missing accessible label for "+kind);
-}
-assert.ok(!categorized.includes('M12 8v4l3 2'),"No generic clock icon in metadata");
-const htmlInjection=CARD.markup({...trip,hotel:'<img src=x onerror=alert(1)>'},
+const extras=CARD.markup({...trip,stops:[{country_code:"CA"}],
+ companions:"Aïssatou",airline:"Compagnie fictive",hotel:"Hôtel fictif"},"France","Tourisme","10 → 20 oct. 2026");
+for(const secret of ["Aïssatou","Compagnie fictive","Hôtel fictif","1 étape"])
+ assert.ok(!extras.includes(secret),"Secondary details not on the cover: "+secret);
+const titled=CARD.markup({...trip,title:"Le récit de Paris"},"France","Tourisme","10 → 20 oct. 2026");
+assert.match(titled,/class="journeyCountry">Le récit de Paris/);
+assert.match(titled,/class="journeyCode">France/);
+assert.match(titled,/10 → 20 oct\\. 2026 · 10 jours/);
+assert.match(CARD.markup({...trip,title:"   "},"France","Tourisme","2026"),/class="journeyCountry">France/);
+const htmlInjection=CARD.markup({...trip,title:'<img src=x onerror=alert(1)>'},
  "France","Tourisme","10 → 20 oct. 2026");
-assert.ok(!htmlInjection.includes('<img src=x'),"Hotel metadata must be escaped");
+assert.ok(!htmlInjection.includes('<img src=x'),"Personal title must be escaped");
 assert.ok(htmlInjection.includes('&lt;img src=x onerror=alert(1)&gt;'));
 assert.ok(!html.includes('<img src=x'),"Untrusted cities must not become markup");
 assert.ok(html.includes('&lt;img src=x onerror=alert(1)&gt;'),"Untrusted cities must be HTML-escaped");
@@ -137,9 +131,13 @@ assert.ok(js.includes('.eq("id",state.tripId).eq("user_id",user.id)'),"cover upd
 assert.ok(js.includes('for(const field of ["cover_media_id","airline_media_id","hotel_media_id"])'),
  "deleting a selected media must reset all three roles in the browser");
 assert.ok(!js.includes('https://images.unsplash.com'));
+assert.ok(js.includes('FR.count(owned.length,"photo")'),"Owner-verified photo labels");
+assert.ok(js.includes("scheduleCoverImages()"),"Visible-card lazy loading");
 assert.ok(!js.includes('flagcdn'));
 const css=fs.readFileSync(path.join(root,"visual-cards.css"),"utf8");
 assert.ok(!/url\s*\(/i.test(css),"Card CSS must never fetch third-party backgrounds");
+assert.ok(css.includes("aspect-ratio:4/5"));
+assert.ok(css.includes("inset:43% 0 0"),"Gradient remains at bottom");
 const pdf=fs.readFileSync(path.join(root,"factual-pdf.js"),"utf8");
 assert.ok(!/cover_media_id|storage_path|photo/.test(pdf.split("const FIELDS=")[1].split(";")[0]));
 console.log("PASS visual cards: 249 ISO SVG files and card icons incl. JP/NZ, local original SVG, signed URL host, escaped HTML, owner media query, unchanged factual PDF");

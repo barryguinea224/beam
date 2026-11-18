@@ -25,7 +25,8 @@ function seeded(){
   country_code:"DE",cities:["Berlin"],entry_date:"2026-11-12",exit_date:"2026-11-13",position:1});
  const photos=ids.map((id,i)=>({id,storage_path:"fictional/trip/photo-"+i+".webp",
   caption:"Légende fictive "+i,trip_id:tripId,user_id:uid,
-  activity_id:i<2?"99999999-9999-4999-8999-99999999999"+(i+1):null,
+  activity_id:i===1?"99999999-9999-4999-8999-999999999992":
+   "99999999-9999-4999-8999-999999999991",
   width:i===1?1700:800,height:i===1?900:1200}));
  const activities=[
  {id:"99999999-9999-4999-8999-999999999991",trip_id:tripId,user_id:uid,
@@ -128,6 +129,9 @@ async function main(){
     if(width===360)assert.ok(actions.every(a=>a.bottom<=740&&a.top>=0),
       "Revivre et Partager dans le premier écran 360×740");
     assert.equal(await page.locator("#detailFeatured .albumMoment").count(),2);
+    assert.equal(await page.locator("#detailFeatured .albumMomentGallery-3").count(),1);
+    assert.equal(await page.locator("#detailFeatured .albumMomentGallery-3 .albumMomentPhoto").count(),3);
+    assert.equal(await page.locator("#detailFeatured .albumMoment:not(:has(.albumMomentGallery)) .albumMomentPhoto").count(),1);
     const layout=await page.evaluate(()=>{
       const ids=["detailStats","detailFeaturedSection","detailItinerarySection","detailFacts",
         "detailTimelineDisclosure","detailPelliculeSection"];
@@ -208,6 +212,12 @@ async function main(){
      await page.locator("#detailFeaturedSection").screenshot({
       path:path.join(DIR,"fiche-moments-"+width+".png"),animations:"disabled"});
      if(width===390){
+      await page.locator("#detailSheet").evaluate(el=>{
+       const t=document.querySelector("#detailFeaturedSection");
+       el.scrollTop+=t.getBoundingClientRect().top-60;
+      });
+      await page.waitForTimeout(400);
+      await page.screenshot({path:path.join(DIR,"moment-trois-photos-390.png"),animations:"disabled"});
       await page.locator("#detailSheet").evaluate(el=>{
        const t=document.querySelector("#detailItinerarySection");
        el.scrollTop+=t.getBoundingClientRect().top-60;
@@ -336,7 +346,8 @@ async function main(){
      assert.match(await page.locator("#detailLightboxCaption").innerText(),/Légende fictive 2/);
      assert.equal(await page.locator("#detailSlideshow").isVisible(),false,"1 photo: viewer, not slideshow");
      await page.locator("#detailLightboxClose").click();
-     assert.equal(await page.locator("#detailFeaturedSection").isVisible(),false);
+     assert.equal(await page.locator("#detailFeaturedSection").isVisible(),true,"One linked photo keeps one moment");
+     assert.equal(await page.locator("#detailFeatured .albumMomentGallery").count(),0);
      await page.screenshot({path:path.join(DIR,"album-1-photo-390.png"),animations:"disabled"});
      await page.locator("#detailClose").click();
      await page.evaluate(()=>{
