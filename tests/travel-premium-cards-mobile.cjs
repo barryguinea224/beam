@@ -201,11 +201,33 @@ async function main(){
     assert.equal(collisions.overlaps,0,
      "Floating + must never cover photo/status pills while scrolling: "+JSON.stringify(collisions));
     assert.ok(collisions.checked>=10,"Sweep actually tested the long journey list");
-    assert.ok(collisions.guarded>0,"Collision guard exercised with a visible journey badge");
+    // A short synthetic itinerary may scroll without any actual crossing.
+    // Also force a badge into the floating button's fixed hitbox, then
+    // verify that the real guard hides + and restores it after removal.
+    const guard=await page.evaluate(()=>{
+     const host=document.querySelector(".completedTripsList .journeyMedia");
+     const badge=document.createElement("span");
+     badge.className="journeyPhotoCount";
+     badge.textContent="2 photos";
+     Object.assign(badge.style,{position:"fixed",right:"20px",bottom:"20px"});
+     host.append(badge);
+     updateFloatingAdd();
+     const hiddenDuringCollision=document.querySelector("#addFloating").hidden;
+     badge.remove();
+     updateFloatingAdd();
+     const visibleAfterCollision=!document.querySelector("#addFloating").hidden;
+     return {hiddenDuringCollision,visibleAfterCollision};
+    });
+    assert.ok(guard.hiddenDuringCollision&&guard.visibleAfterCollision,
+     "Floating + yields to a simulated visible badge and returns after it passes: "+JSON.stringify(guard));
     if(width===390){
      await page.evaluate(async y=>{
       window.scrollTo(0,y);await new Promise(resolve=>requestAnimationFrame(resolve));
-     },collisions.firstHit);
+     },collisions.firstHit??await page.evaluate(()=>{
+      const badge=document.querySelector(".completedTripsList .journeyPhotoCount");
+      return badge?Math.max(0,window.scrollY+badge.getBoundingClientRect().top-innerHeight+105):
+       Math.max(0,document.documentElement.scrollHeight-innerHeight-250);
+     }));
      await page.screenshot({path:path.join(dir,"pastilles-bouton-flottant-390.png"),animations:"disabled"});
     }
     // At the physical bottom of the document, the final fiche action must not
