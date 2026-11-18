@@ -92,7 +92,7 @@ const fallback=CARD.markup({...trip,country_code:"NZ",cities:["Auckland"]},"Nouv
 assert.ok(!fallback.includes("journeyBackdrop"),"Unsupported country uses CSS fallback");
 assert.ok(fallback.includes('<img class="journeyFlag" src="./assets/flags/nz.svg"'),
  "A country without a local backdrop must still show its local flag");
-assert.ok(fallback.includes("NZ"));
+assert.ok(fallback.includes("Nouvelle-Zélande"),"Country name replaces ISO code on the cover");
 const japan=CARD.markup({...trip,country_code:"JP",cities:["Tokyo"]},"Japon","Tourisme","octobre 2026");
 assert.ok(japan.includes('<img class="journeyFlag" src="./assets/flags/jp.svg"'),
  "Japan flag must be visible on the actual trip card");

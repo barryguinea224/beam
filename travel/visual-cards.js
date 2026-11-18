@@ -36,8 +36,8 @@
     const cities=Array.isArray(trip.cities)?trip.cities.filter(Boolean).join(", "):"";
     const status=LIFE?.label(trip)||"",state=LIFE?.state(trip)||"ended";
     const days=Number(trip.duration_days);
-    const duration=trip.entry_date===trip.exit_date?FR.count(1,"jour"):
-      Number.isInteger(days)&&days>=1?FR.count(days,"jour"):"—";
+    const duration=trip.entry_date===trip.exit_date?"Excursion · "+FR.count(1,"jour"):
+      Number.isInteger(days)&&days>=0?FR.count(days,"jour"):"—";
     const dateAndDuration=[dateLabel,duration].filter(Boolean).map(esc).join(" · ");
     // One accessible button for the entire card. Media is signed on intersection.
     return '<article class="trip journeyTrip" data-id="'+esc(id)+'">'+
