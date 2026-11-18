@@ -150,7 +150,83 @@ async function main(){
     const sticky=await page.locator("#tripListToolbar").evaluate(el=>({top:el.getBoundingClientRect().top,position:getComputedStyle(el).position}));
     assert.equal(sticky.position,"sticky");
     assert.ok(sticky.top>=-1&&sticky.top<40,"Sticky toolbar should remain at top: "+JSON.stringify(sticky));
+    // The pinned bar must cover the entire viewport edge-to-edge;
+    // no trip card may peek through rounded edges.
+    const stickyMask=await page.locator("#tripListToolbar").evaluate(bar=>{
+      const r=bar.getBoundingClientRect(),style=getComputedStyle(bar);
+      const onBar=x=>{
+       const n=document.elementFromPoint(x,Math.round(Math.min(innerHeight-2,r.top+20)));
+       return n===bar||bar.contains(n);
+      };
+      return {left:r.left,right:r.right,top:r.top,background:style.backgroundColor,
+       radius:style.borderTopLeftRadius,leftCovered:onBar(1),rightCovered:onBar(innerWidth-2),
+       scrollWidth:document.documentElement.scrollWidth};
+    });
+    assert.ok(Math.abs(stickyMask.left)<=1&&Math.abs(stickyMask.right-width)<=1,
+      "Sticky bar must mask card edges across the viewport: "+JSON.stringify(stickyMask));
+    assert.equal(stickyMask.background,"rgb(255, 255, 255)","Sticky bar is fully opaque");
+    assert.equal(stickyMask.radius,"0px","No rounded corners exposing moving cards");
+    assert.ok(stickyMask.leftCovered&&stickyMask.rightCovered,"Cards cannot show beside the bar");
+    assert.ok(stickyMask.scrollWidth<=width+1,"Full-width sticky bar causes no overflow");
     if(width===360)await page.screenshot({path:path.join(dir,"barre-collee-defilement-360.png"),animations:"disabled"});
+    if(width===390)await page.screenshot({path:path.join(dir,"barre-collante-390.png"),animations:"disabled"});
+    // The standard fixed + stays visible throughout scrolling once the
+    // large Add button has passed; badges may scroll beneath it.
+    const scrolling=await page.evaluate(async()=>{
+      const add=document.querySelector("#addFloating"),large=document.querySelector("#add");
+      const hit=(a,b)=>a.left<b.right&&a.right>b.left&&a.top<b.bottom&&a.bottom>b.top;
+      const max=Math.max(0,document.documentElement.scrollHeight-innerHeight);
+      let checked=0,afterMain=0,hiddenAfterMain=0,badgeCrossings=0,firstCrossing=null;
+      for(let y=0;y<=max+35;y+=35){
+       scrollTo(0,Math.min(y,max));
+       await new Promise(resolve=>requestAnimationFrame(resolve));
+       checked++;
+       if(large.getBoundingClientRect().bottom>=0)continue;
+       afterMain++;
+       const visible=!add.hidden&&getComputedStyle(add).display!=="none";
+       if(!visible)hiddenAfterMain++;
+       const rect=add.getBoundingClientRect();
+       if([...document.querySelectorAll("#trips .journeyPhotoCount,#trips .journeyStatus")]
+         .some(el=>hit(rect,el.getBoundingClientRect()))){
+        badgeCrossings++;
+        if(firstCrossing===null)firstCrossing=scrollY;
+       }
+      }
+      return {checked,afterMain,hiddenAfterMain,badgeCrossings,firstCrossing};
+    });
+    assert.ok(scrolling.checked>=10&&scrolling.afterMain>0,
+     "Sweep must cover the cards after the main Add button: "+JSON.stringify(scrolling));
+    assert.equal(scrolling.hiddenAfterMain,0,
+     "Floating + must remain visible throughout scrolling, even across badges: "+JSON.stringify(scrolling));
+    // Explicit overlap regression: a synthetic photo pill passing underneath
+    // must not trigger hiding or flashing of the floating +.
+    const overlapProbe=await page.evaluate(()=>{
+      const add=document.querySelector("#addFloating"),host=document.querySelector(".completedTripsList .journeyMedia");
+      const pill=document.createElement("span");
+      pill.className="journeyPhotoCount";pill.textContent="2 photos";
+      const rect=add.getBoundingClientRect();
+      Object.assign(pill.style,{position:"fixed",left:(rect.left+8)+"px",top:(rect.top+8)+"px",
+       right:"auto",bottom:"auto"});
+      host.append(pill);
+      updateFloatingAdd();
+      const intersects=(()=>{
+       const p=pill.getBoundingClientRect(),f=add.getBoundingClientRect();
+       return p.left<f.right&&p.right>f.left&&p.top<f.bottom&&p.bottom>f.top;
+      })();
+      const visibleDuring=!add.hidden&&getComputedStyle(add).display!=="none";
+      pill.remove();
+      updateFloatingAdd();
+      return {intersects,visibleDuring,visibleAfter:!add.hidden};
+    });
+    assert.ok(overlapProbe.intersects&&overlapProbe.visibleDuring&&overlapProbe.visibleAfter,
+     "Floating + stays visible when a photo pill crosses underneath: "+JSON.stringify(overlapProbe));
+    if(width===390){
+     await page.evaluate(async y=>{
+      window.scrollTo(0,y);await new Promise(resolve=>requestAnimationFrame(resolve));
+     },scrolling.firstCrossing??await page.evaluate(()=>
+       Math.max(0,document.documentElement.scrollHeight-innerHeight-250)));
+     await page.screenshot({path:path.join(dir,"pastilles-bouton-flottant-390.png"),animations:"disabled"});
+    }
     // At the physical bottom of the document, the final fiche action must not
     // overlap the fixed 56px add shortcut, including its 16px bottom offset.
     await page.evaluate(()=>window.scrollTo(0,document.documentElement.scrollHeight));

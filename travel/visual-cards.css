@@ -11,7 +11,11 @@
 #trips .journeyFlagFallback img{display:block;width:76px;height:60px;max-width:36%;object-fit:contain}
 #trips .journeyFlagLine,#trips .journeyMedia>.journeyStatus,#trips .journeyPhotoCount{position:absolute;z-index:4;display:inline-flex;align-items:center;min-height:32px;border-radius:999px;box-shadow:0 1px 5px #101d1630;max-width:calc(100% - 24px);font:700 12px/1.25 system-ui,sans-serif}
 #trips .journeyFlagLine{top:12px;left:12px;gap:7px;max-width:calc(100% - 130px);padding:6px 10px;background:#fff;color:#17392b;overflow-wrap:anywhere}
-#trips .journeyFlag{width:23px;height:17px;flex:none;object-fit:cover;border-radius:2px}
+/* A fine neutral outline makes white-background country flags legible. */
+#trips .journeyFlag,#tripDetailModal #detailCountryBadge img,#tripDetailModal .tripStopFlag{
+ box-sizing:border-box;border:1px solid #D0D5D2;border-radius:3px;background:#fff
+}
+#trips .journeyFlag{width:23px;height:17px;flex:none;object-fit:cover}
 #trips .journeyCode{font:700 12px/1.3 system-ui,sans-serif;color:#17392b;letter-spacing:0}
 #trips .journeyPhotoCount{top:12px;right:12px;min-height:32px;margin:0;padding:6px 10px;background:#fff;color:#17392b;white-space:nowrap}
 #trips .journeyMedia>.journeyStatus{top:59px;left:12px;right:auto;width:auto;margin:0;padding:6px 11px;background:#fff;color:#17392b}
