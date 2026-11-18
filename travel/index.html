@@ -2721,6 +2721,7 @@ function closePhotoActions(){
  $("#photoActionOverlay").setAttribute("aria-hidden","true");
  $("#photoActionImage").removeAttribute("src");
  $("#photoNoteInput").value="";
+ $("#photoMomentForm").classList.add("hidden");
  const target=photoSheetReturnFocus;photoSheetReturnFocus=null;
  const fallback=$("#tripDetailModal").classList.contains("open")?$("#detailClose"):$("#photos");
  (target?.isConnected?target:fallback)?.focus();
@@ -2735,6 +2736,7 @@ function refreshPhotoSheetActions(){
  const trip=trips.find(row=>row.id===state.tripId),editable=photoEditable()&&state.context!=="pending";
  const caption=DETAIL.captionValue(state.row.caption);
  $("#photoNoteToggle").classList.toggle("hidden",!editable);
+ $("#photoMomentToggle").classList.toggle("hidden",!editable);
  $("#photoCover").classList.toggle("hidden",!editable);
  $("#photoProfileCover").classList.toggle("hidden",state.context==="pending");
  $("#photoProfileCover").disabled=!editable;
@@ -2762,6 +2764,7 @@ function openPhotoActions(context,row,tripId,trigger){
  photoSheetReturnFocus=trigger||document.activeElement;
  $("#photoActionStatus").textContent="";
  $("#photoNoteForm").classList.add("hidden");
+ $("#photoMomentForm").classList.add("hidden");
  $("#photoDeleteConfirm").classList.add("hidden");
  $("#photoActionList").classList.remove("hidden");
  if(row.url)$("#photoActionImage").src=row.url;
@@ -2818,6 +2821,55 @@ $("#photoProfileCover").onclick=async()=>{
  const selected=photoSheetState.row.id;
  const ok=await setProfileCover(selected);
  if(ok)photoSheetMessage("Photo utilisée comme couverture de votre profil.");
+};
+// Link a photo to an existing owned activity, without copying the WebP.
+$("#photoMomentToggle").onclick=async()=>{
+ const state=photoSheetState;
+ if(!state||!photoEditable()||photoSheetBusy||state.context==="pending")return;
+ const form=$("#photoMomentForm"),select=$("#photoMomentSelect");
+ form.classList.remove("hidden");$("#photoActionList").classList.add("hidden");
+ select.replaceChildren(new Option("Aucun moment",""));
+ try{
+  const {data,error}=await S.from("activities").select("id,title,happened_on")
+   .eq("trip_id",state.tripId).eq("user_id",user.id).order("happened_on",{ascending:true});
+  if(state!==photoSheetState)return;
+  if(error||!Array.isArray(data))throw Error("Lecture des moments refusée");
+  for(const row of data)select.add(new Option(String(row.title||"Moment").slice(0,160),row.id));
+  select.value=state.row.activity_id||"";
+  if(!data.length)photoSheetMessage("Ajoutez d'abord un moment à ce voyage.");
+  select.focus();
+ }catch{photoSheetMessage("Impossible de charger les moments.");}
+};
+$("#photoMomentCancel").onclick=()=>{
+ if(photoSheetBusy)return;
+ $("#photoMomentForm").classList.add("hidden");$("#photoActionList").classList.remove("hidden");
+ $("#photoMomentToggle").focus();
+};
+$("#photoMomentForm").onsubmit=async event=>{
+ event.preventDefault();
+ const state=photoSheetState;
+ if(!state||!photoEditable()||photoSheetBusy||state.context==="pending")return;
+ const selected=$("#photoMomentSelect").value||null;
+ photoSheetBusy=true;photoSheetMessage("");
+ try{
+  const {data,error}=await S.from("media").update({activity_id:selected})
+   .eq("id",state.row.id).eq("trip_id",state.tripId).eq("user_id",user.id)
+   .select("id,activity_id").single();
+  if(error||!data||data.id!==state.row.id||data.activity_id!==selected)throw Error("Lien refusé");
+  state.row.activity_id=selected;
+  for(const rows of [existingMedia,detailPhotoRows]){
+   const row=rows.find(x=>x.id===state.row.id);
+   if(row)row.activity_id=selected;
+  }
+  $("#photoMomentForm").classList.add("hidden");$("#photoActionList").classList.remove("hidden");
+  photoSheetMessage(selected?"Photo associée au moment.":"Association retirée.");
+  if(detailTripId===state.tripId){
+   const trip=trips.find(x=>x.id===state.tripId);
+   if(trip)detailAlbumRender(trip);
+  }
+  $("#photoMomentToggle").focus();
+ }catch{photoSheetMessage("Impossible d'associer cette photo au moment. Réessayez.")}
+ finally{photoSheetBusy=false}
 };
 $("#photoAirline").onclick=()=>writePhotoRole("airline_media_id");
 $("#photoHotel").onclick=()=>writePhotoRole("hotel_media_id");
