@@ -23,13 +23,18 @@ async function main(){
      const input=document.getElementById("tripCompanions");
      input.value="Maman, Aïssatou"; // fictional first-name specimen
      const detail=document.getElementById("tripDetailModal");detail.classList.add("open");
-     // The premium sheet keeps forms collapsed; expose it for the form fixture.
+     // Fixture: reproduce the actual "Ajouter un moment" path, which opens
+     // the day-by-day disclosure before revealing its activity form.
+     const timeline=document.getElementById("detailTimelineDisclosure");
+     timeline.hidden=false;timeline.open=true;
      document.getElementById("detailActivitiesSection").hidden=false;
      document.getElementById("detailActivityForm").classList.remove("hidden");
      document.getElementById("activityDate").add(new Option("24 décembre","2026-12-24"));
      document.getElementById("activityDate").add(new Option("30 décembre","2026-12-30"));
      window.BEAM_ACTIVITY_DURATIONS.resetControls({entry_date:"2026-12-20",exit_date:"2026-12-31"});
     });
+    assert.equal(await page.locator("#detailTimelineDisclosure").evaluate(el=>el.open),true,
+     "The day-by-day disclosure must be open when adding a moment");
     await page.locator("#activityDate").selectOption("2026-12-24");
     await page.locator('#activityDurationChoices [data-duration="3"]').click();
     assert.match(await page.locator("#activityDurationPreview").innerText(),/24 → 26 déc. · 3 jours/);

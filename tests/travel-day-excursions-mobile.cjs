@@ -218,7 +218,9 @@ async function start(){
      path:path.join(dir,"carte-excursion-360.png"),fullPage:true,animations:"disabled"});
 
     await dayCard.locator(".tripOpen").click();
-    assert.match(await page.locator("#detailIntro").innerText(),/Excursion · 1 jour/);
+    // P0 album keeps dates under the cover; duration moved to the compact stats.
+    assert.match(await page.locator("#detailIntro").innerText(),/12 déc\. 2026/);
+    assert.match(await page.locator("#detailStats").innerText(),/1 jour/);
     assert.equal(await page.locator("#detailFacts dt").filter({hasText:"Date"}).count(),1);
     assert.equal(await page.locator("#detailFacts dt").filter({hasText:"Sortie"}).count(),0);
     await page.locator("#detailModeToggle").click();

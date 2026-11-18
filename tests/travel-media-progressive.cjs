@@ -39,7 +39,7 @@ async function main(){
   from(table){
    assert.equal(table,"media");
    return {select(fields){
-    assert.equal(fields,"id,storage_path,created_at,caption");
+    assert.equal(fields,"id,storage_path,created_at,caption,activity_id,width,height");
     return {eq(){return this},order(){const d=deferred();mediaRequests.push(d);return d.promise}}
    }};
   },

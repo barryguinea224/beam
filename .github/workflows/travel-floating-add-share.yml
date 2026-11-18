@@ -28,7 +28,20 @@ jobs:
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
-          git diff --exit-code "$BASE_SHA"...HEAD -- travel/factual-pdf-file.js travel/supabase
+          # An additive P0 SQL migration may change travel/supabase, but the
+          # factual generator and the exact SQL view text must stay unchanged.
+          git diff --exit-code "$BASE_SHA"...HEAD -- travel/factual-pdf-file.js
+          python3 - <<'PY'
+          from pathlib import Path
+          import os, re, subprocess
+          base = subprocess.check_output(["git","show",os.environ["BASE_SHA"]+":travel/supabase/schema.sql"],text=True)
+          head = Path("travel/supabase/schema.sql").read_text()
+          pattern = r"create view public\.travel_history_pdf\b[\s\S]*?;"
+          previous = re.search(pattern,base,re.I)
+          current = re.search(pattern,head,re.I)
+          assert previous and current and previous.group(0)==current.group(0), "Ambassade SQL view changed"
+          print("PASS unchanged byte-for-byte travel_history_pdf view source")
+          PY
           node --check tests/travel-floating-add-mobile.cjs
           node --check tests/travel-factual-pdf-share-priority.cjs
           node --check tests/travel-factual-pdf-share-browser.cjs

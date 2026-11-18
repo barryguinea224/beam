@@ -44,7 +44,7 @@ assert.match(html,/navigator\.share\(\{files:\[detailShareFile\],title:"J'y éta
 assert.match(html,/SHARE\.safeTrip\(trip,countryName\(trip\.country_code\)/);
 assert.match(html,/Math\.min\(3,detailPhotoRows\.length\)/);
 assert.match(html,/detailPhotoRows\.slice\(0,2\)\.map\(/);
-assert.match(html,/S\.from\("media"\)\.select\("id,storage_path,caption"\)\.eq\("user_id",user\.id\)\.eq\("trip_id",id\)/);
+assert.match(html,/S\.from\("media"\)\.select\("id,storage_path,caption,activity_id,width,height"\)\.eq\("user_id",user\.id\)\.eq\("trip_id",id\)/);
 assert.match(css,/scroll-snap-type:x mandatory/);
 assert.match(css,/aspect-ratio:100 \/ 56/);
 assert.match(css,/#detailShareSend\[hidden\]/);

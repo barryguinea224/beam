@@ -1,0 +1,111 @@
+/* J'y étais P0 album. Loaded after trip-premium.css: consultation-first, private by default. */
+#tripDetailModal .detailSheet{background:#f8f6f0}
+#tripDetailModal .detailHero{
+ position:relative;height:min(62svh,540px);height:min(62dvh,540px);
+ aspect-ratio:auto;min-height:340px;max-height:540px;overflow:hidden;
+ background:#dce5dc;
+}
+#tripDetailModal #detailPhotos.detailGallery{display:block;width:100%;height:100%;overflow:hidden;scroll-snap-type:none;scroll-behavior:auto}
+#tripDetailModal #detailPhotos .detailPhoto{display:none;position:absolute;inset:0;width:100%;height:100%;margin:0}
+#tripDetailModal #detailPhotos .detailPhoto:first-child{display:block}
+#tripDetailModal #detailPhotos .photoTap{display:block;width:100%;height:100%;border:0;padding:0;min-height:44px}
+#tripDetailModal #detailPhotos .photoTap img{width:100%;height:100%;object-fit:cover}
+#tripDetailModal .detailHeroFallback{inset:0}
+#tripDetailModal .detailHeroControls{inset:calc(12px + env(safe-area-inset-top,0px)) 14px auto;justify-content:flex-start}
+#tripDetailModal .detailHeroControls #detailClose{color:#fff;background:#12281bbd;border:1px solid #ffffff66;box-shadow:none}
+#tripDetailModal .detailHeading{
+ position:absolute;inset:auto 0 0;z-index:3;
+ padding:85px 20px 18px!important;margin:0;
+ background:linear-gradient(180deg,transparent 0%,#101e17af 57%,#101e17dd 100%);
+ color:#fff;pointer-events:none
+}
+#tripDetailModal .detailHero .detailHeading>*{pointer-events:none}
+#tripDetailModal #detailCountryBadge{border:0;background:transparent;color:#fff;border-radius:0;
+ padding:0;font:600 14px/1.4 system-ui,sans-serif;gap:7px}
+#tripDetailModal #detailCountryBadge img{border:0;width:25px;height:18px}
+#tripDetailModal #detailCountryTitle{font:600 clamp(25px,7.3vw,39px)/1.14 Poppins,system-ui,sans-serif;
+ color:#fff;margin:6px 0 4px;letter-spacing:-.025em;max-width:100%;overflow-wrap:anywhere}
+#tripDetailModal #detailTitle{color:#fff;font:500 14px/1.45 system-ui,sans-serif;margin:0 0 4px}
+#tripDetailModal #detailIntro{color:#f4f5f1;font:400 13px/1.45 system-ui,sans-serif}
+#tripDetailModal #detailLifecycle{color:#fff;margin:4px 0 0}
+#tripDetailModal #detailLifecycle.detailLifecycle-ongoing{background:#fff;color:#17392b}
+#tripDetailModal #detailGalleryCount{display:none!important}
+#tripDetailModal .detailPrimaryActions{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px 18px 6px;align-items:center}
+#tripDetailModal .detailPrimaryActions button{display:flex;align-items:center;justify-content:center;
+ min-height:48px;width:100%;font:600 14px/1.3 Poppins,system-ui,sans-serif;
+ border-radius:999px;cursor:pointer;gap:6px}
+#tripDetailModal #detailSlideshowOpen{background:#174d3a;color:#fff;border:1px solid #174d3a}
+#tripDetailModal #detailShare{background:#fff;color:#174d3a;border:1px solid #a3b6a9}
+#tripDetailModal .detailPrimaryActions button:disabled{opacity:.52;cursor:not-allowed}
+#tripDetailModal #detailSlideshowOpen svg{width:16px;height:16px}
+#tripDetailModal #detailShareHelp{grid-column:1/-1;margin:0;color:#516557;font:400 12px/1.5 system-ui,sans-serif}
+#tripDetailModal #detailNoPhotoAdd{grid-column:auto;background:#174d3a;color:#fff;border:1px solid #174d3a}
+#tripDetailModal #detailStats{display:flex;align-items:center;justify-content:center;gap:9px;
+ padding:10px 14px 17px;color:#536557;font:500 13px/1.5 system-ui,sans-serif;text-align:center}
+#tripDetailModal .albumSection{padding:23px 18px;border-top:1px solid #e0e7e0;min-width:0}
+#tripDetailModal .albumSection[hidden],#tripDetailModal #detailTimelineDisclosure[hidden]{display:none!important}
+#tripDetailModal .albumSection h3{font:600 19px/1.3 Poppins,system-ui,sans-serif;color:#174d3a;margin:0 0 16px}
+#tripDetailModal .albumMoment{margin:0 0 22px;min-width:0}
+#tripDetailModal .albumMoment:last-child{margin-bottom:0}
+#tripDetailModal .albumMomentPhoto{display:block;width:100%;min-height:180px;aspect-ratio:16/10;
+ border:0;border-radius:15px;overflow:hidden;padding:0;background:#e1e9e1;cursor:pointer}
+#tripDetailModal .albumMomentPhoto.albumMomentPhoto-portrait{aspect-ratio:4/5}
+#tripDetailModal .albumMomentPhoto img{display:block;width:100%;height:100%;object-fit:cover;object-position:center;
+ border-radius:0;background:#e0e9e0}
+#tripDetailModal .albumMomentStory{padding:13px 2px 0}
+#tripDetailModal .albumMomentStory time{font:500 12px/1.5 system-ui,sans-serif;color:#64786d}
+#tripDetailModal .albumMomentStory h4{font:600 18px/1.4 Poppins,system-ui,sans-serif;
+ color:#173c2c;margin:3px 0 2px;overflow-wrap:anywhere}
+#tripDetailModal .albumMomentStory p{font:400 14px/1.6 system-ui,sans-serif;color:#52695a;margin:0;overflow-wrap:anywhere}
+#tripDetailModal .albumMapFrame{background:#eaf0e9;border-radius:15px;overflow:hidden}
+#tripDetailModal #detailAlbumMap{display:block;width:100%;aspect-ratio:1000/445;height:auto;overflow:hidden}
+#tripDetailModal #detailAlbumMap svg{display:block;width:100%;height:100%}
+#tripDetailModal #detailAlbumMap path[data-country]{
+ fill:#d7ded9;stroke:#fff;stroke-width:.7;vector-effect:non-scaling-stroke
+}
+#tripDetailModal #detailAlbumMap path[data-country].visited{
+ fill:#7fb196;stroke:#fff;stroke-width:.8
+}
+#tripDetailModal #detailNoteSection .detailSouvenirCard{
+ border-left:0;border-radius:12px;background:#f2f7f1
+}
+#tripDetailModal #detailTimelineDisclosure{padding:0;min-width:0;border-top:1px solid #e0e7e0}
+#tripDetailModal #detailTimelineDisclosure>summary{list-style:none;min-height:53px;display:flex;
+ align-items:center;justify-content:space-between;cursor:pointer;
+ padding:13px 18px;color:#174d3a;font:600 14px/1.45 Poppins,system-ui,sans-serif}
+#tripDetailModal #detailTimelineDisclosure>summary::-webkit-details-marker{display:none}
+#tripDetailModal #detailTimelineDisclosure>summary:after{content:"⌄";font:500 20px/1 system-ui,sans-serif}
+#tripDetailModal #detailTimelineDisclosure[open]>summary:after{content:"⌃"}
+#tripDetailModal[data-mode="edit"] #detailTimelineDisclosure>summary{display:none}
+#tripDetailModal #detailTimelineDisclosure #detailActivitiesSection{border-top:0}
+#tripDetailModal #detailPelliculeSection{padding-bottom:23px}
+#tripDetailModal .albumMosaic{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+ grid-auto-rows:74px;grid-auto-flow:dense;gap:9px;min-width:0}
+#tripDetailModal .albumTile{position:relative;margin:0;border:0;min-width:0;overflow:hidden;
+ border-radius:12px;background:#e1e9e1}
+#tripDetailModal .albumTile-landscape{grid-column:span 2;grid-row:span 3}
+#tripDetailModal .albumTile-portrait{grid-row:span 3}
+#tripDetailModal .albumTile-square{grid-row:span 2}
+#tripDetailModal .albumTilePhoto{display:block;width:100%;height:100%;min-height:44px;border:0;padding:0;background:transparent;cursor:pointer}
+#tripDetailModal .albumTilePhoto img{display:block;width:100%;height:100%;object-fit:cover;background:#e3e9e3}
+#tripDetailModal .albumTile figcaption{position:absolute;bottom:0;left:0;right:0;
+ padding:5px 7px;color:#fff;background:#123329b3;font:400 10px/1.3 system-ui,sans-serif;
+ pointer-events:none;text-align:center}
+#tripDetailModal .albumPhotoWait{display:block;width:100%;height:100%;
+ background:linear-gradient(120deg,#e1e9e1,#d3e0d5,#e1e9e1)}
+#tripDetailModal #detailFacts.detailFacts{
+ display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+ box-sizing:border-box;width:calc(100% - 32px);max-width:calc(100% - 32px);
+ margin:16px 16px 20px;padding:0;gap:8px
+}
+#tripDetailModal #detailFacts .detailFact{min-width:0}
+#tripDetailModal :is(.albumMomentPhoto,.albumTilePhoto,.detailPrimaryActions button,#detailTimelineDisclosure>summary):focus-visible{
+ outline:3px solid #c2812b;outline-offset:2px}
+@media(max-width:390px){
+ #tripDetailModal .detailHeading{padding:70px 16px 15px!important}
+ #tripDetailModal .detailPrimaryActions{padding:11px 15px 5px;gap:8px}
+ #tripDetailModal .albumSection{padding:21px 15px}
+ #tripDetailModal #detailStats{gap:7px;font-size:12px}
+}
+@media(max-height:590px){#tripDetailModal .detailHero{height:min(58svh,360px);min-height:260px}}
+@media(prefers-reduced-motion:reduce){#tripDetailModal .albumMomentPhoto,#tripDetailModal .albumTile{scroll-behavior:auto}}

@@ -24,6 +24,7 @@ function stage(x){
 }
 function journey(x){
  return {id:id(x?.id),country_code:safeText(x?.country_code,2),cities:cities(x?.cities),
+  title:safeText(x?.title,60),
   entry_date:safeDate(x?.entry_date),exit_date:safeDate(x?.exit_date),
   duration_days:Number.isInteger(x?.duration_days)?x.duration_days:0,
   purpose:safeText(x?.purpose,40),airline:safeText(x?.airline,160),

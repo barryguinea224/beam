@@ -24,7 +24,9 @@ function seeded(){
  stops.push({id:"88888888-8888-4888-8888-888888888881",trip_id:tripId,user_id:uid,
   country_code:"DE",cities:["Berlin"],entry_date:"2026-11-12",exit_date:"2026-11-13",position:1});
  const photos=ids.map((id,i)=>({id,storage_path:"fictional/trip/photo-"+i+".webp",
-  caption:"Légende fictive "+i,trip_id:tripId,user_id:uid}));
+  caption:"Légende fictive "+i,trip_id:tripId,user_id:uid,
+  activity_id:i<2?"99999999-9999-4999-8999-99999999999"+(i+1):null,
+  width:i===1?1700:800,height:i===1?900:1200}));
  const activities=[
  {id:"99999999-9999-4999-8999-999999999991",trip_id:tripId,user_id:uid,
   title:"Promenade fictive",place:"Centre-ville",happened_on:"2026-11-12",duration_days:1},
@@ -111,14 +113,84 @@ async function main(){
     await page.waitForFunction(()=>document.querySelectorAll("#detailPhotos .detailPhoto").length===4);
     const initial=await page.evaluate(()=>window.__premiumFixture.signs.length);
     assert.ok(initial-before<=2,"At most two private signatures when opening: "+(initial-before));
-    assert.equal(await page.locator("#detailGalleryCount").innerText(),"1/4");
+    assert.equal((await page.locator("#detailStats").innerText()).replace(/\s+/g," ").trim(),
+      "11 jours · 2 villes · 4 photos");
     assert.equal(await page.locator("#detailCountryTitle").innerText(),"France");
-    assert.match(await page.locator("#detailIntro").innerText(),/11 jours.*Tourisme/);
+    assert.equal(await page.locator("#detailSlideshowOpen").innerText(),"Revivre");
+    assert.equal(await page.locator("#detailSlideshowOpen").isVisible(),true,"2+ photos: Revivre visible");
+    assert.equal(await page.locator("#detailSlideshowOpen").isEnabled(),true,"2+ photos: Revivre enabled");
+    await page.locator("#detailSlideshowOpen").click();
+    await page.locator("#detailSlideshow.open").waitFor();
+    assert.equal(await page.locator("#slideCounter").innerText(),"1/4","2+ photos: existing slideshow");
+    await page.locator("#detailSlideshowClose").click();
+    const actions=await page.locator("#detailSlideshowOpen,#detailShare").evaluateAll(
+      nodes=>nodes.map(n=>({top:n.getBoundingClientRect().top,bottom:n.getBoundingClientRect().bottom})));
+    if(width===360)assert.ok(actions.every(a=>a.bottom<=740&&a.top>=0),
+      "Revivre et Partager dans le premier écran 360×740");
+    assert.equal(await page.locator("#detailFeatured .albumMoment").count(),2);
+    const layout=await page.evaluate(()=>{
+      const ids=["detailStats","detailFeaturedSection","detailItinerarySection","detailFacts",
+        "detailTimelineDisclosure","detailPelliculeSection"];
+      return ids.map(id=>({id,index:[...document.querySelector("#detailSheet").children].indexOf(document.getElementById(id))}));
+    });
+    assert.ok(layout.every((e,i)=>e.index>=0&&(!i||e.index>layout[i-1].index)),
+      "Album section order: chiffres, moments, itinéraire, infos pratiques, jour par jour, pellicule: "+JSON.stringify(layout));
+    const practical=await page.locator("#detailFacts .detailStay,#detailFacts .detailCompanions").evaluateAll(nodes=>
+      nodes.map(el=>({left:el.getBoundingClientRect().left,right:el.getBoundingClientRect().right})));
+    assert.equal(practical.length,3,"Compagnie, hôtel, voyagé avec");
+    for(const card of practical)assert.ok(card.left>=15.9&&card.right<=width-15.9,
+      "Practical cards need >=16px lateral inset at "+width+": "+JSON.stringify(card));
+    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true,
+      "Practical cards must not create horizontal overflow");
+    const contrast=await page.locator("#detailLifecycle").evaluate(el=>{
+      const c=getComputedStyle(el),rgb=s=>s.match(/[\d.]+/g).slice(0,3).map(Number);
+      const luminance=s=>rgb(s).map(v=>{const n=v/255;return n<=.04045?n/12.92:((n+.055)/1.055)**2.4})
+       .reduce((sum,v,i)=>sum+v*[.2126,.7152,.0722][i],0);
+      const a=luminance(c.color),b=luminance(c.backgroundColor);
+      return {label:el.textContent.trim(),ratio:(Math.max(a,b)+.05)/(Math.min(a,b)+.05)};
+    });
+    assert.equal(contrast.label,"En cours","Badge must show the ongoing state");
+    assert.ok(contrast.ratio>=4.5,"Ongoing badge text contrast must be >=4.5:1: "+JSON.stringify(contrast));
+    assert.equal(await page.locator("#detailPellicule .albumTile").count(),4);
+    assert.equal(await page.locator("#detailPellicule .albumTile-portrait").count()>0,true);
+    assert.equal(await page.locator("#detailPellicule .albumTile-landscape").count()>0,true);
+    const albumImages=await page.locator(".albumMomentPhoto img,.albumTilePhoto img").evaluateAll(nodes=>
+     nodes.map(el=>getComputedStyle(el).objectFit));
+    assert.ok(albumImages.length>=2&&albumImages.every(fit=>fit==="cover"),
+     "Moments forts and pellicule should fill their frames without grey letterboxing");
+    assert.match(await page.locator("#detailIntro").innerText(),/2026/);
     assert.match(await page.locator("#detailStops").innerText(),/Allemagne/);
-    assert.match(await page.locator("#detailActivities").innerText(),/Promenade fictive/);
+    assert.equal(await page.locator(".albumRoute").count(),0,"No itinerary/Étapes duplicate");
+    await page.waitForFunction(()=>document.querySelectorAll("#detailAlbumMap svg path[data-country]").length>100);
+    const atlas=await page.locator("#detailAlbumMap").evaluate(el=>{
+     const svg=el.querySelector("svg"),paths=[...svg.querySelectorAll("path[data-country]")],
+      country=code=>paths.find(p=>p.dataset.country===code);
+     const fill=code=>getComputedStyle(country(code)).fill;
+     return {unvisited:fill("US"),france:fill("FR"),germany:fill("DE"),
+      visitedFR:country("FR").classList.contains("visited"),
+      visitedDE:country("DE").classList.contains("visited"),
+      fromGN:!!svg.querySelector(".flightResidence"),
+      arcs:[...svg.querySelectorAll(".flightArc")].map(p=>p.dataset.destination)};
+    });
+    assert.notEqual(atlas.unvisited,"rgb(0, 0, 0)","Unvisited countries cannot render black");
+    assert.equal(atlas.unvisited,"rgb(215, 222, 217)","Map uses home's light grey");
+    assert.equal(atlas.france,"rgb(127, 177, 150)","France is green");
+    assert.equal(atlas.germany,"rgb(127, 177, 150)","Germany is green");
+    assert.ok(atlas.visitedFR&&atlas.visitedDE&&atlas.fromGN&&atlas.arcs.includes("FR"),
+     "Trip visited countries and GN origin must be rendered: "+JSON.stringify(atlas));
+    const souvenirStyle=await page.locator("#detailNoteSection .detailSouvenirCard").evaluate(el=>{
+     const css=getComputedStyle(el);return {left:css.borderLeftWidth,radius:css.borderTopLeftRadius};
+    });
+    assert.equal(souvenirStyle.left,"0px","Souvenir has no decorative left bar");
+    assert.notEqual(souvenirStyle.radius,"0px","Souvenir remains rounded");
+    assert.match(await page.locator("#detailActivities").textContent(),/Promenade fictive/);
     assert.match(await page.locator("#detailNote").innerText(),/NEVER_DRAW_PRIVATE_NOTE/);
-    for(const id of ["detailStopsSection","detailActivitiesSection","detailNoteSection"])
+    for(const id of ["detailStopsSection","detailNoteSection"])
      assert.equal(await page.locator("#"+id).isVisible(),true);
+    assert.equal(await page.locator("#detailActivitiesSection").isVisible(),false,"Timeline repliée en lecture");
+    await page.locator("#detailTimelineDisclosure summary").click();
+    assert.equal(await page.locator("#detailActivitiesSection").isVisible(),true,"Chronologie accessible");
+    await page.locator("#detailTimelineDisclosure summary").click();
     assert.equal(await page.locator("#detailFacts .detailStay").count(),2);
     assert.equal(await page.locator("#detailFacts .detailCompanions").count(),1);
     // Reading mode is default; in-progress trips still offer "Ajouter un moment".
@@ -128,16 +200,31 @@ async function main(){
     assert.equal(await page.locator(".tripStopActions button").count(),0);
     assert.equal(await page.locator("#detailActivities .detailRemoveActivity").count(),0);
     assert.equal(await page.locator("#detailAddMoment").isVisible(),true,"Ongoing trip add moment in reading mode");
-    if(width===360){
+    if(width===360||width===390){
      await page.locator("#detailSheet").evaluate(el=>el.scrollTop=0);
-     await page.screenshot({path:path.join(DIR,"fiche-galerie-360.png"),animations:"disabled"});
+     await page.screenshot({path:path.join(DIR,"fiche-galerie-"+width+".png"),animations:"disabled"});
      await page.locator("#detailStopsSection").screenshot({
-      path:path.join(DIR,"fiche-etapes-360.png"),animations:"disabled"});
-     await page.locator("#detailActivitiesSection").screenshot({
-      path:path.join(DIR,"fiche-moments-360.png"),animations:"disabled"});
+      path:path.join(DIR,"fiche-etapes-"+width+".png"),animations:"disabled"});
+     await page.locator("#detailFeaturedSection").screenshot({
+      path:path.join(DIR,"fiche-moments-"+width+".png"),animations:"disabled"});
+     if(width===390){
+      await page.locator("#detailSheet").evaluate(el=>{
+       const t=document.querySelector("#detailItinerarySection");
+       el.scrollTop+=t.getBoundingClientRect().top-60;
+      });
+      await page.waitForTimeout(400);
+      await page.screenshot({path:path.join(DIR,"itineraire-390.png"),animations:"disabled"});
+      await page.locator("#detailSheet").evaluate(el=>{
+       const t=document.querySelector("#detailPelliculeSection");
+       el.scrollTop+=t.getBoundingClientRect().top-60;
+      });
+      await page.waitForTimeout(400);
+      await page.screenshot({path:path.join(DIR,"mosaique-portrait-paysage-390.png"),animations:"disabled"});
+     }
     }
     await page.locator("#detailModeToggle").click();
     assert.equal((await page.locator("#detailModeToggle").innerText()).trim(),"Terminé");
+    if(width===390)await page.screenshot({path:path.join(DIR,"mode-modification-390.png"),animations:"disabled"});
     for(const id of ["detailEdit","addTripStop","detailActivityToggle","detailAddMoment"])
      assert.equal(await page.locator("#"+id).isVisible(),true,"Edit mode should reveal "+id);
     assert.equal(await page.locator(".tripStopActions button").count(),2);
@@ -152,6 +239,8 @@ async function main(){
     await page.locator("#detailActivities .detailRemoveActivity").first().click();
     assert.equal(await page.evaluate(()=>window.__prompted),true,"Retirer triggers confirmation");
     await page.locator("#detailActivityToggle").click();
+    assert.equal(await page.locator("#detailTimelineDisclosure").evaluate(el=>el.open),true,
+     "Edit mode: Ajouter un moment must expand the day-by-day disclosure");
     assert.equal(await page.locator("#detailActivityForm").isVisible(),true);
     await page.locator("#detailModeToggle").click();
     assert.equal((await page.locator("#detailModeToggle").innerText()).trim(),"Modifier ce voyage");
@@ -161,10 +250,7 @@ async function main(){
     assert.equal(await page.locator(".tripStopActions button").count(),0);
     assert.equal(await page.locator("#detailActivities .detailRemoveActivity").count(),0);
     assert.equal(await page.locator("#detailAddMoment").isVisible(),true);
-    await page.locator("#detailPhotos").evaluate(g=>{g.scrollLeft=g.clientWidth;g.dispatchEvent(new Event("scroll"))});
-    await page.waitForFunction(()=>document.querySelector("#detailGalleryCount")?.textContent==="2/4");
-    await page.waitForFunction(()=>window.__premiumFixture.signs.length>=3);
-    await page.locator("#detailPhotos .photoTap").nth(1).click();
+    await page.locator("#detailPellicule .albumTilePhoto").nth(1).click();
     await page.locator("#detailLightbox.open").waitFor();
     assert.match(await page.locator("#detailLightboxCaption").innerText(),/Légende fictive 1/);
     await page.locator("#detailLightboxClose").click();
@@ -204,6 +290,81 @@ async function main(){
     }
     await page.locator("#detailShareClose").click();
     await page.locator("#detailClose").click();
+    if(width===390){
+     await page.evaluate(()=>{
+      window.__premiumFixture.albumBackup=window.__premiumFixture.photos.slice();
+      window.__premiumFixture.photos.splice(0);
+     });
+     await journey.locator(".tripOpen").click();
+     await page.locator("#detailNoPhotoAdd").waitFor({state:"visible"});
+     const noPhotoActions=await page.locator("#detailNoPhotoAdd,#detailShare").evaluateAll(nodes=>
+      nodes.map(el=>{const r=el.getBoundingClientRect(),c=getComputedStyle(el);
+       return {id:el.id,left:r.left,right:r.right,top:r.top,height:r.height,
+        background:c.backgroundColor,color:c.color,visible:r.width>0&&r.height>0}}));
+     assert.equal(noPhotoActions.length,2);
+     assert.ok(noPhotoActions.every(a=>a.visible&&a.height>=44),
+      "0 photo: primary Add and secondary Share must both be visible and >=44px");
+     assert.ok(Math.abs(noPhotoActions[0].top-noPhotoActions[1].top)<=1&&
+      Math.abs(noPhotoActions[0].height-noPhotoActions[1].height)<=1&&
+      noPhotoActions[0].right<noPhotoActions[1].left,
+      "0 photo: Add and Share must align side by side with same height");
+     assert.notEqual(noPhotoActions[0].background,noPhotoActions[1].background,
+      "0 photo: Add primary filled, Share secondary outlined");
+     // Online reading mode: moments without ANY linked photo must keep
+     // the day-by-day summary visible after asynchronous activity loading.
+     await page.locator("#detailTimelineDisclosure summary").waitFor({state:"visible"});
+     assert.equal(await page.locator("#detailTimelineDisclosure").evaluate(el=>el.open),false,
+      "Day-by-day remains collapsed by default with unphotographed moments");
+     assert.equal(await page.locator("#detailActivities .detailActivity").count(),2,
+      "Two existing moments are accessible despite zero linked photos");
+     assert.equal(await page.locator("#detailSlideshowOpen").isVisible(),false,"0 photo: Revivre hidden");
+     assert.equal(await page.locator("#detailSlideshowOpen").isEnabled(),true,"0 photo: never disabled");
+     assert.equal(await page.locator("#detailFeaturedSection").isVisible(),false);
+     await page.screenshot({path:path.join(DIR,"album-0-photo-390.png"),animations:"disabled"});
+     await page.locator("#detailClose").click();
+     await page.evaluate(()=>{
+      window.__premiumFixture.photos.push(window.__premiumFixture.albumBackup[2]);
+     });
+     await journey.locator(".tripOpen").click();
+     await page.waitForFunction(()=>document.querySelectorAll("#detailPellicule .albumTile").length===1);
+     assert.match((await page.locator("#detailStats").innerText()).replace(/\s+/g," "),/1 photo(?!s)/,
+      "1 photo must use singular");
+     assert.equal(await page.locator("#detailSlideshowOpen").isVisible(),true,"1 photo: Revivre visible");
+     assert.equal(await page.locator("#detailSlideshowOpen").isEnabled(),true,"1 photo: Revivre enabled");
+     await page.locator("#detailSlideshowOpen").click();
+     await page.locator("#detailLightbox.open").waitFor();
+     assert.match(await page.locator("#detailLightboxCaption").innerText(),/Légende fictive 2/);
+     assert.equal(await page.locator("#detailSlideshow").isVisible(),false,"1 photo: viewer, not slideshow");
+     await page.locator("#detailLightboxClose").click();
+     assert.equal(await page.locator("#detailFeaturedSection").isVisible(),false);
+     await page.screenshot({path:path.join(DIR,"album-1-photo-390.png"),animations:"disabled"});
+     await page.locator("#detailClose").click();
+     await page.evaluate(()=>{
+      window.__premiumFixture.photos.push(window.__premiumFixture.albumBackup[3]);
+     });
+     await journey.locator(".tripOpen").click();
+     await page.waitForFunction(()=>document.querySelectorAll("#detailPellicule .albumTile").length===2);
+     assert.match((await page.locator("#detailStats").innerText()).replace(/\s+/g," "),/2 photos/,
+      "2 photos must use plural");
+     assert.equal(await page.locator("#detailSlideshowOpen").isEnabled(),true,"2 photos: Revivre enabled");
+     await page.locator("#detailSlideshowOpen").click();
+     await page.locator("#detailSlideshow.open").waitFor();
+     assert.equal(await page.locator("#slideCounter").innerText(),"1/2","2 photos: slideshow");
+     await page.locator("#detailSlideshowClose").click();
+     await page.locator("#detailClose").click();
+     await page.evaluate(()=>{
+      window.__premiumFixture.photos.splice(0,...window.__premiumFixture.photos);
+      window.__premiumFixture.photos.push(...window.__premiumFixture.albumBackup);
+      window.__premiumFixture.rows[0].title="Un voyage extraordinaire dont je me souviendrai longtemps";
+      const trip=trips.find(t=>t.id===window.__premiumFixture.rows[0].id);
+      if(trip)trip.title=window.__premiumFixture.rows[0].title;
+     });
+     await journey.locator(".tripOpen").click();
+     await page.waitForFunction(()=>document.querySelector("#detailCountryTitle")?.textContent.includes("extraordinaire"));
+     await page.screenshot({path:path.join(DIR,"album-titre-long-390.png"),animations:"disabled"});
+     await page.locator("#detailClose").click();
+     await page.evaluate(()=>{window.__premiumFixture.rows[0].title=null});
+    }
     await page.evaluate(()=>showOfflineCopy({
      ownerId:"22222222-2222-4222-8222-222222222222",
      profile:{display_name:"Voyageuse Fictive",country_of_residence:"GN",home_city:"Conakry"},
@@ -227,7 +388,7 @@ async function main(){
      hero:document.querySelector(".detailHero").getBoundingClientRect()
     }));
     assert.ok(geom.doc<=width+1&&geom.sheet.left>=-1&&geom.sheet.right<=width+1);
-    assert.ok(Math.abs(geom.hero.height/geom.hero.width-.56)<.03,"Hero should be ~56% of screen width");
+    assert.ok(Math.abs(geom.hero.height-Math.min(820*.62,540))<4,"Hero should be ~62% of viewport height");
     await page.locator("#detailClose").click();
     await page.goto(base+"?readonly=1",{waitUntil:"load"});
     await page.waitForFunction(()=>document.querySelector("#dashboardTitle")?.textContent==="Voyageuse Fictive");
@@ -238,7 +399,7 @@ async function main(){
     await page.waitForFunction(()=>document.querySelectorAll("#detailActivities .detailActivity").length>0);
     assert.equal(await page.locator("#detailActivities .detailRemoveActivity").count(),0);
     assert.deepEqual(errors,[],"No JavaScript errors");
-    console.log("PASS premium detail Android "+width+" px: gallery n/N, lazy, viewer, sections, PNG, read-only, offline");
+    console.log("PASS album P0 Android "+width+" px: 62svh cover, featured, mosaic, viewer, share, offline");
    }finally{await context.close()}
   }
  }finally{await browser.close();await new Promise(ok=>server.close(ok))}

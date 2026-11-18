@@ -68,6 +68,12 @@ async function main(){
     await page.locator("#tripDetailModal.open").waitFor();
     await page.waitForFunction(()=>document.querySelectorAll("#detailActivities .detailActivity").length===3 &&
      document.querySelectorAll("#detailStops .tripStopRow").length===2);
+    // Reading-mode chronology starts collapsed. Open it via the user control
+    // before measuring the date column's actual 52px rendered width.
+    assert.equal(await page.locator("#detailTimelineDisclosure").evaluate(el=>el.open),false);
+    await page.locator("#detailTimelineDisclosure summary").click();
+    assert.equal(await page.locator("#detailTimelineDisclosure").evaluate(el=>el.open),true);
+    assert.equal(await page.locator("#detailActivities .detailActivityDate").first().isVisible(),true);
     const cards=page.locator("#detailActivities .detailActivity");
     assert.match(await cards.nth(0).innerText(),/Première promenade/);
     assert.match(await cards.nth(1).innerText(),/Visite de Paris/);
