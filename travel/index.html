@@ -1573,10 +1573,26 @@ function overlayBlocksFloatingAdd(){
   $("#filterPanel").classList.contains("filterOpen")||
   $("#pdfDialog").open;
 }
+function floatingAddBadgeCollision(){
+ // A fixed + can cross photo/status pills as cards scroll underneath it.
+ // Hide the shortcut at the crossing; the normal Add button stays available.
+ // Compute its fixed position even while hidden so it reappears on scrolling.
+ const css=getComputedStyle(floatingAdd),width=floatingAdd.offsetWidth||56,
+  height=floatingAdd.offsetHeight||56;
+ const right=Number.parseFloat(css.right)||16,bottom=Number.parseFloat(css.bottom)||16;
+ const left=window.innerWidth-right-width,top=window.innerHeight-bottom-height,clearance=8;
+ for(const pill of document.querySelectorAll("#trips .journeyPhotoCount,#trips .journeyStatus")){
+  const r=pill.getBoundingClientRect();
+  if(r.width&&r.height&&r.left<left+width+clearance&&r.right>left-clearance&&
+   r.top<top+height+clearance&&r.bottom>top-clearance)return true;
+ }
+ return false;
+}
 function updateFloatingAdd(){
  // This action is deliberately unavailable until the main button has passed ABOVE the viewport.
- floatingAdd.hidden=!largeAddIsPast||!user||!canWrite()||
+ const baseHidden=!largeAddIsPast||!user||!canWrite()||
   $("#app").classList.contains("hidden")||overlayBlocksFloatingAdd();
+ floatingAdd.hidden=baseHidden||floatingAddBadgeCollision();
 }
 const largeAddObserver=new IntersectionObserver(entries=>{
  const entry=entries.find(item=>item.target===$("#add"));
@@ -1651,6 +1667,7 @@ async function loadPrivateCover(card,epoch){
   if(!media||!current())return;
   media.querySelector(".journeyPhotoCount")?.remove();
   media.append(count);
+  updateFloatingAdd(); // Async photo-pill arrival also checks the + collision.
   const coverId=trip.cover_media_id;
   const row=owned.find(p=>p.id===coverId)||owned.find(p=>p.is_favorite===true)||owned[0];
   const {data:signed,error:signedError}=await S.storage.from("media").createSignedUrl(row.storage_path,300);
