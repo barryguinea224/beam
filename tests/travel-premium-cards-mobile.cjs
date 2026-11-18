@@ -170,64 +170,61 @@ async function main(){
     assert.ok(stickyMask.scrollWidth<=width+1,"Full-width sticky bar causes no overflow");
     if(width===360)await page.screenshot({path:path.join(dir,"barre-collee-defilement-360.png"),animations:"disabled"});
     if(width===390)await page.screenshot({path:path.join(dir,"barre-collante-390.png"),animations:"disabled"});
-    // Real scroll sweep, not an artificially positioned floating button.
-    // On any collision with a photo count or trip status, the '+' must yield.
-    const collisions=await page.evaluate(async()=>{
-      const add=document.querySelector("#addFloating");
-      const bounding=el=>el.getBoundingClientRect();
-      const overlap=(a,b)=>a.left<b.right&&a.right>b.left&&a.top<b.bottom&&a.bottom>b.top;
-      const expectedFab=()=>{
-       const style=getComputedStyle(add),right=parseFloat(style.right)||16,
-        bottom=parseFloat(style.bottom)||16,width=56,height=56;
-       return {left:innerWidth-right-width,right:innerWidth-right,
-        top:innerHeight-bottom-height,bottom:innerHeight-bottom};
-      };
-      let guarded=0,overlaps=0,firstHit=null,checked=0;
+    // The standard fixed + stays visible throughout scrolling once the
+    // large Add button has passed; badges may scroll beneath it.
+    const scrolling=await page.evaluate(async()=>{
+      const add=document.querySelector("#addFloating"),large=document.querySelector("#add");
+      const hit=(a,b)=>a.left<b.right&&a.right>b.left&&a.top<b.bottom&&a.bottom>b.top;
       const max=Math.max(0,document.documentElement.scrollHeight-innerHeight);
+      let checked=0,afterMain=0,hiddenAfterMain=0,badgeCrossings=0,firstCrossing=null;
       for(let y=0;y<=max+35;y+=35){
        scrollTo(0,Math.min(y,max));
        await new Promise(resolve=>requestAnimationFrame(resolve));
-       const rect=expectedFab(),pills=[...document.querySelectorAll("#trips .journeyPhotoCount,#trips .journeyStatus")];
-       const hit=pills.some(el=>{const r=bounding(el);return r.width>0&&r.height>0&&overlap(rect,r)});
-       const active=!add.hidden&&getComputedStyle(add).display!=="none";
-       if(hit&&active)overlaps++;
-       if(hit&&!active&&document.querySelector("#add").getBoundingClientRect().bottom<0){
-        guarded++;if(firstHit===null)firstHit=scrollY;
-       }
        checked++;
+       if(large.getBoundingClientRect().bottom>=0)continue;
+       afterMain++;
+       const visible=!add.hidden&&getComputedStyle(add).display!=="none";
+       if(!visible)hiddenAfterMain++;
+       const rect=add.getBoundingClientRect();
+       if([...document.querySelectorAll("#trips .journeyPhotoCount,#trips .journeyStatus")]
+         .some(el=>hit(rect,el.getBoundingClientRect()))){
+        badgeCrossings++;
+        if(firstCrossing===null)firstCrossing=scrollY;
+       }
       }
-      return {guarded,overlaps,firstHit,checked};
+      return {checked,afterMain,hiddenAfterMain,badgeCrossings,firstCrossing};
     });
-    assert.equal(collisions.overlaps,0,
-     "Floating + must never cover photo/status pills while scrolling: "+JSON.stringify(collisions));
-    assert.ok(collisions.checked>=10,"Sweep actually tested the long journey list");
-    // A short synthetic itinerary may scroll without any actual crossing.
-    // Also force a badge into the floating button's fixed hitbox, then
-    // verify that the real guard hides + and restores it after removal.
-    const guard=await page.evaluate(()=>{
-     const host=document.querySelector(".completedTripsList .journeyMedia");
-     const badge=document.createElement("span");
-     badge.className="journeyPhotoCount";
-     badge.textContent="2 photos";
-     Object.assign(badge.style,{position:"fixed",right:"20px",bottom:"20px"});
-     host.append(badge);
-     updateFloatingAdd();
-     const hiddenDuringCollision=document.querySelector("#addFloating").hidden;
-     badge.remove();
-     updateFloatingAdd();
-     const visibleAfterCollision=!document.querySelector("#addFloating").hidden;
-     return {hiddenDuringCollision,visibleAfterCollision};
+    assert.ok(scrolling.checked>=10&&scrolling.afterMain>0,
+     "Sweep must cover the cards after the main Add button: "+JSON.stringify(scrolling));
+    assert.equal(scrolling.hiddenAfterMain,0,
+     "Floating + must remain visible throughout scrolling, even across badges: "+JSON.stringify(scrolling));
+    // Explicit overlap regression: a synthetic photo pill passing underneath
+    // must not trigger hiding or flashing of the floating +.
+    const overlapProbe=await page.evaluate(()=>{
+      const add=document.querySelector("#addFloating"),host=document.querySelector(".completedTripsList .journeyMedia");
+      const pill=document.createElement("span");
+      pill.className="journeyPhotoCount";pill.textContent="2 photos";
+      const rect=add.getBoundingClientRect();
+      Object.assign(pill.style,{position:"fixed",left:(rect.left+8)+"px",top:(rect.top+8)+"px",
+       right:"auto",bottom:"auto"});
+      host.append(pill);
+      updateFloatingAdd();
+      const intersects=(()=>{
+       const p=pill.getBoundingClientRect(),f=add.getBoundingClientRect();
+       return p.left<f.right&&p.right>f.left&&p.top<f.bottom&&p.bottom>f.top;
+      })();
+      const visibleDuring=!add.hidden&&getComputedStyle(add).display!=="none";
+      pill.remove();
+      updateFloatingAdd();
+      return {intersects,visibleDuring,visibleAfter:!add.hidden};
     });
-    assert.ok(guard.hiddenDuringCollision&&guard.visibleAfterCollision,
-     "Floating + yields to a simulated visible badge and returns after it passes: "+JSON.stringify(guard));
+    assert.ok(overlapProbe.intersects&&overlapProbe.visibleDuring&&overlapProbe.visibleAfter,
+     "Floating + stays visible when a photo pill crosses underneath: "+JSON.stringify(overlapProbe));
     if(width===390){
      await page.evaluate(async y=>{
       window.scrollTo(0,y);await new Promise(resolve=>requestAnimationFrame(resolve));
-     },collisions.firstHit??await page.evaluate(()=>{
-      const badge=document.querySelector(".completedTripsList .journeyPhotoCount");
-      return badge?Math.max(0,window.scrollY+badge.getBoundingClientRect().top-innerHeight+105):
-       Math.max(0,document.documentElement.scrollHeight-innerHeight-250);
-     }));
+     },scrolling.firstCrossing??await page.evaluate(()=>
+       Math.max(0,document.documentElement.scrollHeight-innerHeight-250)));
      await page.screenshot({path:path.join(dir,"pastilles-bouton-flottant-390.png"),animations:"disabled"});
     }
     // At the physical bottom of the document, the final fiche action must not
