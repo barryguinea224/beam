@@ -235,6 +235,13 @@ async function main(){
      });
      await journey.locator(".tripOpen").click();
      await page.locator("#detailNoPhotoAdd").waitFor({state:"visible"});
+     // Online reading mode: moments without ANY linked photo must keep
+     // the day-by-day summary visible after asynchronous activity loading.
+     await page.locator("#detailTimelineDisclosure summary").waitFor({state:"visible"});
+     assert.equal(await page.locator("#detailTimelineDisclosure").evaluate(el=>el.open),false,
+      "Day-by-day remains collapsed by default with unphotographed moments");
+     assert.equal(await page.locator("#detailActivities .detailActivity").count(),2,
+      "Two existing moments are accessible despite zero linked photos");
      assert.equal(await page.locator("#detailSlideshowOpen").isVisible(),false,"0 photo: Revivre hidden");
      assert.equal(await page.locator("#detailSlideshowOpen").isEnabled(),true,"0 photo: never disabled");
      assert.equal(await page.locator("#detailFeaturedSection").isVisible(),false);

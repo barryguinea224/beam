@@ -1714,6 +1714,10 @@ function detailIcon(kind){
 }
 // Explicit edit mode is required for element-level actions; consultation is the default.
 function detailCanEdit(){return detailEditing&&canWrite()&&!offlineMode}
+function detailTimelineSync(){
+ const t=$("#detailTimelineDisclosure");
+ if(t)t.hidden=!detailCanEdit()&&!detailActivitiesRows.length;
+}
 function detailMayAddMoment(trip){
  return canWrite()&&!offlineMode&&(detailEditing||!!trip&&LIFE.state(trip)==="ongoing");
 }
@@ -1734,8 +1738,9 @@ function detailSyncMode(trip){
  renderTripStops(trip);
  $("#detailActivities").innerHTML=DETAIL.activities(detailActivitiesRows,editable);
  detailSections(trip);
+ detailTimelineSync();
  const timeline=$("#detailTimelineDisclosure");
- if(timeline){timeline.hidden=!editable&&!detailActivitiesRows.length;timeline.open=editable;}
+ if(timeline)timeline.open=editable;
  detailAlbumRender(trip);
 }
 // Album: owner-scoped private photos, signed only when visible.
@@ -2277,10 +2282,12 @@ async function refreshTripDetail(id){
  if(activities.error||!activities.data){
   detailActivitiesRows=[];$("#detailActivities").innerHTML='<p class="detailEmpty">Activités indisponibles. Réessayez en rouvrant la fiche.</p>';
   $("#detailActivitiesSection").hidden=false;
+  $("#detailTimelineDisclosure").hidden=false;
  }else{
   detailActivitiesRows=activities.data;
   $("#detailActivities").innerHTML=DETAIL.activities(detailActivitiesRows,detailCanEdit());
   detailSections(trip);
+  detailTimelineSync();
   detailAlbumRender(trip);
  }
  if(photos.error||!photos.data){
@@ -2416,6 +2423,7 @@ $("#detailActivityForm").onsubmit=async e=>{
      form.reset();
      window.BEAM_ACTIVITY_DURATIONS?.resetControls(trip);
      await refreshTripDetail(id);
+     detailTimelineSync();
      detailActivityMessage("Activité enregistrée.");
    }
  }catch(err){
@@ -2437,6 +2445,7 @@ $("#detailActivities").onclick=async e=>{
    if(error||data?.length!==1)throw new Error("Suppression non confirmée. Réessayez.");
    if(detailTripId===id&&accountState==="active"){
      await refreshTripDetail(id);
+     detailTimelineSync();
      detailActivityMessage("Activité retirée.");
    }
  }catch(err){if(detailTripId===id)detailActivityMessage(err.message||"Suppression indisponible.")}
