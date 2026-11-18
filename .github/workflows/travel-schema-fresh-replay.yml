@@ -18,7 +18,7 @@ on:
       - "travel/supabase/migrations/20261107093000_account_email_recovery.sql"
       - "travel/supabase/migrations/20261114100000_trips_future_dates.sql"
       - "travel/supabase/migrations/20261114200000_cover_and_15_photos.sql"
-      - "travel/supabase/migrations/2026111810000_trip_album_p0.sql"
+      - "travel/supabase/migrations/20261118100000_trip_album_p0.sql"
       - "travel/supabase/ALBUM_P0_VERIFICATION.sql"
       - "travel/supabase/ACCOUNT_RECOVERY.md"
       - "travel/supabase/tests/account_recovery_otp_local.cjs"
@@ -188,8 +188,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          psql -X -v ON_ERROR_STOP=1 -f travel/supabase/migrations/2026111810000_trip_album_p0.sql
-          psql -X -v ON_ERROR_STOP=1 -f travel/supabase/migrations/2026111810000_trip_album_p0.sql
+          psql -X -v ON_ERROR_STOP=1 -f travel/supabase/migrations/20261118100000_trip_album_p0.sql
+          psql -X -v ON_ERROR_STOP=1 -f travel/supabase/migrations/20261118100000_trip_album_p0.sql
           psql -X -v ON_ERROR_STOP=1 -f travel/supabase/ALBUM_P0_VERIFICATION.sql
           echo "PASS P0 album migration idempotence and metadata checks"
 

@@ -1,4 +1,4 @@
--- Run after applying 2026111810000_trip_album_p0.sql. Exactly three boolean checks.
+-- Run after applying 20261118100000_trip_album_p0.sql. Exactly three boolean checks.
 select (
  exists(select 1 from information_schema.columns where table_schema='public' and table_name='trips' and column_name='title')
  and exists(select 1 from pg_constraint where conrelid='public.trips'::regclass and conname='trips_album_title_length')

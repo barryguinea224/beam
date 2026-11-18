@@ -117,6 +117,12 @@ async function main(){
       "11 jours · 2 villes · 4 photos");
     assert.equal(await page.locator("#detailCountryTitle").innerText(),"France");
     assert.equal(await page.locator("#detailSlideshowOpen").innerText(),"Revivre");
+    assert.equal(await page.locator("#detailSlideshowOpen").isVisible(),true,"2+ photos: Revivre visible");
+    assert.equal(await page.locator("#detailSlideshowOpen").isEnabled(),true,"2+ photos: Revivre enabled");
+    await page.locator("#detailSlideshowOpen").click();
+    await page.locator("#detailSlideshow.open").waitFor();
+    assert.equal(await page.locator("#slideCounter").innerText(),"1/4","2+ photos: existing slideshow");
+    await page.locator("#detailSlideshowClose").click();
     const actions=await page.locator("#detailSlideshowOpen,#detailShare").evaluateAll(
       nodes=>nodes.map(n=>({top:n.getBoundingClientRect().top,bottom:n.getBoundingClientRect().bottom})));
     if(width===360)assert.ok(actions.every(a=>a.bottom<=740&&a.top>=0),
@@ -227,6 +233,8 @@ async function main(){
      });
      await journey.locator(".tripOpen").click();
      await page.locator("#detailNoPhotoAdd").waitFor({state:"visible"});
+     assert.equal(await page.locator("#detailSlideshowOpen").isVisible(),false,"0 photo: Revivre hidden");
+     assert.equal(await page.locator("#detailSlideshowOpen").isEnabled(),true,"0 photo: never disabled");
      assert.equal(await page.locator("#detailFeaturedSection").isVisible(),false);
      await page.screenshot({path:path.join(DIR,"album-0-photo-390.png"),animations:"disabled"});
      await page.locator("#detailClose").click();
@@ -235,8 +243,26 @@ async function main(){
      });
      await journey.locator(".tripOpen").click();
      await page.waitForFunction(()=>document.querySelectorAll("#detailPellicule .albumTile").length===1);
+     assert.equal(await page.locator("#detailSlideshowOpen").isVisible(),true,"1 photo: Revivre visible");
+     assert.equal(await page.locator("#detailSlideshowOpen").isEnabled(),true,"1 photo: Revivre enabled");
+     await page.locator("#detailSlideshowOpen").click();
+     await page.locator("#detailLightbox.open").waitFor();
+     assert.match(await page.locator("#detailLightboxCaption").innerText(),/Légende fictive 2/);
+     assert.equal(await page.locator("#detailSlideshow").isVisible(),false,"1 photo: viewer, not slideshow");
+     await page.locator("#detailLightboxClose").click();
      assert.equal(await page.locator("#detailFeaturedSection").isVisible(),false);
      await page.screenshot({path:path.join(DIR,"album-1-photo-390.png"),animations:"disabled"});
+     await page.locator("#detailClose").click();
+     await page.evaluate(()=>{
+      window.__premiumFixture.photos.push(window.__premiumFixture.albumBackup[3]);
+     });
+     await journey.locator(".tripOpen").click();
+     await page.waitForFunction(()=>document.querySelectorAll("#detailPellicule .albumTile").length===2);
+     assert.equal(await page.locator("#detailSlideshowOpen").isEnabled(),true,"2 photos: Revivre enabled");
+     await page.locator("#detailSlideshowOpen").click();
+     await page.locator("#detailSlideshow.open").waitFor();
+     assert.equal(await page.locator("#slideCounter").innerText(),"1/2","2 photos: slideshow");
+     await page.locator("#detailSlideshowClose").click();
      await page.locator("#detailClose").click();
      await page.evaluate(()=>{
       window.__premiumFixture.photos.splice(0,...window.__premiumFixture.photos);
