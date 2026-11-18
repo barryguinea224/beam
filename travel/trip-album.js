@@ -31,7 +31,7 @@ function date(iso){
 function featuredHTML(activities,photos){
  return featured(activities,photos).map(({activity,photo})=>
   '<article class="albumMoment" data-activity-id="'+esc(activity.id)+'">'+
-  '<button type="button" class="albumMomentPhoto photoTap" data-id="'+esc(photo.id)+
+  '<button type="button" class="albumMomentPhoto albumMomentPhoto-'+orientation(photo)+' photoTap" data-id="'+esc(photo.id)+
    '" data-album-photo-id="'+esc(photo.id)+'" aria-label="Voir la photo du moment '+esc(activity.title)+'">'+
    '<span class="albumPhotoWait" aria-hidden="true"></span></button>'+
   '<div class="albumMomentStory">'+
