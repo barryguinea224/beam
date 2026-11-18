@@ -104,6 +104,8 @@ async function main(){
        await page.locator("#detailModeToggle").click();
        assert.equal(await page.locator("#detailEdit").isVisible(),true);
        await page.locator("#detailActivityToggle").click();
+       assert.equal(await page.locator("#detailTimelineDisclosure").evaluate(el=>el.open),true,
+        "Editing the trip opens its day-by-day disclosure before showing the form");
        assert.equal(await page.locator("#detailActivityForm").isVisible(),true);
       }
      await page.locator("#detailPhotos img").first().waitFor({state:"attached"});
