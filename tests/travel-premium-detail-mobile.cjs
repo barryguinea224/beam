@@ -113,7 +113,8 @@ async function main(){
     await page.waitForFunction(()=>document.querySelectorAll("#detailPhotos .detailPhoto").length===4);
     const initial=await page.evaluate(()=>window.__premiumFixture.signs.length);
     assert.ok(initial-before<=2,"At most two private signatures when opening: "+(initial-before));
-    assert.equal(await page.locator("#detailStats").innerText(),"11 jours · 2 villes · 4 photos");
+    assert.equal((await page.locator("#detailStats").innerText()).replace(/\s+/g," ").trim(),
+      "11 jours · 2 villes · 4 photos");
     assert.equal(await page.locator("#detailCountryTitle").innerText(),"France");
     assert.equal(await page.locator("#detailSlideshowOpen").innerText(),"Revivre");
     const actions=await page.locator("#detailSlideshowOpen,#detailShare").evaluateAll(
@@ -219,6 +220,35 @@ async function main(){
     }
     await page.locator("#detailShareClose").click();
     await page.locator("#detailClose").click();
+    if(width===390){
+     await page.evaluate(()=>{
+      window.__premiumFixture.albumBackup=window.__premiumFixture.photos.slice();
+      window.__premiumFixture.photos.splice(0);
+     });
+     await journey.locator(".tripOpen").click();
+     await page.locator("#detailNoPhotoAdd").waitFor({state:"visible"});
+     assert.equal(await page.locator("#detailFeaturedSection").isVisible(),false);
+     await page.screenshot({path:path.join(DIR,"album-0-photo-390.png"),animations:"disabled"});
+     await page.locator("#detailClose").click();
+     await page.evaluate(()=>{
+      window.__premiumFixture.photos.push(window.__premiumFixture.albumBackup[2]);
+     });
+     await journey.locator(".tripOpen").click();
+     await page.waitForFunction(()=>document.querySelectorAll("#detailPellicule .albumTile").length===1);
+     assert.equal(await page.locator("#detailFeaturedSection").isVisible(),false);
+     await page.screenshot({path:path.join(DIR,"album-1-photo-390.png"),animations:"disabled"});
+     await page.locator("#detailClose").click();
+     await page.evaluate(()=>{
+      window.__premiumFixture.photos.splice(0,...window.__premiumFixture.photos);
+      window.__premiumFixture.photos.push(...window.__premiumFixture.albumBackup);
+      window.__premiumFixture.rows[0].title="Un voyage extraordinaire dont je me souviendrai longtemps";
+     });
+     await journey.locator(".tripOpen").click();
+     await page.waitForFunction(()=>document.querySelector("#detailCountryTitle")?.textContent.includes("extraordinaire"));
+     await page.screenshot({path:path.join(DIR,"album-titre-long-390.png"),animations:"disabled"});
+     await page.locator("#detailClose").click();
+     await page.evaluate(()=>{window.__premiumFixture.rows[0].title=null});
+    }
     await page.evaluate(()=>showOfflineCopy({
      ownerId:"22222222-2222-4222-8222-222222222222",
      profile:{display_name:"Voyageuse Fictive",country_of_residence:"GN",home_city:"Conakry"},
