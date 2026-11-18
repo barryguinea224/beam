@@ -2348,12 +2348,14 @@ $("#detailAddMoment").onclick=()=>{
   if(!detailMayAddMoment(trips.find(t=>t.id===detailTripId)))return;
   $("#detailMomentActions").classList.add("hidden");
   $("#detailAddMoment").setAttribute("aria-expanded","false");
+  $("#detailTimelineDisclosure").hidden=false;$("#detailTimelineDisclosure").open=true;
   $("#detailActivityForm").classList.remove("hidden");$("#detailActivitiesSection").hidden=false;
   $("#detailActivityForm").scrollIntoView({behavior:"smooth",block:"center"});
   $("#activityTitle").focus();
  };
  $("#detailActivityToggle").onclick=()=>{
  if(!detailCanEdit())return;
+ $("#detailTimelineDisclosure").hidden=false;$("#detailTimelineDisclosure").open=true;
  $("#detailActivitiesSection").hidden=false;
  $("#detailActivityForm").classList.remove("hidden");
  $("#detailActivityForm").scrollIntoView({behavior:"smooth",block:"center"});
