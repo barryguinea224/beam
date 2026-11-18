@@ -1,7 +1,7 @@
 // J'y étais PWA — PRIVATE BY DEFAULT.
 // Cache only audited public assets; the shell itself never contains private data.
 // Never cache Supabase, signed links, personal trips, photos or API responses.
-const CACHE_NAME = "beam-travel-shell-v1-20261118-jyetais-v63-album-p0-revivre";
+const CACHE_NAME = "beam-travel-shell-v1-20261118-jyetais-v64-album-offline-fix";
 const SCOPE_PATH = "/travel/";
 const PUBLIC_SHELL = [
   "./index.html", "./config.js", "./offline-bootstrap.js", "./pwa.js", "./offline-store.js", "./offline-readonly.css",
