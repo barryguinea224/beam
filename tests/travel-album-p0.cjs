@@ -95,6 +95,9 @@ assert.ok(CSS.includes("#tripDetailModal #detailLifecycle.detailLifecycle-ongoin
 assert.ok(CSS.includes("#tripDetailModal #detailFacts.detailFacts"));
 assert.ok(CSS.includes("width:calc(100% - 32px)"));
 assert.match(HTML,/id="detailTimelineDisclosure"/);
+assert.ok(HTML.includes("if(!detailAlbumScrollUnlocked||!window.IntersectionObserver"),
+ "Only two private URLs may be signed on initial album opening");
+assert.ok(HTML.includes('$("#detailSheet").scrollTop<12'),"After scroll, remaining private thumbnails load progressively");
 assert.match(HTML,/id="detailFeaturedSection"/);
 assert.match(HTML,/id="detailPelliculeSection"/);
 assert.match(HTML,/id="photoMomentToggle"/);

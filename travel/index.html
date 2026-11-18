@@ -1689,7 +1689,7 @@ $("#trips").onclick=e=>{const first=e.target.closest("#addFirstTrip");if(first){
 const DETAIL=window.BEAM_TRIP_DETAIL,ALBUM=window.BEAM_TRIP_ALBUM;
 let detailTripId=null,detailRequest=0,detailActivityBusy=false,detailMediaBusy=false,detailMediaIds=[],detailPhotoRows=[],detailActivitiesRows=[],detailReturnFocus=null;
 const SHARE=window.BEAM_TRIP_SHARE;
-let detailGalleryIndex=0,detailGalleryLoads=new Set(),detailLightboxRow=null,detailShareFile=null,detailShareObjectUrl=null,detailShareBusy=false,detailEditing=false,detailAlbumObserver=null,detailCentroidsPromise=null;
+let detailGalleryIndex=0,detailGalleryLoads=new Set(),detailLightboxRow=null,detailShareFile=null,detailShareObjectUrl=null,detailShareBusy=false,detailEditing=false,detailAlbumObserver=null,detailAlbumScrollUnlocked=false,detailCentroidsPromise=null;
 const SLIDESHOW=window.BEAM_TRIP_SLIDESHOW.init({
  overlay:$("#detailSlideshow"),stage:$("#slideStage"),closeButton:$("#detailSlideshowClose"),
  imageBox:$("#slideImageBox"),caption:$("#slideCaption"),counter:$("#slideCounter"),status:$("#slideStatus"),
@@ -1757,7 +1757,9 @@ function detailAlbumPaint(row){
 }
 function detailAlbumObserve(){
  detailAlbumObserver?.disconnect();detailAlbumObserver=null;
- if(!window.IntersectionObserver||!document.querySelectorAll)return;
+ // Two signatures at open are the established private-photo budget. Other
+ // visible thumbnails are signed only after the reader scrolls the album.
+ if(!detailAlbumScrollUnlocked||!window.IntersectionObserver||!document.querySelectorAll)return;
  detailAlbumObserver=new window.IntersectionObserver(entries=>{
   for(const entry of entries){
    if(!entry.isIntersecting)continue;
@@ -1769,6 +1771,12 @@ function detailAlbumObserve(){
  for(const node of document.querySelectorAll("#detailFeatured [data-album-photo-id],#detailPellicule [data-album-photo-id]"))
   detailAlbumObserver.observe(node);
 }
+$("#detailSheet")?.addEventListener?.("scroll",()=>{
+ if(!detailTripId||detailAlbumScrollUnlocked||offlineMode)return;
+ if($("#detailSheet").scrollTop<12)return;
+ detailAlbumScrollUnlocked=true;
+ detailAlbumObserve();
+},{passive:true});
 async function detailAlbumMap(trip){
  const holder=$("#detailAlbumMap"),flights=window.BEAM_FLIGHT_CONNECTIONS;
  if(!holder||!flights?.draw||!trip)return;
@@ -2218,7 +2226,7 @@ function openTripDetail(id){
  if(!trip)return;
  detailEditing=false;
  if(!$("#tripDetailModal").classList.contains("open"))detailReturnFocus=document.activeElement;
- SLIDESHOW.close();detailTripId=id;detailRequest++;detailPhotoRows=[];detailMediaIds=[];detailGalleryIndex=0;detailGalleryLoads.clear();detailSyncSlideshow();
+ SLIDESHOW.close();detailAlbumScrollUnlocked=false;detailTripId=id;detailRequest++;detailPhotoRows=[];detailMediaIds=[];detailGalleryIndex=0;detailGalleryLoads.clear();detailSyncSlideshow();
  const city=(trip.cities||[]).join(", ");
  $("#detailCountryTitle").textContent=ALBUM?.title(trip.title,countryName(trip.country_code))||countryName(trip.country_code);
  $("#detailTitle").textContent=city||countryName(trip.country_code);
