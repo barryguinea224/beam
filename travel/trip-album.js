@@ -67,17 +67,7 @@ function statsHTML(trip,photoCount,offline=false){
  '<span aria-hidden="true">·</span><span>'+esc(FR.count(cities,"ville"))+'</span>'+
  '<span aria-hidden="true">·</span><span>'+esc(photos)+'</span>';
 }
-function routeHTML(trip,countryName){
- const names=(Array.isArray(trip?.cities)?trip.cities:[]).filter(Boolean);
- const itinerary=[{country:countryName||trip?.country_code||"",cities:names},
-  ...(Array.isArray(trip?.stops)?trip.stops:[])
-   .map(s=>({country:s.country_code||"",cities:Array.isArray(s.cities)?s.cities:[]}))];
- return '<ol class="albumRoute">'+itinerary.map(place=>
-  '<li><strong>'+esc(place.country)+'</strong>'+
-   (place.cities.length?'<span>'+esc(place.cities.join(" · "))+'</span>':"")+
-  '</li>').join("")+'</ol>';
-}
-const api=Object.freeze({title,featured,featuredHTML,orientation,mosaicHTML,statsHTML,routeHTML});
+const api=Object.freeze({title,featured,featuredHTML,orientation,mosaicHTML,statsHTML});
 if(root)root.BEAM_TRIP_ALBUM=api;
 if(typeof module!=="undefined"&&module.exports)module.exports=api;
 })(typeof window!=="undefined"?window:undefined);

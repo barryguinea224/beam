@@ -50,7 +50,7 @@
 #tripDetailModal .albumMomentPhoto{display:block;width:100%;min-height:180px;aspect-ratio:16/10;
  border:0;border-radius:15px;overflow:hidden;padding:0;background:#e1e9e1;cursor:pointer}
 #tripDetailModal .albumMomentPhoto.albumMomentPhoto-portrait{aspect-ratio:4/5}
-#tripDetailModal .albumMomentPhoto img{display:block;width:100%;height:100%;object-fit:contain;object-position:center;
+#tripDetailModal .albumMomentPhoto img{display:block;width:100%;height:100%;object-fit:cover;object-position:center;
  border-radius:0;background:#e0e9e0}
 #tripDetailModal .albumMomentStory{padding:13px 2px 0}
 #tripDetailModal .albumMomentStory time{font:500 12px/1.5 system-ui,sans-serif;color:#64786d}
@@ -59,11 +59,16 @@
 #tripDetailModal .albumMomentStory p{font:400 14px/1.6 system-ui,sans-serif;color:#52695a;margin:0;overflow-wrap:anywhere}
 #tripDetailModal .albumMapFrame{background:#eaf0e9;border-radius:15px;overflow:hidden}
 #tripDetailModal #detailAlbumMap{display:block;width:100%;aspect-ratio:1000/445;height:auto;overflow:hidden}
-#tripDetailModal .albumRoute{list-style:none;padding:0;margin:14px 0 0;display:grid;gap:8px}
-#tripDetailModal .albumRoute li{display:flex;flex-wrap:wrap;gap:8px;align-items:center;
- border-left:3px solid #b1cdb8;padding:4px 0 4px 11px}
-#tripDetailModal .albumRoute strong{font:600 13px/1.4 Poppins,system-ui,sans-serif;color:#174d3a}
-#tripDetailModal .albumRoute span{font:400 13px/1.4 system-ui,sans-serif;color:#566b5c}
+#tripDetailModal #detailAlbumMap svg{display:block;width:100%;height:100%}
+#tripDetailModal #detailAlbumMap path[data-country]{
+ fill:#d7ded9;stroke:#fff;stroke-width:.7;vector-effect:non-scaling-stroke
+}
+#tripDetailModal #detailAlbumMap path[data-country].visited{
+ fill:#7fb196;stroke:#fff;stroke-width:.8
+}
+#tripDetailModal #detailNoteSection .detailSouvenirCard{
+ border-left:0;border-radius:12px;background:#f2f7f1
+}
 #tripDetailModal #detailTimelineDisclosure{padding:0;min-width:0;border-top:1px solid #e0e7e0}
 #tripDetailModal #detailTimelineDisclosure>summary{list-style:none;min-height:53px;display:flex;
  align-items:center;justify-content:space-between;cursor:pointer;
@@ -82,7 +87,7 @@
 #tripDetailModal .albumTile-portrait{grid-row:span 3}
 #tripDetailModal .albumTile-square{grid-row:span 2}
 #tripDetailModal .albumTilePhoto{display:block;width:100%;height:100%;min-height:44px;border:0;padding:0;background:transparent;cursor:pointer}
-#tripDetailModal .albumTilePhoto img{display:block;width:100%;height:100%;object-fit:contain;background:#e3e9e3}
+#tripDetailModal .albumTilePhoto img{display:block;width:100%;height:100%;object-fit:cover;background:#e3e9e3}
 #tripDetailModal .albumTile figcaption{position:absolute;bottom:0;left:0;right:0;
  padding:5px 7px;color:#fff;background:#123329b3;font:400 10px/1.3 system-ui,sans-serif;
  pointer-events:none;text-align:center}

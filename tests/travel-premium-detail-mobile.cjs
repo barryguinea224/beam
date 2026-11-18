@@ -154,8 +154,35 @@ async function main(){
     assert.equal(await page.locator("#detailPellicule .albumTile").count(),4);
     assert.equal(await page.locator("#detailPellicule .albumTile-portrait").count()>0,true);
     assert.equal(await page.locator("#detailPellicule .albumTile-landscape").count()>0,true);
+    const albumImages=await page.locator(".albumMomentPhoto img,.albumTilePhoto img").evaluateAll(nodes=>
+     nodes.map(el=>getComputedStyle(el).objectFit));
+    assert.ok(albumImages.length>=2&&albumImages.every(fit=>fit==="cover"),
+     "Moments forts and pellicule should fill their frames without grey letterboxing");
     assert.match(await page.locator("#detailIntro").innerText(),/2026/);
     assert.match(await page.locator("#detailStops").innerText(),/Allemagne/);
+    assert.equal(await page.locator(".albumRoute").count(),0,"No itinerary/Étapes duplicate");
+    await page.waitForFunction(()=>document.querySelectorAll("#detailAlbumMap svg path[data-country]").length>100);
+    const atlas=await page.locator("#detailAlbumMap").evaluate(el=>{
+     const svg=el.querySelector("svg"),paths=[...svg.querySelectorAll("path[data-country]")],
+      country=code=>paths.find(p=>p.dataset.country===code);
+     const fill=code=>getComputedStyle(country(code)).fill;
+     return {unvisited:fill("US"),france:fill("FR"),germany:fill("DE"),
+      visitedFR:country("FR").classList.contains("visited"),
+      visitedDE:country("DE").classList.contains("visited"),
+      fromGN:!!svg.querySelector(".flightResidence"),
+      arcs:[...svg.querySelectorAll(".flightArc")].map(p=>p.dataset.destination)};
+    });
+    assert.notEqual(atlas.unvisited,"rgb(0, 0, 0)","Unvisited countries cannot render black");
+    assert.equal(atlas.unvisited,"rgb(215, 222, 217)","Map uses home's light grey");
+    assert.equal(atlas.france,"rgb(127, 177, 150)","France is green");
+    assert.equal(atlas.germany,"rgb(127, 177, 150)","Germany is green");
+    assert.ok(atlas.visitedFR&&atlas.visitedDE&&atlas.fromGN&&atlas.arcs.includes("FR"),
+     "Trip visited countries and GN origin must be rendered: "+JSON.stringify(atlas));
+    const souvenirStyle=await page.locator("#detailNoteSection .detailSouvenirCard").evaluate(el=>{
+     const css=getComputedStyle(el);return {left:css.borderLeftWidth,radius:css.borderTopLeftRadius};
+    });
+    assert.equal(souvenirStyle.left,"0px","Souvenir has no decorative left bar");
+    assert.notEqual(souvenirStyle.radius,"0px","Souvenir remains rounded");
     assert.match(await page.locator("#detailActivities").textContent(),/Promenade fictive/);
     assert.match(await page.locator("#detailNote").innerText(),/NEVER_DRAW_PRIVATE_NOTE/);
     for(const id of ["detailStopsSection","detailNoteSection"])
@@ -181,13 +208,18 @@ async function main(){
      await page.locator("#detailFeaturedSection").screenshot({
       path:path.join(DIR,"fiche-moments-"+width+".png"),animations:"disabled"});
      if(width===390){
-      await page.locator("#detailPellicule").scrollIntoViewIfNeeded();
-      await page.waitForFunction(()=>{
-       const r=document.querySelector("#detailPellicule").getBoundingClientRect();
-       return r.top<innerHeight&&r.bottom>0;
+      await page.locator("#detailSheet").evaluate(el=>{
+       const t=document.querySelector("#detailItinerarySection");
+       el.scrollTop+=t.getBoundingClientRect().top-60;
       });
-      await page.locator("#detailPelliculeSection").screenshot({
-       path:path.join(DIR,"mosaique-portrait-paysage-390.png"),animations:"disabled"});
+      await page.waitForTimeout(400);
+      await page.screenshot({path:path.join(DIR,"itineraire-390.png"),animations:"disabled"});
+      await page.locator("#detailSheet").evaluate(el=>{
+       const t=document.querySelector("#detailPelliculeSection");
+       el.scrollTop+=t.getBoundingClientRect().top-60;
+      });
+      await page.waitForTimeout(400);
+      await page.screenshot({path:path.join(DIR,"mosaique-portrait-paysage-390.png"),animations:"disabled"});
      }
     }
     await page.locator("#detailModeToggle").click();

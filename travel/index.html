@@ -507,8 +507,7 @@ html.travelAccessReadOnly #photoField,html.travelAccessReadOnly #saveTrip{displa
     </section>
     <section id="detailItinerarySection" class="albumSection" aria-labelledby="detailItineraryTitle">
       <h3 id="detailItineraryTitle">Itinéraire</h3>
-      <div class="albumMapFrame"><svg id="detailAlbumMap" viewBox="0 0 1000 445" role="img" aria-label="Carte des pays du voyage"><image href="./assets/world-map.svg" x="0" y="0" width="1000" height="445"/></svg></div>
-      <div id="detailItinerary"></div>
+      <div class="albumMapFrame"><div id="detailAlbumMap" role="img" aria-label="Carte des pays du voyage"></div></div>
     </section>
 <section id="detailStopsSection" class="tripStopsSection" aria-labelledby="detailStopsTitle">
       <h3 id="detailStopsTitle">Étapes</h3>
@@ -1771,24 +1770,46 @@ function detailAlbumObserve(){
   detailAlbumObserver.observe(node);
 }
 async function detailAlbumMap(trip){
- const svg=$("#detailAlbumMap");
- if(!svg?.querySelector||!window.fetch||!window.BEAM_FLIGHT_CONNECTIONS?.draw)return;
- const id=trip?.id,token=detailRequest;
- const codes=[trip?.country_code,...(Array.isArray(trip?.stops)?trip.stops.map(x=>x.country_code):[])]
+ const holder=$("#detailAlbumMap");
+ if(!holder||!FLIGHTS?.draw||!trip)return;
+ const id=trip.id,token=detailRequest;
+ const codes=[trip.country_code,...(Array.isArray(trip.stops)?trip.stops.map(x=>x.country_code):[])]
   .filter(code=>/^[A-Z]{2}$/.test(code||""));
  try{
-  if(!detailCentroidsPromise)detailCentroidsPromise=window.fetch("./assets/world-centroids.json")
-   .then(response=>{if(!response.ok)throw Error("Carte indisponible");return response.json()});
+  // Reuse the same owner-independent public SVG used on the home map.
+  // Embedded <image> has no per-country styling and renders black on Android.
+  if(holder.querySelectorAll("svg path[data-country]").length<=100){
+   const response=await publicMapAsset("./assets/world-map.svg");
+   if(!response.ok)throw Error("Carte indisponible");
+   const markup=await response.text();
+   if(!markup.includes("<svg")||!markup.includes("data-country"))throw Error("Carte invalide");
+   if(!detailActive(id,token))return;
+   holder.innerHTML=markup;
+  }
+  const svg=holder.querySelector("svg");
+  if(!svg||holder.querySelectorAll("svg path[data-country]").length<=100)
+   throw Error("Carte incomplète");
+  // IDs in the shared SVG must not collide with the home map IDs.
+  svg.querySelectorAll("[id]").forEach(el=>el.removeAttribute("id"));
+  svg.removeAttribute("aria-labelledby");
+  svg.setAttribute("aria-hidden","true");
+  const visited=new Set(codes);
+  svg.querySelectorAll("path[data-country]").forEach(path=>
+   path.classList.toggle("visited",visited.has(path.dataset.country)));
+  if(!detailCentroidsPromise)detailCentroidsPromise=loadWorldCentroids();
   const centroids=await detailCentroidsPromise;
   if(!detailActive(id,token))return;
-  window.BEAM_FLIGHT_CONNECTIONS.draw(svg,codes[0]||"",codes.slice(1),centroids,{animate:false});
- }catch{detailCentroidsPromise=null}
+  FLIGHTS.draw(svg,profile.country_of_residence,codes,centroids,{animate:false});
+ }catch{
+  detailCentroidsPromise=null;
+  if(detailActive(id,token))holder.textContent="Carte indisponible. Les étapes du voyage restent consultables.";
+ }
 }
 function detailAlbumRender(trip){
  if(!ALBUM||!trip)return;
  const stats=$("#detailStats"),features=$("#detailFeatured"),mosaic=$("#detailPellicule"),
   featureSection=$("#detailFeaturedSection"),mosaicSection=$("#detailPelliculeSection"),
-  route=$("#detailItinerary"),noPhoto=$("#detailNoPhotoAdd");
+  noPhoto=$("#detailNoPhotoAdd");
  if(stats)stats.innerHTML=ALBUM.statsHTML(trip,detailPhotoRows.length,offlineMode);
  if(features){
   features.innerHTML=offlineMode?"":ALBUM.featuredHTML(detailActivitiesRows,detailPhotoRows);
@@ -1798,7 +1819,6 @@ function detailAlbumRender(trip){
   mosaic.innerHTML=offlineMode?"":ALBUM.mosaicHTML(detailPhotoRows,detailCanEdit());
   if(mosaicSection)mosaicSection.hidden=!detailPhotoRows.length||offlineMode;
  }
- if(route)route.innerHTML=ALBUM.routeHTML(trip,countryName(trip.country_code));
  if(noPhoto)noPhoto.classList.toggle("hidden",!canWrite()||offlineMode||detailPhotoRows.length>0);
  for(const photo of detailPhotoRows)detailAlbumPaint(photo);
  detailAlbumObserve();
