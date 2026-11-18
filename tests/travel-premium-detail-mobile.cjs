@@ -177,6 +177,8 @@ async function main(){
     await page.locator("#detailActivities .detailRemoveActivity").first().click();
     assert.equal(await page.evaluate(()=>window.__prompted),true,"Retirer triggers confirmation");
     await page.locator("#detailActivityToggle").click();
+    assert.equal(await page.locator("#detailTimelineDisclosure").evaluate(el=>el.open),true,
+     "Edit mode: Ajouter un moment must expand the day-by-day disclosure");
     assert.equal(await page.locator("#detailActivityForm").isVisible(),true);
     await page.locator("#detailModeToggle").click();
     assert.equal((await page.locator("#detailModeToggle").innerText()).trim(),"Modifier ce voyage");
