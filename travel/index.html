@@ -2202,6 +2202,8 @@ function openTripDetail(id){
  $("#detailCountryBadge").innerHTML=(flag?'<img src="'+flag+'" alt="" aria-hidden="true">':"")+
   '<span>'+esc(countryName(trip.country_code))+'</span>';
  const date=DAY.single(trip)?DAY.short(trip.entry_date):tripCardDates(trip.entry_date,trip.exit_date);
+ const duration=DAY.single(trip)?"Excursion · 1 jour":FR.count(trip.duration_days,"jour");
+ const purpose=window.BEAM_TRAVEL_PDF.purposeName(trip.purpose);
  $("#detailIntro").textContent=date;
  const lifecycle=LIFE.state(trip),label=LIFE.label(trip),badge=$("#detailLifecycle");
  badge.textContent=label;badge.className="detailLifecycle"+(label?" detailLifecycle-"+lifecycle:" hidden");
@@ -2255,6 +2257,9 @@ function openTripDetail(id){
   detailActivitiesRows=offlineActivities.filter(row=>row.trip_id===id);
   $("#detailActivities").innerHTML=DETAIL.activities(detailActivitiesRows,detailCanEdit());
   detailSections(trip);
+  const timeline=$("#detailTimelineDisclosure");
+  timeline.hidden=!detailActivitiesRows.length;
+  timeline.open=false;
  }else refreshTripDetail(id).catch(()=>{
   if(detailTripId===id)detailMessage("Impossible de charger cette fiche. Réessayez en la rouvrant.");
  });
