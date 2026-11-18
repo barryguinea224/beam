@@ -3,6 +3,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const vm=require('node:vm');
 const DETAIL=require('../travel/trip-detail.js');
+const ALBUM=require('../travel/trip-album.js');
 const PDF=require('../travel/factual-pdf.js');
 const DAY=require('../travel/day-excursions.js');
 const LIFE=require('../travel/trip-lifecycle.js');
@@ -16,7 +17,7 @@ assert.ok(html.includes('<script src="./trip-detail.js"></script>'),'Trip detail
 assert.ok(fs.readFileSync('travel/visual-cards.js','utf8').includes('class="tripOpen journeyLink"'),
  'Visual travel card helper must keep clickable tripOpen controls');
 assert.ok(html.includes('openTripDetail(b.dataset.id)'),'Tap must open a trip, not its editing form');
-assert.ok(inline.includes('S.from("media").select("id,storage_path,caption").eq("user_id",user.id).eq("trip_id",id)'),
+assert.ok(inline.includes('S.from("media").select("id,storage_path,caption,activity_id,width,height").eq("user_id",user.id).eq("trip_id",id)'),
   'Photos must be filtered by owner and trip');
 assert.ok(inline.includes('S.from("activities").select("id,title,place,happened_on,duration_days").eq("user_id",user.id).eq("trip_id",id)'),
   'Activities must be filtered by owner and trip');
@@ -90,6 +91,8 @@ const ids=['#modal','#tripDetailModal','#detailTitle','#detailCountryTitle','#de
  '#detailStatus','#detailActivityMessage','#detailActivityForm','#detailLoyaltyHint','#detailPhotos',
   '#detailLifecycle','#detailAddMoment','#detailMomentActions','#detailMomentActivity','#detailMomentPhoto','#activityTitle','#photos',
  '#detailActivities','#detailSheet','#detailClose','#detailEdit','#detailModeToggle','#activityDate','#activitySave',
+ '#detailFeatured','#detailFeaturedSection','#detailPellicule','#detailPelliculeSection','#detailItinerary','#detailAlbumMap',
+ '#detailStats','#detailNoPhotoAdd','#detailTimelineDisclosure','#photoMomentToggle','#photoMomentForm','#photoMomentSelect','#photoMomentCancel','#photoMomentSave',
  '#detailStops','#addTripStop','#tripStopForm','#tripStopCountry','#tripStopCities',
  '#tripStopEntry','#tripStopExit','#tripStopFormTitle','#tripStopFormMessage',
  '#stopDurationChoices',
@@ -122,7 +125,7 @@ const S={
  storage:{from:()=>({createSignedUrl:async()=>({data:{signedUrl:'https://signed.invalid/storage/v1/object/sign/media/photo-fictive.webp?token=SYNTHETIC'},error:null})})}
 };
 const context=vm.createContext({
- window:{BEAM_TRIP_DETAIL:DETAIL,BEAM_TRAVEL_PDF:PDF,
+ window:{BEAM_TRIP_DETAIL:DETAIL,BEAM_TRIP_ALBUM:ALBUM,BEAM_TRAVEL_PDF:PDF,
   BEAM_TRIP_SHARE:require("../travel/trip-share.js"),
    // This VM test exercises detail handlers. Slideshow interactions are tested in Android.
    BEAM_TRIP_SLIDESHOW:{init(){return {open(){return false},close(){}}}},

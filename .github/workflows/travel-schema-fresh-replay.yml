@@ -18,6 +18,8 @@ on:
       - "travel/supabase/migrations/20261107093000_account_email_recovery.sql"
       - "travel/supabase/migrations/20261114100000_trips_future_dates.sql"
       - "travel/supabase/migrations/20261114200000_cover_and_15_photos.sql"
+      - "travel/supabase/migrations/20261118100000_trip_album_p0.sql"
+      - "travel/supabase/ALBUM_P0_VERIFICATION.sql"
       - "travel/supabase/ACCOUNT_RECOVERY.md"
       - "travel/supabase/tests/account_recovery_otp_local.cjs"
       - "travel/supabase/tests/*.sql"
@@ -182,6 +184,15 @@ jobs:
           psql -X -v ON_ERROR_STOP=1 -f travel/supabase/migrations/20261114200000_cover_and_15_photos.sql
           echo "PASS idempotent owner cover FK and quota function, no remote database"
 
+      - name: Replay private trip album migration twice on disposable local DB
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql -X -v ON_ERROR_STOP=1 -f travel/supabase/migrations/20261118100000_trip_album_p0.sql
+          psql -X -v ON_ERROR_STOP=1 -f travel/supabase/migrations/20261118100000_trip_album_p0.sql
+          psql -X -v ON_ERROR_STOP=1 -f travel/supabase/ALBUM_P0_VERIFICATION.sql
+          echo "PASS P0 album migration idempotence and metadata checks"
+
       - name: Validate RLS, grants, private Storage and unscheduled worker
         shell: bash
         run: |
@@ -212,6 +223,7 @@ jobs:
             activity_duration_companions_security.sql
             trip_stops_security.sql
             trips_future_dates.sql
+            trip_album_p0_security.sql
             account_email_recovery_security.sql
             sql_storage_hardening.sql
           )

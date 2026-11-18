@@ -5,6 +5,9 @@ on:
     paths:
       - "travel/index.html"
       - "travel/trip-detail.js"
+      - "travel/trip-album.js"
+      - "travel/trip-album.css"
+      - "tests/travel-album-p0.cjs"
       - "travel/trip-premium.css"
       - "travel/trip-share.js"
       - "travel/trip-stops.js"
@@ -26,7 +29,9 @@ jobs:
       - name: Source, privacy and isolated unit tests
         run: |
           node --check travel/trip-detail.js
+          node --check travel/trip-album.js
           node --check travel/trip-share.js
+          node tests/travel-album-p0.cjs
           node tests/travel-trip-share.cjs
           node tests/travel-trip-detail.cjs
       - name: Install isolated Chromium
@@ -37,10 +42,10 @@ jobs:
         run: |
           node tests/travel-share-flag-pixels.cjs
           node tests/travel-premium-detail-mobile.cjs
-      - name: Upload fictional 360px captures and actual canvas PNG
+      - name: Upload fictional 390px album states and actual canvas PNG
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: jyetais-fiche-premium-360px-et-partage-png
+          name: jyetais-album-p0-390px-et-partage-png
           path: test-artifacts/trip-premium/*.png
           if-no-files-found: warn

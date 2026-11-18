@@ -27,11 +27,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Source invariants and no SQL migrations
+      - name: Source invariants and strict photo-free offline projection
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
-          git diff --exit-code "$BASE_SHA"...HEAD -- travel/supabase
+          # Additive P0 SQL is tested by isolated schema workflow; offline allowlist remains strict.
           node --check travel/offline-store.js
           node --check travel/offline-bootstrap.js
           node --check travel/sw.js

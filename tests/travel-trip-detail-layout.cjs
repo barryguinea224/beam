@@ -39,6 +39,11 @@ async function run(){
      document.querySelector('#detailActivities').innerHTML=activities;
      document.querySelector('#detailNote').textContent='Souvenir très personnel '.repeat(12);
     },{images,activities});
+    // This responsive fixture has no app handlers: expose the chronology
+    // through the same disclosure interaction a reader uses.
+    await page.locator("#detailTimelineDisclosure summary").click();
+    assert.equal(await page.locator("#detailTimelineDisclosure").evaluate(el=>el.open),true);
+    assert.equal(await page.locator("#detailActivities .detailActivity").first().isVisible(),true);
     const measurement=await page.evaluate(()=>{
      const sheet=document.querySelector('#detailSheet');
      const outer=sheet.getBoundingClientRect();

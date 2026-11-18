@@ -346,7 +346,7 @@ html.travelAccessReadOnly #photoField,html.travelAccessReadOnly #saveTrip{displa
 .detailMomentActions{display:flex;gap:9px;flex-wrap:wrap;margin:8px 0}
 .detailMomentActions .btn,#detailAddMoment{min-height:44px;white-space:normal}
 @media(max-width:390px){.upcomingTripsSection{padding:10px}.detailMomentActions>*{flex:1 1 100%;max-width:100%}}
-</style><link rel="stylesheet" href="./trip-premium.css"><link rel="stylesheet" href="./photo-sheet.css"><link rel="stylesheet" href="./loyalty.css"><link rel="stylesheet" href="./account-settings.css"><link rel="stylesheet" href="./activity-duration.css"><link rel="stylesheet" href="./trip-stops.css"><link rel="stylesheet" href="./day-excursions.css"><link rel="stylesheet" href="./date-range-picker.css"><link rel="stylesheet" href="./flight-connections.css"><link rel="stylesheet" href="./visual-cards.css"><link rel="stylesheet" href="./dashboard-filters.css"><link rel="stylesheet" href="./home-simple.css"><link rel="stylesheet" href="./profile-cover.css"><link rel="stylesheet" href="./offline-readonly.css"><link rel="stylesheet" href="./trip-list.css"><link rel="stylesheet" href="./passport-home.css">
+</style><link rel="stylesheet" href="./trip-premium.css"><link rel="stylesheet" href="./trip-album.css"><link rel="stylesheet" href="./photo-sheet.css"><link rel="stylesheet" href="./loyalty.css"><link rel="stylesheet" href="./account-settings.css"><link rel="stylesheet" href="./activity-duration.css"><link rel="stylesheet" href="./trip-stops.css"><link rel="stylesheet" href="./day-excursions.css"><link rel="stylesheet" href="./date-range-picker.css"><link rel="stylesheet" href="./flight-connections.css"><link rel="stylesheet" href="./visual-cards.css"><link rel="stylesheet" href="./dashboard-filters.css"><link rel="stylesheet" href="./home-simple.css"><link rel="stylesheet" href="./profile-cover.css"><link rel="stylesheet" href="./offline-readonly.css"><link rel="stylesheet" href="./trip-list.css"><link rel="stylesheet" href="./passport-home.css">
 <script src="/travel/offline-bootstrap.js"></script></head><body>
 <section id="offline" role="status" aria-live="polite"><div class="ey">J&#39;y étais</div><h1>Connexion nécessaire pour consulter votre carnet</h1><p>Vos voyages et photos sont privés et indisponibles hors ligne. Reconnectez-vous à Internet pour continuer.</p></section>
 <section id="auth" class="auth hidden"><img class="jyBrandLogo jyAuthLogo" src="./assets/brand/jyetais-logo.svg" alt="J&#39;y étais"><p class="jyAuthSignature">J&#39;y étais by BEAM</p><h1>Gardez vos voyages.<br>Retrouvez votre histoire.</h1><p class="sub">Un espace personnel pour vos destinations, dates, activités, souvenirs et photos.</p><form id="login"><div class="field"><label for="email">E-mail</label><input id="email" type="email" autocomplete="email" required></div><button class="btn">Recevoir un code</button></form><div id="otpBox" class="hidden"><p class="sub">Si cette adresse est autorisée, vous recevrez un code à 6 chiffres par e-mail.</p><form id="otpForm"><div class="field"><label for="otp">Code à 6 chiffres</label><input id="otp" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" aria-describedby="otpHelp" required><small id="otpHelp">Pas de code après 2 minutes ? Vérifiez vos spams, ou <a href="https://wa.me/224622095630" target="_blank" rel="noopener noreferrer">écrivez-nous sur WhatsApp</a>.</small></div><button class="btn">Continuer avec le code</button></form><div class="actions"><button id="resend" type="button" class="btn ghost" disabled>Renvoyer un code · 60 s</button></div></div><p id="loginMsg" class="notice hidden" role="status" aria-live="polite"></p><p class="sub" id="accessHelp">Ce carnet est réservé aux clients BEAM. <a href="https://wa.me/224622095630" target="_blank" rel="noopener noreferrer">Contactez-nous sur WhatsApp</a>.</p><div class="beamInstall" data-beam-install-area><button class="beamInstallButton" type="button" data-beam-install-action hidden>Installer J'y étais</button><details class="beamInstallHelp" data-beam-install-help><summary>Comment installer J'y étais</summary><p data-beam-install-steps>Depuis le menu de votre navigateur, cherchez « Installer l’application » ou « Ajouter à l’écran d’accueil », si cette option est proposée.</p></details><p class="beamInstallStatus" role="status" aria-live="polite" data-beam-install-status></p></div><aside class="authContact" aria-label="Contact"><strong>Contact</strong><p>WhatsApp : <a href="https://wa.me/224622095630" target="_blank" rel="noopener noreferrer">+224 622 09 56 30</a></p></aside><nav class="legalLinks legalLinksAuth" aria-label="Informations légales"><a href="./confidentialite.html">Confidentialité</a><span aria-hidden="true">·</span><a href="./conditions.html">Conditions d’utilisation</a></nav></section>
@@ -479,26 +479,36 @@ html.travelAccessReadOnly #photoField,html.travelAccessReadOnly #saveTrip{displa
 <button id="addFloating" type="button" hidden aria-label="Ajouter un voyage" title="Ajouter un voyage">+</button>
 <div id="modal" class="modal"><form id="tripForm" class="sheet"><div class="top"><h2 id="tripTitle">Ajouter un voyage</h2><button type="button" id="close" class="btn ghost">Fermer</button></div><div class="two"><div class="field"><label>Pays</label><label for="tripCountrySearch">Rechercher un pays ou territoire</label><input id="tripCountrySearch" type="search" autocomplete="off" placeholder="Ex. ara, etats, congo…" aria-controls="tripCountrySelect"><select id="tripCountrySelect" name="country_code" aria-label="Pays sélectionné" required><option value="">Choisir un pays</option></select></div><div class="field"><label>Ville(s)</label><input name="cities" required placeholder="Ex. Labé, Kankan"></div></div><div id="tripDurationChoices" class="dayModeChoices" role="group" aria-label="Durée du voyage"><button type="button" data-trip-mode="day" aria-pressed="false">Une journée</button><button type="button" data-trip-mode="multi" aria-pressed="true">Plusieurs jours</button></div><div id="tripDateFields"><span id="tripEntryLabel" class="drp-sr">Arrivée dans le pays</span><input id="tripEntryDate" name="entry_date" type="hidden"><span id="tripExitField" class="drp-sr">Départ du pays</span><input id="tripExitDate" name="exit_date" type="hidden"><div id="tripDatePicker" aria-label="Calendrier du voyage"></div></div><div class="field"><label>Voyage intérieur ?</label><select name="is_domestic" id="isDomestic"><option value="false">Non</option><option value="true">Oui</option></select><small id="domesticHint">Vous pouvez corriger cette proposition.</small></div><div class="field"><label>Motif</label><select name="purpose"><option value="tourisme">Tourisme</option><option value="affaires">Affaires</option><option value="etudes">Études</option><option value="famille">Famille</option><option value="sante">Santé</option><option value="transit">Transit</option><option value="autre">Autre</option></select></div><div class="two" id="stayDetails"><div class="field"><label for="tripAirline">Compagnie aérienne (facultatif)</label><input id="tripAirline" name="airline" type="text" maxlength="160" autocomplete="off" placeholder="Ex. Air France"><small>Nom uniquement, sans billet ni numéro de réservation.</small></div><div class="field"><label for="tripHotel">Hôtel / hébergement (facultatif)</label><input id="tripHotel" name="hotel" type="text" maxlength="160" autocomplete="off" placeholder="Ex. Hôtel Bellevue"><small>Nom uniquement, sans justificatif ni numéro de réservation.</small></div></div>
 <div class="field"><label for="tripCompanions">Voyagé avec (facultatif)</label><input id="tripCompanions" name="companions" type="text" maxlength="200" autocomplete="off" placeholder="Ex. Maman, Aïssatou, mon frère Ibrahima"><small>Prénoms ou liens seulement, sans nom complet ni numéro de téléphone.</small></div>
-<div id="photoField" class="field"><label for="photos">Photos privées</label><p id="photoInfo" class="photoHelp">15 photos maximum par voyage · 8 Mo maximum par photo. JPEG, PNG ou WebP uniquement. Les images sont converties en WebP sans données GPS avant l'envoi.</p><input id="photos" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" multiple aria-describedby="photoInfo photoUsage photoLoadStatus"><p id="photoLoadStatus" class="photoHelp hidden" role="status" aria-live="polite"><span class="photoSpinner" aria-hidden="true"></span>Chargement de vos photos…</p><p id="photoUsage" class="photoHelp" role="status" aria-live="polite">0 / 10 photos enregistrées</p><div id="photoGallery" class="photoGrid" aria-label="Photos enregistrées et en attente"></div><p id="photoMessage" class="notice hidden" role="alert"></p><button id="photoRetry" type="button" class="btn ghost hidden">Réessayer</button></div><div class="field"><label>Souvenir / note privée</label><textarea name="note"></textarea></div><p id="tripMsg" class="notice hidden"></p><section id="tripOverlapOffer" class="tripOverlapOffer hidden" role="status" aria-live="polite" aria-label="Excursion pendant un voyage"><p id="tripOverlapText"></p><div class="tripOverlapActions"><button id="tripOverlapStop" type="button" class="btn">L'ajouter comme excursion à ce voyage</button><button id="tripOverlapActivity" type="button" class="btn">L'ajouter comme activité</button><button id="tripOverlapEditDates" type="button" class="btn ghost">Modifier les dates</button></div><p id="tripOverlapFeedback" class="tripOverlapFeedback" aria-live="polite"></p></section><button id="saveTrip" class="btn">Enregistrer</button></form></div>
+<div id="photoField" class="field"><label for="photos">Photos privées</label><p id="photoInfo" class="photoHelp">15 photos maximum par voyage · 8 Mo maximum par photo. JPEG, PNG ou WebP uniquement. Les images sont converties en WebP sans données GPS avant l'envoi.</p><input id="photos" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" multiple aria-describedby="photoInfo photoUsage photoLoadStatus"><p id="photoLoadStatus" class="photoHelp hidden" role="status" aria-live="polite"><span class="photoSpinner" aria-hidden="true"></span>Chargement de vos photos…</p><p id="photoUsage" class="photoHelp" role="status" aria-live="polite">0 / 15 photos enregistrées</p><div id="photoGallery" class="photoGrid" aria-label="Photos enregistrées et en attente"></div><p id="photoMessage" class="notice hidden" role="alert"></p><button id="photoRetry" type="button" class="btn ghost hidden">Réessayer</button></div><div class="field"><label for="tripPersonalTitle">Titre personnel (facultatif, 60 caractères)</label><input id="tripPersonalTitle" name="title" maxlength="60" type="text" autocomplete="off" placeholder="Ex. Le Japon, enfin."></div><div class="field"><label>Souvenir / note privée</label><textarea name="note"></textarea></div><p id="tripMsg" class="notice hidden"></p><section id="tripOverlapOffer" class="tripOverlapOffer hidden" role="status" aria-live="polite" aria-label="Excursion pendant un voyage"><p id="tripOverlapText"></p><div class="tripOverlapActions"><button id="tripOverlapStop" type="button" class="btn">L'ajouter comme excursion à ce voyage</button><button id="tripOverlapActivity" type="button" class="btn">L'ajouter comme activité</button><button id="tripOverlapEditDates" type="button" class="btn ghost">Modifier les dates</button></div><p id="tripOverlapFeedback" class="tripOverlapFeedback" aria-live="polite"></p></section><button id="saveTrip" class="btn">Enregistrer</button></form></div>
 <div id="tripDetailModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="detailTitle" aria-describedby="detailIntro">
   <div id="detailSheet" class="sheet detailSheet" tabindex="-1">
-    <section class="detailHero" aria-label="Galerie du voyage">
- <div id="detailPhotos" class="detailGallery" aria-live="polite"></div>
- <div class="detailHeroControls">
-  <button id="detailClose" type="button" aria-label="Fermer la fiche">←</button>
-  <div class="detailHeroRight"><button id="detailSlideshowOpen" type="button" hidden disabled><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m8 5 12 7-12 7z"/></svg>Diaporama</button><button id="detailShare" type="button" aria-label="Partager ce voyage sous forme d'image">Partager</button></div>
- </div>
- <span id="detailGalleryCount" role="status" aria-live="polite" hidden></span>
-</section>
-<header class="detailHeading">
- <span id="detailCountryBadge"></span>
- <h2 id="detailCountryTitle">Voyage</h2>
- <p id="detailTitle">Ville</p>
- <p id="detailIntro" class="detailIntro">Informations du voyage</p>
- <p id="detailLifecycle" class="detailLifecycle hidden" role="status"></p>
- <p id="detailShareHelp" role="status" aria-live="polite"></p>
- <dl id="detailFacts" class="detailFacts"></dl>
-</header>
+    <section class="detailHero" aria-label="Couverture du voyage">
+      <div id="detailPhotos" class="detailGallery" aria-live="polite"></div>
+      <div class="detailHeroControls"><button id="detailClose" type="button" aria-label="Fermer la fiche">←</button></div>
+      <span id="detailGalleryCount" role="status" aria-live="polite" hidden></span>
+      <header class="detailHeading">
+        <span id="detailCountryBadge"></span>
+        <h2 id="detailCountryTitle">Voyage</h2>
+        <p id="detailTitle">Villes du voyage</p>
+        <p id="detailIntro" class="detailIntro">Dates du voyage</p>
+        <p id="detailLifecycle" class="detailLifecycle hidden" role="status"></p>
+      </header>
+    </section>
+    <div class="detailPrimaryActions" aria-label="Actions du voyage">
+      <button id="detailSlideshowOpen" type="button" class="hidden" hidden><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m8 5 12 7-12 7z"/></svg>Revivre</button>
+      <button id="detailNoPhotoAdd" type="button" class="hidden">Ajouter une photo</button>
+      <button id="detailShare" type="button" aria-label="Partager ce voyage sous forme d'image">Partager</button>
+      <p id="detailShareHelp" role="status" aria-live="polite"></p>
+    </div>
+    <div id="detailStats" class="albumStats" aria-label="Chiffres du voyage"></div>
+    <section id="detailFeaturedSection" class="albumSection" aria-labelledby="detailFeaturedTitle" hidden>
+      <h3 id="detailFeaturedTitle">Moments forts</h3>
+      <div id="detailFeatured" aria-live="polite"></div>
+    </section>
+    <section id="detailItinerarySection" class="albumSection" aria-labelledby="detailItineraryTitle">
+      <h3 id="detailItineraryTitle">Itinéraire</h3>
+      <div class="albumMapFrame"><div id="detailAlbumMap" role="img" aria-label="Carte des pays du voyage"></div></div>
+    </section>
 <section id="detailStopsSection" class="tripStopsSection" aria-labelledby="detailStopsTitle">
       <h3 id="detailStopsTitle">Étapes</h3>
       <p class="mapInfo">Ajoutez les autres pays traversés pendant ce même voyage, sans créer de voyages qui se chevauchent.</p>
@@ -518,9 +528,12 @@ html.travelAccessReadOnly #photoField,html.travelAccessReadOnly #saveTrip{displa
         <div class="actions"><button type="button" id="tripStopDeleteYes" class="btn">Supprimer l’étape</button><button type="button" id="tripStopDeleteNo" class="btn ghost">Annuler</button></div>
       </div>
     </section>
+    <dl id="detailFacts" class="detailFacts" aria-label="Infos pratiques du voyage"></dl>
     <p id="detailVisaGuide" class="detailVisaGuide" hidden></p><p id="detailLoyaltyHint" class="loyaltyTripHint" hidden></p>
     <p id="detailStatus" role="alert" class="notice hidden"></p>
-    <section id="detailActivitiesSection" class="detailSection" aria-labelledby="detailActivitiesTitle"><h3 id="detailActivitiesTitle">Moments</h3><div id="detailActivities" aria-live="polite"></div>
+    <details id="detailTimelineDisclosure" class="albumTimeline">
+      <summary>Voir tout le voyage jour par jour</summary>
+<section id="detailActivitiesSection" class="detailSection" aria-labelledby="detailActivitiesTitle"><h3 id="detailActivitiesTitle">Moments</h3><div id="detailActivities" aria-live="polite"></div>
       <form id="detailActivityForm" class="detailActivityForm hidden"><h4>Ajouter une activité</h4>
         <div class="field"><label for="activityTitle">Titre</label><input id="activityTitle" name="title" type="text" maxlength="160" placeholder="Ex. Visite du musée" required></div>
         <div class="two"><div class="field"><label for="activityPlace">Lieu (facultatif)</label><input id="activityPlace" name="place" type="text" maxlength="160" placeholder="Ex. Paris"></div>
@@ -537,6 +550,7 @@ html.travelAccessReadOnly #photoField,html.travelAccessReadOnly #saveTrip{displa
         <p id="detailActivityMessage" class="notice hidden" role="status" aria-live="polite"></p>
       </form>
     </section>
+    </details>
 <section id="detailNoteSection" class="detailSection" aria-labelledby="detailNoteTitle">
   <h3 id="detailNoteTitle">Mon souvenir</h3>
   <div class="detailSouvenirCard">
@@ -544,6 +558,10 @@ html.travelAccessReadOnly #photoField,html.travelAccessReadOnly #saveTrip{displa
     <button id="detailNoteToggle" type="button" aria-controls="detailNote" aria-expanded="false" hidden>Lire la suite</button>
     <p id="detailNoteDate" class="detailSouvenirDate"></p>
   </div>
+</section>
+<section id="detailPelliculeSection" class="albumSection" aria-labelledby="detailPelliculeTitle" hidden>
+  <h3 id="detailPelliculeTitle">Ta pellicule</h3>
+  <div id="detailPellicule" class="albumMosaic" aria-live="polite"></div>
 </section>
 <div class="detailBottomActions" id="detailBottomActions">
  <button type="button" id="detailAddMoment" class="btn hidden" aria-expanded="false" aria-controls="detailMomentActions">Ajouter un moment</button>
@@ -561,9 +579,9 @@ html.travelAccessReadOnly #photoField,html.travelAccessReadOnly #saveTrip{displa
  <p id="detailLightboxCaption"></p>
  <button type="button" id="detailLightboxActions" hidden>Options de la photo</button>
 </div>
-<div id="detailSlideshow" role="dialog" aria-modal="true" aria-label="Diaporama des photos du voyage" aria-hidden="true" hidden>
- <button id="detailSlideshowClose" type="button" aria-label="Fermer le diaporama">×</button>
- <div id="slideStage" role="button" tabindex="0" aria-label="Mettre en pause le diaporama"><div id="slideImageBox"></div></div>
+<div id="detailSlideshow" role="dialog" aria-modal="true" aria-label="Revivre les photos du voyage" aria-hidden="true" hidden>
+ <button id="detailSlideshowClose" type="button" aria-label="Fermer les souvenirs">×</button>
+ <div id="slideStage" role="button" tabindex="0" aria-label="Mettre en pause les souvenirs"><div id="slideImageBox"></div></div>
  <div id="slideFoot"><p id="slideCaption" hidden></p><span id="slideCounter" aria-live="polite"></span><span id="slideStatus" aria-live="polite"></span></div>
 </div>
 <dialog id="detailShareDialog" aria-labelledby="detailShareTitle">
@@ -583,7 +601,7 @@ html.travelAccessReadOnly #photoField,html.travelAccessReadOnly #saveTrip{displa
   <p id="photoActionCaption"></p>
   <div id="photoActionList">
    <button id="photoNoteToggle" type="button">Ajouter une note</button>
-   <button id="photoCover" type="button">Choisir comme couverture du voyage</button><button id="photoProfileCover" type="button">Utiliser comme couverture</button>
+   <button id="photoCover" type="button">Choisir comme couverture du voyage</button><button id="photoMomentToggle" type="button">Associer à un moment</button><button id="photoProfileCover" type="button">Utiliser comme couverture</button>
    <button id="photoAirline" type="button">Utiliser comme photo du vol</button>
    <button id="photoHotel" type="button">Utiliser comme photo de l'hôtel</button>
    <button id="photoDownload" type="button">Télécharger</button>
@@ -597,6 +615,11 @@ html.travelAccessReadOnly #photoField,html.travelAccessReadOnly #saveTrip{displa
    <div id="photoNoteCount" aria-live="polite">0 / 500</div>
    <div class="photoSheetActions"><button type="submit" id="photoNoteSave">Enregistrer</button><button id="photoNoteCancel" type="button">Annuler</button><button id="photoNoteClear" type="button">Effacer</button></div>
   </form>
+  <form id="photoMomentForm" class="hidden">
+    <label for="photoMomentSelect">Moment de ce voyage</label>
+    <select id="photoMomentSelect"><option value="">Aucun moment</option></select>
+    <div class="photoSheetActions"><button id="photoMomentSave" type="submit">Enregistrer</button><button id="photoMomentCancel" type="button">Annuler</button></div>
+  </form>
   <div id="photoDeleteConfirm" class="hidden">
    <p>Supprimer définitivement cette photo du voyage ? Cette action ne peut pas être annulée.</p>
    <div class="photoSheetActions"><button id="photoConfirmDelete" type="button">Confirmer la suppression</button><button id="photoCancelDelete" type="button">Annuler</button></div>
@@ -604,7 +627,7 @@ html.travelAccessReadOnly #photoField,html.travelAccessReadOnly #saveTrip{displa
   <p id="photoActionStatus" role="status" aria-live="polite"></p>
  </section>
 </div>
-<script src="./vendor/supabase.umd.js"></script><script src="./config.js"></script><script src="./pwa.js"></script><script src="./access.js"></script><script src="./fr-accords.js"></script><script src="./photo-utils.js"></script><script src="./photo-upload.js"></script><script src="./avatar.js"></script><script src="./activity-durations.js"></script><script src="./trip-detail.js"></script><script src="./trip-share.js"></script><script src="./loyalty-programs.js"></script><script src="./loyalty-ui.js"></script><script src="./visa-guide.js"></script><script src="./countries.js"></script><script src="./trip-stops.js"></script><script src="./day-excursions.js"></script><script src="./date-range-picker.js"></script><script src="./country-picker.js"></script><script src="./factual-pdf.js"></script><script src="./factual-pdf-file.js"></script><script src="./trip-lifecycle.js"></script><script src="./continents.js"></script><script src="./trip-slideshow.js"></script><script src="./journal-stats.js"></script><script src="./dashboard-filters.js"></script><script src="./visual-cards.js"></script><script src="./trip-list.js"></script><script src="./profile-cover.js"></script><script src="./profile-cover-ui.js"></script><script src="./offline-store.js"></script><script src="./flight-connections.js"></script><script src="./printable-journal.js"></script><script src="./family-booklet.js"></script><script>
+<script src="./vendor/supabase.umd.js"></script><script src="./config.js"></script><script src="./pwa.js"></script><script src="./access.js"></script><script src="./fr-accords.js"></script><script src="./photo-utils.js"></script><script src="./photo-upload.js"></script><script src="./avatar.js"></script><script src="./activity-durations.js"></script><script src="./trip-detail.js"></script><script src="./trip-album.js"></script><script src="./trip-share.js"></script><script src="./loyalty-programs.js"></script><script src="./loyalty-ui.js"></script><script src="./visa-guide.js"></script><script src="./countries.js"></script><script src="./trip-stops.js"></script><script src="./day-excursions.js"></script><script src="./date-range-picker.js"></script><script src="./country-picker.js"></script><script src="./factual-pdf.js"></script><script src="./factual-pdf-file.js"></script><script src="./trip-lifecycle.js"></script><script src="./continents.js"></script><script src="./trip-slideshow.js"></script><script src="./journal-stats.js"></script><script src="./dashboard-filters.js"></script><script src="./visual-cards.js"></script><script src="./trip-list.js"></script><script src="./profile-cover.js"></script><script src="./profile-cover-ui.js"></script><script src="./offline-store.js"></script><script src="./flight-connections.js"></script><script src="./printable-journal.js"></script><script src="./family-booklet.js"></script><script>
 const C=window.BEAM_TRAVEL_CONFIG||{},ok=C.supabaseUrl&&!C.supabaseUrl.includes("YOUR_")&&C.supabaseAnonKey&&!C.supabaseAnonKey.includes("YOUR_"),S=ok&&typeof supabase!=="undefined"?supabase.createClient(C.supabaseUrl,C.supabaseAnonKey):null,$=s=>document.querySelector(s);let user,trips=[],accountState="loading";
 const LOYALTY=window.BEAM_LOYALTY_UI?.init({supabase:S,user:()=>user,isActive:()=>accountState==="active",canWrite:()=>canWrite(),onChange:()=>renderLoyaltyHint()});
 function view(id){$("#auth").classList.add("hidden");$("#app").classList.add("hidden");$(id).classList.remove("hidden");document.title="J'y étais"}
@@ -1538,7 +1561,7 @@ $("#stopDurationChoices").onclick=event=>{
  const button=event.target.closest("button[data-stop-mode]");
  if(button)setStopMode(button.dataset.stopMode);
 };
-function proposeDomestic(code){if(!profile.country_of_residence||!code)return false;return code===profile.country_of_residence}function setDomesticProposal(code){$("#isDomestic").value=String(proposeDomestic(code));$("#domesticHint").textContent=profile.country_of_residence?"Proposition selon votre résidence actuelle. Vous pouvez la corriger.":"Aucune résidence enregistrée : vérifiez ce choix."}function openNewTrip(){if(accountState!=="active"||!canWrite())return;editingTripId=null;editingOriginalCountry=null;const city=$("#tripForm").elements.namedItem("cities");delete city.dataset.autoProposed;delete city.dataset.manualCorrection;$("#tripForm").reset();tripPicker.clear();setTripMode("multi");tripPicker.setExisting(trips);countrySelectors.trip.reset("");setDomesticProposal("");$("#tripTitle").textContent="Ajouter un voyage";$("#saveTrip").textContent="Enregistrer";resetPhotoUI(null);$("#tripMsg").classList.add("hidden");$("#modal").classList.add("open")}function openEditTrip(id){if(accountState!=="active"||!canWrite())return;const city=$("#tripForm").elements.namedItem("cities");delete city.dataset.autoProposed;delete city.dataset.manualCorrection;let x=trips.find(t=>t.id===id);if(!x)return;editingTripId=id;editingOriginalCountry=x.country_code;let f=$("#tripForm");countrySelectors.trip.reset(x.country_code);f.country_code.value=x.country_code;f.cities.value=x.cities.join(", ");tripPicker.setMode("multi");f.entry_date.value=x.entry_date;f.exit_date.value=x.exit_date;tripPicker.sync();setTripMode(DAY.modeFor(x));tripPicker.setExisting(trips,id);f.purpose.value=x.purpose;f.airline.value=x.airline||"";f.hotel.value=x.hotel||"";f.companions.value=x.companions||"";f.note.value=x.note||"";f.is_domestic.value=String(!!x.is_domestic);$("#domesticHint").textContent="Classification enregistrée pour ce voyage. Elle reste stable tant que le pays ne change pas.";$("#tripTitle").textContent="Modifier le voyage";$("#saveTrip").textContent="Enregistrer les modifications";resetPhotoUI(id);$("#tripMsg").classList.add("hidden");$("#modal").classList.add("open");refreshMedia(id).catch(()=>showPhotoMessage("Impossible de charger les photos. Réessayez en rouvrant le voyage."))}$("#tripForm").country_code.onchange=e=>{let code=e.target.value;if(!editingTripId||code!==editingOriginalCountry)setDomesticProposal(code)};$("#add").onclick=openNewTrip;
+function proposeDomestic(code){if(!profile.country_of_residence||!code)return false;return code===profile.country_of_residence}function setDomesticProposal(code){$("#isDomestic").value=String(proposeDomestic(code));$("#domesticHint").textContent=profile.country_of_residence?"Proposition selon votre résidence actuelle. Vous pouvez la corriger.":"Aucune résidence enregistrée : vérifiez ce choix."}function openNewTrip(){if(accountState!=="active"||!canWrite())return;editingTripId=null;editingOriginalCountry=null;const city=$("#tripForm").elements.namedItem("cities");delete city.dataset.autoProposed;delete city.dataset.manualCorrection;$("#tripForm").reset();tripPicker.clear();setTripMode("multi");tripPicker.setExisting(trips);countrySelectors.trip.reset("");setDomesticProposal("");$("#tripTitle").textContent="Ajouter un voyage";$("#saveTrip").textContent="Enregistrer";resetPhotoUI(null);$("#tripMsg").classList.add("hidden");$("#modal").classList.add("open")}function openEditTrip(id){if(accountState!=="active"||!canWrite())return;const city=$("#tripForm").elements.namedItem("cities");delete city.dataset.autoProposed;delete city.dataset.manualCorrection;let x=trips.find(t=>t.id===id);if(!x)return;editingTripId=id;editingOriginalCountry=x.country_code;let f=$("#tripForm");countrySelectors.trip.reset(x.country_code);f.country_code.value=x.country_code;f.cities.value=x.cities.join(", ");tripPicker.setMode("multi");f.entry_date.value=x.entry_date;f.exit_date.value=x.exit_date;tripPicker.sync();setTripMode(DAY.modeFor(x));tripPicker.setExisting(trips,id);f.purpose.value=x.purpose;f.airline.value=x.airline||"";f.hotel.value=x.hotel||"";f.companions.value=x.companions||"";f.elements.namedItem("title").value=x.title||"";f.note.value=x.note||"";f.is_domestic.value=String(!!x.is_domestic);$("#domesticHint").textContent="Classification enregistrée pour ce voyage. Elle reste stable tant que le pays ne change pas.";$("#tripTitle").textContent="Modifier le voyage";$("#saveTrip").textContent="Enregistrer les modifications";resetPhotoUI(id);$("#tripMsg").classList.add("hidden");$("#modal").classList.add("open");refreshMedia(id).catch(()=>showPhotoMessage("Impossible de charger les photos. Réessayez en rouvrant le voyage."))}$("#tripForm").country_code.onchange=e=>{let code=e.target.value;if(!editingTripId||code!==editingOriginalCountry)setDomesticProposal(code)};$("#add").onclick=openNewTrip;
 const floatingAdd=$("#addFloating");
 let largeAddIsPast=false;
 function overlayBlocksFloatingAdd(){
@@ -1663,10 +1686,10 @@ $("#trips").onclick=e=>{const first=e.target.closest("#addFirstTrip");if(first){
 
 // The consultation sheet is separate from the existing trip editing form.
 // Private image URLs are signed afresh on every opening and never cached.
-const DETAIL=window.BEAM_TRIP_DETAIL;
+const DETAIL=window.BEAM_TRIP_DETAIL,ALBUM=window.BEAM_TRIP_ALBUM;
 let detailTripId=null,detailRequest=0,detailActivityBusy=false,detailMediaBusy=false,detailMediaIds=[],detailPhotoRows=[],detailActivitiesRows=[],detailReturnFocus=null;
 const SHARE=window.BEAM_TRIP_SHARE;
-let detailGalleryIndex=0,detailGalleryLoads=new Set(),detailLightboxRow=null,detailShareFile=null,detailShareObjectUrl=null,detailShareBusy=false,detailEditing=false;
+let detailGalleryIndex=0,detailGalleryLoads=new Set(),detailLightboxRow=null,detailShareFile=null,detailShareObjectUrl=null,detailShareBusy=false,detailEditing=false,detailAlbumObserver=null,detailCentroidsPromise=null;
 const SLIDESHOW=window.BEAM_TRIP_SLIDESHOW.init({
  overlay:$("#detailSlideshow"),stage:$("#slideStage"),closeButton:$("#detailSlideshowClose"),
  imageBox:$("#slideImageBox"),caption:$("#slideCaption"),counter:$("#slideCounter"),status:$("#slideStatus"),
@@ -1674,8 +1697,11 @@ const SLIDESHOW=window.BEAM_TRIP_SLIDESHOW.init({
  available:()=>!offlineMode&&navigator.onLine&&accountState==="active"&&detailPhotoRows.length>=2
 });
 function detailSyncSlideshow(){
- const button=$("#detailSlideshowOpen"),show=detailPhotoRows.length>=2;
- button.hidden=!show;button.disabled=offlineMode||!navigator.onLine||!show;
+ const button=$("#detailSlideshowOpen"),count=detailPhotoRows.length,hasPhotos=count>0;
+ button.hidden=!hasPhotos;
+ button.classList.toggle("hidden",!hasPhotos);
+ button.disabled=false;
+ button.title=count===1?"Voir la photo en plein écran":hasPhotos?"Revivre les photos du voyage":"";
 }
 const detailSvg={
  plane:'<path d="M2 16l8-3 5-10a2 2 0 0 1 3 2l-2 9 5 3-1 3-7-2-5 2-6-1Z"/>',
@@ -1687,6 +1713,10 @@ function detailIcon(kind){
 }
 // Explicit edit mode is required for element-level actions; consultation is the default.
 function detailCanEdit(){return detailEditing&&canWrite()&&!offlineMode}
+function detailTimelineSync(){
+ const t=$("#detailTimelineDisclosure");
+ if(t)t.hidden=!detailCanEdit()&&!detailActivitiesRows.length;
+}
 function detailMayAddMoment(trip){
  return canWrite()&&!offlineMode&&(detailEditing||!!trip&&LIFE.state(trip)==="ongoing");
 }
@@ -1707,6 +1737,92 @@ function detailSyncMode(trip){
  renderTripStops(trip);
  $("#detailActivities").innerHTML=DETAIL.activities(detailActivitiesRows,editable);
  detailSections(trip);
+ detailTimelineSync();
+ const timeline=$("#detailTimelineDisclosure");
+ if(timeline)timeline.open=editable;
+ detailAlbumRender(trip);
+}
+// Album: owner-scoped private photos, signed only when visible.
+function detailAlbumPaint(row){
+ if(!row?.url||!document.querySelectorAll)return;
+ for(const target of document.querySelectorAll('[data-album-photo-id="'+row.id+'"]')){
+  let img=target.querySelector("img");
+  if(!img){
+   img=document.createElement("img");img.alt="Photo privée du voyage";
+   img.loading="lazy";img.decoding="async";img.referrerPolicy="no-referrer";
+   img.dataset.isPrivate="true";target.replaceChildren(img);
+  }
+  if(img.src!==row.url)img.src=row.url;
+ }
+}
+function detailAlbumObserve(){
+ detailAlbumObserver?.disconnect();detailAlbumObserver=null;
+ if(!window.IntersectionObserver||!document.querySelectorAll)return;
+ detailAlbumObserver=new window.IntersectionObserver(entries=>{
+  for(const entry of entries){
+   if(!entry.isIntersecting)continue;
+   detailAlbumObserver?.unobserve(entry.target);
+   const index=detailPhotoRows.findIndex(row=>row.id===entry.target.dataset.albumPhotoId);
+   if(index>=0)void detailSignPhoto(index);
+  }
+ },{root:$("#detailSheet"),rootMargin:"0px",threshold:0.02});
+ for(const node of document.querySelectorAll("#detailFeatured [data-album-photo-id],#detailPellicule [data-album-photo-id]"))
+  detailAlbumObserver.observe(node);
+}
+async function detailAlbumMap(trip){
+ const holder=$("#detailAlbumMap"),flights=window.BEAM_FLIGHT_CONNECTIONS;
+ if(!holder||!flights?.draw||!trip)return;
+ const id=trip.id,token=detailRequest;
+ const codes=[trip.country_code,...(Array.isArray(trip.stops)?trip.stops.map(x=>x.country_code):[])]
+  .filter(code=>/^[A-Z]{2}$/.test(code||""));
+ try{
+  // Reuse the same owner-independent public SVG used on the home map.
+  // Embedded <image> has no per-country styling and renders black on Android.
+  if(holder.querySelectorAll("svg path[data-country]").length<=100){
+   const response=await publicMapAsset("./assets/world-map.svg");
+   if(!response.ok)throw Error("Carte indisponible");
+   const markup=await response.text();
+   if(!markup.includes("<svg")||!markup.includes("data-country"))throw Error("Carte invalide");
+   if(!detailActive(id,token))return;
+   holder.innerHTML=markup;
+  }
+  const svg=holder.querySelector("svg");
+  if(!svg||holder.querySelectorAll("svg path[data-country]").length<=100)
+   throw Error("Carte incomplète");
+  // IDs in the shared SVG must not collide with the home map IDs.
+  svg.querySelectorAll("[id]").forEach(el=>el.removeAttribute("id"));
+  svg.removeAttribute("aria-labelledby");
+  svg.setAttribute("aria-hidden","true");
+  const visited=new Set(codes);
+  svg.querySelectorAll("path[data-country]").forEach(path=>
+   path.classList.toggle("visited",visited.has(path.dataset.country)));
+  if(!detailCentroidsPromise)detailCentroidsPromise=loadWorldCentroids();
+  const centroids=await detailCentroidsPromise;
+  if(!detailActive(id,token))return;
+  flights.draw(svg,profile.country_of_residence,codes,centroids,{animate:false});
+ }catch{
+  detailCentroidsPromise=null;
+  if(detailActive(id,token))holder.textContent="Carte indisponible. Les étapes du voyage restent consultables.";
+ }
+}
+function detailAlbumRender(trip){
+ if(!ALBUM||!trip)return;
+ const stats=$("#detailStats"),features=$("#detailFeatured"),mosaic=$("#detailPellicule"),
+  featureSection=$("#detailFeaturedSection"),mosaicSection=$("#detailPelliculeSection"),
+  noPhoto=$("#detailNoPhotoAdd");
+ if(stats)stats.innerHTML=ALBUM.statsHTML(trip,detailPhotoRows.length,offlineMode);
+ if(features){
+  features.innerHTML=offlineMode?"":ALBUM.featuredHTML(detailActivitiesRows,detailPhotoRows);
+  if(featureSection)featureSection.hidden=!features.childElementCount;
+ }
+ if(mosaic){
+  mosaic.innerHTML=offlineMode?"":ALBUM.mosaicHTML(detailPhotoRows,detailCanEdit());
+  if(mosaicSection)mosaicSection.hidden=!detailPhotoRows.length||offlineMode;
+ }
+ if(noPhoto)noPhoto.classList.toggle("hidden",!canWrite()||offlineMode||detailPhotoRows.length>0);
+ for(const photo of detailPhotoRows)detailAlbumPaint(photo);
+ detailAlbumObserve();
+ void detailAlbumMap(trip);
 }
 function detailNoPhoto(trip){
  const assets=window.BEAM_VISUAL_CARDS;
@@ -1714,7 +1830,7 @@ function detailNoPhoto(trip){
  $("#detailPhotos").innerHTML='<div class="detailHeroFallback">'+
   (art?'<img class="detailCountryArt" src="'+art+'" alt="Illustration du pays">':
    flag?'<img class="detailFallbackFlag" src="'+flag+'" alt="Drapeau du pays">':'')+'</div>';
- $("#detailGalleryCount").hidden=true;detailSyncSlideshow();
+ $("#detailGalleryCount").hidden=true;detailSyncSlideshow();detailAlbumRender(trip);
 }
 function detailCounter(){
  const count=$("#detailGalleryCount"),len=detailPhotoRows.length;
@@ -1757,7 +1873,7 @@ function detailGalleryRender(trip){
   canEdit:detailCanEdit(),coverMediaId:trip.cover_media_id,airline:!!trip.airline?.trim(),
   hotel:!!trip.hotel?.trim(),airlineMediaId:trip.airline_media_id,hotelMediaId:trip.hotel_media_id
  });
- detailGalleryIndex=0;box.scrollLeft=0;detailCounter();detailSyncSlideshow();
+ detailGalleryIndex=0;box.scrollLeft=0;detailCounter();detailSyncSlideshow();detailAlbumRender(trip);
 }
 async function detailSignPhoto(index,id=detailTripId,token=detailRequest){
  const row=detailPhotoRows[index];
@@ -1778,6 +1894,7 @@ async function detailSignPhoto(index,id=detailTripId,token=detailRequest){
    if(!img){img=document.createElement("img");img.loading="lazy";img.alt="Photo privée du voyage";img.referrerPolicy="no-referrer";button.prepend(img)}
    img.dataset.isPrivate="true";img.src=safe;
   }
+  detailAlbumPaint(row);
   return safe;
  }catch{return ""}
  finally{detailGalleryLoads.delete(index)}
@@ -1879,11 +1996,11 @@ function closeTripDetail(){
  detailEditing=false;
  SLIDESHOW.close();detailLightboxClose();detailShareReset();detailGalleryLoads.clear();
  if(typeof photoSheetState!=="undefined"&&photoSheetState?.context==="detail")closePhotoActions();
- detailRequest++;detailTripId=null;detailActivitiesRows=[];detailMediaIds=[];detailPhotoRows=[];stopEditingId=null;stopDeleteTarget=null;
+ detailRequest++;detailTripId=null;detailActivitiesRows=[];detailMediaIds=[];detailPhotoRows=[];detailAlbumObserver?.disconnect();detailAlbumObserver=null;stopEditingId=null;stopDeleteTarget=null;
  $("#tripStopForm").classList.add("hidden");$("#tripStopDeleteConfirm").classList.add("hidden");
  window.BEAM_VISA_GUIDE?.hide($("#detailVisaGuide"));
  $("#tripDetailModal").classList.remove("open");
- $("#detailPhotos").replaceChildren();$("#detailActivities").replaceChildren();
+ $("#detailPhotos").replaceChildren();$("#detailFeatured")?.replaceChildren();$("#detailPellicule")?.replaceChildren();$("#detailActivities").replaceChildren();
  $("#detailActivityForm").reset();
  const back=detailReturnFocus;detailReturnFocus=null;
  if(back?.isConnected)back.focus();
@@ -2103,16 +2220,16 @@ function openTripDetail(id){
  if(!$("#tripDetailModal").classList.contains("open"))detailReturnFocus=document.activeElement;
  SLIDESHOW.close();detailTripId=id;detailRequest++;detailPhotoRows=[];detailMediaIds=[];detailGalleryIndex=0;detailGalleryLoads.clear();detailSyncSlideshow();
  const city=(trip.cities||[]).join(", ");
- $("#detailCountryTitle").textContent=countryName(trip.country_code);
+ $("#detailCountryTitle").textContent=ALBUM?.title(trip.title,countryName(trip.country_code))||countryName(trip.country_code);
  $("#detailTitle").textContent=city||countryName(trip.country_code);
  const code=window.BEAM_VISUAL_CARDS.codeOf(trip.country_code),
        flag=window.BEAM_VISUAL_CARDS.flag(code);
  $("#detailCountryBadge").innerHTML=(flag?'<img src="'+flag+'" alt="" aria-hidden="true">':"")+
-  '<span>'+esc(code||"—")+'</span>';
+  '<span>'+esc(countryName(trip.country_code))+'</span>';
  const date=DAY.single(trip)?DAY.short(trip.entry_date):tripCardDates(trip.entry_date,trip.exit_date);
  const duration=DAY.single(trip)?"Excursion · 1 jour":FR.count(trip.duration_days,"jour");
  const purpose=window.BEAM_TRAVEL_PDF.purposeName(trip.purpose);
- $("#detailIntro").textContent=[date,duration,purpose].filter(Boolean).join(" | ");
+ $("#detailIntro").textContent=date;
  const lifecycle=LIFE.state(trip),label=LIFE.label(trip),badge=$("#detailLifecycle");
  badge.textContent=label;badge.className="detailLifecycle"+(label?" detailLifecycle-"+lifecycle:" hidden");
  $("#detailAddMoment").setAttribute("aria-expanded","false");
@@ -2165,6 +2282,9 @@ function openTripDetail(id){
   detailActivitiesRows=offlineActivities.filter(row=>row.trip_id===id);
   $("#detailActivities").innerHTML=DETAIL.activities(detailActivitiesRows,detailCanEdit());
   detailSections(trip);
+  const timeline=$("#detailTimelineDisclosure");
+  timeline.hidden=!detailActivitiesRows.length;
+  timeline.open=false;
  }else refreshTripDetail(id).catch(()=>{
   if(detailTripId===id)detailMessage("Impossible de charger cette fiche. Réessayez en la rouvrant.");
  });
@@ -2173,7 +2293,7 @@ async function refreshTripDetail(id){
  const token=++detailRequest;
  if(offlineMode)return;
  const [photos,activities]=await Promise.all([
-  S.from("media").select("id,storage_path,caption").eq("user_id",user.id).eq("trip_id",id).order("created_at",{ascending:true}),
+  S.from("media").select("id,storage_path,caption,activity_id,width,height").eq("user_id",user.id).eq("trip_id",id).order("created_at",{ascending:true}),
   S.from("activities").select("id,title,place,happened_on,duration_days").eq("user_id",user.id).eq("trip_id",id).order("created_at",{ascending:true})
  ]);
  if(!detailActive(id,token))return;
@@ -2182,10 +2302,13 @@ async function refreshTripDetail(id){
  if(activities.error||!activities.data){
   detailActivitiesRows=[];$("#detailActivities").innerHTML='<p class="detailEmpty">Activités indisponibles. Réessayez en rouvrant la fiche.</p>';
   $("#detailActivitiesSection").hidden=false;
+  $("#detailTimelineDisclosure").hidden=false;
  }else{
   detailActivitiesRows=activities.data;
   $("#detailActivities").innerHTML=DETAIL.activities(detailActivitiesRows,detailCanEdit());
   detailSections(trip);
+  detailTimelineSync();
+  detailAlbumRender(trip);
  }
  if(photos.error||!photos.data){
   detailMediaIds=[];detailPhotoRows=[];detailNoPhoto(trip);
@@ -2195,7 +2318,7 @@ async function refreshTripDetail(id){
  // Cover first, other photos retain their existing chronological order.
  const cover=trip.cover_media_id,ordered=photos.data.slice().sort((a,b)=>Number(b.id===cover)-Number(a.id===cover));
  detailMediaIds=ordered.map(row=>row.id);
- detailPhotoRows=ordered.map(row=>({id:row.id,storage_path:row.storage_path,caption:row.caption||"",url:""}));
+ detailPhotoRows=ordered.map(row=>({id:row.id,storage_path:row.storage_path,caption:row.caption||"",activity_id:row.activity_id||null,width:row.width,height:row.height,url:""}));
  detailGalleryLoads.clear();
  if(!detailPhotoRows.length){detailNoPhoto(trip);return}
  // Strict two-signature budget at open. Remaining photos only on swipe/share.
@@ -2216,7 +2339,27 @@ $("#detailPhotos").onclick=e=>{
  const index=detailPhotoRows.findIndex(photo=>photo.id===button.dataset.id);
  if(index>=0)void detailOpenLightbox(index,button);
 };
-$("#detailSlideshowOpen").onclick=()=>{if(!offlineMode)SLIDESHOW.open()};
+$("#detailSlideshowOpen").onclick=()=>{
+ if(offlineMode||!navigator.onLine)return;
+ const count=detailPhotoRows.length;
+ if(count===1)void detailOpenLightbox(0,$("#detailSlideshowOpen"));
+ else if(count>=2)SLIDESHOW.open();
+};
+$("#detailNoPhotoAdd").onclick=()=>{if(!detailTripId||!canWrite()||offlineMode)return;
+ const id=detailTripId;closeTripDetail();openEditTrip(id);$("#photos").focus();
+};
+async function albumPhotoTap(event){
+ const button=event.target.closest(".photoTap[data-id]");
+ if(!button||!detailTripId)return;
+ const index=detailPhotoRows.findIndex(row=>row.id===button.dataset.id);
+ if(index<0)return;
+ if(detailCanEdit()){
+  if(!detailPhotoRows[index].url)await detailSignPhoto(index);
+  openPhotoActions("detail",detailPhotoRows[index],detailTripId,button);
+ }else void detailOpenLightbox(index,button);
+}
+$("#detailFeatured").addEventListener("click",e=>{void albumPhotoTap(e)});
+$("#detailPellicule").addEventListener("click",e=>{void albumPhotoTap(e)});
 $("#detailClose").onclick=closeTripDetail;
 $("#detailModeToggle").onclick=()=>{
  if(!detailTripId||offlineMode||!canWrite())return;
@@ -2242,12 +2385,14 @@ $("#detailAddMoment").onclick=()=>{
   if(!detailMayAddMoment(trips.find(t=>t.id===detailTripId)))return;
   $("#detailMomentActions").classList.add("hidden");
   $("#detailAddMoment").setAttribute("aria-expanded","false");
+  $("#detailTimelineDisclosure").hidden=false;$("#detailTimelineDisclosure").open=true;
   $("#detailActivityForm").classList.remove("hidden");$("#detailActivitiesSection").hidden=false;
   $("#detailActivityForm").scrollIntoView({behavior:"smooth",block:"center"});
   $("#activityTitle").focus();
  };
  $("#detailActivityToggle").onclick=()=>{
  if(!detailCanEdit())return;
+ $("#detailTimelineDisclosure").hidden=false;$("#detailTimelineDisclosure").open=true;
  $("#detailActivitiesSection").hidden=false;
  $("#detailActivityForm").classList.remove("hidden");
  $("#detailActivityForm").scrollIntoView({behavior:"smooth",block:"center"});
@@ -2298,6 +2443,7 @@ $("#detailActivityForm").onsubmit=async e=>{
      form.reset();
      window.BEAM_ACTIVITY_DURATIONS?.resetControls(trip);
      await refreshTripDetail(id);
+     detailTimelineSync();
      detailActivityMessage("Activité enregistrée.");
    }
  }catch(err){
@@ -2319,6 +2465,7 @@ $("#detailActivities").onclick=async e=>{
    if(error||data?.length!==1)throw new Error("Suppression non confirmée. Réessayez.");
    if(detailTripId===id&&accountState==="active"){
      await refreshTripDetail(id);
+     detailTimelineSync();
      detailActivityMessage("Activité retirée.");
    }
  }catch(err){if(detailTripId===id)detailActivityMessage(err.message||"Suppression indisponible.")}
@@ -2407,7 +2554,7 @@ async function refreshMedia(tripId){
  const seq=++mediaRequest;
  mediaReady=false;mediaError=false;$("#photoMessage").classList.add("hidden");updatePhotoUsage();
  try{
-  const {data,error}=await S.from("media").select("id,storage_path,created_at,caption")
+  const {data,error}=await S.from("media").select("id,storage_path,created_at,caption,activity_id,width,height")
     .eq("user_id",user.id).eq("trip_id",tripId).order("created_at",{ascending:true});
   if(seq!==mediaRequest||editingTripId!==tripId||accountState!=="active")return;
   if(error||!Array.isArray(data))throw new Error("Media list unavailable");
@@ -2520,7 +2667,8 @@ $("#tripForm").onsubmit=async e=>{
      await PHOTO.validateSelection(selected.map(entry=>entry.file),existingMedia.length);
    }
    const f=new FormData(form);
-   const airline=String(f.get("airline")||"").trim(),hotel=String(f.get("hotel")||"").trim(),companions=String(f.get("companions")||"").trim();
+   const airline=String(f.get("airline")||"").trim(),hotel=String(f.get("hotel")||"").trim(),companions=String(f.get("companions")||"").trim(),personalTitle=String(f.get("title")||"").trim();
+   if(personalTitle.length>60){msg.textContent="Titre personnel : 60 caractères maximum.";msg.classList.remove("hidden");return;}
    if(companions.length>200){msg.textContent="Voyagé avec : 200 caractères maximum.";msg.classList.remove("hidden");return;}
    if(airline.length>160||hotel.length>160){
      msg.textContent="Compagnie et hébergement : 160 caractères maximum chacun.";
@@ -2531,7 +2679,7 @@ $("#tripForm").onsubmit=async e=>{
      cities:String(f.get("cities")).split(",").map(x=>x.trim()).filter(Boolean),
      ...DAY.datesFor(tripMode,String(f.get("entry_date")||""),String(f.get("exit_date")||"")),
      purpose:f.get("purpose"),airline:airline||null,hotel:hotel||null,companions:companions||null,
-     note:f.get("note")||null,is_domestic:f.get("is_domestic")==="true"
+     title:personalTitle||null,note:f.get("note")||null,is_domestic:f.get("is_domestic")==="true"
    };
    if(!window.BEAM_COUNTRIES.valid(p.country_code)){
      msg.textContent="Choisissez un pays reconnu dans la liste.";
@@ -2614,6 +2762,7 @@ function closePhotoActions(){
  $("#photoActionOverlay").setAttribute("aria-hidden","true");
  $("#photoActionImage").removeAttribute("src");
  $("#photoNoteInput").value="";
+ $("#photoMomentForm").classList.add("hidden");
  const target=photoSheetReturnFocus;photoSheetReturnFocus=null;
  const fallback=$("#tripDetailModal").classList.contains("open")?$("#detailClose"):$("#photos");
  (target?.isConnected?target:fallback)?.focus();
@@ -2628,6 +2777,7 @@ function refreshPhotoSheetActions(){
  const trip=trips.find(row=>row.id===state.tripId),editable=photoEditable()&&state.context!=="pending";
  const caption=DETAIL.captionValue(state.row.caption);
  $("#photoNoteToggle").classList.toggle("hidden",!editable);
+ $("#photoMomentToggle").classList.toggle("hidden",!editable);
  $("#photoCover").classList.toggle("hidden",!editable);
  $("#photoProfileCover").classList.toggle("hidden",state.context==="pending");
  $("#photoProfileCover").disabled=!editable;
@@ -2655,6 +2805,7 @@ function openPhotoActions(context,row,tripId,trigger){
  photoSheetReturnFocus=trigger||document.activeElement;
  $("#photoActionStatus").textContent="";
  $("#photoNoteForm").classList.add("hidden");
+ $("#photoMomentForm").classList.add("hidden");
  $("#photoDeleteConfirm").classList.add("hidden");
  $("#photoActionList").classList.remove("hidden");
  if(row.url)$("#photoActionImage").src=row.url;
@@ -2711,6 +2862,55 @@ $("#photoProfileCover").onclick=async()=>{
  const selected=photoSheetState.row.id;
  const ok=await setProfileCover(selected);
  if(ok)photoSheetMessage("Photo utilisée comme couverture de votre profil.");
+};
+// Link a photo to an existing owned activity, without copying the WebP.
+$("#photoMomentToggle").onclick=async()=>{
+ const state=photoSheetState;
+ if(!state||!photoEditable()||photoSheetBusy||state.context==="pending")return;
+ const form=$("#photoMomentForm"),select=$("#photoMomentSelect");
+ form.classList.remove("hidden");$("#photoActionList").classList.add("hidden");
+ select.replaceChildren(new Option("Aucun moment",""));
+ try{
+  const {data,error}=await S.from("activities").select("id,title,happened_on")
+   .eq("trip_id",state.tripId).eq("user_id",user.id).order("happened_on",{ascending:true});
+  if(state!==photoSheetState)return;
+  if(error||!Array.isArray(data))throw Error("Lecture des moments refusée");
+  for(const row of data)select.add(new Option(String(row.title||"Moment").slice(0,160),row.id));
+  select.value=state.row.activity_id||"";
+  if(!data.length)photoSheetMessage("Ajoutez d'abord un moment à ce voyage.");
+  select.focus();
+ }catch{photoSheetMessage("Impossible de charger les moments.");}
+};
+$("#photoMomentCancel").onclick=()=>{
+ if(photoSheetBusy)return;
+ $("#photoMomentForm").classList.add("hidden");$("#photoActionList").classList.remove("hidden");
+ $("#photoMomentToggle").focus();
+};
+$("#photoMomentForm").onsubmit=async event=>{
+ event.preventDefault();
+ const state=photoSheetState;
+ if(!state||!photoEditable()||photoSheetBusy||state.context==="pending")return;
+ const selected=$("#photoMomentSelect").value||null;
+ photoSheetBusy=true;photoSheetMessage("");
+ try{
+  const {data,error}=await S.from("media").update({activity_id:selected})
+   .eq("id",state.row.id).eq("trip_id",state.tripId).eq("user_id",user.id)
+   .select("id,activity_id").single();
+  if(error||!data||data.id!==state.row.id||data.activity_id!==selected)throw Error("Lien refusé");
+  state.row.activity_id=selected;
+  for(const rows of [existingMedia,detailPhotoRows]){
+   const row=rows.find(x=>x.id===state.row.id);
+   if(row)row.activity_id=selected;
+  }
+  $("#photoMomentForm").classList.add("hidden");$("#photoActionList").classList.remove("hidden");
+  photoSheetMessage(selected?"Photo associée au moment.":"Association retirée.");
+  if(detailTripId===state.tripId){
+   const trip=trips.find(x=>x.id===state.tripId);
+   if(trip)detailAlbumRender(trip);
+  }
+  $("#photoMomentToggle").focus();
+ }catch{photoSheetMessage("Impossible d'associer cette photo au moment. Réessayez.")}
+ finally{photoSheetBusy=false}
 };
 $("#photoAirline").onclick=()=>writePhotoRole("airline_media_id");
 $("#photoHotel").onclick=()=>writePhotoRole("hotel_media_id");
