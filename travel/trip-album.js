@@ -2,6 +2,7 @@
 // No private URL is stored here. Images are signed on demand in index.html.
 (function(root){
 "use strict";
+const FR=root?.BEAM_FR_ACCORDS||(typeof require==="function"?require("./fr-accords.js"):null);
 const esc=value=>String(value??"").replace(/[&<>"']/g,c=>({
  "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
 })[c]);
@@ -61,10 +62,10 @@ function statsHTML(trip,photoCount,offline=false){
   ...(Array.isArray(trip?.stops)?trip.stops.flatMap(s=>Array.isArray(s.cities)?s.cities:[]):[])];
  const cities=new Set(names.map(s=>String(s||"").trim().toLocaleLowerCase("fr-FR")).filter(Boolean)).size;
  const count=Number(trip?.duration_days)||1;
- const photos=offline?"—":String(photoCount);
- return '<span>'+esc(count)+' '+(count===1?"jour":"jours")+'</span>'+
- '<span aria-hidden="true">·</span><span>'+esc(cities)+' '+(cities===1?"ville":"villes")+'</span>'+
- '<span aria-hidden="true">·</span><span>'+photos+' photos</span>';
+ const photos=offline?"— photos":FR.count(photoCount,"photo");
+ return '<span>'+esc(FR.count(count,"jour"))+'</span>'+
+ '<span aria-hidden="true">·</span><span>'+esc(FR.count(cities,"ville"))+'</span>'+
+ '<span aria-hidden="true">·</span><span>'+esc(photos)+'</span>';
 }
 function routeHTML(trip,countryName){
  const names=(Array.isArray(trip?.cities)?trip.cities:[]).filter(Boolean);

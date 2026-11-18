@@ -19,7 +19,11 @@ assert.equal(ALBUM.featured([],[]).length,0,"Zero photos => zero moments");
 const trip={cities:["Kyoto","Tokyo"],duration_days:11,stops:[{country_code:"JP",cities:["Tokyo"]}]};
 assert.match(ALBUM.statsHTML(trip,0),/11 jours/);
 assert.match(ALBUM.statsHTML(trip,0),/2 villes/);
-assert.match(ALBUM.statsHTML(trip,0),/0 photos/);
+assert.match(ALBUM.statsHTML(trip,0),/0 photo(?!s)/);
+assert.match(ALBUM.statsHTML({cities:["Paris"],duration_days:1},1),/1 jour<\\/span>/);
+assert.match(ALBUM.statsHTML({cities:["Paris"],duration_days:1},1),/1 ville<\\/span>/);
+assert.match(ALBUM.statsHTML(trip,1),/1 photo<\\/span>/);
+assert.match(ALBUM.statsHTML(trip,2),/2 photos<\\/span>/);
 assert.doesNotMatch(ALBUM.statsHTML(trip,0,true),/>0 photos</);
 const one=[{id:"photo-a",width:700,height:1200,activity_id:null}];
 assert.equal(ALBUM.featured([{id:"activity-a",title:"Visite"}],one).length,0,
@@ -72,6 +76,9 @@ assert.ok(HTML.includes('if(count===1)void detailOpenLightbox(0,$("#detailSlides
 assert.ok(HTML.includes('else if(count>=2)SLIDESHOW.open()'),"2+ photos: existing slideshow");
 assert.ok(HTML.includes('id="photoUsage" class="photoHelp" role="status" aria-live="polite">0 / 15 photos enregistrées'));
 assert.match(HTML,/id="detailNoPhotoAdd"/);
+assert.match(CSS,/#tripDetailModal #detailLifecycle\\.detailLifecycle-ongoing\\{background:#fff;color:#17392b\\}/);
+assert.match(CSS,/#tripDetailModal #detailFacts\\.detailFacts/);
+assert.match(CSS,/width:calc\\(100% - 32px\\)/);
 assert.match(HTML,/id="detailTimelineDisclosure"/);
 assert.match(HTML,/id="detailFeaturedSection"/);
 assert.match(HTML,/id="detailPelliculeSection"/);

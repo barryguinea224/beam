@@ -496,12 +496,11 @@ html.travelAccessReadOnly #photoField,html.travelAccessReadOnly #saveTrip{displa
     </section>
     <div class="detailPrimaryActions" aria-label="Actions du voyage">
       <button id="detailSlideshowOpen" type="button" class="hidden" hidden><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m8 5 12 7-12 7z"/></svg>Revivre</button>
-      <button id="detailShare" type="button" aria-label="Partager ce voyage sous forme d'image">Partager</button>
       <button id="detailNoPhotoAdd" type="button" class="hidden">Ajouter une photo</button>
+      <button id="detailShare" type="button" aria-label="Partager ce voyage sous forme d'image">Partager</button>
       <p id="detailShareHelp" role="status" aria-live="polite"></p>
     </div>
     <div id="detailStats" class="albumStats" aria-label="Chiffres du voyage"></div>
-    <dl id="detailFacts" class="detailFacts"></dl>
     <section id="detailFeaturedSection" class="albumSection" aria-labelledby="detailFeaturedTitle" hidden>
       <h3 id="detailFeaturedTitle">Moments forts</h3>
       <div id="detailFeatured" aria-live="polite"></div>
@@ -530,6 +529,7 @@ html.travelAccessReadOnly #photoField,html.travelAccessReadOnly #saveTrip{displa
         <div class="actions"><button type="button" id="tripStopDeleteYes" class="btn">Supprimer l’étape</button><button type="button" id="tripStopDeleteNo" class="btn ghost">Annuler</button></div>
       </div>
     </section>
+    <dl id="detailFacts" class="detailFacts" aria-label="Infos pratiques du voyage"></dl>
     <p id="detailVisaGuide" class="detailVisaGuide" hidden></p><p id="detailLoyaltyHint" class="loyaltyTripHint" hidden></p>
     <p id="detailStatus" role="alert" class="notice hidden"></p>
     <details id="detailTimelineDisclosure" class="albumTimeline">

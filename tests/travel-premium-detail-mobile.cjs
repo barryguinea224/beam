@@ -128,12 +128,35 @@ async function main(){
     if(width===360)assert.ok(actions.every(a=>a.bottom<=740&&a.top>=0),
       "Revivre et Partager dans le premier écran 360×740");
     assert.equal(await page.locator("#detailFeatured .albumMoment").count(),2);
+    const layout=await page.evaluate(()=>{
+      const ids=["detailStats","detailFeaturedSection","detailItinerarySection","detailFacts",
+        "detailTimelineDisclosure","detailPelliculeSection"];
+      return ids.map(id=>({id,index:[...document.querySelector("#detailSheet").children].indexOf(document.getElementById(id))}));
+    });
+    assert.ok(layout.every((e,i)=>e.index>=0&&(!i||e.index>layout[i-1].index)),
+      "Album section order: chiffres, moments, itinéraire, infos pratiques, jour par jour, pellicule: "+JSON.stringify(layout));
+    const practical=await page.locator("#detailFacts .detailStay,#detailFacts .detailCompanions").evaluateAll(nodes=>
+      nodes.map(el=>({left:el.getBoundingClientRect().left,right:el.getBoundingClientRect().right})));
+    assert.equal(practical.length,3,"Compagnie, hôtel, voyagé avec");
+    for(const card of practical)assert.ok(card.left>=15.9&&card.right<=width-15.9,
+      "Practical cards need >=16px lateral inset at "+width+": "+JSON.stringify(card));
+    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true,
+      "Practical cards must not create horizontal overflow");
+    const contrast=await page.locator("#detailLifecycle").evaluate(el=>{
+      const c=getComputedStyle(el),rgb=s=>s.match(/[\\d.]+/g).slice(0,3).map(Number);
+      const luminance=s=>rgb(s).map(v=>{const n=v/255;return n<=.04045?n/12.92:((n+.055)/1.055)**2.4})
+       .reduce((sum,v,i)=>sum+v*[.2126,.7152,.0722][i],0);
+      const a=luminance(c.color),b=luminance(c.backgroundColor);
+      return {label:el.textContent.trim(),ratio:(Math.max(a,b)+.05)/(Math.min(a,b)+.05)};
+    });
+    assert.equal(contrast.label,"En cours","Badge must show the ongoing state");
+    assert.ok(contrast.ratio>=4.5,"Ongoing badge text contrast must be >=4.5:1: "+JSON.stringify(contrast));
     assert.equal(await page.locator("#detailPellicule .albumTile").count(),4);
     assert.equal(await page.locator("#detailPellicule .albumTile-portrait").count()>0,true);
     assert.equal(await page.locator("#detailPellicule .albumTile-landscape").count()>0,true);
     assert.match(await page.locator("#detailIntro").innerText(),/2026/);
     assert.match(await page.locator("#detailStops").innerText(),/Allemagne/);
-    assert.match(await page.locator("#detailActivities").innerText(),/Promenade fictive/);
+    assert.match(await page.locator("#detailActivities").textContent(),/Promenade fictive/);
     assert.match(await page.locator("#detailNote").innerText(),/NEVER_DRAW_PRIVATE_NOTE/);
     for(const id of ["detailStopsSection","detailNoteSection"])
      assert.equal(await page.locator("#"+id).isVisible(),true);
@@ -157,8 +180,15 @@ async function main(){
       path:path.join(DIR,"fiche-etapes-"+width+".png"),animations:"disabled"});
      await page.locator("#detailFeaturedSection").screenshot({
       path:path.join(DIR,"fiche-moments-"+width+".png"),animations:"disabled"});
-     if(width===390)await page.locator("#detailPelliculeSection").screenshot({
-      path:path.join(DIR,"mosaique-portrait-paysage-390.png"),animations:"disabled"});
+     if(width===390){
+      await page.locator("#detailPellicule").scrollIntoViewIfNeeded();
+      await page.waitForFunction(()=>{
+       const r=document.querySelector("#detailPellicule").getBoundingClientRect();
+       return r.top<innerHeight&&r.bottom>0;
+      });
+      await page.locator("#detailPelliculeSection").screenshot({
+       path:path.join(DIR,"mosaique-portrait-paysage-390.png"),animations:"disabled"});
+     }
     }
     await page.locator("#detailModeToggle").click();
     assert.equal((await page.locator("#detailModeToggle").innerText()).trim(),"Terminé");
@@ -235,6 +265,19 @@ async function main(){
      });
      await journey.locator(".tripOpen").click();
      await page.locator("#detailNoPhotoAdd").waitFor({state:"visible"});
+     const noPhotoActions=await page.locator("#detailNoPhotoAdd,#detailShare").evaluateAll(nodes=>
+      nodes.map(el=>{const r=el.getBoundingClientRect(),c=getComputedStyle(el);
+       return {id:el.id,left:r.left,right:r.right,top:r.top,height:r.height,
+        background:c.backgroundColor,color:c.color,visible:r.width>0&&r.height>0}}));
+     assert.equal(noPhotoActions.length,2);
+     assert.ok(noPhotoActions.every(a=>a.visible&&a.height>=44),
+      "0 photo: primary Add and secondary Share must both be visible and >=44px");
+     assert.ok(Math.abs(noPhotoActions[0].top-noPhotoActions[1].top)<=1&&
+      Math.abs(noPhotoActions[0].height-noPhotoActions[1].height)<=1&&
+      noPhotoActions[0].right<noPhotoActions[1].left,
+      "0 photo: Add and Share must align side by side with same height");
+     assert.notEqual(noPhotoActions[0].background,noPhotoActions[1].background,
+      "0 photo: Add primary filled, Share secondary outlined");
      // Online reading mode: moments without ANY linked photo must keep
      // the day-by-day summary visible after asynchronous activity loading.
      await page.locator("#detailTimelineDisclosure summary").waitFor({state:"visible"});
@@ -252,6 +295,8 @@ async function main(){
      });
      await journey.locator(".tripOpen").click();
      await page.waitForFunction(()=>document.querySelectorAll("#detailPellicule .albumTile").length===1);
+     assert.match((await page.locator("#detailStats").innerText()).replace(/\\s+/g," "),/1 photo(?!s)/,
+      "1 photo must use singular");
      assert.equal(await page.locator("#detailSlideshowOpen").isVisible(),true,"1 photo: Revivre visible");
      assert.equal(await page.locator("#detailSlideshowOpen").isEnabled(),true,"1 photo: Revivre enabled");
      await page.locator("#detailSlideshowOpen").click();
@@ -267,6 +312,8 @@ async function main(){
      });
      await journey.locator(".tripOpen").click();
      await page.waitForFunction(()=>document.querySelectorAll("#detailPellicule .albumTile").length===2);
+     assert.match((await page.locator("#detailStats").innerText()).replace(/\\s+/g," "),/2 photos/,
+      "2 photos must use plural");
      assert.equal(await page.locator("#detailSlideshowOpen").isEnabled(),true,"2 photos: Revivre enabled");
      await page.locator("#detailSlideshowOpen").click();
      await page.locator("#detailSlideshow.open").waitFor();
