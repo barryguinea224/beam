@@ -1770,8 +1770,8 @@ function detailAlbumObserve(){
   detailAlbumObserver.observe(node);
 }
 async function detailAlbumMap(trip){
- const holder=$("#detailAlbumMap");
- if(!holder||!FLIGHTS?.draw||!trip)return;
+ const holder=$("#detailAlbumMap"),flights=window.BEAM_FLIGHT_CONNECTIONS;
+ if(!holder||!flights?.draw||!trip)return;
  const id=trip.id,token=detailRequest;
  const codes=[trip.country_code,...(Array.isArray(trip.stops)?trip.stops.map(x=>x.country_code):[])]
   .filter(code=>/^[A-Z]{2}$/.test(code||""));
@@ -1799,7 +1799,7 @@ async function detailAlbumMap(trip){
   if(!detailCentroidsPromise)detailCentroidsPromise=loadWorldCentroids();
   const centroids=await detailCentroidsPromise;
   if(!detailActive(id,token))return;
-  FLIGHTS.draw(svg,profile.country_of_residence,codes,centroids,{animate:false});
+  flights.draw(svg,profile.country_of_residence,codes,centroids,{animate:false});
  }catch{
   detailCentroidsPromise=null;
   if(detailActive(id,token))holder.textContent="Carte indisponible. Les étapes du voyage restent consultables.";
