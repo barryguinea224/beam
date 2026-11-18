@@ -143,7 +143,7 @@ async function main(){
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true,
       "Practical cards must not create horizontal overflow");
     const contrast=await page.locator("#detailLifecycle").evaluate(el=>{
-      const c=getComputedStyle(el),rgb=s=>s.match(/[\\d.]+/g).slice(0,3).map(Number);
+      const c=getComputedStyle(el),rgb=s=>s.match(/[\d.]+/g).slice(0,3).map(Number);
       const luminance=s=>rgb(s).map(v=>{const n=v/255;return n<=.04045?n/12.92:((n+.055)/1.055)**2.4})
        .reduce((sum,v,i)=>sum+v*[.2126,.7152,.0722][i],0);
       const a=luminance(c.color),b=luminance(c.backgroundColor);
@@ -295,7 +295,7 @@ async function main(){
      });
      await journey.locator(".tripOpen").click();
      await page.waitForFunction(()=>document.querySelectorAll("#detailPellicule .albumTile").length===1);
-     assert.match((await page.locator("#detailStats").innerText()).replace(/\\s+/g," "),/1 photo(?!s)/,
+     assert.match((await page.locator("#detailStats").innerText()).replace(/\s+/g," "),/1 photo(?!s)/,
       "1 photo must use singular");
      assert.equal(await page.locator("#detailSlideshowOpen").isVisible(),true,"1 photo: Revivre visible");
      assert.equal(await page.locator("#detailSlideshowOpen").isEnabled(),true,"1 photo: Revivre enabled");
@@ -312,7 +312,7 @@ async function main(){
      });
      await journey.locator(".tripOpen").click();
      await page.waitForFunction(()=>document.querySelectorAll("#detailPellicule .albumTile").length===2);
-     assert.match((await page.locator("#detailStats").innerText()).replace(/\\s+/g," "),/2 photos/,
+     assert.match((await page.locator("#detailStats").innerText()).replace(/\s+/g," "),/2 photos/,
       "2 photos must use plural");
      assert.equal(await page.locator("#detailSlideshowOpen").isEnabled(),true,"2 photos: Revivre enabled");
      await page.locator("#detailSlideshowOpen").click();
