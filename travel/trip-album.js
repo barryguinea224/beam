@@ -13,11 +13,14 @@ const title=(value,country)=>{
 function featured(activities,photos){
  const byActivity=new Map();
  for(const photo of Array.isArray(photos)?photos:[]){
-  if(photo?.activity_id&&!byActivity.has(photo.activity_id))byActivity.set(photo.activity_id,photo);
+  if(!photo?.activity_id)continue;
+  if(!byActivity.has(photo.activity_id))byActivity.set(photo.activity_id,[]);
+  const list=byActivity.get(photo.activity_id);
+  if(list.length<3)list.push(photo);
  }
  return (Array.isArray(activities)?activities:[])
   .filter(a=>a?.id&&byActivity.has(a.id))
-  .map(a=>({activity:a,photo:byActivity.get(a.id)}))
+  .map(a=>({activity:a,photo:byActivity.get(a.id)[0],photos:byActivity.get(a.id)}))
   .sort((a,b)=>String(a.activity.happened_on||"9999-12-31").localeCompare(
     String(b.activity.happened_on||"9999-12-31"))||
     String(a.activity.id).localeCompare(String(b.activity.id)))
@@ -30,16 +33,22 @@ function date(iso){
   {day:"numeric",month:"long",year:"numeric",timeZone:"UTC"}).format(d);
 }
 function featuredHTML(activities,photos){
- return featured(activities,photos).map(({activity,photo})=>
-  '<article class="albumMoment" data-activity-id="'+esc(activity.id)+'">'+
-  '<button type="button" class="albumMomentPhoto albumMomentPhoto-'+orientation(photo)+' photoTap" data-id="'+esc(photo.id)+
-   '" data-album-photo-id="'+esc(photo.id)+'" aria-label="Voir la photo du moment '+esc(activity.title)+'">'+
-   '<span class="albumPhotoWait" aria-hidden="true"></span></button>'+
-  '<div class="albumMomentStory">'+
-   (activity.happened_on?'<time datetime="'+esc(activity.happened_on)+'">'+esc(date(activity.happened_on))+'</time>':"")+
-   '<h4>'+esc(activity.title||"Souvenir")+'</h4>'+
-   (activity.place?'<p>'+esc(activity.place)+'</p>':"")+
-  '</div></article>').join("");
+ return featured(activities,photos).map(({activity,photos:linked})=>{
+  const buttons=linked.map((photo,index)=>
+   '<button type="button" class="albumMomentPhoto albumMomentPhoto-'+orientation(photo)+
+    (linked.length>1?(index===0?' albumMomentPhoto-main':' albumMomentPhoto-small'):"")+
+    ' photoTap" data-id="'+esc(photo.id)+'" data-album-photo-id="'+esc(photo.id)+
+    '" aria-label="Voir la photo '+(index+1)+' du moment '+esc(activity.title||"Souvenir")+'">'+
+    '<span class="albumPhotoWait" aria-hidden="true"></span></button>').join("");
+  const gallery=linked.length===1?buttons:
+   '<div class="albumMomentGallery albumMomentGallery-'+linked.length+'">'+buttons+'</div>';
+  return '<article class="albumMoment" data-activity-id="'+esc(activity.id)+'">'+gallery+
+   '<div class="albumMomentStory">'+
+    (activity.happened_on?'<time datetime="'+esc(activity.happened_on)+'">'+esc(date(activity.happened_on))+'</time>':"")+
+    '<h4>'+esc(activity.title||"Souvenir")+'</h4>'+
+    (activity.place?'<p>'+esc(activity.place)+'</p>':"")+
+   '</div></article>';
+ }).join("");
 }
 function orientation(row){
  const w=Number(row?.width),h=Number(row?.height);
