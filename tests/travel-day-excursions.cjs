@@ -121,7 +121,7 @@ assert.equal(STOPS.compact(stop),"Allemagne (12 nov. 2026)");
 const card=CARD.markup(day,"Sénégal","Tourisme",DAY.short(day.entry_date));
 assert.match(card,/12 nov\. 2026/);
 assert.match(card,/Excursion · 1 jour/);
-assert.match(card,/journeySeparator[^>]*>\|<\/span>/,"Date and duration must be separated with a pipe on the new card");
+assert.match(card,/12 nov\. 2026 · Excursion · 1 jour/,"Date and duration belong together on the album cover");
 assert.doesNotMatch(card,/12 nov\. → 12 nov\.|1 jours/);
 const projected=JOURNAL.viewTrip({...day,stops:[stop]});
 assert.equal(projected.entry,projected.exit);

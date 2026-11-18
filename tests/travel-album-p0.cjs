@@ -16,6 +16,16 @@ assert.equal(title("","Japon"),"Japon");
 assert.equal(title(null,"France"),"France");
 assert.equal(title("X".repeat(61),"France"),"France");
 assert.equal(ALBUM.featured([],[]).length,0,"Zero photos => zero moments");
+const moment=[{id:"m1",title:"Trois instants",happened_on:"2026-11-12"}];
+const linked=[1,2,3,4].map(n=>({id:"photo-"+n,activity_id:"m1",width:900,height:1200}));
+for(const [number,expected] of [[1,1],[2,2],[3,3],[4,3]]){
+ const html=ALBUM.featuredHTML(moment,linked.slice(0,number));
+ assert.equal((html.match(/data-album-photo-id=/g)||[]).length,expected,"1–3 photos per moment");
+ if(number===1)assert.doesNotMatch(html,/albumMomentGallery/);
+ if(number===2)assert.match(html,/albumMomentGallery-2/);
+ if(number>=3)assert.match(html,/albumMomentGallery-3/);
+}
+assert.deepEqual(ALBUM.featured(moment,linked).map(x=>x.photos.length),[3]);
 const trip={cities:["Kyoto","Tokyo"],duration_days:11,stops:[{country_code:"JP",cities:["Tokyo"]}]};
 assert.match(ALBUM.statsHTML(trip,0),/11 jours/);
 assert.match(ALBUM.statsHTML(trip,0),/2 villes/);
@@ -85,6 +95,9 @@ assert.ok(CSS.includes("#tripDetailModal #detailLifecycle.detailLifecycle-ongoin
 assert.ok(CSS.includes("#tripDetailModal #detailFacts.detailFacts"));
 assert.ok(CSS.includes("width:calc(100% - 32px)"));
 assert.match(HTML,/id="detailTimelineDisclosure"/);
+assert.ok(HTML.includes("if(!detailAlbumScrollUnlocked||!window.IntersectionObserver"),
+ "Only two private URLs may be signed on initial album opening");
+assert.ok(HTML.includes('$("#detailSheet").scrollTop<12'),"After scroll, remaining private thumbnails load progressively");
 assert.match(HTML,/id="detailFeaturedSection"/);
 assert.match(HTML,/id="detailPelliculeSection"/);
 assert.match(HTML,/id="photoMomentToggle"/);

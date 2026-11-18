@@ -15,6 +15,7 @@ function seededSupabase(){
  rows.push({id:"77777777-7777-4777-8777-777777777777",country_code:"SN",cities:["Dakar"],
   entry_date:"2025-09-02",exit_date:"2025-09-10",duration_days:9,purpose:"affaires",is_domestic:false,deleting:false});
  rows[0].cover_media_id="88888888-8888-4888-8888-888888888888";
+ rows[0].title="Carnet parisien";
  rows[0].companions="Aïssatou";
  rows[0].airline="Compagnie fictive";
  rows[0].hotel="Hôtel fictif";
@@ -74,27 +75,45 @@ async function main(){
     assert.match(await page.locator(".upcomingTripsSection").innerText(),/À venir/);
     assert.equal((await page.locator("#tripListSummary").innerText()).trim(),"4 voyages · 4 pays");
     assert.doesNotMatch(await page.locator("#app").innerText(),/payss/i,"No malformed country plural anywhere in rendered app");
-    const extras=page.locator(".completedTripsList .journeyTrip").first();
-    for(const [kind,word] of [["people","Avec Aïssatou"],["plane","Compagnie fictive"],["bed","Hôtel fictif"]]){
-     const item=extras.locator(".journeyExtra-"+kind);
-     assert.match(await item.innerText(),new RegExp(word));
-     assert.equal(await item.locator("svg[aria-hidden='true']").count(),1);
-     assert.equal(await item.locator("svg path, svg circle").count()>0,true);
-    }
+    const cards=page.locator(".completedTripsList .journeyTrip");
+    assert.equal(await cards.first().locator(".journeyCountry").innerText(),"Carnet parisien");
+    assert.equal(await cards.first().locator(".journeyCode").innerText(),"France");
+    assert.equal(await cards.nth(1).locator(".journeyCountry").innerText(),"Sénégal","Untitled trip uses country");
+    for(const secret of ["Aïssatou","Compagnie fictive","Hôtel fictif"])
+     assert.doesNotMatch(await cards.first().innerText(),new RegExp(secret),"Secondary info stays in detail");
+    assert.ok(await cards.first().locator(".journeyOpenLabel").isVisible());
+    assert.equal(await cards.first().locator("button").count(),1);
     assert.equal(await page.locator(".journeyShade").count(),0);
     await page.locator(".completedTripsList .journeyTrip").first().scrollIntoViewIfNeeded();
-    await page.waitForFunction(()=>document.querySelector(".journeyPhotoCount")?.textContent==="1/1");
+    await page.waitForFunction(()=>document.querySelector(".journeyPhotoCount")?.textContent==="1 photo");
     assert.equal(await page.locator(".journeyPhotoCount").count(),1);
     assert.ok(privateRequests.every(url=>url.startsWith("https://fixture.invalid/storage/v1/object/sign/media/")));
+    const coverFallback=page.locator(".journeyTrip").filter({hasText:"Guinée"});
+    assert.equal(await coverFallback.locator(".journeyBackdrop").getAttribute("src"),"./assets/countries/gn.svg");
+    const upcomingBadge=page.locator(".journeyTrip .journeyStatus-upcoming");
+    assert.equal(await upcomingBadge.count(),1,"Upcoming status remains visible");
+    const badges=await page.locator(".journeyStatus").evaluateAll(nodes=>nodes.map(el=>{
+     const css=getComputedStyle(el),lum=s=>s.match(/[\d.]+/g).slice(0,3).map(Number)
+      .map(v=>v/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4)
+      .reduce((n,v,i)=>n+v*[.2126,.7152,.0722][i],0);
+     const a=lum(css.color),b=lum(css.backgroundColor);
+     return (Math.max(a,b)+.05)/(Math.min(a,b)+.05);
+    }));
+    assert.ok(badges.length&&badges.every(ratio=>ratio>=4.5),"Status labels have >=4.5 contrast");
     const geometry=await page.evaluate(()=>({
      scrollWidth:document.documentElement.scrollWidth,viewport:innerWidth,
      cards:[...document.querySelectorAll(".journeyTrip")].map(card=>{
       const media=card.querySelector(".journeyMedia"),body=card.querySelector(".journeyContent"),m=media.getBoundingClientRect(),b=body.getBoundingClientRect();
-      return {ratio:m.width/m.height,mediaBeforeBody:m.bottom<=b.top+1,button:!!body.querySelector(".tripOpen"),right:card.getBoundingClientRect().right};
+      return {ratio:m.width/m.height,contentOverMedia:b.top>=m.top-1&&b.bottom<=m.bottom+1,
+       button:card.querySelectorAll("button").length===1,right:card.getBoundingClientRect().right};
      })
     }));
     assert.ok(geometry.scrollWidth<=width+1,"No Android overflow: "+JSON.stringify(geometry));
-    assert.ok(geometry.cards.every(x=>Math.abs(x.ratio-16/9)<.02&&x.mediaBeforeBody&&x.button&&x.right<=width+1));
+    assert.ok(geometry.cards.every(x=>Math.abs(x.ratio-4/5)<.02&&x.contentOverMedia&&x.button&&x.right<=width+1));
+    if(width===390){
+     await page.screenshot({path:path.join(dir,"accueil-deux-cartes-390.png"),
+      fullPage:true,animations:"disabled"});
+    }
     if(width===360){
      await page.locator("#tripListToolbar").evaluate(bar=>{bar.style.position="static"});
      await page.locator(".completedTripsList").screenshot({path:path.join(dir,"liste-trois-cartes-360.png"),animations:"disabled"});
@@ -102,20 +121,20 @@ async function main(){
      await page.locator(".upcomingTripsSection").screenshot({path:path.join(dir,"carte-a-venir-360.png"),animations:"disabled"});
     }
     const labels=()=>page.locator(".completedTripsList .journeyCountry").allTextContents();
-    assert.deepEqual(await labels(),["France","Sénégal","Guinée"]);
+    assert.deepEqual(await labels(),["Carnet parisien","Sénégal","Guinée"]);
     await page.locator("#tripListSort").click();
     await page.locator('[data-trip-sort="oldest"]').click();
-    assert.deepEqual(await labels(),["Guinée","Sénégal","France"]);
+    assert.deepEqual(await labels(),["Guinée","Sénégal","Carnet parisien"]);
     assert.equal(await page.evaluate(()=>localStorage.getItem("jyetais.trip.sort.v1")),"oldest");
     await page.locator("#tripListSort").click();
     await page.locator('[data-trip-sort="country"]').click();
-    assert.deepEqual(await labels(),["France","Guinée","Sénégal"]);
+    assert.deepEqual(await labels(),["Carnet parisien","Guinée","Sénégal"]);
     await page.reload({waitUntil:"load"});
     await page.waitForFunction(()=>document.querySelector("#dashboardTitle")?.textContent==="Voyageuse Fictive");
-    assert.deepEqual(await labels(),["France","Guinée","Sénégal"],"Country sort survives reload");
+    assert.deepEqual(await labels(),["Carnet parisien","Guinée","Sénégal"],"Country sort survives reload");
     await page.locator("#tripListSort").click();
     await page.locator('[data-trip-sort="recent"]').click();
-    assert.deepEqual(await labels(),["France","Sénégal","Guinée"]);
+    assert.deepEqual(await labels(),["Carnet parisien","Sénégal","Guinée"]);
     await page.locator("#tripListFilter").click();
     assert.equal(await page.locator("#filterPanel").getAttribute("aria-hidden"),"false");
     await page.locator("#filterCountry").selectOption("FR");
@@ -140,7 +159,7 @@ async function main(){
      return !!add&&!add.hidden&&getComputedStyle(add).display!=="none";
     });
     const end=await page.evaluate(()=>{
-     const last=document.querySelector(".completedTripsList .journeyTrip:last-child .journeyLink").getBoundingClientRect();
+     const last=document.querySelector(".completedTripsList .journeyTrip:last-child .journeyOpenLabel").getBoundingClientRect();
      const add=document.querySelector("#addFloating").getBoundingClientRect();
      const overlap=last.left<add.right&&last.right>add.left&&last.top<add.bottom&&last.bottom>add.top;
      return {last:{top:last.top,bottom:last.bottom,left:last.left,right:last.right},
@@ -157,6 +176,8 @@ async function main(){
       trips:window.__excursionFixture.rows.map(t=>({...t})),activities:[],updatedAt:"2026-11-16T12:00:00Z"});
     });
     assert.equal(await page.locator(".journeyPhotoCount").count(),0,"No photo badge offline");
+    assert.equal(await page.locator(".completedTripsList .journeyTrip").first().locator(".journeyCountry").innerText(),
+      "Carnet parisien","Offline title kept while all private photos are omitted");
     assert.equal(await page.locator('img[data-is-private="true"]').count(),0);
     assert.equal(await page.locator('.journeyBackdrop[src*="/storage/v1/object/sign/"]').count(),0);
     assert.equal(privateRequests.length,before,"Offline list never requests private images");
