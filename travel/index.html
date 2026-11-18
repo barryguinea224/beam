@@ -1732,6 +1732,70 @@ function detailSyncMode(trip){
  renderTripStops(trip);
  $("#detailActivities").innerHTML=DETAIL.activities(detailActivitiesRows,editable);
  detailSections(trip);
+ const timeline=$("#detailTimelineDisclosure");
+ if(timeline){timeline.hidden=!editable&&!detailActivitiesRows.length;timeline.open=editable;}
+ detailAlbumRender(trip);
+}
+// Album: owner-scoped private photos, signed only when visible.
+function detailAlbumPaint(row){
+ if(!row?.url||!document.querySelectorAll)return;
+ for(const target of document.querySelectorAll('[data-album-photo-id="'+row.id+'"]')){
+  let img=target.querySelector("img");
+  if(!img){
+   img=document.createElement("img");img.alt="Photo privée du voyage";
+   img.loading="lazy";img.decoding="async";img.referrerPolicy="no-referrer";
+   img.dataset.isPrivate="true";target.replaceChildren(img);
+  }
+  if(img.src!==row.url)img.src=row.url;
+ }
+}
+function detailAlbumObserve(){
+ detailAlbumObserver?.disconnect();detailAlbumObserver=null;
+ if(!window.IntersectionObserver||!document.querySelectorAll)return;
+ detailAlbumObserver=new window.IntersectionObserver(entries=>{
+  for(const entry of entries){
+   if(!entry.isIntersecting)continue;
+   detailAlbumObserver?.unobserve(entry.target);
+   const index=detailPhotoRows.findIndex(row=>row.id===entry.target.dataset.albumPhotoId);
+   if(index>=0)void detailSignPhoto(index);
+  }
+ },{root:$("#detailSheet"),rootMargin:"0px",threshold:0.02});
+ for(const node of document.querySelectorAll("#detailFeatured [data-album-photo-id],#detailPellicule [data-album-photo-id]"))
+  detailAlbumObserver.observe(node);
+}
+async function detailAlbumMap(trip){
+ const svg=$("#detailAlbumMap");
+ if(!svg?.querySelector||!window.fetch||!window.BEAM_FLIGHT_CONNECTIONS?.draw)return;
+ const id=trip?.id,token=detailRequest;
+ const codes=[trip?.country_code,...(Array.isArray(trip?.stops)?trip.stops.map(x=>x.country_code):[])]
+  .filter(code=>/^[A-Z]{2}$/.test(code||""));
+ try{
+  if(!detailCentroidsPromise)detailCentroidsPromise=window.fetch("./assets/world-centroids.json")
+   .then(response=>{if(!response.ok)throw Error("Carte indisponible");return response.json()});
+  const centroids=await detailCentroidsPromise;
+  if(!detailActive(id,token))return;
+  window.BEAM_FLIGHT_CONNECTIONS.draw(svg,codes[0]||"",codes.slice(1),centroids,{animate:false});
+ }catch{detailCentroidsPromise=null}
+}
+function detailAlbumRender(trip){
+ if(!ALBUM||!trip)return;
+ const stats=$("#detailStats"),features=$("#detailFeatured"),mosaic=$("#detailPellicule"),
+  featureSection=$("#detailFeaturedSection"),mosaicSection=$("#detailPelliculeSection"),
+  route=$("#detailItinerary"),noPhoto=$("#detailNoPhotoAdd");
+ if(stats)stats.innerHTML=ALBUM.statsHTML(trip,detailPhotoRows.length,offlineMode);
+ if(features){
+  features.innerHTML=offlineMode?"":ALBUM.featuredHTML(detailActivitiesRows,detailPhotoRows);
+  if(featureSection)featureSection.hidden=!features.childElementCount;
+ }
+ if(mosaic){
+  mosaic.innerHTML=offlineMode?"":ALBUM.mosaicHTML(detailPhotoRows,detailCanEdit());
+  if(mosaicSection)mosaicSection.hidden=!detailPhotoRows.length||offlineMode;
+ }
+ if(route)route.innerHTML=ALBUM.routeHTML(trip,countryName(trip.country_code));
+ if(noPhoto)noPhoto.classList.toggle("hidden",!canWrite()||offlineMode||detailPhotoRows.length>0);
+ for(const photo of detailPhotoRows)detailAlbumPaint(photo);
+ detailAlbumObserve();
+ void detailAlbumMap(trip);
 }
 function detailNoPhoto(trip){
  const assets=window.BEAM_VISUAL_CARDS;
@@ -1739,7 +1803,7 @@ function detailNoPhoto(trip){
  $("#detailPhotos").innerHTML='<div class="detailHeroFallback">'+
   (art?'<img class="detailCountryArt" src="'+art+'" alt="Illustration du pays">':
    flag?'<img class="detailFallbackFlag" src="'+flag+'" alt="Drapeau du pays">':'')+'</div>';
- $("#detailGalleryCount").hidden=true;detailSyncSlideshow();
+ $("#detailGalleryCount").hidden=true;detailSyncSlideshow();detailAlbumRender(trip);
 }
 function detailCounter(){
  const count=$("#detailGalleryCount"),len=detailPhotoRows.length;
@@ -1782,7 +1846,7 @@ function detailGalleryRender(trip){
   canEdit:detailCanEdit(),coverMediaId:trip.cover_media_id,airline:!!trip.airline?.trim(),
   hotel:!!trip.hotel?.trim(),airlineMediaId:trip.airline_media_id,hotelMediaId:trip.hotel_media_id
  });
- detailGalleryIndex=0;box.scrollLeft=0;detailCounter();detailSyncSlideshow();
+ detailGalleryIndex=0;box.scrollLeft=0;detailCounter();detailSyncSlideshow();detailAlbumRender(trip);
 }
 async function detailSignPhoto(index,id=detailTripId,token=detailRequest){
  const row=detailPhotoRows[index];
@@ -1803,6 +1867,7 @@ async function detailSignPhoto(index,id=detailTripId,token=detailRequest){
    if(!img){img=document.createElement("img");img.loading="lazy";img.alt="Photo privée du voyage";img.referrerPolicy="no-referrer";button.prepend(img)}
    img.dataset.isPrivate="true";img.src=safe;
   }
+  detailAlbumPaint(row);
   return safe;
  }catch{return ""}
  finally{detailGalleryLoads.delete(index)}
@@ -1908,7 +1973,7 @@ function closeTripDetail(){
  $("#tripStopForm").classList.add("hidden");$("#tripStopDeleteConfirm").classList.add("hidden");
  window.BEAM_VISA_GUIDE?.hide($("#detailVisaGuide"));
  $("#tripDetailModal").classList.remove("open");
- $("#detailPhotos").replaceChildren();$("#detailActivities").replaceChildren();
+ $("#detailPhotos").replaceChildren();$("#detailFeatured")?.replaceChildren();$("#detailPellicule")?.replaceChildren();$("#detailActivities").replaceChildren();
  $("#detailActivityForm").reset();
  const back=detailReturnFocus;detailReturnFocus=null;
  if(back?.isConnected)back.focus();
@@ -2211,6 +2276,7 @@ async function refreshTripDetail(id){
   detailActivitiesRows=activities.data;
   $("#detailActivities").innerHTML=DETAIL.activities(detailActivitiesRows,detailCanEdit());
   detailSections(trip);
+  detailAlbumRender(trip);
  }
  if(photos.error||!photos.data){
   detailMediaIds=[];detailPhotoRows=[];detailNoPhoto(trip);
@@ -2242,6 +2308,21 @@ $("#detailPhotos").onclick=e=>{
  if(index>=0)void detailOpenLightbox(index,button);
 };
 $("#detailSlideshowOpen").onclick=()=>{if(!offlineMode)SLIDESHOW.open()};
+$("#detailNoPhotoAdd").onclick=()=>{if(!detailTripId||!canWrite()||offlineMode)return;
+ const id=detailTripId;closeTripDetail();openEditTrip(id);$("#photos").focus();
+};
+async function albumPhotoTap(event){
+ const button=event.target.closest(".photoTap[data-id]");
+ if(!button||!detailTripId)return;
+ const index=detailPhotoRows.findIndex(row=>row.id===button.dataset.id);
+ if(index<0)return;
+ if(detailCanEdit()){
+  if(!detailPhotoRows[index].url)await detailSignPhoto(index);
+  openPhotoActions("detail",detailPhotoRows[index],detailTripId,button);
+ }else void detailOpenLightbox(index,button);
+}
+$("#detailFeatured").addEventListener("click",e=>{void albumPhotoTap(e)});
+$("#detailPellicule").addEventListener("click",e=>{void albumPhotoTap(e)});
 $("#detailClose").onclick=closeTripDetail;
 $("#detailModeToggle").onclick=()=>{
  if(!detailTripId||offlineMode||!canWrite())return;
