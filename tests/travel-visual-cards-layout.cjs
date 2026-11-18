@@ -57,6 +57,22 @@ async function main(){
     assert.ok(state.cards[2].label.includes("Djeddah"));
     assert.ok(state.cards[3].label.includes("Nouvelle-Zélande"));
     assert.ok(state.flagUrls.every(src=>src.startsWith("./assets/flags/")));
+    // Japan's mostly white flag is still visible on a white pill.
+    const jpBorder=await page.evaluate(()=>{
+      const trip={id:"60000000-0000-4000-8000-000000000009",
+       country_code:"JP",cities:["Tokyo"],duration_days:2};
+      const host=document.querySelector("#trips");
+      host.insertAdjacentHTML("beforeend",BEAM_VISUAL_CARDS.markup(trip,"Japon","Tourisme","10 nov. 2026"));
+      const img=host.lastElementChild.querySelector(".journeyFlag"),css=getComputedStyle(img);
+      const result={url:img.getAttribute("src"),width:css.borderTopWidth,
+       color:css.borderTopColor,radius:css.borderTopLeftRadius};
+      host.lastElementChild.remove();
+      return result;
+    });
+    assert.equal(jpBorder.url,"./assets/flags/jp.svg");
+    assert.equal(jpBorder.width,"1px","Japanese flag must be outlined on white");
+    assert.equal(jpBorder.color,"rgb(208, 213, 210)");
+    assert.notEqual(jpBorder.radius,"0px","Flag corners remain gently rounded");
     assert.ok(state.artUrls.every(src=>src.startsWith("./assets/countries/")));
     assert.deepEqual(external,[],"No third-party requests in visual cards at "+width);
     console.log("PASS visual cards "+width+"px: responsive, ISO fallback, zero third-party requests");
