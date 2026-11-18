@@ -64,7 +64,7 @@ assert.ok(html.includes('src="./assets/flags/fr.svg"'));
 assert.ok(html.includes('src="./assets/countries/fr.svg"'));
 assert.ok(html.includes("France"));
 assert.ok(!html.includes("Tourisme"),"Purpose remains in the detail, not the cover");
-assert.equal((html.match(/<button\\b/g)||[]).length,1,"One button wraps the complete card");
+assert.equal((html.match(/<button\b/g)||[]).length,1,"One button wraps the complete card");
 assert.ok(html.indexOf('class="tripOpen journeyLink"')<html.indexOf('class="journeyMedia"'));
 assert.ok(html.indexOf('class="journeyMedia"')<html.indexOf('class="journeyContent"'));
 assert.match(html,/Ouvrir le récit ›/);
@@ -78,7 +78,7 @@ for(const secret of ["Aïssatou","Compagnie fictive","Hôtel fictif","1 étape"]
 const titled=CARD.markup({...trip,title:"Le récit de Paris"},"France","Tourisme","10 → 20 oct. 2026");
 assert.match(titled,/class="journeyCountry">Le récit de Paris/);
 assert.match(titled,/class="journeyCode">France/);
-assert.match(titled,/10 → 20 oct\\. 2026 · 10 jours/);
+assert.match(titled,/10 → 20 oct\. 2026 · 10 jours/);
 assert.match(CARD.markup({...trip,title:"   "},"France","Tourisme","2026"),/class="journeyCountry">France/);
 const htmlInjection=CARD.markup({...trip,title:'<img src=x onerror=alert(1)>'},
  "France","Tourisme","10 → 20 oct. 2026");

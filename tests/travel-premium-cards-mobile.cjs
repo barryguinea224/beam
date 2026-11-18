@@ -75,7 +75,7 @@ async function main(){
     assert.match(await page.locator(".upcomingTripsSection").innerText(),/À venir/);
     assert.equal((await page.locator("#tripListSummary").innerText()).trim(),"4 voyages · 4 pays");
     assert.doesNotMatch(await page.locator("#app").innerText(),/payss/i,"No malformed country plural anywhere in rendered app");
-    const cards=page.locator("#trips .journeyTrip");
+    const cards=page.locator(".completedTripsList .journeyTrip");
     assert.equal(await cards.first().locator(".journeyCountry").innerText(),"Carnet parisien");
     assert.equal(await cards.first().locator(".journeyCode").innerText(),"France");
     assert.equal(await cards.nth(1).locator(".journeyCountry").innerText(),"Sénégal","Untitled trip uses country");
@@ -93,7 +93,7 @@ async function main(){
     const upcomingBadge=page.locator(".journeyTrip .journeyStatus-upcoming");
     assert.equal(await upcomingBadge.count(),1,"Upcoming status remains visible");
     const badges=await page.locator(".journeyStatus").evaluateAll(nodes=>nodes.map(el=>{
-     const css=getComputedStyle(el),lum=s=>s.match(/[\\d.]+/g).slice(0,3).map(Number)
+     const css=getComputedStyle(el),lum=s=>s.match(/[\d.]+/g).slice(0,3).map(Number)
       .map(v=>v/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4)
       .reduce((n,v,i)=>n+v*[.2126,.7152,.0722][i],0);
      const a=lum(css.color),b=lum(css.backgroundColor);
@@ -176,7 +176,7 @@ async function main(){
       trips:window.__excursionFixture.rows.map(t=>({...t})),activities:[],updatedAt:"2026-11-16T12:00:00Z"});
     });
     assert.equal(await page.locator(".journeyPhotoCount").count(),0,"No photo badge offline");
-    assert.equal(await page.locator("#trips .journeyTrip").first().locator(".journeyCountry").innerText(),
+    assert.equal(await page.locator(".completedTripsList .journeyTrip").first().locator(".journeyCountry").innerText(),
       "Carnet parisien","Offline title kept while all private photos are omitted");
     assert.equal(await page.locator('img[data-is-private="true"]').count(),0);
     assert.equal(await page.locator('.journeyBackdrop[src*="/storage/v1/object/sign/"]').count(),0);
