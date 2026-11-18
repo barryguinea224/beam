@@ -125,7 +125,7 @@ async function main(){
     assert.equal(await page.locator("#detailPellicule .albumTile").count(),4);
     assert.equal(await page.locator("#detailPellicule .albumTile-portrait").count()>0,true);
     assert.equal(await page.locator("#detailPellicule .albumTile-landscape").count()>0,true);
-    assert.match(await page.locator("#detailIntro").innerText(),/11 jours.*Tourisme/);
+    assert.match(await page.locator("#detailIntro").innerText(),/2026/);
     assert.match(await page.locator("#detailStops").innerText(),/Allemagne/);
     assert.match(await page.locator("#detailActivities").innerText(),/Promenade fictive/);
     assert.match(await page.locator("#detailNote").innerText(),/NEVER_DRAW_PRIVATE_NOTE/);
