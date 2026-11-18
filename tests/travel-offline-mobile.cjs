@@ -16,7 +16,7 @@ function fakeSupabase(){
  const tripId=uid===A?"33333333-3333-4333-8333-333333333333":"44444444-4444-4444-8444-444444444444";
  const trip={id:tripId,country_code:uid===A?"FR":"MA",
   cities:[uid===A?"Paris":"Rabat"],entry_date:"2026-05-01",exit_date:"2026-05-04",
-  duration_days:4,purpose:"tourisme",airline:"Compagnie fictive",hotel:"Hôtel fictif",
+  duration_days:4,purpose:"tourisme",title:uid===A?"Le voyage imaginaire":"Le carnet de Rabat",airline:"Compagnie fictive",hotel:"Hôtel fictif",
   companions:"Compagnon fictif",is_domestic:false,deleting:false,
   note:"DO_NOT_STORE_PRIVATE_NOTE",phone:"DO_NOT_STORE_PHONE",
   storage_path:"DO_NOT_STORE_PRIVATE_PATH",cover_media_id:null};
@@ -215,6 +215,14 @@ async function main(){
      fullPage:true,animations:"disabled"});
     await page.locator("#trips .tripOpen").first().click();
     assert.equal(await page.locator("#tripDetailModal").evaluate(el=>el.classList.contains("open")),true);
+    assert.equal(await page.locator("#detailCountryTitle").innerText(),"Le voyage imaginaire",
+      "Offline title must come from the allowlisted journey copy");
+    assert.match(await page.locator("#detailStats").innerText(),/— photos/,
+      "Offline photo count must remain unknown rather than pretend to be zero");
+    assert.equal(await page.locator("#detailFeaturedSection").isVisible(),false);
+    assert.equal(await page.locator("#detailPelliculeSection").isVisible(),false);
+    assert.deepEqual(privateOfflineRequests,[],
+      "Opening the offline trip must not request Supabase, media or signed private URLs");
     assert.match(await page.locator("#detailActivities").textContent(),/Visite fictive/);
     assert.equal(await page.locator("#detailActivityForm").isVisible(),false);
     assert.equal(await page.locator("#detailEdit").isVisible(),false);
