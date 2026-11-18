@@ -2198,11 +2198,9 @@ function openTripDetail(id){
  const code=window.BEAM_VISUAL_CARDS.codeOf(trip.country_code),
        flag=window.BEAM_VISUAL_CARDS.flag(code);
  $("#detailCountryBadge").innerHTML=(flag?'<img src="'+flag+'" alt="" aria-hidden="true">':"")+
-  '<span>'+esc(code||"—")+'</span>';
+  '<span>'+esc(countryName(trip.country_code))+'</span>';
  const date=DAY.single(trip)?DAY.short(trip.entry_date):tripCardDates(trip.entry_date,trip.exit_date);
- const duration=DAY.single(trip)?"Excursion · 1 jour":FR.count(trip.duration_days,"jour");
- const purpose=window.BEAM_TRAVEL_PDF.purposeName(trip.purpose);
- $("#detailIntro").textContent=[date,duration,purpose].filter(Boolean).join(" | ");
+ $("#detailIntro").textContent=date;
  const lifecycle=LIFE.state(trip),label=LIFE.label(trip),badge=$("#detailLifecycle");
  badge.textContent=label;badge.className="detailLifecycle"+(label?" detailLifecycle-"+lifecycle:" hidden");
  $("#detailAddMoment").setAttribute("aria-expanded","false");
