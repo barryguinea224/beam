@@ -49,7 +49,7 @@ assert.deepEqual(OFF.project(uid,"Old client",[],[]).profile,{
  display_name:"Old client",home_city:"",country_of_residence:""
 },"Previous callers must remain compatible");
 assert.deepEqual(Object.keys(snap.trips[0]).sort(),
- ["id","country_code","cities","entry_date","exit_date","duration_days",
+ ["id","country_code","cities","title","entry_date","exit_date","duration_days",
   "purpose","airline","hotel","companions","status","is_domestic","stops"].sort());
 assert.deepEqual(Object.keys(snap.trips[0].stops[0]).sort(),
  ["id","country_code","cities","entry_date","exit_date","position"].sort());
