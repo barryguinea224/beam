@@ -24,7 +24,9 @@ function seeded(){
  stops.push({id:"88888888-8888-4888-8888-888888888881",trip_id:tripId,user_id:uid,
   country_code:"DE",cities:["Berlin"],entry_date:"2026-11-12",exit_date:"2026-11-13",position:1});
  const photos=ids.map((id,i)=>({id,storage_path:"fictional/trip/photo-"+i+".webp",
-  caption:"Légende fictive "+i,trip_id:tripId,user_id:uid}));
+  caption:"Légende fictive "+i,trip_id:tripId,user_id:uid,
+  activity_id:i<2?"99999999-9999-4999-8999-99999999999"+(i+1):null,
+  width:i===1?1700:800,height:i===1?900:1200}));
  const activities=[
  {id:"99999999-9999-4999-8999-999999999991",trip_id:tripId,user_id:uid,
   title:"Promenade fictive",place:"Centre-ville",happened_on:"2026-11-12",duration_days:1},
@@ -111,14 +113,27 @@ async function main(){
     await page.waitForFunction(()=>document.querySelectorAll("#detailPhotos .detailPhoto").length===4);
     const initial=await page.evaluate(()=>window.__premiumFixture.signs.length);
     assert.ok(initial-before<=2,"At most two private signatures when opening: "+(initial-before));
-    assert.equal(await page.locator("#detailGalleryCount").innerText(),"1/4");
+    assert.equal(await page.locator("#detailStats").innerText(),"11 jours · 2 villes · 4 photos");
     assert.equal(await page.locator("#detailCountryTitle").innerText(),"France");
+    assert.equal(await page.locator("#detailSlideshowOpen").innerText(),"Revivre");
+    const actions=await page.locator("#detailSlideshowOpen,#detailShare").evaluateAll(
+      nodes=>nodes.map(n=>({top:n.getBoundingClientRect().top,bottom:n.getBoundingClientRect().bottom})));
+    if(width===360)assert.ok(actions.every(a=>a.bottom<=740&&a.top>=0),
+      "Revivre et Partager dans le premier écran 360×740");
+    assert.equal(await page.locator("#detailFeatured .albumMoment").count(),2);
+    assert.equal(await page.locator("#detailPellicule .albumTile").count(),4);
+    assert.equal(await page.locator("#detailPellicule .albumTile-portrait").count()>0,true);
+    assert.equal(await page.locator("#detailPellicule .albumTile-landscape").count()>0,true);
     assert.match(await page.locator("#detailIntro").innerText(),/11 jours.*Tourisme/);
     assert.match(await page.locator("#detailStops").innerText(),/Allemagne/);
     assert.match(await page.locator("#detailActivities").innerText(),/Promenade fictive/);
     assert.match(await page.locator("#detailNote").innerText(),/NEVER_DRAW_PRIVATE_NOTE/);
-    for(const id of ["detailStopsSection","detailActivitiesSection","detailNoteSection"])
+    for(const id of ["detailStopsSection","detailNoteSection"])
      assert.equal(await page.locator("#"+id).isVisible(),true);
+    assert.equal(await page.locator("#detailActivitiesSection").isVisible(),false,"Timeline repliée en lecture");
+    await page.locator("#detailTimelineDisclosure summary").click();
+    assert.equal(await page.locator("#detailActivitiesSection").isVisible(),true,"Chronologie accessible");
+    await page.locator("#detailTimelineDisclosure summary").click();
     assert.equal(await page.locator("#detailFacts .detailStay").count(),2);
     assert.equal(await page.locator("#detailFacts .detailCompanions").count(),1);
     // Reading mode is default; in-progress trips still offer "Ajouter un moment".
@@ -128,16 +143,19 @@ async function main(){
     assert.equal(await page.locator(".tripStopActions button").count(),0);
     assert.equal(await page.locator("#detailActivities .detailRemoveActivity").count(),0);
     assert.equal(await page.locator("#detailAddMoment").isVisible(),true,"Ongoing trip add moment in reading mode");
-    if(width===360){
+    if(width===360||width===390){
      await page.locator("#detailSheet").evaluate(el=>el.scrollTop=0);
-     await page.screenshot({path:path.join(DIR,"fiche-galerie-360.png"),animations:"disabled"});
+     await page.screenshot({path:path.join(DIR,"fiche-galerie-"+width+".png"),animations:"disabled"});
      await page.locator("#detailStopsSection").screenshot({
-      path:path.join(DIR,"fiche-etapes-360.png"),animations:"disabled"});
-     await page.locator("#detailActivitiesSection").screenshot({
-      path:path.join(DIR,"fiche-moments-360.png"),animations:"disabled"});
+      path:path.join(DIR,"fiche-etapes-"+width+".png"),animations:"disabled"});
+     await page.locator("#detailFeaturedSection").screenshot({
+      path:path.join(DIR,"fiche-moments-"+width+".png"),animations:"disabled"});
+     if(width===390)await page.locator("#detailPelliculeSection").screenshot({
+      path:path.join(DIR,"mosaique-portrait-paysage-390.png"),animations:"disabled"});
     }
     await page.locator("#detailModeToggle").click();
     assert.equal((await page.locator("#detailModeToggle").innerText()).trim(),"Terminé");
+    if(width===390)await page.screenshot({path:path.join(DIR,"mode-modification-390.png"),animations:"disabled"});
     for(const id of ["detailEdit","addTripStop","detailActivityToggle","detailAddMoment"])
      assert.equal(await page.locator("#"+id).isVisible(),true,"Edit mode should reveal "+id);
     assert.equal(await page.locator(".tripStopActions button").count(),2);
@@ -161,10 +179,7 @@ async function main(){
     assert.equal(await page.locator(".tripStopActions button").count(),0);
     assert.equal(await page.locator("#detailActivities .detailRemoveActivity").count(),0);
     assert.equal(await page.locator("#detailAddMoment").isVisible(),true);
-    await page.locator("#detailPhotos").evaluate(g=>{g.scrollLeft=g.clientWidth;g.dispatchEvent(new Event("scroll"))});
-    await page.waitForFunction(()=>document.querySelector("#detailGalleryCount")?.textContent==="2/4");
-    await page.waitForFunction(()=>window.__premiumFixture.signs.length>=3);
-    await page.locator("#detailPhotos .photoTap").nth(1).click();
+    await page.locator("#detailPellicule .albumTilePhoto").nth(1).click();
     await page.locator("#detailLightbox.open").waitFor();
     assert.match(await page.locator("#detailLightboxCaption").innerText(),/Légende fictive 1/);
     await page.locator("#detailLightboxClose").click();
@@ -227,7 +242,7 @@ async function main(){
      hero:document.querySelector(".detailHero").getBoundingClientRect()
     }));
     assert.ok(geom.doc<=width+1&&geom.sheet.left>=-1&&geom.sheet.right<=width+1);
-    assert.ok(Math.abs(geom.hero.height/geom.hero.width-.56)<.03,"Hero should be ~56% of screen width");
+    assert.ok(Math.abs(geom.hero.height-Math.min(820*.62,540))<4,"Hero should be ~62% of viewport height");
     await page.locator("#detailClose").click();
     await page.goto(base+"?readonly=1",{waitUntil:"load"});
     await page.waitForFunction(()=>document.querySelector("#dashboardTitle")?.textContent==="Voyageuse Fictive");
@@ -238,7 +253,7 @@ async function main(){
     await page.waitForFunction(()=>document.querySelectorAll("#detailActivities .detailActivity").length>0);
     assert.equal(await page.locator("#detailActivities .detailRemoveActivity").count(),0);
     assert.deepEqual(errors,[],"No JavaScript errors");
-    console.log("PASS premium detail Android "+width+" px: gallery n/N, lazy, viewer, sections, PNG, read-only, offline");
+    console.log("PASS album P0 Android "+width+" px: 62svh cover, featured, mosaic, viewer, share, offline");
    }finally{await context.close()}
   }
  }finally{await browser.close();await new Promise(ok=>server.close(ok))}
