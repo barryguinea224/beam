@@ -242,6 +242,8 @@ async function main(){
       window.__premiumFixture.photos.splice(0,...window.__premiumFixture.photos);
       window.__premiumFixture.photos.push(...window.__premiumFixture.albumBackup);
       window.__premiumFixture.rows[0].title="Un voyage extraordinaire dont je me souviendrai longtemps";
+      const trip=trips.find(t=>t.id===window.__premiumFixture.rows[0].id);
+      if(trip)trip.title=window.__premiumFixture.rows[0].title;
      });
      await journey.locator(".tripOpen").click();
      await page.waitForFunction(()=>document.querySelector("#detailCountryTitle")?.textContent.includes("extraordinaire"));
