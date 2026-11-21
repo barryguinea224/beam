@@ -861,6 +861,37 @@
       "essentiel": "Taux de change officiels."
     },
     {
+      "id": "B8j",
+      "categorie": "ambassades",
+      "titre": "France",
+      "type": "Visa · France-Visas, site officiel des visas pour la France",
+      "nom": "France-Visas — site officiel des visas pour la France (page Guinée)",
+      "utilite": "Portail unique : information, demande en ligne, dépôt et suivi de la demande de visa pour la France.",
+      "essentiel": "Visa exigé pour les ressortissants guinéens, quelle que soit la durée du séjour.",
+      "liens": [
+        {
+          "label": "Consulter la source",
+          "url": "https://france-visas.gouv.fr/guinee"
+        },
+        {
+          "label": "Accueil France-Visas",
+          "url": "https://france-visas.gouv.fr/"
+        }
+      ],
+      "source": "france-visas.gouv.fr",
+      "datePublication": "s.d.",
+      "dateVerification": "21/11/2026",
+      "statut": "confirme",
+      "reserve": "Sauf titulaires d'une carte de séjour en cours de validité (conditions détaillées sur la page Guinée).",
+      "depot": {
+        "pays": "Guinée",
+        "ville": "Conakry",
+        "prestataire": "CAPAGO (prise de rendez-vous)",
+        "particularites": "Réception des dossiers sur rendez-vous par la section consulaire de l'Ambassade de France à Conakry ; passeport récupéré au centre Capago Guinée."
+      },
+      "motsCles": "France Schengen Capago"
+    },
+    {
       "id": "B8i",
       "categorie": "emirats",
       "nom": "Gouvernement des Émirats arabes unis — visa touristique",
