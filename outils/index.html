@@ -60,7 +60,18 @@
 
     <aside class="avertissement" role="note">
       <p id="site-avertissement"></p>
+      <p id="site-note-statut"></p>
     </aside>
+
+    <nav class="repere" id="repere" aria-label="Position dans le répertoire" hidden>
+      <span class="repere__cat" id="repere-cat"></span>
+      <span class="repere__pos" id="repere-pos" aria-live="off"></span>
+      <label class="visually-hidden" for="repere-aller">Aller à une catégorie</label>
+      <select id="repere-aller" class="repere__aller">
+        <option value="">Catégories</option>
+      </select>
+      <button type="button" class="repere__haut" id="repere-haut" aria-label="Retour en haut">↑</button>
+    </nav>
 
     <div id="resultats"></div>
 

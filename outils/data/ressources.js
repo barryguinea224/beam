@@ -10,7 +10,8 @@ window.RESSOURCES_VOYAGE = {
   "retourUrl": "/#formation",
   "editeur": "BEAM",
   "avertissement": "Les formalités de voyage, les lieux de dépôt et les conditions tarifaires peuvent évoluer. Vérifiez toujours les informations directement auprès des organismes compétents avant de conseiller un voyageur.",
-  "notePied": "Ce répertoire est un support pédagogique et professionnel. Il ne remplace pas les instructions des administrations, consulats et transporteurs."
+  "notePied": "Ce répertoire est un support pédagogique et professionnel. Il ne remplace pas les instructions des administrations, consulats et transporteurs.",
+  "noteStatut": "« Officiel confirmé » signifie que la source est identifiée comme officielle, pas que la procédure qu'elle décrit est encore applicable aujourd'hui."
  },
  "categories": [
   {
@@ -65,7 +66,10 @@ window.RESSOURCES_VOYAGE = {
    "datePublication": "© 2026",
    "dateVerification": "21/11/2026",
    "statut": "confirme",
-   "reserve": ""
+   "reserve": "",
+   "titre": "Ministère du Tourisme",
+   "type": "Institution · Guinée",
+   "essentiel": "Tutelle du tourisme et agrément des agences de voyages."
   },
   {
    "id": "A2",
@@ -82,7 +86,10 @@ window.RESSOURCES_VOYAGE = {
    "datePublication": "s.d.",
    "dateVerification": "21/11/2026",
    "statut": "confirme",
-   "reserve": ""
+   "reserve": "",
+   "titre": "Directions du Tourisme et de l'Hôtellerie",
+   "type": "Institution · Ministère du Tourisme",
+   "essentiel": "Présentation des deux directions du ministère."
   },
   {
    "id": "A2bis",
@@ -99,7 +106,10 @@ window.RESSOURCES_VOYAGE = {
    "datePublication": "décembre 2022 (dossier d'archive)",
    "dateVerification": "21/11/2026",
    "statut": "confirme",
-   "reserve": "Document historique : il ne prouve pas la validité des agréments en 2026."
+   "reserve": "Document historique : il ne prouve pas la validité des agréments en 2026.",
+   "titre": "Agences agréées — liste 2022",
+   "type": "Document d'archive · Office national du tourisme",
+   "essentiel": "Agences et numéros d'agrément (p. 58–59 environ)."
   },
   {
    "id": "A2ter",
@@ -111,7 +121,10 @@ window.RESSOURCES_VOYAGE = {
    "datePublication": "",
    "dateVerification": "21/11/2026",
    "statut": "introuvable",
-   "reserve": "L'arrêté du 27/07/2026 régit les droits d'agrément sans constituer un registre public nominatif."
+   "reserve": "L'arrêté du 27/07/2026 régit les droits d'agrément sans constituer un registre public nominatif.",
+   "titre": "Registre des agences agréées 2026",
+   "type": "Registre public",
+   "essentiel": "Aucun registre public nominatif trouvé."
   },
   {
    "id": "A3",
@@ -128,7 +141,10 @@ window.RESSOURCES_VOYAGE = {
    "datePublication": "© 2022",
    "dateVerification": "21/11/2026",
    "statut": "confirme",
-   "reserve": "Pas de rubrique Hadj dédiée sur le site : suivre aussi les annonces officielles relayées par la presse."
+   "reserve": "Pas de rubrique Hadj dédiée sur le site : suivre aussi les annonces officielles relayées par la presse.",
+   "titre": "Hadj et Oumra — SGAR",
+   "type": "Institution · Affaires religieuses",
+   "essentiel": "Autorité chargée du Hadj et de la Oumra."
   },
   {
    "id": "A3bis",
@@ -145,7 +161,10 @@ window.RESSOURCES_VOYAGE = {
    "datePublication": "novembre 2023",
    "dateVerification": "21/11/2026",
    "statut": "confirme",
-   "reserve": "Rattachement administratif uniquement : page autonome de cette direction introuvable."
+   "reserve": "Rattachement administratif uniquement : page autonome de cette direction introuvable.",
+   "titre": "Direction nationale des Pèlerinages",
+   "type": "Organigramme · SGAR",
+   "essentiel": "Direction rattachée au SGAR."
   },
   {
    "id": "B4",
@@ -163,7 +182,10 @@ window.RESSOURCES_VOYAGE = {
    "dateVerification": "21/11/2026",
    "statut": "probable",
    "reserve": "L'ouverture directe de la page est bloquée : statut officiel non authentifié.",
-   "motsCles": "États-Unis USA Amérique"
+   "motsCles": "États-Unis USA Amérique",
+   "titre": "États-Unis",
+   "type": "Ambassade des États-Unis à Conakry · Facebook",
+   "essentiel": "Annonces : visas, caution, rendez-vous."
   },
   {
    "id": "B5",
@@ -181,7 +203,10 @@ window.RESSOURCES_VOYAGE = {
    "dateVerification": "21/11/2026",
    "statut": "probable",
    "reserve": "Accès direct au compte non confirmé.",
-   "motsCles": "Maroc AEVM"
+   "motsCles": "Maroc AEVM",
+   "titre": "Maroc",
+   "type": "Ambassade du Maroc en Guinée · compte X",
+   "essentiel": "Communiqués de l'ambassade, suivi de l'AEVM."
   },
   {
    "id": "B6",
@@ -204,7 +229,9 @@ window.RESSOURCES_VOYAGE = {
     "ville": "Conakry",
     "prestataire": "Ambassade directement",
     "particularites": "Demande en ligne, puis formalités consulaires à Conakry."
-   }
+   },
+   "titre": "Chine",
+   "type": "Visa · Ambassade de Chine à Conakry"
   },
   {
    "id": "B6bis",
@@ -231,7 +258,9 @@ window.RESSOURCES_VOYAGE = {
     "ville": "Conakry",
     "prestataire": "Aucun prestataire VFS, TLS ou BLS identifié",
     "particularites": "Demande en ligne et formalités consulaires à Conakry."
-   }
+   },
+   "titre": "Chine",
+   "type": "Demande de visa en ligne · Ministère chinois des Affaires étrangères"
   },
   {
    "id": "B7",
@@ -249,7 +278,10 @@ window.RESSOURCES_VOYAGE = {
    "dateVerification": "21/11/2026",
    "statut": "probable",
    "reserve": "Ouverture directe affectée par une boucle de redirection.",
-   "motsCles": "Turquie Turkey"
+   "motsCles": "Turquie Turkey",
+   "titre": "Turquie",
+   "type": "Ambassade de Türkiye à Conakry",
+   "essentiel": "Site de l'ambassade."
   },
   {
    "id": "B7bis",
@@ -267,7 +299,10 @@ window.RESSOURCES_VOYAGE = {
    "dateVerification": "21/11/2026",
    "statut": "probable",
    "reserve": "Ouverture directe renvoyant une boucle de redirection ; la procédure exacte de dépôt à Conakry n'a pas été entièrement vérifiée.",
-   "motsCles": "Turkey"
+   "motsCles": "Turkey",
+   "titre": "Turquie",
+   "type": "Visa · portail e-Konsolosluk",
+   "essentiel": "Demande de visa et rendez-vous en ligne."
   },
   {
    "id": "B7ter",
@@ -285,7 +320,10 @@ window.RESSOURCES_VOYAGE = {
    "dateVerification": "21/11/2026",
    "statut": "confirme",
    "reserve": "Portail confirmé, mais éligibilité du passeport guinéen ordinaire en 2026 non établie : la fiche actuelle du ministère exige un visa.",
-   "motsCles": "Turkey"
+   "motsCles": "Turkey",
+   "titre": "Turquie",
+   "type": "e-Visa · portail officiel",
+   "essentiel": "Passeport guinéen ordinaire : éligibilité non établie, visa exigé selon la fiche actuelle."
   },
   {
    "id": "B8a",
@@ -309,7 +347,9 @@ window.RESSOURCES_VOYAGE = {
     "prestataire": "Ambassade directement",
     "particularites": "Dépôt en personne, uniquement sur rendez-vous ; pas de VFS ni de TLS identifié."
    },
-   "motsCles": "Allemagne Germany"
+   "motsCles": "Allemagne Germany",
+   "titre": "Allemagne",
+   "type": "Visa Schengen · Ambassade d'Allemagne à Conakry"
   },
   {
    "id": "B8b",
@@ -333,7 +373,9 @@ window.RESSOURCES_VOYAGE = {
     "prestataire": "TLScontact",
     "particularites": "Résidents de Guinée : courts et longs séjours à TLScontact Dakar."
    },
-   "motsCles": "Belgique"
+   "motsCles": "Belgique",
+   "titre": "Belgique",
+   "type": "Visa Schengen · Ambassade de Belgique à Dakar"
   },
   {
    "id": "B8c",
@@ -357,7 +399,9 @@ window.RESSOURCES_VOYAGE = {
     "prestataire": "Ambassade directement",
     "particularites": "Rendez-vous par courriel à emb.conakry.sc@maec.es ; pas de BLS identifié."
    },
-   "motsCles": "Espagne Spain Schengen"
+   "motsCles": "Espagne Spain Schengen",
+   "titre": "Espagne",
+   "type": "Visa Schengen · Ambassade d'Espagne à Conakry"
   },
   {
    "id": "B8d",
@@ -381,7 +425,9 @@ window.RESSOURCES_VOYAGE = {
     "prestataire": "BLS International selon la catégorie de visa",
     "particularites": "La section visas de l'ambassade traite directement certaines catégories."
    },
-   "motsCles": "Italie Schengen"
+   "motsCles": "Italie Schengen",
+   "titre": "Italie",
+   "type": "Visa Schengen · Ambassade d'Italie à Dakar"
   },
   {
    "id": "B8e",
@@ -405,7 +451,9 @@ window.RESSOURCES_VOYAGE = {
     "prestataire": "VFS Global",
     "particularites": "Pas de dépôt possible en Guinée."
    },
-   "motsCles": "Pays-Bas Hollande Schengen"
+   "motsCles": "Pays-Bas Hollande Schengen",
+   "titre": "Pays-Bas",
+   "type": "Visa Schengen · NetherlandsWorldwide"
   },
   {
    "id": "B8f",
@@ -427,9 +475,12 @@ window.RESSOURCES_VOYAGE = {
     "pays": "Autre pays (par exemple Sénégal)",
     "ville": "Par exemple Dakar",
     "prestataire": "VFS Global",
-    "particularites": "Pour la Guinée, le répertoire indique de choisir un centre dans un autre pays."
+    "particularites": "Pour la Guinée, le répertoire indique de choisir un centre dans un autre pays.",
+    "court": "Autre pays (par exemple Dakar, Sénégal)"
    },
-   "motsCles": "Royaume-Uni Angleterre UK"
+   "motsCles": "Royaume-Uni Angleterre UK",
+   "titre": "Royaume-Uni",
+   "type": "Visa · UK Visas and Immigration"
   },
   {
    "id": "B8g",
@@ -452,7 +503,9 @@ window.RESSOURCES_VOYAGE = {
     "ville": "Conakry",
     "prestataire": "VFS Global (collecte biométrique)",
     "particularites": "La demande de visa se fait généralement en ligne ; le centre de Conakry sert à la collecte biométrique."
-   }
+   },
+   "titre": "Canada",
+   "type": "Visa · IRCC, centres de réception"
   },
   {
    "id": "B8h",
@@ -475,7 +528,9 @@ window.RESSOURCES_VOYAGE = {
     "ville": "Conakry",
     "prestataire": "Ambassade directement",
     "particularites": "Demande en ligne et formalités consulaires à Conakry."
-   }
+   },
+   "titre": "Chine",
+   "type": "Avis · demande de visa en ligne (2025)"
   },
   {
    "id": "C9a",
@@ -496,7 +551,9 @@ window.RESSOURCES_VOYAGE = {
    "datePublication": "s.d.",
    "dateVerification": "21/11/2026",
    "statut": "confirme",
-   "reserve": "Contrôle complémentaire du 21/11/2026 : page bagages non ouverte automatiquement, à revérifier à la main."
+   "reserve": "Contrôle complémentaire du 21/11/2026 : page bagages non ouverte automatiquement, à revérifier à la main.",
+   "titre": "Air France",
+   "type": "Compagnie aérienne"
   },
   {
    "id": "C9b",
@@ -517,7 +574,9 @@ window.RESSOURCES_VOYAGE = {
    "datePublication": "s.d.",
    "dateVerification": "21/11/2026",
    "statut": "confirme",
-   "reserve": "Contrôle complémentaire du 21/11/2026 : page bagages non ouverte automatiquement, à revérifier à la main."
+   "reserve": "Contrôle complémentaire du 21/11/2026 : page bagages non ouverte automatiquement, à revérifier à la main.",
+   "titre": "Brussels Airlines",
+   "type": "Compagnie aérienne"
   },
   {
    "id": "C9c",
@@ -539,7 +598,9 @@ window.RESSOURCES_VOYAGE = {
    "dateVerification": "21/11/2026",
    "statut": "confirme",
    "reserve": "Contrôle complémentaire du 21/11/2026 : contenu du calculateur non affiché automatiquement, à revérifier à la main.",
-   "motsCles": "Turquie"
+   "motsCles": "Turquie",
+   "titre": "Turkish Airlines",
+   "type": "Compagnie aérienne"
   },
   {
    "id": "C9d",
@@ -560,7 +621,9 @@ window.RESSOURCES_VOYAGE = {
    "datePublication": "PDF des conditions publié le 28/12/2024",
    "dateVerification": "21/11/2026",
    "statut": "confirme",
-   "reserve": ""
+   "reserve": "",
+   "titre": "Emirates",
+   "type": "Compagnie aérienne"
   },
   {
    "id": "C9e",
@@ -581,7 +644,9 @@ window.RESSOURCES_VOYAGE = {
    "datePublication": "PDF sans date de révision clairement établie",
    "dateVerification": "21/11/2026",
    "statut": "confirme",
-   "reserve": ""
+   "reserve": "",
+   "titre": "Royal Air Maroc",
+   "type": "Compagnie aérienne"
   },
   {
    "id": "C9f",
@@ -602,7 +667,9 @@ window.RESSOURCES_VOYAGE = {
    "datePublication": "s.d.",
    "dateVerification": "21/11/2026",
    "statut": "confirme",
-   "reserve": ""
+   "reserve": "",
+   "titre": "Ethiopian Airlines",
+   "type": "Compagnie aérienne"
   },
   {
    "id": "C9g",
@@ -623,7 +690,9 @@ window.RESSOURCES_VOYAGE = {
    "datePublication": "s.d.",
    "dateVerification": "21/11/2026",
    "statut": "confirme",
-   "reserve": ""
+   "reserve": "",
+   "titre": "ASKY Airlines",
+   "type": "Compagnie aérienne"
   },
   {
    "id": "C9h",
@@ -644,7 +713,9 @@ window.RESSOURCES_VOYAGE = {
    "datePublication": "PDF des conditions hébergé en janvier 2024",
    "dateVerification": "21/11/2026",
    "statut": "confirme",
-   "reserve": ""
+   "reserve": "",
+   "titre": "Air Sénégal SA",
+   "type": "Compagnie aérienne"
   },
   {
    "id": "C9i",
@@ -665,7 +736,9 @@ window.RESSOURCES_VOYAGE = {
    "datePublication": "s.d.",
    "dateVerification": "21/11/2026",
    "statut": "confirme",
-   "reserve": ""
+   "reserve": "",
+   "titre": "Air Côte d'Ivoire",
+   "type": "Compagnie aérienne"
   },
   {
    "id": "C9j",
@@ -686,7 +759,9 @@ window.RESSOURCES_VOYAGE = {
    "datePublication": "s.d.",
    "dateVerification": "21/11/2026",
    "statut": "confirme",
-   "reserve": ""
+   "reserve": "",
+   "titre": "Air Peace Limited",
+   "type": "Compagnie aérienne"
   },
   {
    "id": "D10",
@@ -703,7 +778,9 @@ window.RESSOURCES_VOYAGE = {
    "datePublication": "",
    "dateVerification": "21/11/2026",
    "statut": "probable",
-   "reserve": "Domaine corroboré, mais site principal non ouvert lors du contrôle."
+   "reserve": "Domaine corroboré, mais site principal non ouvert lors du contrôle.",
+   "titre": "Orange Money",
+   "type": "Orange Guinée SA · site de l'opérateur"
   },
   {
    "id": "D10bis",
@@ -720,7 +797,9 @@ window.RESSOURCES_VOYAGE = {
    "datePublication": "dernière mise à jour le 12/10/2026",
    "dateVerification": "21/11/2026",
    "statut": "confirme",
-   "reserve": "Aucune page web autonome d'ouverture de compte marchand n'a été confirmée."
+   "reserve": "Aucune page web autonome d'ouverture de compte marchand n'a été confirmée.",
+   "titre": "Orange Money Pro",
+   "type": "Application marchands · Google Play"
   },
   {
    "id": "D11",
@@ -737,7 +816,10 @@ window.RESSOURCES_VOYAGE = {
    "datePublication": "s.d.",
    "dateVerification": "21/11/2026",
    "statut": "confirme",
-   "reserve": "MTN est sorti du capital ; l'État guinéen détient Areeba à 100 % (décret du 11/12/2025)."
+   "reserve": "MTN est sorti du capital ; l'État guinéen détient Areeba à 100 % (décret du 11/12/2025).",
+   "titre": "MoMo (Areeba, ex-MTN)",
+   "type": "Mobile money · Areeba Guinée SA",
+   "essentiel": "Paiements, transferts et paiement marchand."
   },
   {
    "id": "D11bis",
@@ -754,7 +836,10 @@ window.RESSOURCES_VOYAGE = {
    "datePublication": "s.d.",
    "dateVerification": "21/11/2026",
    "statut": "confirme",
-   "reserve": "Information confirmée ; le lien areeba.gn/paiement-marchand renvoie une erreur 404 le 21/11/2026 : inscription autonome introuvable."
+   "reserve": "Information confirmée ; le lien areeba.gn/paiement-marchand renvoie une erreur 404 le 21/11/2026 : inscription autonome introuvable.",
+   "titre": "Paiement marchand MoMo",
+   "type": "Areeba Guinée SA",
+   "essentiel": "Paiement en boutique et en ligne, « Devenir marchand »."
   },
   {
    "id": "D12",
@@ -771,7 +856,10 @@ window.RESSOURCES_VOYAGE = {
    "datePublication": "s.d.",
    "dateVerification": "21/11/2026",
    "statut": "confirme",
-   "reserve": "La date de fixation des taux n'apparaît pas clairement dans l'extrait consulté."
+   "reserve": "La date de fixation des taux n'apparaît pas clairement dans l'extrait consulté.",
+   "titre": "BCRG — taux de change",
+   "type": "Banque centrale · cours des devises",
+   "essentiel": "Taux de change officiels."
   },
   {
    "id": "B8i",
@@ -793,9 +881,12 @@ window.RESSOURCES_VOYAGE = {
     "pays": "Émirats arabes unis (demande par un sponsor)",
     "ville": "—",
     "prestataire": "Compagnie aérienne, hôtel ou agence touristique habilitée",
-    "particularites": "Procédure en ligne via un sponsor ; pas de dépôt à Conakry établi."
+    "particularites": "Procédure en ligne via un sponsor ; pas de dépôt à Conakry établi.",
+    "court": "En ligne, par un sponsor aux Émirats"
    },
-   "motsCles": "Dubaï Dubai"
+   "motsCles": "Dubaï Dubai",
+   "titre": "Émirats arabes unis",
+   "type": "Visa touristique · Gouvernement des Émirats"
   },
   {
    "id": "E13a",
@@ -812,7 +903,10 @@ window.RESSOURCES_VOYAGE = {
    "datePublication": "",
    "dateVerification": "21/11/2026",
    "statut": "confirme",
-   "reserve": ""
+   "reserve": "",
+   "titre": "Émirats — ICP",
+   "type": "Autorité fédérale de l'identité et de l'immigration",
+   "essentiel": "FAQ : critères, passeport, prestations de visa."
   },
   {
    "id": "E13b",
@@ -830,7 +924,10 @@ window.RESSOURCES_VOYAGE = {
    "dateVerification": "21/11/2026",
    "statut": "confirme",
    "reserve": "",
-   "motsCles": "Dubaï"
+   "motsCles": "Dubaï",
+   "titre": "Dubaï — GDRFA",
+   "type": "Visa touristique de Dubaï · fiche de service",
+   "essentiel": "Demande par un établissement touristique habilité."
   },
   {
    "id": "E13c",
@@ -847,7 +944,10 @@ window.RESSOURCES_VOYAGE = {
    "datePublication": "mise à jour en 2026 selon son référencement",
    "dateVerification": "21/11/2026",
    "statut": "confirme",
-   "reserve": "Aucune garantie générale d'acceptation pour le passeport guinéen en 2026 n'a été trouvée : pouvoir déposer ne signifie pas obtenir le visa."
+   "reserve": "Aucune garantie générale d'acceptation pour le passeport guinéen en 2026 n'a été trouvée : pouvoir déposer ne signifie pas obtenir le visa.",
+   "titre": "Émirats — sponsors du visa",
+   "type": "Visa touristique · Gouvernement des Émirats",
+   "essentiel": "Sponsors : compagnies aériennes, hôtels, agences."
   },
   {
    "id": "F14",
@@ -864,7 +964,10 @@ window.RESSOURCES_VOYAGE = {
    "datePublication": "vérifiée le 21/10/2025",
    "dateVerification": "21/11/2026",
    "statut": "confirme",
-   "reserve": ""
+   "reserve": "",
+   "titre": "France — attestation d'accueil",
+   "type": "Service-Public.fr",
+   "essentiel": "Démarche de l'hébergeant en France."
   },
   {
    "id": "F15",
@@ -881,7 +984,10 @@ window.RESSOURCES_VOYAGE = {
    "datePublication": "disponible en 2025",
    "dateVerification": "21/11/2026",
    "statut": "confirme",
-   "reserve": ""
+   "reserve": "",
+   "titre": "Fièvre jaune — OMS",
+   "type": "Santé · Organisation mondiale de la santé",
+   "essentiel": "Vaccination et voyages internationaux."
   },
   {
    "id": "F16",
@@ -898,7 +1004,9 @@ window.RESSOURCES_VOYAGE = {
    "datePublication": "protocole de base de 1979",
    "dateVerification": "21/11/2026",
    "statut": "confirme",
-   "reserve": ""
+   "reserve": "",
+   "titre": "Libre circulation CEDEAO",
+   "type": "Protocole de 1979 · ecowas.int"
   },
   {
    "id": "F17a",
@@ -915,7 +1023,9 @@ window.RESSOURCES_VOYAGE = {
    "datePublication": "s.d.",
    "dateVerification": "21/11/2026",
    "statut": "confirme",
-   "reserve": ""
+   "reserve": "",
+   "titre": "Formations IATA",
+   "type": "Voyage et tourisme · IATA Training"
   },
   {
    "id": "F17b",
@@ -932,7 +1042,9 @@ window.RESSOURCES_VOYAGE = {
    "datePublication": "s.d.",
    "dateVerification": "21/11/2026",
    "statut": "confirme",
-   "reserve": "Accès susceptible de nécessiter un compte agence."
+   "reserve": "Accès susceptible de nécessiter un compte agence.",
+   "titre": "Amadeus Service Hub",
+   "type": "Assistance et formation des agences"
   },
   {
    "id": "F17c",
@@ -949,7 +1061,9 @@ window.RESSOURCES_VOYAGE = {
    "datePublication": "s.d.",
    "dateVerification": "21/11/2026",
    "statut": "confirme",
-   "reserve": "Cette page concerne l'hôtellerie, pas spécifiquement la formation GDS des agences de voyages."
+   "reserve": "Cette page concerne l'hôtellerie, pas spécifiquement la formation GDS des agences de voyages.",
+   "titre": "Amadeus Learning Universe",
+   "type": "Amadeus Hospitality (hôtellerie)"
   }
  ]
 };
