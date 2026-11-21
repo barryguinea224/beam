@@ -1,0 +1,76 @@
+/* Catalogue de formation — compléments au style du répertoire (/outils/styles.css) */
+.encart__texte { margin: 0 0 1.25rem; text-align: left; }
+.bouton-plein {
+  display: inline-block; text-decoration: none; font-weight: 600; color: var(--fond);
+  background: var(--vert); border: 1.5px solid var(--vert); padding: .8rem 1.5rem;
+}
+.bouton-plein:hover { background: #10302A; }
+
+.bloc { margin-top: 3rem; scroll-margin-top: 1rem; }
+.bloc__titre { font-size: clamp(1.6rem, 5.5vw, 2.1rem); margin-bottom: 1rem; }
+.bloc__intro { margin: 0 0 1.25rem; color: var(--gris); max-width: 46rem; }
+.bloc > p { max-width: 46rem; }
+
+.grille { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 1rem; }
+.carte { background: var(--vert-clair); border: 1px solid var(--ligne); padding: 1.2rem 1.25rem; }
+.carte h3 { font-size: 1.15rem; color: var(--vert); margin-bottom: .4rem; }
+.carte p { margin: 0; }
+
+/* Étapes reliées (même principe que France-Visas) */
+.etapes { list-style: none; margin: 0; padding: 0 0 0 1.75rem; position: relative; max-width: 46rem; }
+.etapes::before { content: ""; position: absolute; left: .45rem; top: .6rem; bottom: .6rem; width: 2px; background: #C9D2CD; }
+.etapes li { position: relative; padding-bottom: 1.1rem; }
+.etapes li::before { content: ""; position: absolute; left: -1.75rem; top: .4rem; width: .9rem; height: .9rem; border-radius: 50%; background: var(--vert); }
+.etapes strong { display: block; font-family: var(--police-titre); font-size: 1.1rem; }
+.etapes span { display: block; color: var(--texte); }
+
+.bloc--btdesk { background: var(--vert); color: var(--fond); padding: 2rem 1.5rem; margin-left: -1.25rem; margin-right: -1.25rem; }
+.bloc--btdesk .bloc__titre { color: var(--fond); }
+.progression { margin: 1rem 0; padding-left: 1.4rem; max-width: 46rem; }
+.progression li { margin-bottom: .5rem; }
+.mention-legale { font-size: .88rem; color: #CFE0D9; border-top: 1px solid rgba(255, 255, 255, .25); padding-top: .8rem; margin-bottom: 0; }
+
+/* Modules dépliables */
+.modules { max-width: 820px; border-top: 1px solid var(--ligne); }
+.module { border-bottom: 1px solid var(--ligne); }
+.module summary {
+  list-style: none; cursor: pointer; display: flex; align-items: center; gap: .9rem;
+  padding: 1rem .25rem; min-height: 60px; font-size: 1.05rem;
+}
+.module summary::-webkit-details-marker { display: none; }
+.module summary::after {
+  content: ""; margin-left: auto; flex: none; width: .65rem; height: .65rem;
+  border-right: 2px solid var(--vert); border-bottom: 2px solid var(--vert); transform: rotate(45deg);
+}
+.module[open] summary::after { transform: rotate(-135deg); }
+.module[open] summary { color: var(--vert); font-weight: 600; }
+.module__num {
+  flex: none; min-width: 2.6rem; text-align: center; font-family: var(--police-titre); font-weight: 700;
+  font-size: .9rem; color: var(--fond); background: var(--vert); padding: .2rem .35rem;
+}
+.module--projet .module__num { background: var(--accent); }
+.module__nom { flex: 1 1 auto; min-width: 0; }
+.module__marque { flex: none; font-size: .75rem; font-weight: 600; color: var(--vert); border: 1px solid #B9CFC6; padding: .05rem .4rem; }
+.module dl { margin: 0 0 1.1rem; padding: 1rem 1.25rem; background: var(--vert-clair); }
+.module dt { font-family: var(--police-titre); font-weight: 600; font-size: .95rem; }
+.module dd { margin: 0 0 .7rem; }
+.module dd:last-child { margin-bottom: 0; }
+
+.note-attestation { margin-top: 1rem; max-width: 46rem; padding: 1.1rem 1.25rem; background: var(--fond-doux); border-left: 4px solid var(--accent); }
+.note-attestation h3 { font-size: 1.1rem; margin-bottom: .4rem; }
+.note-attestation p { margin: 0; }
+
+.lien-carte { display: block; max-width: 46rem; text-decoration: none; color: var(--texte); background: var(--vert-clair); border: 1px solid var(--ligne); padding: 1.2rem 1.25rem; }
+.lien-carte strong { display: block; font-family: var(--police-titre); font-size: 1.15rem; color: var(--vert); }
+.lien-carte strong::after { content: " →"; }
+.lien-carte span { display: block; margin-top: .3rem; }
+.lien-carte:hover strong { text-decoration: underline; }
+
+.bloc--contact { padding: 2rem 1.5rem; border: 1px solid var(--ligne); border-bottom: 6px solid var(--accent); }
+.bloc--contact .bouton-plein, .bloc--contact .bouton-contour { margin: .35rem .5rem .35rem 0; }
+
+@media (max-width: 760px) {
+  .bloc--btdesk { margin-left: -1rem; margin-right: -1rem; padding: 1.75rem 1rem; }
+  .bloc--contact { padding: 1.5rem 1rem; }
+  .module__marque { display: none; }
+}
