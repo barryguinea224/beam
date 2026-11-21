@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Les outils du conseiller voyage — Ressources professionnelles</title>
+  <meta name="description" content="Les sources fiables pour vérifier, conseiller et accompagner les voyageurs au départ de la Guinée.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip" href="#contenu">Aller au contenu</a>
+
+  <header class="entete">
+    <div class="conteneur entete__barre">
+      <a class="retour" id="lien-retour" href="https://beamguinee.com/">← Retour à la formation</a>
+    </div>
+    <div class="conteneur entete__titre">
+      <p class="mention" id="site-mention">Ressources professionnelles</p>
+      <h1 id="site-titre">Les outils du conseiller voyage</h1>
+      <p class="sous-titre" id="site-sous-titre"></p>
+    </div>
+  </header>
+
+  <main id="contenu" class="conteneur">
+    <section class="intro" aria-labelledby="intro-titre">
+      <h2 id="intro-titre" class="visually-hidden">Présentation</h2>
+      <p id="site-introduction"></p>
+      <dl class="chiffres">
+        <div><dt>Ressources</dt><dd id="chiffre-total">—</dd></div>
+        <div><dt>Dernière vérification</dt><dd id="chiffre-date">—</dd></div>
+        <div><dt>Procédures</dt><dd>évolutives</dd></div>
+      </dl>
+    </section>
+
+    <section class="outils" aria-label="Recherche et filtres">
+      <div class="champ">
+        <label for="recherche">Rechercher</label>
+        <input id="recherche" type="search" autocomplete="off"
+               placeholder="Rechercher un pays, une compagnie ou un organisme…">
+      </div>
+
+      <div class="filtre">
+        <p class="filtre__titre" id="titre-categories">Catégories</p>
+        <div class="puces puces--defilement" role="group" aria-labelledby="titre-categories" id="filtre-categories"></div>
+      </div>
+
+      <div class="filtre">
+        <p class="filtre__titre" id="titre-statuts">Statut</p>
+        <div class="puces" role="group" aria-labelledby="titre-statuts" id="filtre-statuts"></div>
+      </div>
+
+      <div class="outils__pied">
+        <p id="compteur" class="compteur" aria-live="polite"></p>
+        <button type="button" id="reinitialiser" class="bouton-texte">Réinitialiser les filtres</button>
+      </div>
+    </section>
+
+    <aside class="avertissement" role="note">
+      <p id="site-avertissement"></p>
+    </aside>
+
+    <div id="resultats"></div>
+
+    <div id="aucun" class="vide" hidden>
+      <p><strong>Aucune ressource ne correspond à votre recherche.</strong></p>
+      <p>Essayez un autre mot (pays, compagnie, organisme) ou réinitialisez les filtres.</p>
+    </div>
+
+    <div id="erreur" class="vide" hidden>
+      <p><strong>Les données n'ont pas pu être chargées.</strong></p>
+      <p>Vérifiez que le dossier <code>data</code> se trouve à côté de cette page, puis rechargez-la.</p>
+    </div>
+  </main>
+
+  <footer class="pied">
+    <div class="conteneur">
+      <p id="site-note-pied"></p>
+      <p class="pied__meta">Dernière mise à jour : <span id="pied-date">—</span> · Responsable : <span id="pied-editeur">—</span></p>
+    </div>
+  </footer>
+
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+  <!-- Copie des données pour l'ouverture locale (file://). La source de référence reste data/ressources.json. -->
+  <script src="data/ressources.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
