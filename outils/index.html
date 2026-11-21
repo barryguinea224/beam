@@ -7,7 +7,7 @@
   <meta name="description" content="Les sources fiables pour vérifier, conseiller et accompagner les voyageurs au départ de la Guinée.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -15,14 +15,33 @@
 
   <header class="entete">
     <div class="conteneur entete__barre">
-      <a class="retour" id="lien-retour" href="https://beamguinee.com/">← Retour à la formation</a>
-    </div>
-    <div class="conteneur entete__titre">
-      <p class="mention" id="site-mention">Ressources professionnelles</p>
-      <h1 id="site-titre">Les outils du conseiller voyage</h1>
-      <p class="sous-titre" id="site-sous-titre"></p>
+      <div class="marque">
+        <p class="marque__editeur">BEAM</p>
+        <p class="marque__nom" id="site-titre">Les outils du conseiller voyage</p>
+        <p class="marque__mention" id="site-mention">Ressources professionnelles</p>
+      </div>
     </div>
   </header>
+
+  <nav class="fil conteneur" aria-label="Fil d'Ariane">
+    <a id="lien-retour" href="/#formation">Retour à la formation</a>
+    <span aria-hidden="true">›</span>
+    <span aria-current="page">Les outils du conseiller voyage</span>
+  </nav>
+
+  <section class="bandeau" aria-labelledby="bandeau-titre">
+    <div class="conteneur">
+      <h1 id="bandeau-titre" class="bandeau__titre"><span id="site-sous-titre"></span></h1>
+      <div class="encart">
+        <h2 class="encart__titre">Trouver une ressource</h2>
+        <label for="recherche" class="visually-hidden">Rechercher</label>
+        <input id="recherche" type="search" autocomplete="off"
+               placeholder="Rechercher un pays, une compagnie ou un organisme…">
+        <p class="encart__ou">ou</p>
+        <a class="bouton-contour" href="#rubriques">Parcourir les catégories</a>
+      </div>
+    </div>
+  </section>
 
   <main id="contenu" class="conteneur">
     <section class="intro" aria-labelledby="intro-titre">
@@ -35,20 +54,17 @@
       </dl>
     </section>
 
-    <section class="outils" aria-label="Recherche et filtres">
-      <div class="champ">
-        <label for="recherche">Rechercher</label>
-        <input id="recherche" type="search" autocomplete="off"
-               placeholder="Rechercher un pays, une compagnie ou un organisme…">
+    <section class="outils" id="rubriques" aria-label="Catégories et filtres">
+      <div class="rubrique">
+        <button type="button" class="rubrique__tete" id="rubrique-bouton" aria-expanded="true" aria-controls="filtre-categories">
+          <span>Dans ce répertoire</span>
+          <span class="chevron" aria-hidden="true"></span>
+        </button>
+        <div class="rubrique__liste" id="filtre-categories" role="group" aria-label="Catégories"></div>
       </div>
 
       <div class="filtre">
-        <p class="filtre__titre" id="titre-categories">Catégories</p>
-        <div class="puces puces--defilement" role="group" aria-labelledby="titre-categories" id="filtre-categories"></div>
-      </div>
-
-      <div class="filtre">
-        <p class="filtre__titre" id="titre-statuts">Statut</p>
+        <p class="filtre__titre" id="titre-statuts">Statut de la source</p>
         <div class="puces" role="group" aria-labelledby="titre-statuts" id="filtre-statuts"></div>
       </div>
 
@@ -88,6 +104,7 @@
 
   <footer class="pied">
     <div class="conteneur">
+      <p class="pied__marque">BEAM · Les outils du conseiller voyage</p>
       <p id="site-note-pied"></p>
       <p class="pied__meta">Dernière mise à jour : <span id="pied-date">—</span> · Responsable : <span id="pied-editeur">—</span></p>
     </div>

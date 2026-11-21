@@ -115,7 +115,7 @@
     }
 
     var bouton = el("button", { type: "button", className: "fiche__plus", "aria-expanded": "false", "aria-controls": idDet, text: "Plus de détails" });
-    actions.appendChild(bouton);
+    actions.insertBefore(bouton, actions.firstChild);
 
     // Niveau secondaire
     var dl = el("dl", { className: "fiche__detail-liste" });
@@ -271,10 +271,10 @@
 
   function construireFiltres() {
     var fc = $("filtre-categories");
-    fc.appendChild(puce("categorie", "toutes", "Toutes", donnees.ressources.length));
+    fc.appendChild(ligneRubrique("toutes", "Toutes les ressources", donnees.ressources.length));
     donnees.categories.forEach(function (c) {
       var nb = donnees.ressources.filter(function (r) { return r.categorie === c.id; }).length;
-      fc.appendChild(puce("categorie", c.id, c.nom, nb));
+      fc.appendChild(ligneRubrique(c.id, c.nom, nb));
     });
     var fs = $("filtre-statuts");
     fs.appendChild(puce("statut", "tous", "Tous", donnees.ressources.length));
@@ -282,16 +282,35 @@
       var nb = donnees.ressources.filter(function (r) { return r.statut === s; }).length;
       fs.appendChild(puce("statut", s, donnees.statuts[s], nb));
     });
-    document.querySelectorAll(".puce").forEach(function (b) {
+    document.querySelectorAll("[data-groupe]").forEach(function (b) {
       b.addEventListener("click", function () {
         etat[b.getAttribute("data-groupe")] = b.getAttribute("data-valeur");
         afficher();
       });
     });
+    var rb = $("rubrique-bouton");
+    rb.addEventListener("click", function () {
+      var ouvert = rb.getAttribute("aria-expanded") === "true";
+      rb.setAttribute("aria-expanded", ouvert ? "false" : "true");
+      fc.hidden = ouvert;
+    });
+    document.querySelector('a[href="#rubriques"]').addEventListener("click", function () {
+      rb.setAttribute("aria-expanded", "true");
+      fc.hidden = false;
+    });
+  }
+
+  function ligneRubrique(valeur, libelle, nombre) {
+    var b = el("button", { type: "button", className: "rubrique__ligne", "data-groupe": "categorie", "data-valeur": valeur }, [
+      el("span", { className: "rubrique__nom", text: libelle }),
+      el("span", { className: "rubrique__nombre", text: String(nombre) })
+    ]);
+    b.setAttribute("aria-pressed", "false");
+    return b;
   }
 
   function majPuces() {
-    document.querySelectorAll(".puce").forEach(function (b) {
+    document.querySelectorAll("[data-groupe]").forEach(function (b) {
       b.setAttribute("aria-pressed", etat[b.getAttribute("data-groupe")] === b.getAttribute("data-valeur") ? "true" : "false");
     });
   }
@@ -378,7 +397,7 @@
     $("pied-date").textContent = site.derniereVerification;
     $("pied-editeur").textContent = site.editeur;
     var retour = $("lien-retour");
-    retour.textContent = "← " + site.retourLabel;
+    retour.textContent = site.retourLabel;
     retour.href = site.retourUrl;
   }
 
