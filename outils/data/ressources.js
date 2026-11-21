@@ -7,7 +7,7 @@ window.RESSOURCES_VOYAGE = {
   "introduction": "Un bon conseiller voyage ne connaît pas nécessairement toutes les réponses. Il sait surtout où trouver les bonnes informations, comment les vérifier et quand les actualiser. Ce répertoire rassemble les ressources essentielles pour travailler avec rigueur et professionnalisme.",
   "derniereVerification": "21/11/2026",
   "retourLabel": "Retour à la formation",
-  "retourUrl": "/#formation",
+  "retourUrl": "/formations/",
   "editeur": "BEAM",
   "avertissement": "Les formalités de voyage, les lieux de dépôt et les conditions tarifaires peuvent évoluer. Vérifiez toujours les informations directement auprès des organismes compétents avant de conseiller un voyageur.",
   "notePied": "Ce répertoire est un support pédagogique et professionnel. Il ne remplace pas les instructions des administrations, consulats et transporteurs.",
