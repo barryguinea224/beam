@@ -74,3 +74,13 @@
   .bloc--contact { padding: 1.5rem 1rem; }
   .module__marque { display: none; }
 }
+
+/* Glossaire anglais */
+.mots { margin: 0 0 1.1rem; padding: 0; background: var(--vert-clair); }
+.mot { padding: .75rem 1.25rem; border-top: 1px solid var(--ligne); }
+.mot:first-child { border-top: 0; }
+.mot dt { font-family: var(--police-titre); font-weight: 700; font-size: 1.02rem; color: var(--vert); }
+.mot dd { margin: .15rem 0 0; font-size: .95rem; }
+.mot dd strong { color: var(--texte); }
+.glossaire .module__num { background: var(--accent); }
+@media (max-width: 760px) { .glossaire .module__marque { display: inline-block; } }
