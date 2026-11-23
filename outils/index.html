@@ -1,120 +1,47 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Les outils du conseiller voyage — Ressources professionnelles</title>
-  <meta name="description" content="Les sources fiables pour vérifier, conseiller et accompagner les voyageurs au départ de la Guinée.">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
+<head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="theme-color" content="#071c2b"/><meta name="description" content="Visas, lieux de dépôt, compagnies, paiements et vérifications : les liens officiels utiles au conseiller voyage en Guinée."/>
+  <meta property="og:title" content="Les outils du conseiller voyage | BEAM"/>
+  <title>Les outils du conseiller voyage — BEAM</title>
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml"/>
+  
+  
+  
+  <link rel="stylesheet" href="/assets/styles.css"/>
+  <link rel="stylesheet" href="/assets/acteurs.css"/>
+  <script defer src="/assets/app.js"></script>
+  <link rel="stylesheet" href="/outils/outils.css"/>
+  <script defer src="/outils/data/ressources.js"></script>
+  <script defer src="/outils/app.js"></script>
 </head>
 <body>
-  <a class="skip" href="#contenu">Aller au contenu</a>
-
-  <header class="entete">
-    <div class="conteneur entete__barre">
-      <div class="marque">
-        <p class="marque__editeur">BEAM</p>
-        <p class="marque__nom" id="site-titre">Les outils du conseiller voyage</p>
-        <p class="marque__mention" id="site-mention">Ressources professionnelles</p>
-      </div>
-    </div>
-  </header>
-
-  <nav class="fil conteneur" aria-label="Fil d'Ariane">
-    <a id="lien-retour" href="/formations/">Retour à la formation</a>
-    <span aria-hidden="true">›</span>
-    <span aria-current="page">Les outils du conseiller voyage</span>
-  </nav>
-
-  <section class="bandeau" aria-labelledby="bandeau-titre">
-    <div class="conteneur">
-      <h1 id="bandeau-titre" class="bandeau__titre"><span id="site-sous-titre"></span></h1>
-      <div class="encart">
-        <h2 class="encart__titre">Trouver une ressource</h2>
-        <label for="recherche" class="visually-hidden">Rechercher</label>
-        <input id="recherche" type="search" autocomplete="off"
-               placeholder="Rechercher un pays, une compagnie ou un organisme…">
-        <p class="encart__ou">ou</p>
-        <a class="bouton-contour" href="#rubriques">Parcourir les catégories</a>
-      </div>
-    </div>
-  </section>
-
-  <main id="contenu" class="conteneur">
-    <section class="intro" aria-labelledby="intro-titre">
-      <h2 id="intro-titre" class="visually-hidden">Présentation</h2>
-      <p id="site-introduction"></p>
-      <dl class="chiffres">
-        <div><dt>Ressources</dt><dd id="chiffre-total">—</dd></div>
-        <div><dt>Dernière vérification</dt><dd id="chiffre-date">—</dd></div>
-        <div><dt>Procédures</dt><dd>évolutives</dd></div>
-      </dl>
-    </section>
-
-    <section class="outils" id="rubriques" aria-label="Catégories et filtres">
-      <div class="rubrique">
-        <button type="button" class="rubrique__tete" id="rubrique-bouton" aria-expanded="true" aria-controls="filtre-categories">
-          <span>Dans ce répertoire</span>
-          <span class="chevron" aria-hidden="true"></span>
-        </button>
-        <div class="rubrique__liste" id="filtre-categories" role="group" aria-label="Catégories"></div>
-      </div>
-
-      <div class="filtre">
-        <p class="filtre__titre" id="titre-statuts">Statut de la source</p>
-        <div class="puces" role="group" aria-labelledby="titre-statuts" id="filtre-statuts"></div>
-      </div>
-
-      <div class="outils__pied">
-        <p id="compteur" class="compteur" aria-live="polite"></p>
-        <button type="button" id="reinitialiser" class="bouton-texte">Réinitialiser les filtres</button>
-      </div>
-    </section>
-
-    <aside class="avertissement" role="note">
-      <p id="site-avertissement"></p>
-      <p id="site-note-statut"></p>
-      <p>Pour connaître les entreprises et plateformes du secteur (GDS, NDC, comparateurs, formations) : <a href="/acteurs.html">Les acteurs du secteur →</a></p>
-    </aside>
-
-    <nav class="repere" id="repere" aria-label="Position dans le répertoire" hidden>
-      <span class="repere__cat" id="repere-cat"></span>
-      <span class="repere__pos" id="repere-pos" aria-live="off"></span>
-      <label class="visually-hidden" for="repere-aller">Aller à une catégorie</label>
-      <select id="repere-aller" class="repere__aller">
-        <option value="">Catégories</option>
-      </select>
-      <button type="button" class="repere__haut" id="repere-haut" aria-label="Retour en haut">↑</button>
-    </nav>
-
-    <div id="resultats"></div>
-
-    <div id="aucun" class="vide" hidden>
-      <p><strong>Aucune ressource ne correspond à votre recherche.</strong></p>
-      <p>Essayez un autre mot (pays, compagnie, organisme) ou réinitialisez les filtres.</p>
-    </div>
-
-    <div id="erreur" class="vide" hidden>
-      <p><strong>Les données n'ont pas pu être chargées.</strong></p>
-      <p>Vérifiez que le dossier <code>data</code> se trouve à côté de cette page, puis rechargez-la.</p>
-    </div>
-  </main>
-
-  <footer class="pied">
-    <div class="conteneur">
-      <p class="pied__marque">BEAM · Les outils du conseiller voyage</p>
-      <p id="site-note-pied"></p>
-      <p class="pied__meta">Dernière mise à jour : <span id="pied-date">—</span> · Responsable : <span id="pied-editeur">—</span></p>
-    </div>
-  </footer>
-
-  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
-
-  <!-- Copie des données pour l'ouverture locale (file://). La source de référence reste data/ressources.json. -->
-  <script src="data/ressources.js"></script>
-  <script src="app.js"></script>
-</body>
-</html>
+<a class="skip-link" href="#contenu">Aller au contenu</a>
+<div class="eyebrow-bar"><div class="container eyebrow-inner"><span><span class="status-dot"></span> BEAM · Ressources & apprentissage</span><span class="eyebrow-right">Conakry, Guinée</span></div></div>
+<header class="site-header"><div class="container header-inner">
+ <a class="brand" href="/index.html" aria-label="BEAM, retour à l'accueil"><span class="brand-icon"><svg viewBox="0 0 48 48" fill="none" aria-hidden="true"><path d="M12 31C21 12 25 34 38 14" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><circle cx="12" cy="31" r="4" fill="currentColor"/><circle cx="38" cy="14" r="4" fill="currentColor"/></svg></span><span class="brand-word"><strong>BEAM<span class="brand-dot">.</span></strong><small>TRAVEL · TECH · TRAINING</small></span></a>
+ <nav class="main-nav" id="main-nav" aria-label="Navigation principale"><a href="/index.html#services">Services</a><a href="/index.html#formation">Formations</a><a href="/acteurs.html">Acteurs du secteur</a><a href="/simulation-3d.html">Jeu 3D</a><a href="/index.html#contact" class="mobile-contact">Nous contacter ↗</a></nav>
+ <a class="button button-header" href="/index.html#contact">Nous contacter ↗</a>
+ <button class="menu-toggle" type="button" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="main-nav"><svg class="icon menu-open" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 7h16M4 12h16M4 17h16"/></svg><svg class="icon menu-close" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 5 19 19M19 5 5 19"/></svg></button>
+</div></header>
+<main id="contenu">
+<section class="directory-hero"><div class="container directory-hero-inner">
+ <div class="section-label light-label"><span></span> OUTILS DU CONSEILLER VOYAGE</div>
+ <h1>Les outils <em>du conseiller.</em></h1>
+ <p>Visas, lieux de dépôt, compagnies, paiements et vérifications : les liens officiels à ouvrir pendant un dossier client, au départ de la Guinée.</p>
+ <p class="directory-crosslink" style="margin-top:14px">Pour découvrir les plateformes et les organisations du secteur : <a href="/acteurs.html" style="color:inherit;font-weight:700;text-decoration:underline">Les acteurs du secteur →</a></p>
+ <div class="directory-stats" id="outil-stats"></div>
+</div></section>
+<section class="directory-section"><div class="container">
+ <div class="directory-heading"><div><span class="directory-overline">VOTRE BOÎTE À OUTILS</span><h2>Trouver une ressource</h2><p>Filtrez par catégorie ou recherchez un pays, une compagnie, un service.</p></div><label class="actor-search-label" for="actor-search"><span>Rechercher</span><input id="actor-search" type="search" placeholder="Ex. Schengen, Dubaï, bagages, Orange…" autocomplete="off"/></label></div>
+ <div class="actor-filters" role="group" aria-label="Filtrer par catégorie" id="actor-filters"></div>
+ <p class="actor-count" aria-live="polite" id="actor-count"></p>
+ <div class="actor-grid" id="actor-grid"></div>
+ <div class="actor-empty" id="actor-empty" hidden><strong>Aucun résultat</strong><p>Essayez une autre recherche ou une autre catégorie.</p></div>
+ <noscript><p>Cette page a besoin de JavaScript pour afficher les ressources.</p></noscript>
+</div></section>
+<section class="directory-context"><div class="container context-grid"><div><span class="directory-overline">AVANT CHAQUE DOSSIER</span><h2>Les règles changent</h2><p>Chaque lien renvoie à une source officielle vérifiée à la date indiquée. Frais, délais, pièces et lieux de dépôt peuvent changer : revérifiez sur la page officielle au moment du dossier.</p></div><div><span class="directory-overline">LES ÉTIQUETTES</span><h2>Confirmé, probable, à vérifier</h2><p><strong>Confirmé</strong> : page officielle ouverte et contenu contrôlé. <strong>Probable</strong> : source plausible mais non authentifiée. Les réserves sont indiquées dans « Plus de détails ».</p></div></div></section>
+<section class="directory-end"><div class="container"><h2>Apprendre à utiliser ces outils avec méthode.</h2><p>BEAM forme les conseillers voyage, avec un simulateur de réservation et des cas réels.</p><a class="button button-gold" href="/formations/">Voir le catalogue des formations ↗</a></div></section>
+</main>
+<footer class="site-footer"><div class="container directory-footer"><span>© 2026 BEAM · Travel · Technology · Training</span><span>Répertoire informatif indépendant · Liens externes</span><a href="/index.html">← Retour à BEAM</a></div></footer>
+</body></html>
