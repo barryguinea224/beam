@@ -833,7 +833,7 @@
       "id": "D12",
       "categorie": "paiements",
       "nom": "Banque Centrale de la République de Guinée (BCRG)",
-      "utilite": "Taux de change officiels, rubrique « Cours des devises ».",
+      "utilite": "Taux de change publiés chaque jour par la Banque centrale (rubrique « Cours des devises »).",
       "liens": [
         {
           "label": "Consulter la source",
@@ -845,9 +845,10 @@
       "dateVerification": "21/11/2026",
       "statut": "confirme",
       "reserve": "La date de fixation des taux n'apparaît pas clairement dans l'extrait consulté.",
-      "titre": "BCRG — taux de change",
+      "titre": "BCRG — taux officiel du franc guinéen",
       "type": "Banque centrale · cours des devises",
-      "essentiel": "Taux de change officiels."
+      "essentiel": "Sert à convertir en francs guinéens un prix en euros ou en dollars (hôtel, frais de visa), à justifier le taux d'un devis ou d'une facture, et à mesurer l'écart avec le taux du marché. Le prix d'un billet d'avion en GNF suit le taux de la compagnie, pas celui-ci.",
+      "motsCles": "Banque centrale franc guinéen GNF euro dollar devis facture"
     },
     {
       "id": "D15",
