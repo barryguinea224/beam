@@ -919,8 +919,8 @@ window.RESSOURCES_VOYAGE = {
    "source": "xe.com",
    "datePublication": "s.d.",
    "dateVerification": "23/11/2026",
-   "statut": "probable",
-   "reserve": "Lien repris de la page Acteurs du secteur ; non rouvert lors du contrôle du 23/11/2026, à revérifier à la main. Taux indicatif : pour le franc guinéen, le taux officiel est celui de la BCRG.",
+   "statut": "confirme",
+   "reserve": "Taux indicatif : pour le franc guinéen, le taux officiel est celui de la BCRG.",
    "motsCles": "change devise taux conversion"
   },
   {
@@ -971,8 +971,8 @@ window.RESSOURCES_VOYAGE = {
    "source": "vfsglobal.com",
    "datePublication": "s.d.",
    "dateVerification": "23/11/2026",
-   "statut": "probable",
-   "reserve": "Lien repris de la page Acteurs du secteur ; non rouvert lors du contrôle du 23/11/2026, à revérifier à la main. Méfiance envers les faux sites et les vendeurs de rendez-vous.",
+   "statut": "confirme",
+   "reserve": "Méfiance envers les faux sites et les vendeurs de rendez-vous.",
    "motsCles": "VFS rendez-vous dépôt biométrie"
   },
   {
@@ -991,8 +991,8 @@ window.RESSOURCES_VOYAGE = {
    "source": "tlscontact.com",
    "datePublication": "s.d.",
    "dateVerification": "23/11/2026",
-   "statut": "probable",
-   "reserve": "Lien repris de la page Acteurs du secteur ; non rouvert lors du contrôle du 23/11/2026, à revérifier à la main. Méfiance envers les faux sites et les vendeurs de rendez-vous.",
+   "statut": "confirme",
+   "reserve": "Méfiance envers les faux sites et les vendeurs de rendez-vous.",
    "motsCles": "TLS rendez-vous dépôt Belgique"
   },
   {
@@ -1004,15 +1004,19 @@ window.RESSOURCES_VOYAGE = {
    "utilite": "Formulaire en ligne DS-160 obligatoire pour une demande de visa non-immigrant américain.",
    "liens": [
     {
-     "label": "Consulter la source",
-     "url": "https://ceac.state.gov/"
+     "label": "Remplir le DS-160",
+     "url": "https://ceac.state.gov/genniv/"
+    },
+    {
+     "label": "Explications (Département d'État)",
+     "url": "https://travel.state.gov/content/travel/en/us-visas/visa-information-resources/forms/ds-160-online-nonimmigrant-visa-application.html"
     }
    ],
    "source": "ceac.state.gov",
    "datePublication": "s.d.",
    "dateVerification": "23/11/2026",
-   "statut": "probable",
-   "reserve": "Lien repris de la page Acteurs du secteur ; non rouvert lors du contrôle du 23/11/2026, à revérifier à la main.",
+   "statut": "confirme",
+   "reserve": "Le formulaire expire après 20 minutes d'inactivité : enregistrer souvent. Garder la page de confirmation avec code-barres.",
    "motsCles": "DS-160 États-Unis USA visa formulaire"
   },
   {
@@ -1031,8 +1035,8 @@ window.RESSOURCES_VOYAGE = {
    "source": "campusfrance.org",
    "datePublication": "s.d.",
    "dateVerification": "23/11/2026",
-   "statut": "probable",
-   "reserve": "Lien repris de la page Acteurs du secteur ; non rouvert lors du contrôle du 23/11/2026, à revérifier à la main. Vérifier aussi l'espace Campus France de Guinée.",
+   "statut": "confirme",
+   "reserve": "Vérifier aussi l'espace Campus France de Guinée.",
    "motsCles": "études étudiant France Campus"
   },
   {
@@ -1223,8 +1227,8 @@ window.RESSOURCES_VOYAGE = {
    "source": "flightradar24.com",
    "datePublication": "s.d.",
    "dateVerification": "23/11/2026",
-   "statut": "probable",
-   "reserve": "Lien repris de la page Acteurs du secteur ; non rouvert lors du contrôle du 23/11/2026, à revérifier à la main. Source non officielle : l'embarquement, la porte et les annulations sont confirmés par la compagnie et l'aéroport.",
+   "statut": "confirme",
+   "reserve": "Source non officielle : l'embarquement, la porte et les annulations sont confirmés par la compagnie et l'aéroport.",
    "motsCles": "vol suivi retard CKY Conakry départs arrivées"
   }
  ]
