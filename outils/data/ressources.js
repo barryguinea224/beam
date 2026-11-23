@@ -1022,6 +1022,31 @@ window.RESSOURCES_VOYAGE = {
    "essentiel": "Sponsors : compagnies aériennes, hôtels, agences."
   },
   {
+   "id": "F21",
+   "categorie": "references",
+   "titre": "Timatic — vérifier passeport, visa et transit",
+   "type": "Documents de voyage · IATA, via Emirates (gratuit)",
+   "nom": "Emirates — Visa and passport information (données IATA Timatic)",
+   "utilite": "Vérifier, pour une nationalité, une destination et jusqu'à 5 escales : validité du passeport, visa, transit sans visa (TWOV), formalités de santé.",
+   "essentiel": "Lire le résultat jusqu'au bout : les exceptions (transit avec visa américain, durée maximale, aéroports) viennent après la règle générale.",
+   "liens": [
+    {
+     "label": "Ouvrir l'outil",
+     "url": "https://www.emirates.com/gn/english/before-you-fly/visa-passport-information/"
+    },
+    {
+     "label": "Timatic (IATA)",
+     "url": "https://www.iata.org/timatic"
+    }
+   ],
+   "source": "emirates.com ; iata.org",
+   "datePublication": "s.d.",
+   "dateVerification": "23/11/2026",
+   "statut": "confirme",
+   "reserve": "Informations en anglais, données à titre indicatif : pour un dossier de visa, l'ambassade a le dernier mot.",
+   "motsCles": "Timatic visa transit TWOV passeport validité escale"
+  },
+  {
    "id": "F14",
    "categorie": "references",
    "nom": "Service-Public — attestation d'accueil d'un étranger en France",
