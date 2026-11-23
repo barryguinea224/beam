@@ -5,7 +5,7 @@ window.RESSOURCES_VOYAGE = {
   "mention": "Ressources professionnelles",
   "sousTitre": "Les sources fiables pour vérifier, conseiller et accompagner les voyageurs au départ de la Guinée.",
   "introduction": "Un bon conseiller voyage ne connaît pas nécessairement toutes les réponses. Il sait surtout où trouver les bonnes informations, comment les vérifier et quand les actualiser. Ce répertoire rassemble les ressources essentielles pour travailler avec rigueur et professionnalisme.",
-  "derniereVerification": "21/11/2026",
+  "derniereVerification": "23/11/2026",
   "retourLabel": "Retour à la formation",
   "retourUrl": "/formations/",
   "editeur": "BEAM",
@@ -862,6 +862,47 @@ window.RESSOURCES_VOYAGE = {
    "essentiel": "Taux de change officiels."
   },
   {
+   "id": "D13",
+   "categorie": "paiements",
+   "titre": "Visa Afrique — voyager avec sa carte",
+   "type": "Carte bancaire · conseils officiels de Visa",
+   "nom": "Visa — Travel with Visa (site Afrique)",
+   "utilite": "Conseils pour payer à l'étranger : prévenir sa banque, plafonds, code PIN, distributeurs, paiement en monnaie locale.",
+   "essentiel": "Refuser la conversion proposée par le commerçant (DCC) et payer en monnaie locale.",
+   "liens": [
+    {
+     "label": "Consulter la source",
+     "url": "https://africa.visa.com/support/consumer/travel-support.html"
+    }
+   ],
+   "source": "africa.visa.com",
+   "datePublication": "modifiée le 01/07/2024 (métadonnées)",
+   "dateVerification": "23/11/2026",
+   "statut": "confirme",
+   "reserve": "La carte Visa (moyen de paiement) n'a aucun lien avec le visa de voyage.",
+   "motsCles": "carte bancaire DCC change distributeur ATM"
+  },
+  {
+   "id": "D14",
+   "categorie": "paiements",
+   "titre": "Visa — calculateur de taux de change",
+   "type": "Outil · Visa",
+   "nom": "Visa — Exchange rate calculator",
+   "utilite": "Estimer le montant d'un paiement par carte Visa dans une autre devise.",
+   "liens": [
+    {
+     "label": "Consulter la source",
+     "url": "https://africa.visa.com/support/consumer/travel-support/exchange-rate-calculator.html"
+    }
+   ],
+   "source": "africa.visa.com",
+   "datePublication": "s.d.",
+   "dateVerification": "23/11/2026",
+   "statut": "probable",
+   "reserve": "Page liée depuis le site de Visa, mais non ouverte lors du contrôle du 23/11/2026 : à revérifier à la main. Les frais de la banque s'ajoutent.",
+   "motsCles": "change devise taux"
+  },
+  {
    "id": "B8j",
    "categorie": "ambassades",
    "titre": "France",
@@ -1095,6 +1136,66 @@ window.RESSOURCES_VOYAGE = {
    "reserve": "Cette page concerne l'hôtellerie, pas spécifiquement la formation GDS des agences de voyages.",
    "titre": "Amadeus Learning Universe",
    "type": "Amadeus Hospitality (hôtellerie)"
+  },
+  {
+   "id": "F18",
+   "categorie": "references",
+   "titre": "NDC — définition officielle",
+   "type": "Distribution aérienne · IATA",
+   "nom": "IATA — Distribution with Offers & Orders (New Distribution Capability - NDC)",
+   "utilite": "La norme NDC : les compagnies envoient leurs offres complètes (billet, bagages, siège, services) aux agences.",
+   "liens": [
+    {
+     "label": "Consulter la source",
+     "url": "https://www.iata.org/en/programs/airline-distribution/retailing/ndc"
+    }
+   ],
+   "source": "iata.org",
+   "datePublication": "s.d.",
+   "dateVerification": "23/11/2026",
+   "statut": "confirme",
+   "reserve": "",
+   "motsCles": "NDC GDS offres commandes"
+  },
+  {
+   "id": "F19",
+   "categorie": "references",
+   "titre": "Amadeus — NDC pour les agences",
+   "type": "Distribution aérienne · Amadeus",
+   "nom": "Amadeus — New Distribution Capability (NDC) for Travel Sellers",
+   "utilite": "Les solutions d'Amadeus pour réserver et gérer les offres NDC des compagnies.",
+   "liens": [
+    {
+     "label": "Consulter la source",
+     "url": "https://amadeus.com/en/travel-sellers/content/ndc-travel-agents"
+    }
+   ],
+   "source": "amadeus.com",
+   "datePublication": "s.d.",
+   "dateVerification": "23/11/2026",
+   "statut": "confirme",
+   "reserve": "Page commerciale : l'accès réel dépend de la compagnie et des droits de l'agence.",
+   "motsCles": "NDC GDS Amadeus"
+  },
+  {
+   "id": "F20",
+   "categorie": "references",
+   "titre": "Formations NDC de l'IATA",
+   "type": "Formation · IATA Training",
+   "nom": "IATA — NDC Training",
+   "utilite": "Catalogue officiel des cours NDC pour agents, compagnies et équipes techniques.",
+   "liens": [
+    {
+     "label": "Consulter la source",
+     "url": "https://www.iata.org/en/training/pages/ndc/"
+    }
+   ],
+   "source": "iata.org",
+   "datePublication": "s.d.",
+   "dateVerification": "23/11/2026",
+   "statut": "confirme",
+   "reserve": "Formations payantes.",
+   "motsCles": "NDC formation IATA"
   }
  ]
 };
