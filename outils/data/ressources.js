@@ -1047,6 +1047,27 @@ window.RESSOURCES_VOYAGE = {
    "motsCles": "Timatic visa transit TWOV passeport validité escale"
   },
   {
+   "id": "F22",
+   "categorie": "references",
+   "titre": "Passport Index — puissance du passeport",
+   "type": "Classement · Arton Capital",
+   "nom": "Passport Index (passportindex.org)",
+   "utilite": "Vue d'ensemble : pays accessibles sans visa, avec visa à l'arrivée ou avec visa exigé, pour un passeport donné (ex. Guinée).",
+   "essentiel": "Sert à donner une vue générale ; pour conseiller un client, vérifier avec Timatic.",
+   "liens": [
+    {
+     "label": "Consulter la source",
+     "url": "https://www.passportindex.org/"
+    }
+   ],
+   "source": "passportindex.org",
+   "datePublication": "s.d.",
+   "dateVerification": "23/11/2026",
+   "statut": "probable",
+   "reserve": "Site non ouvert lors du contrôle du 23/11/2026, à revérifier à la main. Les classements de passeports varient selon la méthode (ex. Guinée : 78e chez Atlys, 165e chez Global Citizen Solutions en 2026).",
+   "motsCles": "passeport classement mobilité sans visa index"
+  },
+  {
    "id": "F14",
    "categorie": "references",
    "nom": "Service-Public — attestation d'accueil d'un étranger en France",
