@@ -55,117 +55,68 @@ window.RESSOURCES_VOYAGE = {
   {
    "id": "A1",
    "categorie": "institutions",
-   "nom": "Ministère du Tourisme et de l'Hôtellerie",
-   "utilite": "Site officiel du ministère guinéen chargé du tourisme et de l'agrément des agences de voyages.",
+   "titre": "Ministère du Tourisme",
+   "type": "Institution · Guinée",
+   "nom": "Ministère du Tourisme et de l'Hôtellerie — Direction nationale du Tourisme et Direction nationale de l'Hôtellerie",
+   "utilite": "Tutelle du tourisme et de l'agrément des agences de voyages ; présentation des directions du ministère.",
    "liens": [
     {
      "label": "Consulter la source",
      "url": "https://www.mth.gov.gn/"
+    },
+    {
+     "label": "Directions et services",
+     "url": "https://www.mth.gov.gn/les-directions-et-services/"
     }
    ],
    "source": "mth.gov.gn",
    "datePublication": "© 2026",
    "dateVerification": "21/11/2026",
    "statut": "confirme",
-   "reserve": "",
-   "titre": "Ministère du Tourisme",
-   "type": "Institution · Guinée",
-   "essentiel": "Tutelle du tourisme et agrément des agences de voyages."
+   "reserve": ""
   },
   {
    "id": "A2",
    "categorie": "institutions",
-   "nom": "Direction nationale du Tourisme et Direction nationale de l'Hôtellerie",
-   "utilite": "Rubrique officielle présentant les directions du ministère ; le ministère distingue les deux directions.",
+   "titre": "Agrément des agences de voyages",
+   "type": "Vérifier une agence · Office national du tourisme",
+   "nom": "Office National du Tourisme de Guinée — liste d'agences et numéros d'agrément (2022)",
+   "utilite": "Seule liste publique trouvée d'agences avec numéro d'agrément (pages 58–59 environ du document).",
+   "essentiel": "Aucun registre public des agences agréées en 2026 n'a été trouvé : demander le numéro d'agrément et le vérifier auprès du ministère.",
    "liens": [
     {
-     "label": "Consulter la source",
-     "url": "https://www.mth.gov.gn/les-directions-et-services/"
-    }
-   ],
-   "source": "mth.gov.gn — « Les Directions et services »",
-   "datePublication": "s.d.",
-   "dateVerification": "21/11/2026",
-   "statut": "confirme",
-   "reserve": "",
-   "titre": "Directions du Tourisme et de l'Hôtellerie",
-   "type": "Institution · Ministère du Tourisme",
-   "essentiel": "Présentation des deux directions du ministère."
-  },
-  {
-   "id": "A2bis",
-   "categorie": "institutions",
-   "nom": "Office National du Tourisme de Guinée — liste d'agences et numéros d'agrément",
-   "utilite": "Publication institutionnelle contenant des agences et des numéros d'agrément (pages 58–59 environ).",
-   "liens": [
-    {
-     "label": "Consulter la source",
+     "label": "Liste 2022 (PDF)",
      "url": "https://tourisme.gov.gn/storage/2022/12/Mag-Preview.pdf"
     }
    ],
    "source": "tourisme.gov.gn",
-   "datePublication": "décembre 2022 (dossier d'archive)",
+   "datePublication": "décembre 2022 (archive)",
    "dateVerification": "21/11/2026",
    "statut": "confirme",
-   "reserve": "Document historique : il ne prouve pas la validité des agréments en 2026.",
-   "titre": "Agences agréées — liste 2022",
-   "type": "Document d'archive · Office national du tourisme",
-   "essentiel": "Agences et numéros d'agrément (p. 58–59 environ)."
-  },
-  {
-   "id": "A2ter",
-   "categorie": "institutions",
-   "nom": "Registre actualisé des agences agréées en 2026",
-   "utilite": "Registre public et nominatif permettant de vérifier la validité de l'agrément d'une agence.",
-   "liens": [],
-   "source": "Recherche sur les sites institutionnels",
-   "datePublication": "",
-   "dateVerification": "21/11/2026",
-   "statut": "introuvable",
-   "reserve": "L'arrêté du 27/07/2026 régit les droits d'agrément sans constituer un registre public nominatif.",
-   "titre": "Registre des agences agréées 2026",
-   "type": "Registre public",
-   "essentiel": "Aucun registre public nominatif trouvé."
+   "reserve": "Document historique : il ne prouve pas la validité d'un agrément en 2026. L'arrêté du 27/07/2026 fixe les droits d'agrément mais ne publie pas de registre nominatif."
   },
   {
    "id": "A3",
    "categorie": "institutions",
-   "nom": "Secrétariat général des Affaires religieuses (SGAR)",
-   "utilite": "Site institutionnel de l'autorité chargée de l'organisation du Hadj et de la Oumra en Guinée.",
+   "titre": "Hadj et Oumra — SGAR",
+   "type": "Institution · Affaires religieuses",
+   "nom": "Secrétariat général des Affaires religieuses (SGAR) — Direction nationale des Pèlerinages",
+   "utilite": "Autorité qui organise le Hadj et la Oumra ; la Direction nationale des Pèlerinages lui est rattachée.",
    "liens": [
     {
      "label": "Consulter la source",
      "url": "https://affairesreligieuses.gov.gn/"
-    }
-   ],
-   "source": "affairesreligieuses.gov.gn",
-   "datePublication": "© 2022",
-   "dateVerification": "21/11/2026",
-   "statut": "confirme",
-   "reserve": "Pas de rubrique Hadj dédiée sur le site : suivre aussi les annonces officielles relayées par la presse.",
-   "titre": "Hadj et Oumra — SGAR",
-   "type": "Institution · Affaires religieuses",
-   "essentiel": "Autorité chargée du Hadj et de la Oumra."
-  },
-  {
-   "id": "A3bis",
-   "categorie": "institutions",
-   "nom": "Direction nationale des Pèlerinages (Hadj et Oumra) — SGAR",
-   "utilite": "Organigramme montrant le rattachement de la Direction nationale des Pèlerinages au SGAR.",
-   "liens": [
+    },
     {
      "label": "Organigramme (PDF)",
      "url": "https://affairesreligieuses.gov.gn/wp-content/uploads/2023/11/ORGANIGRAMME.pdf"
     }
    ],
    "source": "affairesreligieuses.gov.gn",
-   "datePublication": "novembre 2023",
+   "datePublication": "© 2022 ; organigramme de novembre 2023",
    "dateVerification": "21/11/2026",
    "statut": "confirme",
-   "reserve": "Rattachement administratif uniquement : page autonome de cette direction introuvable.",
-   "titre": "Direction nationale des Pèlerinages",
-   "type": "Organigramme · SGAR",
-   "essentiel": "Direction rattachée au SGAR."
+   "reserve": "Pas de rubrique Hadj dédiée sur le site : suivre aussi les annonces officielles relayées par la presse."
   },
   {
    "id": "B4",
