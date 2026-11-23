@@ -997,6 +997,27 @@
       "statut": "confirme",
       "reserve": "Vue d’ensemble seulement : vérifier chaque cas sur Timatic ou la page officielle du pays.",
       "motsCles": "passeport sans visa visa à l’arrivée e-visa mobilité classement"
+    },
+    {
+      "id": "F25",
+      "categorie": "references",
+      "titre": "OACI — calculateur de CO₂",
+      "type": "Émissions d'un vol · gratuit",
+      "nom": "Organisation de l'aviation civile internationale (OACI / ICAO) — ICAO Carbon Emissions Calculator (ICEC)",
+      "utilite": "Estimer les émissions de CO₂ d'un trajet en avion, par passager, à partir des aéroports de départ et d'arrivée et de la classe de voyage.",
+      "essentiel": "Utile pour un client entreprise ou une ONG qui doit déclarer l'empreinte carbone de ses déplacements. Seul outil approuvé au niveau international.",
+      "liens": [
+        {
+          "label": "Ouvrir le calculateur",
+          "url": "https://www.icao.int/environmental-protection/environmental-tools/icec"
+        }
+      ],
+      "source": "icao.int",
+      "datePublication": "2026",
+      "dateVerification": "23/11/2026",
+      "statut": "confirme",
+      "reserve": "Le calculateur web est gratuit ; l'accès automatisé (API) est payant au-delà de 100 appels.",
+      "motsCles": "OACI ICAO carbone CO2 empreinte émissions environnement entreprise ONG"
     }
   ]
 }
