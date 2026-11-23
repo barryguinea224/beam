@@ -11,7 +11,8 @@ window.RESSOURCES_VOYAGE = {
   "editeur": "BEAM",
   "avertissement": "Les formalités de voyage, les lieux de dépôt et les conditions tarifaires peuvent évoluer. Vérifiez toujours les informations directement auprès des organismes compétents avant de conseiller un voyageur.",
   "notePied": "Ce répertoire est un support pédagogique et professionnel. Il ne remplace pas les instructions des administrations, consulats et transporteurs.",
-  "noteStatut": "« Officiel confirmé » signifie que la source est identifiée comme officielle, pas que la procédure qu'elle décrit est encore applicable aujourd'hui."
+  "noteStatut": "« Officiel confirmé » signifie que la source est identifiée comme officielle, pas que la procédure qu'elle décrit est encore applicable aujourd'hui.",
+  "acteursUrl": "/acteurs.html"
  },
  "categories": [
   {
@@ -41,8 +42,8 @@ window.RESSOURCES_VOYAGE = {
   },
   {
    "id": "references",
-   "nom": "Références et formations",
-   "description": "France, OMS, CEDEAO, IATA et Amadeus."
+   "nom": "Références et vérifications",
+   "description": "France, OMS, CEDEAO, Timatic et suivi des vols."
   }
  ],
  "statuts": {
@@ -903,6 +904,26 @@ window.RESSOURCES_VOYAGE = {
    "motsCles": "change devise taux"
   },
   {
+   "id": "D15",
+   "categorie": "paiements",
+   "titre": "XE — convertisseur de devises",
+   "type": "Change · outil d'estimation",
+   "nom": "XE Currency",
+   "utilite": "Estimer rapidement un montant dans une autre devise.",
+   "liens": [
+    {
+     "label": "Consulter la source",
+     "url": "https://www.xe.com/"
+    }
+   ],
+   "source": "xe.com",
+   "datePublication": "s.d.",
+   "dateVerification": "23/11/2026",
+   "statut": "probable",
+   "reserve": "Lien repris de la page Acteurs du secteur ; non rouvert lors du contrôle du 23/11/2026, à revérifier à la main. Taux indicatif : pour le franc guinéen, le taux officiel est celui de la BCRG.",
+   "motsCles": "change devise taux conversion"
+  },
+  {
    "id": "B8j",
    "categorie": "ambassades",
    "titre": "France",
@@ -932,6 +953,87 @@ window.RESSOURCES_VOYAGE = {
     "particularites": "Réception des dossiers sur rendez-vous par la section consulaire de l'Ambassade de France à Conakry ; passeport récupéré au centre Capago Guinée."
    },
    "motsCles": "France Schengen Capago"
+  },
+  {
+   "id": "B9a",
+   "categorie": "ambassades",
+   "titre": "VFS Global",
+   "type": "Prestataire de dépôt des demandes de visa",
+   "nom": "VFS Global",
+   "utilite": "Prestataire qui gère des centres de dépôt et de biométrie pour plusieurs pays (ex. Canada à Conakry, Pays-Bas et Royaume-Uni à Dakar).",
+   "essentiel": "Toujours passer par la page du pays visé et du pays de dépôt sur le site officiel.",
+   "liens": [
+    {
+     "label": "Consulter la source",
+     "url": "https://www.vfsglobal.com/"
+    }
+   ],
+   "source": "vfsglobal.com",
+   "datePublication": "s.d.",
+   "dateVerification": "23/11/2026",
+   "statut": "probable",
+   "reserve": "Lien repris de la page Acteurs du secteur ; non rouvert lors du contrôle du 23/11/2026, à revérifier à la main. Méfiance envers les faux sites et les vendeurs de rendez-vous.",
+   "motsCles": "VFS rendez-vous dépôt biométrie"
+  },
+  {
+   "id": "B9b",
+   "categorie": "ambassades",
+   "titre": "TLScontact",
+   "type": "Prestataire de dépôt des demandes de visa",
+   "nom": "TLScontact",
+   "utilite": "Prestataire de dépôt des demandes de visa pour plusieurs pays (ex. Belgique, à Dakar pour les résidents de Guinée).",
+   "liens": [
+    {
+     "label": "Consulter la source",
+     "url": "https://www.tlscontact.com/"
+    }
+   ],
+   "source": "tlscontact.com",
+   "datePublication": "s.d.",
+   "dateVerification": "23/11/2026",
+   "statut": "probable",
+   "reserve": "Lien repris de la page Acteurs du secteur ; non rouvert lors du contrôle du 23/11/2026, à revérifier à la main. Méfiance envers les faux sites et les vendeurs de rendez-vous.",
+   "motsCles": "TLS rendez-vous dépôt Belgique"
+  },
+  {
+   "id": "B9c",
+   "categorie": "ambassades",
+   "titre": "États-Unis — formulaire DS-160 (CEAC)",
+   "type": "Formulaire consulaire officiel · Département d'État",
+   "nom": "Consular Electronic Application Center (CEAC)",
+   "utilite": "Formulaire en ligne DS-160 obligatoire pour une demande de visa non-immigrant américain.",
+   "liens": [
+    {
+     "label": "Consulter la source",
+     "url": "https://ceac.state.gov/"
+    }
+   ],
+   "source": "ceac.state.gov",
+   "datePublication": "s.d.",
+   "dateVerification": "23/11/2026",
+   "statut": "probable",
+   "reserve": "Lien repris de la page Acteurs du secteur ; non rouvert lors du contrôle du 23/11/2026, à revérifier à la main.",
+   "motsCles": "DS-160 États-Unis USA visa formulaire"
+  },
+  {
+   "id": "B9d",
+   "categorie": "ambassades",
+   "titre": "Campus France",
+   "type": "Études en France",
+   "nom": "Campus France",
+   "utilite": "Parcours et procédure pour les étudiants qui veulent étudier en France.",
+   "liens": [
+    {
+     "label": "Consulter la source",
+     "url": "https://www.campusfrance.org/"
+    }
+   ],
+   "source": "campusfrance.org",
+   "datePublication": "s.d.",
+   "dateVerification": "23/11/2026",
+   "statut": "probable",
+   "reserve": "Lien repris de la page Acteurs du secteur ; non rouvert lors du contrôle du 23/11/2026, à revérifier à la main. Vérifier aussi l'espace Campus France de Guinée.",
+   "motsCles": "études étudiant France Campus"
   },
   {
    "id": "B8i",
@@ -1047,27 +1149,6 @@ window.RESSOURCES_VOYAGE = {
    "motsCles": "Timatic visa transit TWOV passeport validité escale"
   },
   {
-   "id": "F22",
-   "categorie": "references",
-   "titre": "Passport Index — puissance du passeport",
-   "type": "Classement · Arton Capital",
-   "nom": "Passport Index (passportindex.org)",
-   "utilite": "Vue d'ensemble : pays accessibles sans visa, avec visa à l'arrivée ou avec visa exigé, pour un passeport donné (ex. Guinée).",
-   "essentiel": "Sert à donner une vue générale ; pour conseiller un client, vérifier avec Timatic.",
-   "liens": [
-    {
-     "label": "Consulter la source",
-     "url": "https://www.passportindex.org/"
-    }
-   ],
-   "source": "passportindex.org (Arton Capital)",
-   "datePublication": "édition 2026 publiée en octobre 2026",
-   "dateVerification": "23/11/2026",
-   "statut": "confirme",
-   "reserve": "Classement d'Arton Capital, société de conseil en résidence et citoyenneté par investissement. Les classements varient selon la méthode (ex. Guinée : 78e chez Atlys, 165e chez Global Citizen Solutions en 2026). Pour conseiller un client, vérifier avec Timatic.",
-   "motsCles": "passeport classement mobilité sans visa index"
-  },
-  {
    "id": "F14",
    "categorie": "references",
    "nom": "Service-Public — attestation d'accueil d'un étranger en France",
@@ -1127,121 +1208,24 @@ window.RESSOURCES_VOYAGE = {
    "type": "Protocole de 1979 · ecowas.int"
   },
   {
-   "id": "F17a",
+   "id": "F23",
    "categorie": "references",
-   "nom": "International Air Transport Association (IATA) — IATA Training",
-   "utilite": "Catalogue officiel des cours voyage et tourisme.",
+   "titre": "Flightradar24 — suivre un vol",
+   "type": "Suivi des vols en temps réel",
+   "nom": "Flightradar24",
+   "utilite": "Suivre un vol, les départs et arrivées de Conakry (code CKY), les retards et le type d'avion.",
    "liens": [
     {
      "label": "Consulter la source",
-     "url": "https://www.iata.org/en/training/subject-areas/travel-tourism-courses/"
+     "url": "https://www.flightradar24.com/"
     }
    ],
-   "source": "iata.org",
-   "datePublication": "s.d.",
-   "dateVerification": "21/11/2026",
-   "statut": "confirme",
-   "reserve": "",
-   "titre": "Formations IATA",
-   "type": "Voyage et tourisme · IATA Training"
-  },
-  {
-   "id": "F17b",
-   "categorie": "references",
-   "nom": "Amadeus — Service Hub / Learning Universe",
-   "utilite": "Portail Amadeus d'assistance et de formation destiné aux agences.",
-   "liens": [
-    {
-     "label": "Consulter la source",
-     "url": "https://servicehub.amadeus.com/"
-    }
-   ],
-   "source": "amadeus.com",
-   "datePublication": "s.d.",
-   "dateVerification": "21/11/2026",
-   "statut": "confirme",
-   "reserve": "Accès susceptible de nécessiter un compte agence.",
-   "titre": "Amadeus Service Hub",
-   "type": "Assistance et formation des agences"
-  },
-  {
-   "id": "F17c",
-   "categorie": "references",
-   "nom": "Amadeus Hospitality — Amadeus Learning Universe",
-   "utilite": "Présentation publique d'Amadeus Learning Universe.",
-   "liens": [
-    {
-     "label": "Consulter la source",
-     "url": "https://www.amadeus-hospitality.com/education-training/amadeus-learning-universe/"
-    }
-   ],
-   "source": "amadeus-hospitality.com",
-   "datePublication": "s.d.",
-   "dateVerification": "21/11/2026",
-   "statut": "confirme",
-   "reserve": "Cette page concerne l'hôtellerie, pas spécifiquement la formation GDS des agences de voyages.",
-   "titre": "Amadeus Learning Universe",
-   "type": "Amadeus Hospitality (hôtellerie)"
-  },
-  {
-   "id": "F18",
-   "categorie": "references",
-   "titre": "NDC — définition officielle",
-   "type": "Distribution aérienne · IATA",
-   "nom": "IATA — Distribution with Offers & Orders (New Distribution Capability - NDC)",
-   "utilite": "La norme NDC : les compagnies envoient leurs offres complètes (billet, bagages, siège, services) aux agences.",
-   "liens": [
-    {
-     "label": "Consulter la source",
-     "url": "https://www.iata.org/en/programs/airline-distribution/retailing/ndc"
-    }
-   ],
-   "source": "iata.org",
+   "source": "flightradar24.com",
    "datePublication": "s.d.",
    "dateVerification": "23/11/2026",
-   "statut": "confirme",
-   "reserve": "",
-   "motsCles": "NDC GDS offres commandes"
-  },
-  {
-   "id": "F19",
-   "categorie": "references",
-   "titre": "Amadeus — NDC pour les agences",
-   "type": "Distribution aérienne · Amadeus",
-   "nom": "Amadeus — New Distribution Capability (NDC) for Travel Sellers",
-   "utilite": "Les solutions d'Amadeus pour réserver et gérer les offres NDC des compagnies.",
-   "liens": [
-    {
-     "label": "Consulter la source",
-     "url": "https://amadeus.com/en/travel-sellers/content/ndc-travel-agents"
-    }
-   ],
-   "source": "amadeus.com",
-   "datePublication": "s.d.",
-   "dateVerification": "23/11/2026",
-   "statut": "confirme",
-   "reserve": "Page commerciale : l'accès réel dépend de la compagnie et des droits de l'agence.",
-   "motsCles": "NDC GDS Amadeus"
-  },
-  {
-   "id": "F20",
-   "categorie": "references",
-   "titre": "Formations NDC de l'IATA",
-   "type": "Formation · IATA Training",
-   "nom": "IATA — NDC Training",
-   "utilite": "Catalogue officiel des cours NDC pour agents, compagnies et équipes techniques.",
-   "liens": [
-    {
-     "label": "Consulter la source",
-     "url": "https://www.iata.org/en/training/pages/ndc/"
-    }
-   ],
-   "source": "iata.org",
-   "datePublication": "s.d.",
-   "dateVerification": "23/11/2026",
-   "statut": "confirme",
-   "reserve": "Formations payantes.",
-   "motsCles": "NDC formation IATA"
+   "statut": "probable",
+   "reserve": "Lien repris de la page Acteurs du secteur ; non rouvert lors du contrôle du 23/11/2026, à revérifier à la main. Source non officielle : l'embarquement, la porte et les annulations sont confirmés par la compagnie et l'aéroport.",
+   "motsCles": "vol suivi retard CKY Conakry départs arrivées"
   }
  ]
 };
