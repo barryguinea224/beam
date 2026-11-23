@@ -834,7 +834,7 @@ window.RESSOURCES_VOYAGE = {
    "id": "D12",
    "categorie": "paiements",
    "nom": "Banque Centrale de la République de Guinée (BCRG)",
-   "utilite": "Taux de change publiés chaque jour par la Banque centrale (rubrique « Cours des devises »).",
+   "utilite": "Taux de change officiels publiés par la Banque centrale (rubrique « Cours des devises »).",
    "liens": [
     {
      "label": "Consulter la source",
