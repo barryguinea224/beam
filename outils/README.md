@@ -1,7 +1,7 @@
 LES OUTILS DU CONSEILLER VOYAGE — fichiers du répertoire
 
 index.html            la page
-styles.css            la mise en forme
+outils.css            la mise en forme
 app.js                recherche, filtres, copie d'adresse
 data/ressources.json  LES DONNÉES (source de référence, 46 ressources)
 data/ressources.js    copie des données pour ouvrir la page sans serveur

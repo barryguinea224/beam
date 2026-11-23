@@ -18,32 +18,27 @@ window.RESSOURCES_VOYAGE = {
   {
    "id": "institutions",
    "nom": "Institutions guinéennes",
-   "description": "Tourisme, agréments, pèlerinages et administrations."
+   "description": "Tourisme, agrément des agences, pèlerinages."
   },
   {
-   "id": "ambassades",
-   "nom": "Ambassades et visas",
-   "description": "Consulats, lieux de dépôt, centres biométriques et prestataires."
+   "id": "visas",
+   "nom": "Visas et dépôts",
+   "description": "Destinations, lieux de dépôt et prestataires."
   },
   {
    "id": "compagnies",
    "nom": "Compagnies aériennes",
-   "description": "Bagages, conditions de transport et informations tarifaires."
+   "description": "Règles bagages et conditions de transport."
   },
   {
    "id": "paiements",
    "nom": "Paiements et change",
-   "description": "Mobile money, paiements marchands et taux officiels."
-  },
-  {
-   "id": "emirats",
-   "nom": "Dubaï et Émirats arabes unis",
-   "description": "Visas touristiques, immigration et sponsors habilités."
+   "description": "Mobile money, cartes et taux de change."
   },
   {
    "id": "references",
-   "nom": "Références et vérifications",
-   "description": "France, OMS, CEDEAO, Timatic et suivi des vols."
+   "nom": "Vérifications",
+   "description": "Timatic, suivi des vols, santé, CEDEAO, accueil en France."
   }
  ],
  "statuts": {
@@ -119,297 +114,176 @@ window.RESSOURCES_VOYAGE = {
    "reserve": "Pas de rubrique Hadj dédiée sur le site : suivre aussi les annonces officielles relayées par la presse."
   },
   {
+   "id": "SCH",
+   "categorie": "visas",
+   "titre": "Schengen",
+   "type": "Visa court séjour · 6 pays",
+   "nom": "Espace Schengen — visa court séjour (type C)",
+   "utilite": "Un visa C délivré par un pays Schengen permet de circuler dans l'espace Schengen, 90 jours sur toute période de 180 jours.",
+   "essentiel": "Déposer auprès du pays de destination principale. Le lieu de dépôt change selon le pays : touchez un pays pour le voir.",
+   "liens": [],
+   "source": "Sites officiels de chaque pays",
+   "datePublication": "s.d.",
+   "dateVerification": "21–22/11/2026",
+   "statut": "confirme",
+   "reserve": "Le champ « valable pour » du visa indique les pays autorisés.",
+   "pays": [
+    {
+     "nom": "France",
+     "organisme": "France-Visas — site officiel des visas pour la France (page Guinée)",
+     "depot": {
+      "pays": "Guinée",
+      "ville": "Conakry",
+      "prestataire": "CAPAGO (prise de rendez-vous)",
+      "particularites": "Réception des dossiers sur rendez-vous par la section consulaire de l'Ambassade de France à Conakry ; passeport récupéré au centre Capago Guinée."
+     },
+     "liens": [
+      {
+       "label": "Page visa officielle",
+       "url": "https://france-visas.gouv.fr/guinee"
+      },
+      {
+       "label": "Accueil France-Visas",
+       "url": "https://france-visas.gouv.fr/"
+      },
+      {
+       "label": "Études : Campus France",
+       "url": "https://www.campusfrance.org/"
+      }
+     ],
+     "statut": "confirme",
+     "reserve": "Sauf titulaires d'une carte de séjour en cours de validité (conditions détaillées sur la page Guinée).",
+     "essentiel": "Visa exigé pour les ressortissants guinéens, quelle que soit la durée du séjour."
+    },
+    {
+     "nom": "Allemagne",
+     "organisme": "Ambassade de la République fédérale d'Allemagne à Conakry",
+     "depot": {
+      "pays": "Guinée",
+      "ville": "Conakry",
+      "prestataire": "Ambassade directement",
+      "particularites": "Dépôt en personne, uniquement sur rendez-vous ; pas de VFS ni de TLS identifié."
+     },
+     "liens": [
+      {
+       "label": "Page visa officielle",
+       "url": "https://conakry.diplo.de/gn-fr/service/05-visaeinreise/2712400-2712400"
+      }
+     ],
+     "statut": "confirme",
+     "reserve": "",
+     "essentiel": ""
+    },
+    {
+     "nom": "Belgique",
+     "organisme": "Ambassade de Belgique à Dakar — SPF Affaires étrangères",
+     "depot": {
+      "pays": "Sénégal",
+      "ville": "Dakar",
+      "prestataire": "TLScontact",
+      "particularites": "Résidents de Guinée : courts et longs séjours à TLScontact Dakar."
+     },
+     "liens": [
+      {
+       "label": "Page visa officielle",
+       "url": "https://senegal.diplomatie.belgium.be/fr/venir-en-belgique/visa-pour-la-belgique"
+      }
+     ],
+     "statut": "confirme",
+     "reserve": "",
+     "essentiel": ""
+    },
+    {
+     "nom": "Espagne",
+     "organisme": "Ambassade d'Espagne à Conakry — Ministerio de Asuntos Exteriores",
+     "depot": {
+      "pays": "Guinée",
+      "ville": "Conakry",
+      "prestataire": "Ambassade directement",
+      "particularites": "Rendez-vous par courriel à emb.conakry.sc@maec.es ; pas de BLS identifié."
+     },
+     "liens": [
+      {
+       "label": "Page visa officielle",
+       "url": "https://www.exteriores.gob.es/Embajadas/conakry/es/ServiciosConsulares/Paginas/index.aspx?scca=Visados&scco=Guinea&scd=126&scs=Visado+de+estancia+%28visado+Schengen%29"
+      }
+     ],
+     "statut": "confirme",
+     "reserve": "Page indexée : ouverture directe du site refusée par le serveur.",
+     "essentiel": ""
+    },
+    {
+     "nom": "Italie",
+     "organisme": "Ambassade d'Italie à Dakar — Ministero degli Affari Esteri",
+     "depot": {
+      "pays": "Sénégal",
+      "ville": "Dakar",
+      "prestataire": "BLS International selon la catégorie de visa",
+      "particularites": "La section visas de l'ambassade traite directement certaines catégories."
+     },
+     "liens": [
+      {
+       "label": "Page visa officielle",
+       "url": "https://ambdakar.esteri.it/it/servizi-consolari-e-visti/servizi-per-il-cittadino-straniero/visti/"
+      }
+     ],
+     "statut": "confirme",
+     "reserve": "",
+     "essentiel": ""
+    },
+    {
+     "nom": "Pays-Bas",
+     "organisme": "Ministère des Affaires étrangères des Pays-Bas — NetherlandsWorldwide",
+     "depot": {
+      "pays": "Sénégal",
+      "ville": "Dakar",
+      "prestataire": "VFS Global",
+      "particularites": "Pas de dépôt possible en Guinée."
+     },
+     "liens": [
+      {
+       "label": "Page visa officielle",
+       "url": "https://www.netherlandsworldwide.nl/visa-the-netherlands/schengen-visa/apply-guinea.fr"
+      }
+     ],
+     "statut": "confirme",
+     "reserve": "",
+     "essentiel": ""
+    }
+   ],
+   "motsCles": "Schengen France Allemagne Belgique Espagne Italie Pays-Bas Europe visa C CAPAGO TLScontact VFS BLS Campus France études"
+  },
+  {
    "id": "B4",
-   "categorie": "ambassades",
-   "nom": "U.S. Embassy Conakry — page Facebook",
-   "utilite": "Annonces rapides de l'ambassade des États-Unis (visas, caution, rendez-vous).",
+   "categorie": "visas",
+   "titre": "États-Unis",
+   "type": "Visa · Département d'État",
+   "nom": "Visa non-immigrant américain — formulaire DS-160 (CEAC) et ambassade des États-Unis à Conakry",
+   "utilite": "Remplir le formulaire DS-160 en ligne, puis prendre rendez-vous auprès de l'ambassade.",
    "liens": [
     {
-     "label": "Consulter la source",
+     "label": "Remplir le DS-160",
+     "url": "https://ceac.state.gov/genniv/"
+    },
+    {
+     "label": "Explications DS-160",
+     "url": "https://travel.state.gov/content/travel/en/us-visas/visa-information-resources/forms/ds-160-online-nonimmigrant-visa-application.html"
+    },
+    {
+     "label": "Ambassade (Facebook)",
      "url": "https://www.facebook.com/usembassyconakry"
     }
    ],
-   "source": "Govdirectory ; Département d'État (identifiant numérique)",
-   "datePublication": "fiche mise à jour le 29/08/2026",
-   "dateVerification": "21/11/2026",
-   "statut": "probable",
-   "reserve": "L'ouverture directe de la page est bloquée : statut officiel non authentifié.",
-   "motsCles": "États-Unis USA Amérique",
-   "titre": "États-Unis",
-   "type": "Ambassade des États-Unis à Conakry · Facebook",
-   "essentiel": "Annonces : visas, caution, rendez-vous."
-  },
-  {
-   "id": "B5",
-   "categorie": "ambassades",
-   "nom": "Ambassade du Royaume du Maroc en Guinée — compte X",
-   "utilite": "Communiqués de l'ambassade, utiles pour suivre l'AEVM.",
-   "liens": [
-    {
-     "label": "Consulter la source",
-     "url": "https://x.com/MoroccoInGUINEA"
-    }
-   ],
-   "source": "Profil se présentant comme officiel, repris par Sotwe et Instalker",
-   "datePublication": "activité retrouvée en septembre 2026",
-   "dateVerification": "21/11/2026",
-   "statut": "probable",
-   "reserve": "Accès direct au compte non confirmé.",
-   "motsCles": "Maroc AEVM",
-   "titre": "Maroc",
-   "type": "Ambassade du Maroc en Guinée · compte X",
-   "essentiel": "Communiqués de l'ambassade, suivi de l'AEVM."
-  },
-  {
-   "id": "B6",
-   "categorie": "ambassades",
-   "nom": "Ambassade de la République populaire de Chine en République de Guinée — visas",
-   "utilite": "Guide de demande de visa pour la Chine et avis consulaires.",
-   "liens": [
-    {
-     "label": "Consulter la source",
-     "url": "https://gn.china-embassy.gov.cn/fra/lsyw/Visa/"
-    }
-   ],
-   "source": "gn.china-embassy.gov.cn",
-   "datePublication": "guide actualisé en juin 2026",
-   "dateVerification": "21/11/2026",
-   "statut": "confirme",
-   "reserve": "",
-   "depot": {
-    "pays": "Guinée",
-    "ville": "Conakry",
-    "prestataire": "Ambassade directement",
-    "particularites": "Demande en ligne, puis formalités consulaires à Conakry."
-   },
-   "titre": "Chine",
-   "type": "Visa · Ambassade de Chine à Conakry"
-  },
-  {
-   "id": "B6bis",
-   "categorie": "ambassades",
-   "nom": "Chine — système électronique de demande de visa",
-   "utilite": "Plateforme du ministère chinois des Affaires étrangères pour remplir la demande de visa en ligne.",
-   "liens": [
-    {
-     "label": "Consulter la source",
-     "url": "https://consular.mfa.gov.cn/VISA/"
-    },
-    {
-     "label": "Avis de l'ambassade (20/03/2025)",
-     "url": "https://gn.china-embassy.gov.cn/fra/lsyw/Visa/202503/t20250320_11578885.htm"
-    }
-   ],
-   "source": "Avis de l'ambassade de Chine en Guinée",
-   "datePublication": "20/03/2025 (application le 24/03/2025)",
-   "dateVerification": "21/11/2026",
-   "statut": "confirme",
-   "reserve": "L'ambassade précise (avis du 04/11/2024) qu'aucun tiers n'est habilité à traiter les dossiers à sa place.",
-   "depot": {
-    "pays": "Guinée",
-    "ville": "Conakry",
-    "prestataire": "Aucun prestataire VFS, TLS ou BLS identifié",
-    "particularites": "Demande en ligne et formalités consulaires à Conakry."
-   },
-   "titre": "Chine",
-   "type": "Demande de visa en ligne · Ministère chinois des Affaires étrangères"
-  },
-  {
-   "id": "B7",
-   "categorie": "ambassades",
-   "nom": "Ambassade de la République de Türkiye à Conakry",
-   "utilite": "Site de l'ambassade sur le domaine du ministère turc des Affaires étrangères.",
-   "liens": [
-    {
-     "label": "Consulter la source",
-     "url": "https://konakri-be.mfa.gov.tr/"
-    }
-   ],
-   "source": "Sous-domaine diplomatique du ministère turc",
-   "datePublication": "",
-   "dateVerification": "21/11/2026",
-   "statut": "probable",
-   "reserve": "Ouverture directe affectée par une boucle de redirection.",
-   "motsCles": "Turquie Turkey",
-   "titre": "Turquie",
-   "type": "Ambassade de Türkiye à Conakry",
-   "essentiel": "Site de l'ambassade."
-  },
-  {
-   "id": "B7bis",
-   "categorie": "ambassades",
-   "nom": "Turquie — portail de pré-demande consulaire (e-Konsolosluk)",
-   "utilite": "Portail consulaire du ministère turc pour la demande de visa et le rendez-vous.",
-   "liens": [
-    {
-     "label": "Consulter la source",
-     "url": "https://www.konsolosluk.gov.tr/Visa/VisaAction"
-    }
-   ],
-   "source": "konsolosluk.gov.tr",
-   "datePublication": "",
-   "dateVerification": "21/11/2026",
-   "statut": "probable",
-   "reserve": "Ouverture directe renvoyant une boucle de redirection ; la procédure exacte de dépôt à Conakry n'a pas été entièrement vérifiée.",
-   "motsCles": "Turkey",
-   "titre": "Turquie",
-   "type": "Visa · portail e-Konsolosluk",
-   "essentiel": "Demande de visa et rendez-vous en ligne."
-  },
-  {
-   "id": "B7ter",
-   "categorie": "ambassades",
-   "nom": "Turquie — e-Visa et passeport guinéen",
-   "utilite": "Portail officiel de l'e-Visa turc, à tester pour chaque dossier.",
-   "liens": [
-    {
-     "label": "Consulter la source",
-     "url": "https://www.evisa.gov.tr/"
-    }
-   ],
-   "source": "Ministère des Affaires étrangères de Türkiye",
-   "datePublication": "document du 17/04/2013 (Guinée citée parmi les pays conditionnellement éligibles)",
-   "dateVerification": "21/11/2026",
-   "statut": "confirme",
-   "reserve": "Portail confirmé, mais éligibilité du passeport guinéen ordinaire en 2026 non établie : la fiche actuelle du ministère exige un visa.",
-   "motsCles": "Turkey",
-   "titre": "Turquie",
-   "type": "e-Visa · portail officiel",
-   "essentiel": "Passeport guinéen ordinaire : éligibilité non établie, visa exigé selon la fiche actuelle."
-  },
-  {
-   "id": "B8a",
-   "categorie": "ambassades",
-   "nom": "Ambassade de la République fédérale d'Allemagne à Conakry",
-   "utilite": "Procédure de visa touristique : rendez-vous et dépôt en personne à l'ambassade.",
-   "liens": [
-    {
-     "label": "Consulter la source",
-     "url": "https://conakry.diplo.de/gn-fr/service/05-visaeinreise/2712400-2712400"
-    }
-   ],
-   "source": "Ministère fédéral allemand des Affaires étrangères",
-   "datePublication": "2026",
-   "dateVerification": "21/11/2026",
-   "statut": "confirme",
-   "reserve": "",
-   "depot": {
-    "pays": "Guinée",
-    "ville": "Conakry",
-    "prestataire": "Ambassade directement",
-    "particularites": "Dépôt en personne, uniquement sur rendez-vous ; pas de VFS ni de TLS identifié."
-   },
-   "motsCles": "Allemagne Germany",
-   "titre": "Allemagne",
-   "type": "Visa Schengen · Ambassade d'Allemagne à Conakry"
-  },
-  {
-   "id": "B8b",
-   "categorie": "ambassades",
-   "nom": "Ambassade de Belgique à Dakar — SPF Affaires étrangères",
-   "utilite": "Tableau officiel des lieux de dépôt des visas pour la Belgique.",
-   "liens": [
-    {
-     "label": "Consulter la source",
-     "url": "https://senegal.diplomatie.belgium.be/fr/venir-en-belgique/visa-pour-la-belgique"
-    }
-   ],
-   "source": "senegal.diplomatie.belgium.be",
+   "source": "ceac.state.gov ; travel.state.gov",
    "datePublication": "s.d.",
-   "dateVerification": "21/11/2026",
+   "dateVerification": "23/11/2026",
    "statut": "confirme",
-   "reserve": "",
-   "depot": {
-    "pays": "Sénégal",
-    "ville": "Dakar",
-    "prestataire": "TLScontact",
-    "particularites": "Résidents de Guinée : courts et longs séjours à TLScontact Dakar."
-   },
-   "motsCles": "Belgique",
-   "titre": "Belgique",
-   "type": "Visa Schengen · Ambassade de Belgique à Dakar"
-  },
-  {
-   "id": "B8c",
-   "categorie": "ambassades",
-   "nom": "Ambassade d'Espagne à Conakry — Ministerio de Asuntos Exteriores",
-   "utilite": "Notice consulaire pour le visa Schengen délivré par l'Espagne.",
-   "liens": [
-    {
-     "label": "Consulter la source",
-     "url": "https://www.exteriores.gob.es/Embajadas/conakry/es/ServiciosConsulares/Paginas/index.aspx?scca=Visados&scco=Guinea&scd=126&scs=Visado+de+estancia+%28visado+Schengen%29"
-    }
-   ],
-   "source": "exteriores.gob.es",
-   "datePublication": "notice référencée en 2026",
-   "dateVerification": "21/11/2026",
-   "statut": "confirme",
-   "reserve": "Page indexée : ouverture directe du site refusée par le serveur.",
-   "depot": {
-    "pays": "Guinée",
-    "ville": "Conakry",
-    "prestataire": "Ambassade directement",
-    "particularites": "Rendez-vous par courriel à emb.conakry.sc@maec.es ; pas de BLS identifié."
-   },
-   "motsCles": "Espagne Spain Schengen",
-   "titre": "Espagne",
-   "type": "Visa Schengen · Ambassade d'Espagne à Conakry"
-  },
-  {
-   "id": "B8d",
-   "categorie": "ambassades",
-   "nom": "Ambassade d'Italie à Dakar — Ministero degli Affari Esteri",
-   "utilite": "Procédures de visa pour l'Italie ; distingue les procédures BLS et celles gérées directement par la section visas.",
-   "liens": [
-    {
-     "label": "Consulter la source",
-     "url": "https://ambdakar.esteri.it/it/servizi-consolari-e-visti/servizi-per-il-cittadino-straniero/visti/"
-    }
-   ],
-   "source": "ambdakar.esteri.it",
-   "datePublication": "s.d.",
-   "dateVerification": "21/11/2026",
-   "statut": "confirme",
-   "reserve": "",
-   "depot": {
-    "pays": "Sénégal",
-    "ville": "Dakar",
-    "prestataire": "BLS International selon la catégorie de visa",
-    "particularites": "La section visas de l'ambassade traite directement certaines catégories."
-   },
-   "motsCles": "Italie Schengen",
-   "titre": "Italie",
-   "type": "Visa Schengen · Ambassade d'Italie à Dakar"
-  },
-  {
-   "id": "B8e",
-   "categorie": "ambassades",
-   "nom": "Ministère des Affaires étrangères des Pays-Bas — NetherlandsWorldwide",
-   "utilite": "Fiche officielle consacrée aux demandeurs de visa Schengen résidant en Guinée.",
-   "liens": [
-    {
-     "label": "Consulter la source",
-     "url": "https://www.netherlandsworldwide.nl/visa-the-netherlands/schengen-visa/apply-guinea.fr"
-    }
-   ],
-   "source": "netherlandsworldwide.nl",
-   "datePublication": "s.d.",
-   "dateVerification": "21/11/2026",
-   "statut": "confirme",
-   "reserve": "",
-   "depot": {
-    "pays": "Sénégal",
-    "ville": "Dakar",
-    "prestataire": "VFS Global",
-    "particularites": "Pas de dépôt possible en Guinée."
-   },
-   "motsCles": "Pays-Bas Hollande Schengen",
-   "titre": "Pays-Bas",
-   "type": "Visa Schengen · NetherlandsWorldwide"
+   "reserve": "Le formulaire expire après 20 minutes d'inactivité : enregistrer souvent. Garder la page de confirmation avec code-barres. La page Facebook de l'ambassade n'a pas pu être authentifiée (statut probable).",
+   "motsCles": "États-Unis USA Amérique DS-160 CEAC visa caution"
   },
   {
    "id": "B8f",
-   "categorie": "ambassades",
+   "categorie": "visas",
    "nom": "UK Visas and Immigration (UKVI) — GOV.UK",
    "utilite": "Répertoire officiel des centres de demande de visa pour le Royaume-Uni.",
    "liens": [
@@ -436,7 +310,7 @@ window.RESSOURCES_VOYAGE = {
   },
   {
    "id": "B8g",
-   "categorie": "ambassades",
+   "categorie": "visas",
    "nom": "Immigration, Réfugiés et Citoyenneté Canada (IRCC)",
    "utilite": "Annuaire officiel des centres de réception des demandes de visa (CRDV).",
    "liens": [
@@ -460,18 +334,28 @@ window.RESSOURCES_VOYAGE = {
    "type": "Visa · IRCC, centres de réception"
   },
   {
-   "id": "B8h",
-   "categorie": "ambassades",
-   "nom": "Ambassade de Chine en Guinée — avis sur la demande en ligne",
-   "utilite": "Avis officiel sur la mise en place de la demande de visa en ligne.",
+   "id": "B6",
+   "categorie": "visas",
+   "titre": "Chine",
+   "type": "Visa · Ambassade de Chine à Conakry",
+   "nom": "Ambassade de la République populaire de Chine en Guinée — visas",
+   "utilite": "Guide du visa, demande en ligne sur le portail du ministère chinois, puis formalités à l'ambassade.",
    "liens": [
     {
-     "label": "Consulter la source",
+     "label": "Guide visa (ambassade)",
+     "url": "https://gn.china-embassy.gov.cn/fra/lsyw/Visa/"
+    },
+    {
+     "label": "Demande en ligne",
+     "url": "https://consular.mfa.gov.cn/VISA/"
+    },
+    {
+     "label": "Avis du 20/03/2025",
      "url": "https://gn.china-embassy.gov.cn/fra/lsyw/Visa/202503/t20250320_11578885.htm"
     }
    ],
-   "source": "gn.china-embassy.gov.cn",
-   "datePublication": "20/03/2025",
+   "source": "gn.china-embassy.gov.cn ; consular.mfa.gov.cn",
+   "datePublication": "guide actualisé en juin 2026",
    "dateVerification": "21/11/2026",
    "statut": "confirme",
    "reserve": "Aucun VFS, TLS ou BLS autorisé identifié ; aucun tiers habilité à traiter les dossiers (avis du 04/11/2024).",
@@ -479,10 +363,135 @@ window.RESSOURCES_VOYAGE = {
     "pays": "Guinée",
     "ville": "Conakry",
     "prestataire": "Ambassade directement",
-    "particularites": "Demande en ligne et formalités consulaires à Conakry."
+    "particularites": "Demande en ligne, puis formalités consulaires à Conakry."
    },
-   "titre": "Chine",
-   "type": "Avis · demande de visa en ligne (2025)"
+   "motsCles": "Chine visa en ligne"
+  },
+  {
+   "id": "B7",
+   "categorie": "visas",
+   "titre": "Turquie",
+   "type": "Visa · ministère turc des Affaires étrangères",
+   "nom": "Ambassade de Türkiye à Conakry — e-Konsolosluk et e-Visa",
+   "utilite": "Demande de visa et rendez-vous sur e-Konsolosluk (procédure utilisée par BEAM) ; l'e-Visa reste à tester pour chaque dossier.",
+   "liens": [
+    {
+     "label": "e-Konsolosluk",
+     "url": "https://www.konsolosluk.gov.tr/Visa/VisaAction"
+    },
+    {
+     "label": "e-Visa",
+     "url": "https://www.evisa.gov.tr/"
+    },
+    {
+     "label": "Ambassade à Conakry",
+     "url": "https://konakri-be.mfa.gov.tr/"
+    }
+   ],
+   "source": "konsolosluk.gov.tr ; evisa.gov.tr ; mfa.gov.tr",
+   "datePublication": "s.d.",
+   "dateVerification": "21/11/2026",
+   "statut": "confirme",
+   "reserve": "e-Visa : éligibilité du passeport guinéen ordinaire non établie en 2026 (visa exigé selon la fiche actuelle du ministère). La page de l'ambassade a présenté une boucle de redirection lors du contrôle.",
+   "motsCles": "Turquie Turkey Türkiye e-Konsolosluk evisa"
+  },
+  {
+   "id": "B8i",
+   "categorie": "visas",
+   "titre": "Émirats arabes unis",
+   "type": "Visa touristique · par un sponsor",
+   "nom": "Gouvernement des Émirats arabes unis — visa touristique (u.ae, GDRFA Dubaï, ICP)",
+   "utilite": "Le visa touristique est demandé par un sponsor habilité (compagnie aérienne, hôtel, agence), en ligne.",
+   "essentiel": "Pas de dépôt consulaire à Conakry : les ambassades émiriennes ne délivrent pas de visa touristique.",
+   "liens": [
+    {
+     "label": "Visa touristique (u.ae)",
+     "url": "https://u.ae/en/information-and-services/visa-and-emirates-id/residence-visas/tourist-visa"
+    },
+    {
+     "label": "Dubaï — GDRFA",
+     "url": "https://gdrfad.gov.ae/en/services/f9e586fe-0642-11ec-0320-0050569629e8"
+    },
+    {
+     "label": "Autres émirats — ICP",
+     "url": "https://icp.gov.ae/en/faq/"
+    }
+   ],
+   "source": "u.ae ; gdrfad.gov.ae ; icp.gov.ae",
+   "datePublication": "2026",
+   "dateVerification": "21/11/2026",
+   "statut": "confirme",
+   "reserve": "Aucune garantie générale d'acceptation pour le passeport guinéen en 2026 n'a été trouvée : pouvoir déposer ne signifie pas obtenir le visa.",
+   "depot": {
+    "pays": "Émirats arabes unis (demande par un sponsor)",
+    "ville": "—",
+    "prestataire": "Compagnie aérienne, hôtel ou agence touristique habilitée",
+    "particularites": "Procédure en ligne via un sponsor ; pas de dépôt à Conakry établi.",
+    "court": "En ligne, par un sponsor aux Émirats"
+   },
+   "motsCles": "Dubaï Dubai Émirats UAE sponsor e-visa"
+  },
+  {
+   "id": "B5",
+   "categorie": "visas",
+   "nom": "Ambassade du Royaume du Maroc en Guinée — compte X",
+   "utilite": "Communiqués de l'ambassade, utiles pour suivre l'AEVM.",
+   "liens": [
+    {
+     "label": "Consulter la source",
+     "url": "https://x.com/MoroccoInGUINEA"
+    }
+   ],
+   "source": "Profil se présentant comme officiel, repris par Sotwe et Instalker",
+   "datePublication": "activité retrouvée en septembre 2026",
+   "dateVerification": "21/11/2026",
+   "statut": "probable",
+   "reserve": "Accès direct au compte non confirmé.",
+   "motsCles": "Maroc AEVM",
+   "titre": "Maroc",
+   "type": "Ambassade du Maroc en Guinée · compte X",
+   "essentiel": "Communiqués de l'ambassade, suivi de l'AEVM."
+  },
+  {
+   "id": "B9a",
+   "categorie": "visas",
+   "titre": "VFS Global",
+   "type": "Prestataire de dépôt des demandes de visa",
+   "nom": "VFS Global",
+   "utilite": "Prestataire qui gère des centres de dépôt et de biométrie pour plusieurs pays (ex. Canada à Conakry, Pays-Bas et Royaume-Uni à Dakar).",
+   "essentiel": "Toujours passer par la page du pays visé et du pays de dépôt sur le site officiel.",
+   "liens": [
+    {
+     "label": "Consulter la source",
+     "url": "https://www.vfsglobal.com/"
+    }
+   ],
+   "source": "vfsglobal.com",
+   "datePublication": "s.d.",
+   "dateVerification": "23/11/2026",
+   "statut": "confirme",
+   "reserve": "Méfiance envers les faux sites et les vendeurs de rendez-vous.",
+   "motsCles": "VFS rendez-vous dépôt biométrie"
+  },
+  {
+   "id": "B9b",
+   "categorie": "visas",
+   "titre": "TLScontact",
+   "type": "Prestataire de dépôt des demandes de visa",
+   "nom": "TLScontact",
+   "utilite": "Prestataire de dépôt des demandes de visa pour plusieurs pays (ex. Belgique, à Dakar pour les résidents de Guinée).",
+   "liens": [
+    {
+     "label": "Consulter la source",
+     "url": "https://www.tlscontact.com/"
+    }
+   ],
+   "source": "tlscontact.com",
+   "datePublication": "s.d.",
+   "dateVerification": "23/11/2026",
+   "statut": "confirme",
+   "reserve": "Méfiance envers les faux sites et les vendeurs de rendez-vous.",
+   "motsCles": "TLS rendez-vous dépôt Belgique"
   },
   {
    "id": "C9a",
@@ -718,46 +727,32 @@ window.RESSOURCES_VOYAGE = {
   {
    "id": "D10",
    "categorie": "paiements",
-   "nom": "Orange Guinée SA — Orange Money",
-   "utilite": "Site de l'opérateur Orange en Guinée, éditeur d'Orange Money.",
-   "liens": [
-    {
-     "label": "Consulter la source",
-     "url": "https://www.orange-guinee.com/"
-    }
-   ],
-   "source": "Domaine indiqué par Orange Guinée SA dans la fiche développeur d'Orange Money Pro",
-   "datePublication": "",
-   "dateVerification": "21/11/2026",
-   "statut": "probable",
-   "reserve": "Domaine corroboré, mais site principal non ouvert lors du contrôle.",
    "titre": "Orange Money",
-   "type": "Orange Guinée SA · site de l'opérateur"
-  },
-  {
-   "id": "D10bis",
-   "categorie": "paiements",
-   "nom": "Orange Money Pro — Orange Guinée SA",
-   "utilite": "Application officielle réservée aux partenaires et marchands Orange Money.",
+   "type": "Mobile money · Orange Guinée SA",
+   "nom": "Orange Guinée SA — Orange Money et Orange Money Pro",
+   "utilite": "Mobile money ; l'application Orange Money Pro est réservée aux partenaires et marchands.",
    "liens": [
     {
-     "label": "Consulter la source",
+     "label": "Orange Guinée",
+     "url": "https://www.orange-guinee.com/"
+    },
+    {
+     "label": "Orange Money Pro (Google Play)",
      "url": "https://play.google.com/store/apps/details?id=com.orange.money.gn.pro"
     }
    ],
-   "source": "Google Play — fiche publiée par Orange Guinée",
-   "datePublication": "dernière mise à jour le 12/10/2026",
+   "source": "orange-guinee.com ; Google Play",
+   "datePublication": "application mise à jour le 12/10/2026",
    "dateVerification": "21/11/2026",
    "statut": "confirme",
-   "reserve": "Aucune page web autonome d'ouverture de compte marchand n'a été confirmée.",
-   "titre": "Orange Money Pro",
-   "type": "Application marchands · Google Play"
+   "reserve": "Site d'Orange Guinée non ouvert lors du contrôle (domaine corroboré). Aucune page autonome d'ouverture de compte marchand confirmée.",
+   "motsCles": "Orange Money mobile money marchand"
   },
   {
    "id": "D11",
    "categorie": "paiements",
    "nom": "Areeba Guinée SA — MoMo (ex-MTN MoMo Guinée)",
-   "utilite": "Service de mobile money MoMo : paiements, transferts et paiement marchand.",
+   "utilite": "Mobile money MoMo : paiements, transferts, paiement marchand en boutique et en ligne (« Devenir marchand »).",
    "liens": [
     {
      "label": "Consulter la source",
@@ -768,30 +763,10 @@ window.RESSOURCES_VOYAGE = {
    "datePublication": "s.d.",
    "dateVerification": "21/11/2026",
    "statut": "confirme",
-   "reserve": "MTN est sorti du capital ; l'État guinéen détient Areeba à 100 % (décret du 11/12/2025).",
+   "reserve": "MTN est sorti du capital ; l'État guinéen détient Areeba à 100 % (décret du 11/12/2025). Le lien areeba.gn/paiement-marchand renvoyait une erreur 404 le 21/11/2026.",
    "titre": "MoMo (Areeba, ex-MTN)",
    "type": "Mobile money · Areeba Guinée SA",
    "essentiel": "Paiements, transferts et paiement marchand."
-  },
-  {
-   "id": "D11bis",
-   "categorie": "paiements",
-   "nom": "Areeba Guinée SA — paiement marchand MoMo",
-   "utilite": "Description du paiement en boutique et en ligne, et accès « Devenir marchand ».",
-   "liens": [
-    {
-     "label": "Consulter la source",
-     "url": "https://areeba.gn/momo/"
-    }
-   ],
-   "source": "areeba.gn",
-   "datePublication": "s.d.",
-   "dateVerification": "21/11/2026",
-   "statut": "confirme",
-   "reserve": "Information confirmée ; le lien areeba.gn/paiement-marchand renvoie une erreur 404 le 21/11/2026 : inscription autonome introuvable.",
-   "titre": "Paiement marchand MoMo",
-   "type": "Areeba Guinée SA",
-   "essentiel": "Paiement en boutique et en ligne, « Devenir marchand »."
   },
   {
    "id": "D12",
@@ -825,6 +800,10 @@ window.RESSOURCES_VOYAGE = {
     {
      "label": "Consulter la source",
      "url": "https://africa.visa.com/support/consumer/travel-support.html"
+    },
+    {
+     "label": "Calculateur de taux (à revérifier)",
+     "url": "https://africa.visa.com/support/consumer/travel-support/exchange-rate-calculator.html"
     }
    ],
    "source": "africa.visa.com",
@@ -833,26 +812,6 @@ window.RESSOURCES_VOYAGE = {
    "statut": "confirme",
    "reserve": "La carte Visa (moyen de paiement) n'a aucun lien avec le visa de voyage.",
    "motsCles": "carte bancaire DCC change distributeur ATM"
-  },
-  {
-   "id": "D14",
-   "categorie": "paiements",
-   "titre": "Visa — calculateur de taux de change",
-   "type": "Outil · Visa",
-   "nom": "Visa — Exchange rate calculator",
-   "utilite": "Estimer le montant d'un paiement par carte Visa dans une autre devise.",
-   "liens": [
-    {
-     "label": "Consulter la source",
-     "url": "https://africa.visa.com/support/consumer/travel-support/exchange-rate-calculator.html"
-    }
-   ],
-   "source": "africa.visa.com",
-   "datePublication": "s.d.",
-   "dateVerification": "23/11/2026",
-   "statut": "probable",
-   "reserve": "Page liée depuis le site de Visa, mais non ouverte lors du contrôle du 23/11/2026 : à revérifier à la main. Les frais de la banque s'ajoutent.",
-   "motsCles": "change devise taux"
   },
   {
    "id": "D15",
@@ -873,210 +832,6 @@ window.RESSOURCES_VOYAGE = {
    "statut": "confirme",
    "reserve": "Taux indicatif : pour le franc guinéen, le taux officiel est celui de la BCRG.",
    "motsCles": "change devise taux conversion"
-  },
-  {
-   "id": "B8j",
-   "categorie": "ambassades",
-   "titre": "France",
-   "type": "Visa · France-Visas, site officiel des visas pour la France",
-   "nom": "France-Visas — site officiel des visas pour la France (page Guinée)",
-   "utilite": "Portail unique : information, demande en ligne, dépôt et suivi de la demande de visa pour la France.",
-   "essentiel": "Visa exigé pour les ressortissants guinéens, quelle que soit la durée du séjour.",
-   "liens": [
-    {
-     "label": "Consulter la source",
-     "url": "https://france-visas.gouv.fr/guinee"
-    },
-    {
-     "label": "Accueil France-Visas",
-     "url": "https://france-visas.gouv.fr/"
-    }
-   ],
-   "source": "france-visas.gouv.fr",
-   "datePublication": "s.d.",
-   "dateVerification": "21/11/2026",
-   "statut": "confirme",
-   "reserve": "Sauf titulaires d'une carte de séjour en cours de validité (conditions détaillées sur la page Guinée).",
-   "depot": {
-    "pays": "Guinée",
-    "ville": "Conakry",
-    "prestataire": "CAPAGO (prise de rendez-vous)",
-    "particularites": "Réception des dossiers sur rendez-vous par la section consulaire de l'Ambassade de France à Conakry ; passeport récupéré au centre Capago Guinée."
-   },
-   "motsCles": "France Schengen Capago"
-  },
-  {
-   "id": "B9a",
-   "categorie": "ambassades",
-   "titre": "VFS Global",
-   "type": "Prestataire de dépôt des demandes de visa",
-   "nom": "VFS Global",
-   "utilite": "Prestataire qui gère des centres de dépôt et de biométrie pour plusieurs pays (ex. Canada à Conakry, Pays-Bas et Royaume-Uni à Dakar).",
-   "essentiel": "Toujours passer par la page du pays visé et du pays de dépôt sur le site officiel.",
-   "liens": [
-    {
-     "label": "Consulter la source",
-     "url": "https://www.vfsglobal.com/"
-    }
-   ],
-   "source": "vfsglobal.com",
-   "datePublication": "s.d.",
-   "dateVerification": "23/11/2026",
-   "statut": "confirme",
-   "reserve": "Méfiance envers les faux sites et les vendeurs de rendez-vous.",
-   "motsCles": "VFS rendez-vous dépôt biométrie"
-  },
-  {
-   "id": "B9b",
-   "categorie": "ambassades",
-   "titre": "TLScontact",
-   "type": "Prestataire de dépôt des demandes de visa",
-   "nom": "TLScontact",
-   "utilite": "Prestataire de dépôt des demandes de visa pour plusieurs pays (ex. Belgique, à Dakar pour les résidents de Guinée).",
-   "liens": [
-    {
-     "label": "Consulter la source",
-     "url": "https://www.tlscontact.com/"
-    }
-   ],
-   "source": "tlscontact.com",
-   "datePublication": "s.d.",
-   "dateVerification": "23/11/2026",
-   "statut": "confirme",
-   "reserve": "Méfiance envers les faux sites et les vendeurs de rendez-vous.",
-   "motsCles": "TLS rendez-vous dépôt Belgique"
-  },
-  {
-   "id": "B9c",
-   "categorie": "ambassades",
-   "titre": "États-Unis — formulaire DS-160 (CEAC)",
-   "type": "Formulaire consulaire officiel · Département d'État",
-   "nom": "Consular Electronic Application Center (CEAC)",
-   "utilite": "Formulaire en ligne DS-160 obligatoire pour une demande de visa non-immigrant américain.",
-   "liens": [
-    {
-     "label": "Remplir le DS-160",
-     "url": "https://ceac.state.gov/genniv/"
-    },
-    {
-     "label": "Explications (Département d'État)",
-     "url": "https://travel.state.gov/content/travel/en/us-visas/visa-information-resources/forms/ds-160-online-nonimmigrant-visa-application.html"
-    }
-   ],
-   "source": "ceac.state.gov",
-   "datePublication": "s.d.",
-   "dateVerification": "23/11/2026",
-   "statut": "confirme",
-   "reserve": "Le formulaire expire après 20 minutes d'inactivité : enregistrer souvent. Garder la page de confirmation avec code-barres.",
-   "motsCles": "DS-160 États-Unis USA visa formulaire"
-  },
-  {
-   "id": "B9d",
-   "categorie": "ambassades",
-   "titre": "Campus France",
-   "type": "Études en France",
-   "nom": "Campus France",
-   "utilite": "Parcours et procédure pour les étudiants qui veulent étudier en France.",
-   "liens": [
-    {
-     "label": "Consulter la source",
-     "url": "https://www.campusfrance.org/"
-    }
-   ],
-   "source": "campusfrance.org",
-   "datePublication": "s.d.",
-   "dateVerification": "23/11/2026",
-   "statut": "confirme",
-   "reserve": "Vérifier aussi l'espace Campus France de Guinée.",
-   "motsCles": "études étudiant France Campus"
-  },
-  {
-   "id": "B8i",
-   "categorie": "emirats",
-   "nom": "Gouvernement des Émirats arabes unis — visa touristique",
-   "utilite": "Explique comment un visa touristique est demandé : compagnie aérienne, hôtel ou agence habilitée.",
-   "liens": [
-    {
-     "label": "Consulter la source",
-     "url": "https://u.ae/en/information-and-services/visa-and-emirates-id/residence-visas/tourist-visa"
-    }
-   ],
-   "source": "u.ae",
-   "datePublication": "page consultée en novembre 2026",
-   "dateVerification": "21/11/2026",
-   "statut": "confirme",
-   "reserve": "Pas de dépôt consulaire obligatoire à Conakry établi ; les ambassades émiriennes ne délivrent pas de visa touristique.",
-   "depot": {
-    "pays": "Émirats arabes unis (demande par un sponsor)",
-    "ville": "—",
-    "prestataire": "Compagnie aérienne, hôtel ou agence touristique habilitée",
-    "particularites": "Procédure en ligne via un sponsor ; pas de dépôt à Conakry établi.",
-    "court": "En ligne, par un sponsor aux Émirats"
-   },
-   "motsCles": "Dubaï Dubai",
-   "titre": "Émirats arabes unis",
-   "type": "Visa touristique · Gouvernement des Émirats"
-  },
-  {
-   "id": "E13a",
-   "categorie": "emirats",
-   "nom": "Federal Authority for Identity, Citizenship, Customs & Port Security (ICP)",
-   "utilite": "FAQ officielle : critères, passeport et prestations de visa.",
-   "liens": [
-    {
-     "label": "Consulter la source",
-     "url": "https://icp.gov.ae/en/faq/"
-    }
-   ],
-   "source": "icp.gov.ae",
-   "datePublication": "",
-   "dateVerification": "21/11/2026",
-   "statut": "confirme",
-   "reserve": "",
-   "titre": "Émirats — ICP",
-   "type": "Autorité fédérale de l'identité et de l'immigration",
-   "essentiel": "FAQ : critères, passeport, prestations de visa."
-  },
-  {
-   "id": "E13b",
-   "categorie": "emirats",
-   "nom": "General Directorate of Identity and Foreigners Affairs — Dubai (GDRFA)",
-   "utilite": "Fiche de service officielle pour le visa touristique de Dubaï, avec intervention d'un établissement touristique habilité.",
-   "liens": [
-    {
-     "label": "Consulter la source",
-     "url": "https://gdrfad.gov.ae/en/services/f9e586fe-0642-11ec-0320-0050569629e8"
-    }
-   ],
-   "source": "gdrfad.gov.ae",
-   "datePublication": "s.d.",
-   "dateVerification": "21/11/2026",
-   "statut": "confirme",
-   "reserve": "",
-   "motsCles": "Dubaï",
-   "titre": "Dubaï — GDRFA",
-   "type": "Visa touristique de Dubaï · fiche de service",
-   "essentiel": "Demande par un établissement touristique habilité."
-  },
-  {
-   "id": "E13c",
-   "categorie": "emirats",
-   "nom": "Gouvernement des Émirats arabes unis — sponsors du visa touristique",
-   "utilite": "Visas touristiques demandés par les compagnies aériennes, les hôtels et les agences.",
-   "liens": [
-    {
-     "label": "Consulter la source",
-     "url": "https://u.ae/en/information-and-services/visa-and-emirates-id/residence-visas/tourist-visa"
-    }
-   ],
-   "source": "u.ae",
-   "datePublication": "mise à jour en 2026 selon son référencement",
-   "dateVerification": "21/11/2026",
-   "statut": "confirme",
-   "reserve": "Aucune garantie générale d'acceptation pour le passeport guinéen en 2026 n'a été trouvée : pouvoir déposer ne signifie pas obtenir le visa.",
-   "titre": "Émirats — sponsors du visa",
-   "type": "Visa touristique · Gouvernement des Émirats",
-   "essentiel": "Sponsors : compagnies aériennes, hôtels, agences."
   },
   {
    "id": "F21",
@@ -1102,6 +857,26 @@ window.RESSOURCES_VOYAGE = {
    "statut": "confirme",
    "reserve": "Informations en anglais, données à titre indicatif : pour un dossier de visa, l'ambassade a le dernier mot.",
    "motsCles": "Timatic visa transit TWOV passeport validité escale"
+  },
+  {
+   "id": "F23",
+   "categorie": "references",
+   "titre": "Flightradar24 — suivre un vol",
+   "type": "Suivi des vols en temps réel",
+   "nom": "Flightradar24",
+   "utilite": "Suivre un vol, les départs et arrivées de Conakry (code CKY), les retards et le type d'avion.",
+   "liens": [
+    {
+     "label": "Consulter la source",
+     "url": "https://www.flightradar24.com/"
+    }
+   ],
+   "source": "flightradar24.com",
+   "datePublication": "s.d.",
+   "dateVerification": "23/11/2026",
+   "statut": "confirme",
+   "reserve": "Source non officielle : l'embarquement, la porte et les annulations sont confirmés par la compagnie et l'aéroport.",
+   "motsCles": "vol suivi retard CKY Conakry départs arrivées"
   },
   {
    "id": "F14",
@@ -1161,26 +936,6 @@ window.RESSOURCES_VOYAGE = {
    "reserve": "",
    "titre": "Libre circulation CEDEAO",
    "type": "Protocole de 1979 · ecowas.int"
-  },
-  {
-   "id": "F23",
-   "categorie": "references",
-   "titre": "Flightradar24 — suivre un vol",
-   "type": "Suivi des vols en temps réel",
-   "nom": "Flightradar24",
-   "utilite": "Suivre un vol, les départs et arrivées de Conakry (code CKY), les retards et le type d'avion.",
-   "liens": [
-    {
-     "label": "Consulter la source",
-     "url": "https://www.flightradar24.com/"
-    }
-   ],
-   "source": "flightradar24.com",
-   "datePublication": "s.d.",
-   "dateVerification": "23/11/2026",
-   "statut": "confirme",
-   "reserve": "Source non officielle : l'embarquement, la porte et les annulations sont confirmés par la compagnie et l'aéroport.",
-   "motsCles": "vol suivi retard CKY Conakry départs arrivées"
   }
  ]
 };

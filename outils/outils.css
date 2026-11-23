@@ -1,0 +1,21 @@
+/* Compléments de la page Outils, au style de la page Acteurs */
+.outil-card p.outil-essentiel{color:#2f4a52;background:#f6f1e8;border-left:3px solid #c99a5b;padding:9px 11px;border-radius:0 8px 8px 0;margin:-10px 0 18px}
+.outil-statut{font-size:9px;line-height:1.35;font-weight:800;padding:5px 8px;border-radius:6px;text-transform:uppercase;letter-spacing:.06em}
+.outil-statut--probable{color:#8a5a12;background:#fbf0dc}.outil-statut--introuvable{color:#8c2f2f;background:#f8e4e4}
+.outil-details,.outil-pays{border-top:1px solid #edf0ee;font-size:12px;color:#4d5f65}
+.outil-details{margin-top:auto}
+.outil-details>summary,.outil-pays>summary{cursor:pointer;padding:12px 0;font-weight:800;color:#173441;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:44px}
+.outil-details>summary::-webkit-details-marker,.outil-pays>summary::-webkit-details-marker{display:none}
+.outil-details>summary::after,.outil-pays>summary::after{content:"+";font-size:18px;color:#926430;flex:none}
+.outil-details[open]>summary::after,.outil-pays[open]>summary::after{content:"–"}
+.outil-pays>summary small{font-weight:600;color:#83908f;margin-left:auto;text-align:right;font-size:11px}
+.outil-pays-liste{margin:-8px 0 14px}
+.outil-pays>summary{font-size:14px}
+.outil-details ul,.outil-pays ul{margin:0 0 12px;padding-left:18px;line-height:1.65}
+.outil-details li,.outil-pays li{margin-bottom:5px;overflow-wrap:anywhere}
+.outil-liens{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+.outil-liens a{display:inline-flex;align-items:center;gap:4px;min-height:40px;padding:8px 12px;border:1px solid #e3d6c3;border-radius:30px;color:#926430;font-weight:800;font-size:11px;text-decoration:none;background:#fff}
+.outil-copier{background:none;border:1px dashed #cdd4d1;border-radius:8px;padding:9px 12px;min-height:40px;font-size:11px;font-weight:700;color:#52666b;margin-bottom:12px;cursor:pointer}
+.outil-card>a.outil-principal{display:flex;align-items:center;justify-content:space-between;border-top:1px solid #edf0ee;padding-top:14px;color:#926430;font-size:12px;font-weight:900;min-height:44px;text-decoration:none}
+.outil-card>a.outil-principal span{font-size:18px}
+.outil-card{scroll-margin-top:90px}
