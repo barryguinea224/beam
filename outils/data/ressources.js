@@ -31,6 +31,11 @@ window.RESSOURCES_VOYAGE = {
    "description": "Règles bagages et conditions de transport."
   },
   {
+   "id": "vols",
+   "nom": "Recherche de vols",
+   "description": "Comparateurs de prix et carte des lignes."
+  },
+  {
    "id": "paiements",
    "nom": "Paiements et change",
    "description": "Mobile money, cartes et taux de change."
@@ -705,7 +710,7 @@ window.RESSOURCES_VOYAGE = {
    "id": "C9j",
    "categorie": "compagnies",
    "nom": "Air Peace Limited",
-   "utilite": "Politique bagages et conditions générales.",
+   "utilite": "Compagnie nigériane basée à Lagos. Depuis le 1er août 2026, elle relie Conakry à Lagos (via Bamako), avec correspondances vers son réseau. Règles bagages et conditions générales ci-dessous.",
    "liens": [
     {
      "label": "Règles bagages",
@@ -721,8 +726,109 @@ window.RESSOURCES_VOYAGE = {
    "dateVerification": "21/11/2026",
    "statut": "confirme",
    "reserve": "",
-   "titre": "Air Peace Limited",
-   "type": "Compagnie aérienne"
+   "titre": "Air Peace (Nigeria)",
+   "type": "Compagnie nigériane · Conakry–Lagos depuis août 2026",
+   "motsCles": "Nigeria Lagos Bamako P4"
+  },
+  {
+   "id": "G1",
+   "categorie": "vols",
+   "titre": "Google Flights",
+   "type": "Comparateur de vols",
+   "nom": "Google Flights (Google)",
+   "utilite": "Comparer horaires, escales et prix sur une date ou un mois ; voir le calendrier des tarifs.",
+   "liens": [
+    {
+     "label": "Ouvrir Google Flights",
+     "url": "https://www.google.com/travel/flights"
+    }
+   ],
+   "source": "google.com",
+   "datePublication": "s.d.",
+   "dateVerification": "23/11/2026",
+   "statut": "confirme",
+   "reserve": "Prix indicatifs : le tarif se confirme au moment de la réservation.",
+   "motsCles": "comparateur vol billet prix itinéraire escale"
+  },
+  {
+   "id": "G2",
+   "categorie": "vols",
+   "titre": "Skyscanner",
+   "type": "Comparateur de vols et d’hôtels",
+   "nom": "Skyscanner Ltd",
+   "utilite": "Comparer les prix des compagnies et des agences en ligne, y compris « partout » depuis Conakry.",
+   "liens": [
+    {
+     "label": "Ouvrir Skyscanner",
+     "url": "https://www.skyscanner.net/"
+    }
+   ],
+   "source": "skyscanner.net",
+   "datePublication": "s.d.",
+   "dateVerification": "23/11/2026",
+   "statut": "confirme",
+   "reserve": "Certains résultats renvoient vers des agences en ligne tierces.",
+   "motsCles": "comparateur vol billet prix itinéraire escale"
+  },
+  {
+   "id": "G3",
+   "categorie": "vols",
+   "titre": "KAYAK",
+   "type": "Comparateur de vols",
+   "nom": "KAYAK (Booking Holdings)",
+   "utilite": "Comparer les tarifs et suivre l’évolution des prix.",
+   "liens": [
+    {
+     "label": "Ouvrir KAYAK",
+     "url": "https://www.kayak.com/"
+    }
+   ],
+   "source": "kayak.com",
+   "datePublication": "s.d.",
+   "dateVerification": "23/11/2026",
+   "statut": "confirme",
+   "reserve": "",
+   "motsCles": "comparateur vol billet prix itinéraire escale"
+  },
+  {
+   "id": "G4",
+   "categorie": "vols",
+   "titre": "momondo",
+   "type": "Comparateur de vols",
+   "nom": "momondo (Booking Holdings)",
+   "utilite": "Comparer les tarifs aériens, avec un affichage par prix et par durée.",
+   "liens": [
+    {
+     "label": "Ouvrir momondo",
+     "url": "https://www.momondo.com/"
+    }
+   ],
+   "source": "momondo.com",
+   "datePublication": "s.d.",
+   "dateVerification": "23/11/2026",
+   "statut": "confirme",
+   "reserve": "",
+   "motsCles": "comparateur vol billet prix itinéraire escale"
+  },
+  {
+   "id": "G5",
+   "categorie": "vols",
+   "titre": "FlightConnections",
+   "type": "Carte des lignes directes",
+   "nom": "FlightConnections",
+   "utilite": "Voir sur une carte les destinations directes depuis Conakry (CKY) et les compagnies qui les desservent.",
+   "liens": [
+    {
+     "label": "Vols directs depuis Conakry",
+     "url": "https://www.flightconnections.com/flights-from-conakry-cky"
+    }
+   ],
+   "source": "flightconnections.com",
+   "datePublication": "s.d.",
+   "dateVerification": "23/11/2026",
+   "statut": "confirme",
+   "reserve": "Montre les lignes, pas les prix ni les places.",
+   "motsCles": "comparateur vol billet prix itinéraire escale carte ligne directe route CKY"
   },
   {
    "id": "D10",
@@ -936,6 +1042,30 @@ window.RESSOURCES_VOYAGE = {
    "reserve": "",
    "titre": "Libre circulation CEDEAO",
    "type": "Protocole de 1979 · ecowas.int"
+  },
+  {
+   "id": "F24",
+   "categorie": "references",
+   "titre": "Passport Index",
+   "type": "Classement des passeports",
+   "nom": "Passport Index (Arton Capital)",
+   "utilite": "Voir d’un coup d’œil les pays accessibles sans visa, avec e-visa ou visa à l’arrivée pour un passeport donné.",
+   "liens": [
+    {
+     "label": "Passeport guinéen",
+     "url": "https://www.passportindex.org/passport/guinea/"
+    },
+    {
+     "label": "Accueil Passport Index",
+     "url": "https://www.passportindex.org/"
+    }
+   ],
+   "source": "passportindex.org",
+   "datePublication": "s.d.",
+   "dateVerification": "23/11/2026",
+   "statut": "confirme",
+   "reserve": "Vue d’ensemble seulement : vérifier chaque cas sur Timatic ou la page officielle du pays.",
+   "motsCles": "passeport sans visa visa à l’arrivée e-visa mobilité classement"
   }
  ]
 };
