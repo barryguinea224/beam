@@ -36,8 +36,8 @@
     },
     {
       "id": "paiements",
-      "nom": "Paiements et change",
-      "description": "Mobile money, cartes et taux de change."
+      "nom": "Taux de change",
+      "description": "Taux officiel BCRG et convertisseur."
     },
     {
       "id": "references",
@@ -830,50 +830,6 @@
       "motsCles": "comparateur vol billet prix itinéraire escale carte ligne directe route CKY"
     },
     {
-      "id": "D10",
-      "categorie": "paiements",
-      "titre": "Orange Money",
-      "type": "Mobile money · Orange Guinée SA",
-      "nom": "Orange Guinée SA — Orange Money et Orange Money Pro",
-      "utilite": "Mobile money ; l'application Orange Money Pro est réservée aux partenaires et marchands.",
-      "liens": [
-        {
-          "label": "Orange Guinée",
-          "url": "https://www.orange-guinee.com/"
-        },
-        {
-          "label": "Orange Money Pro (Google Play)",
-          "url": "https://play.google.com/store/apps/details?id=com.orange.money.gn.pro"
-        }
-      ],
-      "source": "orange-guinee.com ; Google Play",
-      "datePublication": "application mise à jour le 12/10/2026",
-      "dateVerification": "21/11/2026",
-      "statut": "confirme",
-      "reserve": "Site d'Orange Guinée non ouvert lors du contrôle (domaine corroboré). Aucune page autonome d'ouverture de compte marchand confirmée.",
-      "motsCles": "Orange Money mobile money marchand"
-    },
-    {
-      "id": "D11",
-      "categorie": "paiements",
-      "nom": "Areeba Guinée SA — MoMo (ex-MTN MoMo Guinée)",
-      "utilite": "Mobile money MoMo : paiements, transferts, paiement marchand en boutique et en ligne (« Devenir marchand »).",
-      "liens": [
-        {
-          "label": "Consulter la source",
-          "url": "https://areeba.gn/momo/"
-        }
-      ],
-      "source": "areeba.gn",
-      "datePublication": "s.d.",
-      "dateVerification": "21/11/2026",
-      "statut": "confirme",
-      "reserve": "MTN est sorti du capital ; l'État guinéen détient Areeba à 100 % (décret du 11/12/2025). Le lien areeba.gn/paiement-marchand renvoyait une erreur 404 le 21/11/2026.",
-      "titre": "MoMo (Areeba, ex-MTN)",
-      "type": "Mobile money · Areeba Guinée SA",
-      "essentiel": "Paiements, transferts et paiement marchand."
-    },
-    {
       "id": "D12",
       "categorie": "paiements",
       "nom": "Banque Centrale de la République de Guinée (BCRG)",
@@ -892,31 +848,6 @@
       "titre": "BCRG — taux de change",
       "type": "Banque centrale · cours des devises",
       "essentiel": "Taux de change officiels."
-    },
-    {
-      "id": "D13",
-      "categorie": "paiements",
-      "titre": "Visa Afrique — voyager avec sa carte",
-      "type": "Carte bancaire · conseils officiels de Visa",
-      "nom": "Visa — Travel with Visa (site Afrique)",
-      "utilite": "Conseils pour payer à l'étranger : prévenir sa banque, plafonds, code PIN, distributeurs, paiement en monnaie locale.",
-      "essentiel": "Refuser la conversion proposée par le commerçant (DCC) et payer en monnaie locale.",
-      "liens": [
-        {
-          "label": "Consulter la source",
-          "url": "https://africa.visa.com/support/consumer/travel-support.html"
-        },
-        {
-          "label": "Calculateur de taux (à revérifier)",
-          "url": "https://africa.visa.com/support/consumer/travel-support/exchange-rate-calculator.html"
-        }
-      ],
-      "source": "africa.visa.com",
-      "datePublication": "modifiée le 01/07/2024 (métadonnées)",
-      "dateVerification": "23/11/2026",
-      "statut": "confirme",
-      "reserve": "La carte Visa (moyen de paiement) n'a aucun lien avec le visa de voyage.",
-      "motsCles": "carte bancaire DCC change distributeur ATM"
     },
     {
       "id": "D15",
