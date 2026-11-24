@@ -39,6 +39,7 @@ jobs:
           node tests/travel-dashboard-filters.cjs
           node tests/travel-factual-pdf.cjs
           test -s travel/assets/fonts/Poppins-Regular.woff2
+          test -s travel/assets/fonts/Poppins-Medium.woff2
           test -s travel/assets/fonts/Poppins-SemiBold.woff2
           test -s travel/assets/fonts/Poppins-Bold.woff2
           grep -q 'SIL OPEN FONT LICENSE' travel/assets/fonts/OFL.txt
@@ -57,8 +58,8 @@ jobs:
           done
           node tests/travel-poppins-all-titles.cjs
           node tests/travel-factual-contacts-ui.cjs
-      - name: Carnet direction — before/after at 320, 360, 390, 430 and 1280 px
-        run: node tests/travel-carnet-home.cjs test-artifacts/home-simple/baseline.html
+      - name: Carnet direction — before/after at 320, 360, 390, 430 and 1280 px, world map
+        run: node tests/travel-carnet-home.cjs "ref:${{ github.event.pull_request.base.sha }}"
       - name: Upload carnet before/after captures
         if: always()
         uses: actions/upload-artifact@v4

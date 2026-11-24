@@ -171,7 +171,7 @@ async function main(){
       });
       const expectedSize=20; // carnet direction: fixed type scale (12/14/16/20/28)
       assert.match(typography.fontFamily,/Poppins/,"locally hosted Poppins must style the traveler title");
-      assert.equal(typography.fontWeight,"600","passport name uses Poppins semibold (carnet direction, max weight 600)");
+      assert.equal(typography.fontWeight,"500","passport name uses local Poppins Medium (carnet direction)");
       assert.ok(Math.abs(typography.fontSize-expectedSize)<0.12,
          "title must use the 20px scale step: "+JSON.stringify(typography));
       assert.ok(Math.abs(typography.lineHeight/typography.fontSize-1.25)<0.02,

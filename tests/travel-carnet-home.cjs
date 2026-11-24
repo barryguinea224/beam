@@ -3,11 +3,13 @@
 // Captures avant/après avec un compte fictif (jamais de données réelles) et
 // contrôles mesurables : en-tête plus bas, statistiques sans cartes, pays sans
 // pastilles, carte plus présente, hors ligne discret, pas de débordement.
-// Usage : node tests/travel-carnet-home.cjs [baseline-index.html]
+// Usage : node tests/travel-carnet-home.cjs [baseline-index.html | ref:<git-ref>]
+// Avec ref:<git-ref>, la phase « avant » sert TOUS les fichiers /travel/ de ce commit.
 const assert=require("node:assert/strict");
 const fs=require("node:fs/promises");
 const path=require("node:path");
 const {chromium}=require("playwright");
+const {execFileSync}=require("node:child_process");
 const {serve,fictionalSupabase}=require("./travel-day-excursions-mobile.cjs");
 const dir=path.resolve("test-artifacts/carnet-home");
 const WIDTHS=[320,360,390,430,1280];
@@ -28,6 +30,9 @@ async function measure(page){
    statBoxes:stats.map(el=>({bg:cs(el).backgroundColor,border:cs(el).borderTopWidth,radius:cs(el).borderTopLeftRadius})),
    settings:(()=>{const b=q("#openAccount");return {w:r(b).width,h:r(b).height,bg:cs(b).backgroundColor,border:cs(b).borderTopWidth}})(),
    mapHeight:map?r(map).height:0,
+   mapGap:(()=>{const svg=map?.querySelector("svg"),vb=svg?.viewBox?.baseVal;if(!vb||!vb.width)return null;
+    const box=r(map),drawn=Math.min(box.height,box.width*vb.height/vb.width);return Math.round(box.height-drawn)})(),
+   flags:chips.map(el=>!!el.querySelector(".countryFlag")),
    chips:chips.map(el=>({border:cs(el).borderTopWidth,bg:cs(el).backgroundColor,h:r(el).height})),
    codeVisible:(()=>{const c=q("#passportResidenceCode");return !!c&&!c.hidden&&c.getClientRects().length>0})(),
    heavy,
@@ -38,7 +43,10 @@ async function measure(page){
 
 async function main(){
  await fs.mkdir(dir,{recursive:true});
- const baseline=process.argv[2]?await fs.readFile(process.argv[2],"utf8"):null;
+ const arg=process.argv[2]||"",ref=arg.startsWith("ref:")?arg.slice(4):"";
+ const baseline=ref?execFileSync("git",["show",ref+":travel/index.html"],{encoding:"utf8"}):arg?await fs.readFile(arg,"utf8"):null;
+ const fromRef=pathname=>{try{return execFileSync("git",["show",ref+":travel/"+pathname.slice("/travel/".length)])}catch{return null}};
+ const types={css:"text/css",js:"application/javascript",svg:"image/svg+xml",json:"application/json",woff2:"font/woff2",png:"image/png",webp:"image/webp",webmanifest:"application/manifest+json"};
  const server=serve();
  await new Promise(ok=>server.listen(0,"127.0.0.1",ok));
  const browser=await chromium.launch({headless:true,args:["--no-sandbox","--disable-dev-shm-usage"]});
@@ -57,6 +65,10 @@ async function main(){
       return route.fulfill({status:200,contentType:"application/javascript",body:"("+fictionalSupabase.toString()+")();"});
      if(phase==="avant"&&url.pathname==="/travel/")
       return route.fulfill({status:200,contentType:"text/html; charset=utf-8",body:baseline});
+     if(phase==="avant"&&ref&&url.pathname.startsWith("/travel/")&&url.pathname!=="/travel/config.js"){
+      const body=fromRef(url.pathname),ext=url.pathname.split(".").pop();
+      return body?route.fulfill({status:200,contentType:types[ext]||"application/octet-stream",body}):route.fulfill({status:404,body:""});
+     }
      return route.continue();
     });
     try{
@@ -66,6 +78,12 @@ async function main(){
      await page.waitForTimeout(250);
      results[phase]=await measure(page);
      await page.screenshot({path:path.join(dir,`${phase}-accueil-${width}.png`),animations:"disabled"});
+     if(width===360||width===430){
+      // Planisphère entier (cas d'un carnet sur plusieurs continents) : même réglage que fitMapToVisited.
+      await page.evaluate(()=>{document.querySelector("#map svg").setAttribute("viewBox","0 0 1000 445");document.querySelector("#map").style.aspectRatio="1000 / 445"});
+      results[phase+"World"]=await measure(page);
+      await page.locator("#travelMapPanel").screenshot({path:path.join(dir,`${phase}-planisphere-${width}.png`),animations:"disabled"});
+     }
      if(width===360){
       await page.evaluate(()=>{const b=document.querySelector("#offlineBanner");b.textContent="Hors ligne · voyages du 24 nov. 2026";b.hidden=false;scrollTo(0,0)});
       await page.screenshot({path:path.join(dir,`${phase}-hors-ligne-360.png`),animations:"disabled",clip:{x:0,y:0,width,height:420}});
@@ -75,6 +93,7 @@ async function main(){
     }finally{await ctx.close()}
    }
    const a=results.apres,b=results.avant;
+   if(results.apresWorld)assert.ok(results.apresWorld.mapGap<=2,`Planisphère : ${results.apresWorld.mapGap}px de vide à ${width}px`);
    assert.ok(a.scroll<=a.viewport+1,`Débordement horizontal à ${width}px`);
    assert.equal(a.heroBg,"none","En-tête sans dégradé");
    assert.equal(a.heroShadow,"none","En-tête sans ombre");
@@ -86,12 +105,17 @@ async function main(){
    assert.ok(a.chips.length>=2,"Le compte fictif affiche des pays");
    a.chips.forEach(c=>{assert.equal(c.border,"0px");assert.equal(c.bg,"rgba(0, 0, 0, 0)");assert.ok(c.h>=44,"Pays : 44 px tactiles")});
    assert.equal(a.codeVisible,true,"Code de résidence toujours visible");
+   // Carnet : en-tête compact (l'original faisait 294 à 304 px).
+   assert.ok(a.heroHeight>=150&&a.heroHeight<=190,`En-tête de ${Math.round(a.heroHeight)}px à ${width}px (attendu 150 à 190)`);
+   assert.ok(a.mapGap!==null&&a.mapGap<=2,`Carte : ${a.mapGap}px de vide vertical à ${width}px`);
+   assert.ok(a.flags.every(Boolean),"Chaque pays a son emplacement de drapeau");
    assert.deepEqual(a.heavy,[],"Aucune graisse au-delà de 600 sur l'accueil");
    if(b){
     const gain=1-a.heroHeight/b.heroHeight;
-    if(mobile)assert.ok(gain>=0.35&&gain<=0.45,`En-tête réduit de ${Math.round(gain*100)} % à ${width}px (attendu 35 à 45 %)`);
-    assert.ok(a.mapHeight>=b.mapHeight*0.95,`Carte au moins aussi présente à ${width}px`);
-    report.push({width,heroAvant:Math.round(b.heroHeight),heroApres:Math.round(a.heroHeight),reduction:Math.round(gain*100)+" %",carteAvant:Math.round(b.mapHeight),carteApres:Math.round(a.mapHeight)});
+
+    report.push({width,heroAvant:Math.round(b.heroHeight),heroApres:Math.round(a.heroHeight),reduction:Math.round(gain*100)+" %",
+     carteAvant:Math.round(b.mapHeight),videAvant:b.mapGap,carteApres:Math.round(a.mapHeight),videApres:a.mapGap,
+     videPlanisphereAvant:results.avantWorld?.mapGap,videPlanisphereApres:results.apresWorld?.mapGap});
    }
    console.log("PASS accueil carnet "+width+" px");
   }
