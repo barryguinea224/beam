@@ -1,0 +1,204 @@
+/* J'y étais — direction artistique « carnet » (PR 1 : fondations + accueil).
+   Chargé en dernier : il remplace, sans rien supprimer, les styles décoratifs de
+   l'accueil (cartes, dégradés, ombres, pastilles). Voir travel/DIRECTION-ARTISTIQUE.md.
+   Aucune logique, aucun nouveau fichier JS, aucune requête externe. */
+
+:root{
+ /* Couleurs — le vert porte l'identité, l'ivoire est le papier, le doré reste rare. */
+ --jy-green:#1B4332;       /* vert profond : en-tête, bouton principal */
+ --jy-green-ink:#174d3a;   /* vert de texte et de lien sur ivoire */
+ --jy-ivory:#f7f5ef;       /* fond de page */
+ --jy-paper:#fbfaf6;       /* surfaces calmes (carte du monde) */
+ --jy-gold:#C9962E;        /* accent ponctuel : anneau d'avatar, focus. Jamais en texte sur ivoire */
+ --jy-ink:#17231f;         /* texte principal */
+ --jy-muted:#59675f;       /* texte secondaire (AA sur ivoire) */
+ --jy-line:#dcdad1;        /* filets fins */
+ --jy-on-green:#ffffff;
+ --jy-on-green-muted:#c9d8ce;
+ --jy-on-green-line:rgba(255,255,255,.18);
+ /* Arrondis — trois valeurs, le cercle est réservé à l'avatar. */
+ --jy-r0:0;--jy-r1:4px;--jy-r2:8px;
+ /* Typographie — cinq tailles, graisses 400 et 600 uniquement. */
+ --jy-t1:12px;--jy-t2:14px;--jy-t3:16px;--jy-t4:20px;--jy-t5:28px;
+ --jy-title:Poppins,system-ui,sans-serif;
+ --jy-text:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+ /* Espacements — base 4 px. */
+ --jy-s1:4px;--jy-s2:8px;--jy-s3:12px;--jy-s4:16px;--jy-s5:24px;--jy-s6:32px;
+}
+
+/* ---------- En-tête : une bande sobre, plus basse, sans effets ---------- */
+#travelHero,#app .w.emptyTravel #travelHero{
+ display:grid!important;
+ grid-template-columns:auto minmax(0,1fr);
+ grid-template-areas:"identity identity" "stats stats";
+ row-gap:var(--jy-s6);
+ min-height:0;
+ padding:calc(var(--jy-s6) + env(safe-area-inset-top,0px)) var(--jy-s5) var(--jy-s6)!important;
+ margin-top:0!important;margin-bottom:var(--jy-s5)!important; /* marges latérales : pleine largeur mobile conservée */
+ border-radius:var(--jy-r0)!important;
+ background:var(--jy-green)!important;
+ box-shadow:none!important;
+}
+#travelHero #profileCover::after{background:rgba(15,41,30,.86)}
+#travelHero #profileCoverImage{opacity:.18}
+
+/* Paramètres : une simple icône en haut à droite, zone tactile 44 px conservée. */
+#travelHero .passportTop{
+ position:absolute!important;top:calc(var(--jy-s3) + env(safe-area-inset-top,0px));right:var(--jy-s3);
+ min-height:0;z-index:2;
+}
+#travelHero #openAccount.travelerAccountLink{
+ width:44px;height:44px;min-width:44px;
+ border:0!important;border-radius:var(--jy-r2)!important;
+ background:transparent!important;color:var(--jy-on-green-muted)!important;
+}
+#travelHero #openAccount.travelerAccountLink:hover{color:var(--jy-on-green)!important}
+#travelHero #openAccount.travelerAccountLink:focus-visible{outline:2px solid var(--jy-gold);outline-offset:0}
+#travelHero #openAccount svg{width:20px;height:20px}
+
+/* Identité : avatar plus petit, nom lisible sans être gras. */
+#travelHero>.travelerIdentity,#travelHero>.travelerIdentity:first-child{
+ grid-area:identity;
+ display:grid!important;grid-template-columns:56px minmax(0,1fr)!important;
+ gap:var(--jy-s4)!important;align-items:center!important;
+ margin:0!important;padding:0 44px 0 0!important;
+}
+#travelHero .travelerPhotoWrap{width:56px;height:56px;min-width:56px}
+#travelHero #travelerAvatar{
+ width:56px!important;height:56px!important;min-width:56px!important;
+ border:1.5px solid var(--jy-gold)!important;
+ background:#e6eee8;color:var(--jy-green);
+ font:600 var(--jy-t3)/1 var(--jy-title);
+}
+#travelHero .passportResidenceCode{
+ right:-4px;bottom:-3px;width:22px;height:22px;
+ border:1.5px solid var(--jy-green);
+ background:var(--jy-ivory);color:var(--jy-green);
+ font:600 9px/1 var(--jy-text);
+}
+#travelHero #dashboardTitle,#travelHero #dashboardTitle.longTitle,
+#travelHero #dashboardTitle.extraLongTitle{
+ font:600 var(--jy-t4)/1.25 var(--jy-title)!important;
+ margin:0 0 2px!important;
+}
+#travelHero #travelerLocation{
+ gap:var(--jy-s1);color:var(--jy-on-green-muted);
+ font:400 13px/1.4 var(--jy-text);
+}
+#travelHero #travelerLocation svg{width:14px;height:14px;flex-basis:14px}
+
+/* Statistiques : une ligne, sans cartes, séparées par des filets. */
+#travelHero #homeStats{
+ grid-area:stats;
+ display:flex!important;align-items:baseline;flex-wrap:nowrap;gap:0;
+ padding:0;margin:0;border:0;
+}
+#travelHero .passportStat{
+ flex:0 1 auto;flex-direction:row;align-items:baseline;justify-content:flex-start;
+ gap:6px;min-height:0;min-width:0;
+ padding:0 var(--jy-s4)!important;
+ border:0;border-left:1px solid var(--jy-on-green-line);border-radius:0;
+ background:transparent;text-align:left;
+}
+#travelHero .passportStat:first-child{padding-left:0!important;border-left:0}
+#travelHero .passportStat .passportNumber,
+#travelHero .passportStat:first-child .passportNumber{
+ color:var(--jy-on-green);
+ font:600 var(--jy-t4)/1.1 var(--jy-title);font-variant-numeric:tabular-nums;
+}
+#travelHero .passportStat .passportLabel{color:var(--jy-on-green-muted);font:400 13px/1.3 var(--jy-text)}
+
+/* ---------- La carte du monde devient le cœur de l'accueil ---------- */
+#travelMapPanel,#app .w.emptyTravel #travelMapPanel{margin:0 0 var(--jy-s5)!important}
+#travelMapPanel .passportMapHeading{align-items:baseline;margin-bottom:var(--jy-s3)}
+#travelMapPanel .passportMapHeading h2,#travelMapPanel h2{
+ font:600 var(--jy-t4)/1.3 var(--jy-title)!important;color:var(--jy-ink);
+}
+#continentCount{
+ max-width:none;padding:0;border-radius:0;background:transparent;
+ color:var(--jy-muted);font:400 13px/1.3 var(--jy-text);
+}
+#travelMapPanel .map{
+ border-radius:var(--jy-r1);background:var(--jy-paper);
+ border:1px solid var(--jy-line);
+ height:clamp(300px,92vw,440px)!important;max-height:none!important;aspect-ratio:auto;
+}
+#travelMapPanel .travelMapLegend{margin:var(--jy-s2) 0 0;color:var(--jy-muted);font-size:var(--jy-t1)}
+
+/* Pays : une liste typographique, plus de pastilles. */
+#countryList{
+ display:flex;flex-wrap:wrap;gap:0 var(--jy-s5);margin-top:var(--jy-s1);
+}
+#countryList .countryChip{
+ display:inline-flex;align-items:baseline;gap:6px;
+ min-height:44px;padding:var(--jy-s3) 0;
+ border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;
+ color:var(--jy-ink);font:400 var(--jy-t2)/1.3 var(--jy-text);cursor:pointer;
+}
+#countryList .countryChip b{color:var(--jy-muted);font-weight:400;font-size:13px}
+#countryList .countryChip[aria-pressed="true"]{
+ color:var(--jy-green-ink);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:4px;
+}
+#countryList .countryChip:focus-visible{outline:2px solid var(--jy-green-ink);outline-offset:2px}
+
+/* ---------- Actions : un bouton principal, deux liens en liste ---------- */
+#homeActions{gap:var(--jy-s4);margin:0 0 var(--jy-s6)}
+#homeActions #add{
+ min-height:48px;border-radius:var(--jy-r2)!important;background:var(--jy-green);
+ font:600 15px/1.3 var(--jy-text);
+}
+#secondaryActions{
+ display:block!important;border-top:1px solid var(--jy-line);
+}
+#secondaryActions>button,#secondaryActions>#printJournal{
+ display:grid!important;grid-template-columns:minmax(0,1fr) auto;align-items:center;
+ gap:2px var(--jy-s3);width:100%;min-height:60px;
+ padding:var(--jy-s3) 0!important;
+ border:0!important;border-bottom:1px solid var(--jy-line)!important;border-radius:0!important;
+ background:transparent!important;color:var(--jy-ink)!important;box-shadow:none!important;
+ text-decoration:none!important;
+}
+#secondaryActions>button::after{
+ content:"";grid-column:2;grid-row:1/span 2;width:7px;height:7px;margin-right:4px;
+ border:solid var(--jy-muted);border-width:0 1.5px 1.5px 0;transform:rotate(-45deg);
+}
+#secondaryActions>button .tileHead{grid-column:1;gap:var(--jy-s2);color:var(--jy-green-ink)}
+#secondaryActions>button .tileHead svg{width:18px;height:18px;flex-basis:18px}
+#secondaryActions>button .tileTitle{font:600 15px/1.3 var(--jy-text);color:var(--jy-ink)}
+#secondaryActions>button .tileSubtitle{
+ grid-column:1;padding-left:26px;opacity:1;color:var(--jy-muted);font:400 13px/1.4 var(--jy-text);
+}
+#secondaryActions>button:focus-visible{outline:2px solid var(--jy-green-ink);outline-offset:2px}
+
+/* ---------- Hors ligne : une ligne discrète, toujours explicite ---------- */
+#offlineBanner{
+ display:flex;align-items:center;gap:var(--jy-s2);
+ padding:var(--jy-s2) var(--jy-s4);
+ background:transparent;border-bottom:1px solid var(--jy-line);
+ color:var(--jy-muted);font:400 13px/1.4 var(--jy-text);
+}
+#offlineBanner::before{
+ content:"";flex:none;width:7px;height:7px;border-radius:50%;background:var(--jy-gold);
+}
+#offlineBanner[hidden]{display:none!important}
+
+/* ---------- Petits écrans ---------- */
+@media(max-width:420px){
+ #travelHero,#app .w.emptyTravel #travelHero{
+  padding:calc(var(--jy-s6) + env(safe-area-inset-top,0px)) var(--jy-s4) var(--jy-s6)!important;
+  margin-bottom:var(--jy-s5)!important;border-radius:0!important;
+ }
+ #travelHero .passportStat{padding:0 var(--jy-s3)!important}
+ #travelHero .passportStat .passportLabel{font-size:var(--jy-t1)}
+ #travelMapPanel .map{height:clamp(272px,82vw,360px)!important}
+}
+@media(max-width:340px){
+ #travelHero .passportStat{gap:4px;padding:0 10px!important}
+ #travelHero .passportStat .passportNumber,#travelHero .passportStat:first-child .passportNumber{font-size:18px}
+}
+
+/* ---------- Ordinateur : l'en-tête reste une colonne calme ---------- */
+@media(min-width:900px){
+ #travelHero,#app .w.emptyTravel #travelHero{border-radius:var(--jy-r1)!important}
+ #travelMapPanel .map{height:clamp(320px,38vw,460px)!important}
+}
