@@ -48,7 +48,7 @@ async function main(){
        return {order,titles,scroll:document.documentElement.scrollWidth,viewport:innerWidth,
         mapBeforeActions:map.getBoundingClientRect().top<home.getBoundingClientRect().top,
         hasSingleAction:home.querySelectorAll(".btn").length===1,
-        secondaryCount:query("#secondaryActions").children.length,
+        secondaryCount:query("#secondaryActions").children.length+query("#moreActions").querySelectorAll("button").length,
         summary:query("#homeStats").textContent,
         contactOutside:query("#includePdfContacts").getClientRects().length>0,
         tripPanelBg:getComputedStyle(list).backgroundColor,
