@@ -203,9 +203,9 @@ Toutes les valeurs sont des variables dans `carnet.css` (`:root`). Les règles n
 | `--jy-color-text-muted` | `#5D6B63` | Texte secondaire | 5,14:1 (5,6:1 sur blanc) |
 | `--jy-color-line` | `#DDDCD3` | Filets | décor |
 | `--jy-color-on-dark-muted` | `#DCE6E0` | Texte secondaire sur vert ou photo voilée | 6,78:1 sur `#245443` |
-| `--jy-color-map-land` | `#E4E2DA` | Pays non visités | — |
-| `--jy-color-map-visited` | `#5B8B74` | Pays visités (proposé `#78A48E` : 2,2:1 seulement contre les terres) | 3,0:1 contre les terres |
-| `--jy-color-map-route` | `#AA7045` | Arcs et point de filtre actif | 3,17:1 sur les terres ; 3,77:1 sur l'ivoire |
+| `--jy-color-map-land` | `#CCD4CD` | Pays non visités | 1,39:1 sur ivoire (fond contextuel) |
+| `--jy-color-map-visited` | `#497660` | Pays visités | 3,43:1 contre les terres |
+| `--jy-color-map-route` | `#93603A` | Arcs et point de filtre actif | 3,49:1 sur les terres ; 4,85:1 sur l'ivoire (couleurs pleines, hors opacité des arcs) |
 | `--jy-color-accent` | `#B58B50` | Anneau d'avatar (décor uniquement) | 2,84:1 : jamais pour un état |
 
 **Typographie** : Poppins (fichiers locaux 400, 500, 600 ; titres et chiffres) et police du système (texte). Poppins est gardée : déjà embarquée hors ligne (8 Ko par graisse), licence OFL, aucune nouvelle requête. Échelle : 12 (minimum), 14 (secondaire), 16 (courant), 22 (titre de section), 24 px (nom du voyageur, titre d'un voyage). Graisses 400, 500 et 600 ; plus de 700 sur l'accueil. Chiffres tabulaires pour les statistiques.
@@ -222,7 +222,8 @@ Toutes les valeurs sont des variables dans `carnet.css` (`:root`). Les règles n
 - Action en liste : ligne avec filet et chevron (PDF ambassade).
 - Lien : vert `#245443`, 14 px, « › » final.
 - Commande de barre : icône 20 px + libellé 12 px, zone 48 × 48, fond vert pâle quand elle est ouverte.
-- Étiquette sur photo : 28 px, fond blanc à 94 %, rayon 4 px, à gauche.
+- Étiquettes sur photo : 28 px minimum, fond blanc à 94 %, rayon 4 px ; pays à gauche, nombre de photos à droite, statut en deuxième ligne. Le voile de lecture suit la hauteur des textes.
+- Légende des arcs : bouton d'information natif (`details/summary`) avec zone tactile 48 px et explication accessible sans quitter la carte.
 - Chargement : le nom de l'action reste ; l'état va dans la ligne secondaire avec `aria-busy`.
 - Focus : contour 2 px vert profond ; sur une photo, anneau blanc doublé de vert profond.
 - Mouvement : transitions de couleur de 150 ms seulement, désactivées si `prefers-reduced-motion`.
@@ -244,3 +245,8 @@ Toutes les valeurs sont des variables dans `carnet.css` (`:root`). Les règles n
 3. Formulaires et calendrier.
 4. Modales, paramètres et état vide.
 5. Nettoyage : remplacer progressivement les 206 `!important` par les variables du carnet.
+
+
+### Finitions v78 — 24 novembre 2026
+
+Carte plus contrastée, explication des arcs à la demande, espacements locaux réduits, étiquettes équilibrées et voile photographique lié au bloc de texte. Les ratios ci-dessus sont calculés sur les couleurs pleines ; les mesures sur captures et les tests navigateur de la v78 restent à exécuter. Les résultats historiques de la v77 ne constituent pas une validation de la v78. Le + flottant reste stable : les éléments peuvent défiler derrière lui et doivent rester accessibles en poursuivant le défilement.
