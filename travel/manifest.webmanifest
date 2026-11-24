@@ -8,7 +8,7 @@
   "scope": "/travel/",
   "display": "standalone",
   "background_color": "#f7f5ef",
-  "theme_color": "#174d3a",
+  "theme_color": "#193F34",
   "icons": [
     {
       "src": "/travel/assets/brand/icon-192.png",
