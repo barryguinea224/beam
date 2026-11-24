@@ -24,7 +24,7 @@ async function measure(page){
    .filter(el=>el.getClientRects().length&&[...el.childNodes].some(n=>n.nodeType===3&&n.textContent.trim())&&Number(cs(el).fontWeight)>600)
    .map(el=>el.id||String(el.className)||el.tagName);
   return {
-   heroHeight:r(hero).height,heroBg:cs(hero).backgroundImage,heroShadow:cs(hero).boxShadow,
+   heroHeight:r(hero).height,empty:!!q("#app .w.emptyTravel"),heroBg:cs(hero).backgroundImage,heroShadow:cs(hero).boxShadow,
    heroRadius:cs(hero).borderBottomLeftRadius,
    statsTops:stats.map(el=>Math.round(r(el).top)),
    statBoxes:stats.map(el=>({bg:cs(el).backgroundColor,border:cs(el).borderTopWidth,radius:cs(el).borderTopLeftRadius})),
@@ -105,8 +105,12 @@ async function main(){
    assert.ok(a.chips.length>=2,"Le compte fictif affiche des pays");
    a.chips.forEach(c=>{assert.equal(c.border,"0px");assert.equal(c.bg,"rgba(0, 0, 0, 0)");assert.ok(c.h>=44,"Pays : 44 px tactiles")});
    assert.equal(a.codeVisible,true,"Code de résidence toujours visible");
-   // Carnet : en-tête compact (l'original faisait 294 à 304 px).
-   assert.ok(a.heroHeight>=150&&a.heroHeight<=190,`En-tête de ${Math.round(a.heroHeight)}px à ${width}px (attendu 150 à 190)`);
+   // Carnet : en-tête mesuré (l'original faisait 294 à 304 px). Depuis la direction
+   // « atlas intime », une couverture (photo ou illustration) garde une bande visible
+   // au-dessus de l'identité, réservée dès le premier affichage (pas de décalage quand
+   // la photo privée arrive). Seul un carnet vide garde l'en-tête compact.
+   const [lo,hi]=a.empty?[120,190]:mobile?[190,240]:[190,270];
+   assert.ok(a.heroHeight>=lo&&a.heroHeight<=hi,`En-tête de ${Math.round(a.heroHeight)}px à ${width}px (attendu ${lo} à ${hi})`);
    assert.ok(a.mapGap!==null&&a.mapGap<=2,`Carte : ${a.mapGap}px de vide vertical à ${width}px`);
    assert.ok(a.flags.every(Boolean),"Chaque pays a son emplacement de drapeau");
    assert.deepEqual(a.heavy,[],"Aucune graisse au-delà de 600 sur l'accueil");

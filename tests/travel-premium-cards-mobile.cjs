@@ -164,7 +164,8 @@ async function main(){
     });
     assert.ok(Math.abs(stickyMask.left)<=1&&Math.abs(stickyMask.right-width)<=1,
       "Sticky bar must mask card edges across the viewport: "+JSON.stringify(stickyMask));
-    assert.equal(stickyMask.background,"rgb(255, 255, 255)","Sticky bar is fully opaque");
+    // Opaque (no alpha) so moving cards never show through; the colour is the page ivory.
+    assert.match(stickyMask.background,/^rgb\(\d+, \d+, \d+\)$/,"Sticky bar is fully opaque");
     assert.equal(stickyMask.radius,"0px","No rounded corners exposing moving cards");
     assert.ok(stickyMask.leftCovered&&stickyMask.rightCovered,"Cards cannot show beside the bar");
     assert.ok(stickyMask.scrollWidth<=width+1,"Full-width sticky bar causes no overflow");
@@ -205,8 +206,9 @@ async function main(){
       const pill=document.createElement("span");
       pill.className="journeyPhotoCount";pill.textContent="2 photos";
       const rect=add.getBoundingClientRect();
-      Object.assign(pill.style,{position:"fixed",left:(rect.left+8)+"px",top:(rect.top+8)+"px",
-       right:"auto",bottom:"auto"});
+      // !important: the card stylesheet pins pills to the left with !important.
+      for(const [k,v] of Object.entries({position:"fixed",left:(rect.left+8)+"px",top:(rect.top+8)+"px",
+       right:"auto",bottom:"auto"}))pill.style.setProperty(k,v,"important");
       host.append(pill);
       updateFloatingAdd();
       const intersects=(()=>{

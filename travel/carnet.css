@@ -1,132 +1,217 @@
-/* J'y étais — direction artistique « carnet » (PR 1 : fondations + accueil).
+/* J'y étais — direction artistique « atlas intime ».
    Chargé en dernier : il remplace, sans rien supprimer, les styles décoratifs de
    l'accueil (cartes, dégradés, ombres, pastilles). Voir travel/DIRECTION-ARTISTIQUE.md.
-   Aucune logique, aucun nouveau fichier JS, aucune requête externe. */
+   Aucune bibliothèque, aucune requête externe. Les valeurs ne sont écrites qu'ici,
+   dans les variables ci-dessous ; les règles n'utilisent que ces variables. */
 
 @font-face{font-family:Poppins;src:url("./assets/fonts/Poppins-Medium.woff2") format("woff2");font-style:normal;font-weight:500;font-display:swap}
 
 :root{
- /* Couleurs — le vert porte l'identité, l'ivoire est le papier, le doré reste rare. */
- --jy-green:#1B4332;       /* vert profond : en-tête, bouton principal */
- --jy-green-ink:#174d3a;   /* vert de texte et de lien sur ivoire */
- --jy-ivory:#f7f5ef;       /* fond de page */
- --jy-paper:#fbfaf6;       /* surfaces calmes (carte du monde) */
- --jy-gold:#C9962E;        /* accent ponctuel : anneau d'avatar, focus. Jamais en texte sur ivoire */
- --jy-ink:#17231f;         /* texte principal */
- --jy-muted:#59675f;       /* texte secondaire (AA sur ivoire) */
- --jy-line:#dcdad1;        /* filets fins */
- --jy-on-green:#ffffff;
- --jy-on-green-muted:#c9d8ce;
- --jy-on-green-line:rgba(255,255,255,.18);
- /* Arrondis — trois valeurs, le cercle est réservé à l'avatar. */
- --jy-r0:0;--jy-r1:4px;--jy-r2:8px;
- /* Typographie — cinq tailles ; graisses 400, 500 (nom) et 600. */
- --jy-t1:12px;--jy-t2:14px;--jy-t3:16px;--jy-t4:20px;--jy-t5:28px;
- --jy-title:Poppins,system-ui,sans-serif;
- --jy-text:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
- /* Espacements — base 4 px. */
- --jy-s1:4px;--jy-s2:8px;--jy-s3:12px;--jy-s4:16px;--jy-s5:24px;--jy-s6:32px;
+ /* ---- Couleurs (rôle → valeur). Contrastes mesurés dans DIRECTION-ARTISTIQUE.md ---- */
+ --jy-color-primary:#245443;        /* vert forêt : bouton principal, en-tête sans photo, liens forts */
+ --jy-color-primary-deep:#193F34;   /* vert profond : voile de l'en-tête, barre système */
+ --jy-color-primary-rgb:25,63,52;   /* le même vert profond, pour les voiles translucides */
+ --jy-color-primary-soft:#E3ECE6;   /* fond vert très pâle : état sélectionné, initiales */
+ --jy-color-bg:#F7F5EF;             /* papier ivoire : fond de toutes les pages (inchangé) */
+ --jy-color-text:#202C26;           /* encre */
+ --jy-color-text-muted:#5D6B63;     /* texte secondaire, AA sur ivoire et sur blanc */
+ --jy-color-line:#DDDCD3;           /* filets et séparateurs */
+ --jy-color-accent:#B58B50;         /* doré : anneau d'avatar seulement (décor). Jamais en texte ni seul porteur d'un état */
+ --jy-color-on-dark:#FFFFFF;
+ --jy-color-on-dark-muted:#DCE6E0;  /* texte secondaire sur le vert ou sur une photo voilée */
+ --jy-color-on-dark-line:rgba(255,255,255,.24);
+ --jy-color-map-land:#E4E2DA;       /* pays non visités */
+ --jy-color-map-visited:#5B8B74;    /* pays visités : 3:1 contre les terres */
+ --jy-color-map-planned:#D3E2D9;    /* pays prévus (avec contour pointillé) */
+ --jy-color-map-route:#AA7045;      /* arcs indicatifs résidence → destination */
+ --jy-color-photo-scrim:14,31,24;   /* voile sombre des photographies (rgb) */
+ /* Compatibilité : anciens noms encore lus par les règles plus bas */
+ --jy-green:var(--jy-color-primary);--jy-green-ink:var(--jy-color-primary);
+ --jy-ivory:var(--jy-color-bg);--jy-ink:var(--jy-color-text);--jy-muted:var(--jy-color-text-muted);
+ --jy-line:var(--jy-color-line);--jy-gold:var(--jy-color-accent);
+ --jy-on-green:var(--jy-color-on-dark);--jy-on-green-muted:var(--jy-color-on-dark-muted);--jy-on-green-line:var(--jy-color-on-dark-line);
+
+ /* ---- Typographie : Poppins (titres, chiffres) et police du système (texte) ---- */
+ --jy-font-title:Poppins,system-ui,sans-serif;
+ --jy-font-text:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+ --jy-text-xs:12px;   /* informations très secondaires (minimum) */
+ --jy-text-sm:14px;   /* informations secondaires */
+ --jy-text-md:16px;   /* texte courant */
+ --jy-text-lg:22px;   /* titres de section */
+ --jy-text-xl:24px;   /* nom du voyageur, titre d'un voyage */
+ --jy-title:var(--jy-font-title);--jy-text:var(--jy-font-text);
+ --jy-t1:var(--jy-text-xs);--jy-t2:var(--jy-text-sm);--jy-t3:var(--jy-text-md);--jy-t4:20px;--jy-t5:28px;
+
+ /* ---- Espacements : base 4 px ---- */
+ --jy-s1:4px;--jy-s2:8px;--jy-s3:12px;--jy-s4:16px;--jy-s5:24px;--jy-s6:32px;--jy-s7:40px;
+ --jy-gutter:16px;            /* marge latérale mobile */
+ --jy-section:32px;           /* entre deux sections */
+
+ /* ---- Rayons : selon le rôle, pas partout ---- */
+ --jy-r0:0;--jy-r1:4px;      /* drapeaux, étiquettes */
+ --jy-r2:8px;                /* boutons, champs */
+ --jy-r-card:12px;           /* cartes photographiques */
+ --jy-r-fab:16px;            /* bouton flottant */
+
+ /* ---- Ombres : une seule, discrète ---- */
+ --jy-shadow-card:0 1px 3px rgba(32,44,38,.10);
+ --jy-shadow-float:0 3px 10px rgba(25,63,52,.22);
+
+ /* ---- Interaction ---- */
+ --jy-touch:48px;            /* zone tactile minimale */
+ --jy-focus:2px solid var(--jy-color-primary);
+ --jy-ease:150ms ease;
+
+ /* ---- En-tête : bande photo au-dessus de l'identité ---- */
+ --jy-hero-band:96px;
 }
 
-/* ---------- En-tête : une bande sobre, plus basse, sans effets ---------- */
+/* ================================================================
+   En-tête : la couverture se voit en haut, le texte repose sur un voile
+   ================================================================ */
 #travelHero,#app .w.emptyTravel #travelHero{
  display:grid!important;
  grid-template-columns:auto minmax(0,1fr);
  grid-template-areas:"identity identity" "stats stats";
  row-gap:var(--jy-s5);
  min-height:0;
- padding:calc(28px + env(safe-area-inset-top,0px)) var(--jy-s5) 28px!important;
- margin-top:0!important;margin-bottom:var(--jy-s5)!important; /* marges latérales : pleine largeur mobile conservée */
+ /* Avec une couverture : une bande photo libre en haut. Sans : en-tête compact. */
+ padding:calc(var(--jy-hero-band) + env(safe-area-inset-top,0px)) var(--jy-s5) var(--jy-s5)!important;
+ margin-top:0!important;margin-bottom:var(--jy-section)!important;
  border-radius:var(--jy-r0)!important;
- background:var(--jy-green)!important;
+ background:var(--jy-color-primary)!important;
  box-shadow:none!important;
 }
-#travelHero #profileCover::after{background:rgba(15,41,30,.86)}
-#travelHero #profileCoverImage{opacity:.18}
+/* Hauteur fixe dès le premier affichage (la couverture privée arrive après) : aucun décalage.
+   Seul un carnet vide, sans couverture possible, garde l'en-tête compact. */
+#app .w.emptyTravel #travelHero{
+ padding-top:calc(var(--jy-s6) + env(safe-area-inset-top,0px))!important;
+}
+#travelHero #profileCoverImage{opacity:1!important;object-position:center 40%}
+/* Voile : léger sur la bande photo, assez dense là où se trouve le texte pour
+   garantir 4,5:1 même sur une photo blanche (mesuré : 0,76 minimum sous le texte). */
+#travelHero #profileCover::after{
+ background:linear-gradient(180deg,
+  rgba(var(--jy-color-primary-rgb),.45) 0,
+  rgba(var(--jy-color-primary-rgb),.10) calc(28px + env(safe-area-inset-top,0px)),
+  rgba(var(--jy-color-primary-rgb),.18) calc(var(--jy-hero-band) - 36px + env(safe-area-inset-top,0px)),
+  rgba(var(--jy-color-primary-rgb),.80) calc(var(--jy-hero-band) + env(safe-area-inset-top,0px)),
+  rgba(var(--jy-color-primary-rgb),.90) 100%)!important;
+}
+#travelHero #profileCover[data-source="solid"]::after,#travelHero #profileCover:not([data-source])::after{background:none!important}
+/* Une illustration de pays n'est jamais présentée comme une photo personnelle. */
+#travelHero #profileCover[data-source="country"]::before{
+ content:"Illustration";position:absolute;z-index:1;
+ left:var(--jy-s4);top:calc(var(--jy-s3) + env(safe-area-inset-top,0px));
+ padding:2px var(--jy-s2);border-radius:var(--jy-r1);
+ background:rgba(var(--jy-color-primary-rgb),.72);color:var(--jy-color-on-dark);
+ font:500 var(--jy-text-xs)/1.5 var(--jy-font-text);
+}
 
-/* Paramètres : une simple icône en haut à droite, zone tactile 44 px conservée. */
+/* Paramètres : icône blanche sur une pastille voilée, lisible sur toute photo. */
 #travelHero .passportTop{
- position:absolute!important;top:calc(var(--jy-s3) + env(safe-area-inset-top,0px));right:var(--jy-s3);
+ position:absolute!important;top:calc(var(--jy-s2) + env(safe-area-inset-top,0px));right:var(--jy-s2);
  min-height:0;z-index:2;
 }
 #travelHero #openAccount.travelerAccountLink{
- width:44px;height:44px;min-width:44px;
- border:0!important;border-radius:var(--jy-r2)!important;
- background:transparent!important;color:var(--jy-on-green-muted)!important;
+ width:var(--jy-touch);height:var(--jy-touch);min-width:var(--jy-touch);
+ border:0!important;border-radius:50%!important;
+ background:transparent!important;color:var(--jy-color-on-dark)!important;
+ position:relative!important;
 }
-#travelHero #openAccount.travelerAccountLink:hover{color:var(--jy-on-green)!important}
-#travelHero #openAccount.travelerAccountLink:focus-visible{outline:2px solid var(--jy-gold);outline-offset:0}
+#travelHero #openAccount.travelerAccountLink::before{
+ content:"";position:absolute;inset:6px;border-radius:50%;z-index:-1;
+ background:rgba(var(--jy-color-primary-rgb),.62);
+}
+#travelHero #openAccount.travelerAccountLink:focus-visible{outline:2px solid var(--jy-color-on-dark);outline-offset:-2px}
 #travelHero #openAccount svg{width:20px;height:20px}
 
-/* Identité : avatar plus petit, nom lisible sans être gras. */
+/* Identité : avatar aligné sur le nom, nom en Poppins Medium. */
 #travelHero>.travelerIdentity,#travelHero>.travelerIdentity:first-child{
  grid-area:identity;
  display:grid!important;grid-template-columns:56px minmax(0,1fr)!important;
  gap:var(--jy-s4)!important;align-items:center!important;
- margin:0!important;padding:0 44px 0 0!important;
+ margin:0!important;padding:0 var(--jy-s5) 0 0!important; /* le nom ne touche jamais le bord, même texte agrandi */
 }
 #travelHero .travelerPhotoWrap{width:56px;height:56px;min-width:56px}
 #travelHero #travelerAvatar{
  width:56px!important;height:56px!important;min-width:56px!important;
- border:1.5px solid var(--jy-gold)!important;
- background:#e6eee8;color:var(--jy-green);
- font:600 var(--jy-t3)/1 var(--jy-title);
+ border:1.5px solid var(--jy-color-accent)!important;outline:0!important;
+ background:var(--jy-color-primary-soft);color:var(--jy-color-primary);
+ font:600 var(--jy-text-md)/1 var(--jy-font-title);
 }
 #travelHero .passportResidenceCode{
  right:-4px;bottom:-3px;width:22px;height:22px;
- border:1.5px solid var(--jy-green);
- background:var(--jy-ivory);color:var(--jy-green);
- font:600 9px/1 var(--jy-text);
+ border:1.5px solid var(--jy-color-primary);
+ background:var(--jy-color-bg);color:var(--jy-color-primary);
+ font:600 9px/1 var(--jy-font-text);
 }
+#travelHero .travelerNameBlock{padding-top:0!important;min-width:0}
 #travelHero #dashboardTitle,#travelHero #dashboardTitle.longTitle,
 #travelHero #dashboardTitle.extraLongTitle{
- font:500 var(--jy-t4)/1.25 var(--jy-title)!important;
- margin:0 0 var(--jy-s1)!important;
+ font:500 var(--jy-text-xl)/1.2 var(--jy-font-title)!important;letter-spacing:0!important;
+ margin:0 0 var(--jy-s1)!important;color:var(--jy-color-on-dark)!important;overflow-wrap:anywhere;
 }
+#travelHero #dashboardTitle.extraLongTitle{font-size:20px!important}
 #travelHero #travelerLocation{
- gap:var(--jy-s1);color:var(--jy-on-green-muted);
- font:400 13px/1.4 var(--jy-text);
+ gap:var(--jy-s1);color:var(--jy-color-on-dark-muted);
+ font:400 var(--jy-text-sm)/1.4 var(--jy-font-text);
 }
 #travelHero #travelerLocation svg{width:14px;height:14px;flex-basis:14px}
 
-/* Statistiques : une ligne, sans cartes, séparées par des filets. */
+/* Statistiques : une ligne sans cartes ; elle passe à la ligne si un nombre est long. */
 #travelHero #homeStats{
  grid-area:stats;
- display:flex!important;align-items:baseline;flex-wrap:nowrap;gap:0;
+ display:flex!important;align-items:baseline;flex-wrap:wrap;gap:var(--jy-s2) 0;
  padding:0;margin:0;border:0;
 }
 #travelHero .passportStat{
  flex:0 1 auto;flex-direction:row;align-items:baseline;justify-content:flex-start;
  gap:6px;min-height:0;min-width:0;
  padding:0 var(--jy-s4)!important;
- border:0;border-left:1px solid var(--jy-on-green-line);border-radius:0;
+ border:0;border-left:1px solid var(--jy-color-on-dark-line);border-radius:0;
  background:transparent;text-align:left;
 }
 #travelHero .passportStat:first-child{padding-left:0!important;border-left:0}
 #travelHero .passportStat .passportNumber,
 #travelHero .passportStat:first-child .passportNumber{
- color:var(--jy-on-green);
- font:600 var(--jy-t4)/1.1 var(--jy-title);font-variant-numeric:tabular-nums;
+ color:var(--jy-color-on-dark);
+ font:600 var(--jy-t4)/1.1 var(--jy-font-title);font-variant-numeric:tabular-nums;
 }
-#travelHero .passportStat .passportLabel{color:var(--jy-on-green-muted);font:400 13px/1.3 var(--jy-text)}
+#travelHero .passportStat .passportLabel{color:var(--jy-color-on-dark-muted);font:400 var(--jy-text-sm)/1.3 var(--jy-font-text)}
 
-/* ---------- La carte du monde devient le cœur de l'accueil ---------- */
-#travelMapPanel,#app .w.emptyTravel #travelMapPanel{margin:0 0 var(--jy-s5)!important;overflow:visible!important} /* le M de « Ma carte » n'est plus rogné ; la carte garde son propre overflow */
+/* ================================================================
+   Carte du monde : la signature
+   ================================================================ */
+#travelMapPanel,#app .w.emptyTravel #travelMapPanel{margin:0 0 var(--jy-section)!important;overflow:visible!important}
 #travelMapPanel .passportMapHeading{align-items:baseline;margin-bottom:var(--jy-s3)}
 #travelMapPanel .passportMapHeading h2,#travelMapPanel h2{
- font:600 var(--jy-t4)/1.3 var(--jy-title)!important;color:var(--jy-ink);
+ font:600 var(--jy-text-lg)/1.3 var(--jy-font-title)!important;color:var(--jy-color-text);letter-spacing:0;
 }
 #continentCount{
  max-width:none;padding:0;border-radius:0;background:transparent;
- color:var(--jy-muted);font:400 13px/1.3 var(--jy-text);
+ color:var(--jy-color-text-muted);font:400 var(--jy-text-sm)/1.3 var(--jy-font-text);
 }
 #travelMapPanel .map{
- /* La hauteur suit le viewBox calculé par l'app (aspect-ratio en ligne) : plus de vide. */
+ /* La hauteur suit le viewBox calculé par l'app (aspect-ratio en ligne) : pas de vide. */
  display:block!important;height:auto!important;min-height:0!important;max-height:min(52vh,360px)!important;
  border:0!important;border-radius:0;background:transparent;padding:0;overflow:hidden;
 }
 #travelMapPanel .map svg{display:block;width:100%!important;height:100%!important;max-height:none!important}
-#travelMapPanel .travelMapLegend{margin:var(--jy-s3) 0 0;color:var(--jy-muted);font-size:var(--jy-t1)}
+#map path{fill:var(--jy-color-map-land);stroke:var(--jy-color-bg);stroke-width:.6}
+#map path.visited:not(.selectedCountry){fill:var(--jy-color-map-visited)!important;stroke:var(--jy-color-bg)}
+#map path.planned:not(.visited){fill:var(--jy-color-map-planned)!important;stroke:var(--jy-color-primary)!important;stroke-width:1.2!important}
+/* Arcs fins et indicatifs ; plus discrets quand ils sont nombreux. */
+#map .flightArc{stroke:var(--jy-color-map-route)!important;stroke-width:1.3!important;opacity:.85!important}
+#map [data-density="medium"] .flightArc{opacity:.6!important;stroke-width:1.1!important}
+#map [data-density="high"] .flightArc{opacity:.32!important;stroke-width:1!important}
+#map .flightDestination{fill:var(--jy-color-map-route)!important}
+#map [data-density="high"] .flightDestination{opacity:.75}
+#map .flightResidence{fill:var(--jy-color-primary-deep)!important}
+#map .flightHomeHalo{fill:var(--jy-color-primary-deep)!important;opacity:.14!important}
+#travelMapPanel .travelMapLegend{margin:var(--jy-s3) 0 0;color:var(--jy-color-text-muted);font-size:var(--jy-text-xs)}
+#travelMapPanel .mapArcNote{margin:var(--jy-s2) 0 0;color:var(--jy-color-text-muted);font:400 var(--jy-text-xs)/1.5 var(--jy-font-text);max-width:46ch}
+#travelMapPanel .mapArcNote[hidden]{display:none}
 
 /* ---------- Ordre d'usage : profil, carte, ajouter, carnet, pays, autres ---------- */
 #app>.w>#travelHero,#app .w.emptyTravel>#travelHero{order:0!important}
@@ -141,13 +226,13 @@
 
 /* Titres de section et lien discret « Voir les N pays ». */
 .homeSectionHeading{display:flex;align-items:baseline;justify-content:space-between;gap:var(--jy-s3);margin-bottom:var(--jy-s1)}
-#homeCountries h2{margin:0;font:600 var(--jy-t4)/1.3 var(--jy-title);color:var(--jy-ink)}
+#homeCountries h2{margin:0;font:600 var(--jy-text-lg)/1.3 var(--jy-font-title);color:var(--jy-color-text);letter-spacing:0}
 .homeLink{
- min-height:44px;padding:0;border:0;background:transparent;cursor:pointer;
- color:var(--jy-green-ink);font:400 var(--jy-t2)/1.3 var(--jy-text);white-space:nowrap;
+ min-height:var(--jy-touch);padding:0;border:0;background:transparent;cursor:pointer;
+ color:var(--jy-color-primary);font:500 var(--jy-text-sm)/1.3 var(--jy-font-text);white-space:nowrap;
 }
 .homeLink:not([aria-expanded="true"])::after{content:" ›"}
-.homeLink:focus-visible{outline:2px solid var(--jy-green-ink);outline-offset:2px}
+.homeLink:focus-visible{outline:var(--jy-focus);outline-offset:2px}
 .homeLink[hidden],#homeCountries[hidden],#homeCountries.hidden,#homeActions.hidden,#moreActions.hidden{display:none!important}
 #homeCountries{margin:0 0 var(--jy-s5)}
 
@@ -160,93 +245,210 @@
  width:100%;min-height:52px;padding:var(--jy-s2) 0;text-align:left;
  border:0!important;border-radius:0!important;
  background:transparent!important;box-shadow:none!important;
- color:var(--jy-ink);font:400 var(--jy-t3)/1.3 var(--jy-text);cursor:pointer;transition:none!important;
+ color:var(--jy-color-text);font:400 var(--jy-text-md)/1.3 var(--jy-font-text);cursor:pointer;transition:none!important;
 }
 #countryList .countryChip[hidden]{display:none!important}
 #countryList .countryFlag{
  display:block;width:24px;height:18px;margin-top:2px;object-fit:cover;border-radius:var(--jy-r0);
- box-shadow:0 0 0 1px rgba(23,35,31,.14);
+ box-shadow:0 0 0 1px rgba(32,44,38,.16); /* bordure discrète : drapeaux blancs lisibles */
 }
-span.countryFlag{background:var(--jy-line);box-shadow:none}
+span.countryFlag{background:var(--jy-color-line);box-shadow:none}
 #countryList .countryText{display:flex;flex-direction:column;gap:2px;min-width:0}
 #countryList .countryName{min-width:0;overflow-wrap:break-word}
-#countryList .countryChip b{color:var(--jy-muted);font:400 13px/1.3 var(--jy-text);font-variant-numeric:tabular-nums}
+#countryList .countryChip b{color:var(--jy-color-text-muted);font:400 var(--jy-text-sm)/1.3 var(--jy-font-text);font-variant-numeric:tabular-nums}
 #countryList .countryChip[aria-pressed="true"] .countryName{
- color:var(--jy-green-ink);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:4px;
+ color:var(--jy-color-primary);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:4px;
 }
-#countryList .countryChip:focus-visible{outline:2px solid var(--jy-green-ink);outline-offset:-2px}
+#countryList .countryChip:focus-visible{outline:var(--jy-focus);outline-offset:-2px}
 
 /* ---------- Actions ---------- */
-#homeActions{display:flex!important;flex-direction:column;gap:var(--jy-s3);margin:0 0 var(--jy-s6)}
+#homeActions{display:flex!important;flex-direction:column;gap:var(--jy-s3);margin:0 0 var(--jy-section)}
 #homeActions #add{
- min-height:48px;border-radius:var(--jy-r2)!important;background:var(--jy-green);
- font:600 var(--jy-t3)/1.3 var(--jy-text);
+ min-height:52px;border-radius:var(--jy-r2)!important;background:var(--jy-color-primary)!important;
+ box-shadow:none!important;font:600 var(--jy-text-md)/1.3 var(--jy-font-text);
 }
-/* Mon carnet : action centrale, bouton secondaire franc (pas une simple ligne). */
+#homeActions #add:active{background:var(--jy-color-primary-deep)!important}
+/* Mon carnet : action émotionnelle, bouton secondaire franc juste sous « Ajouter ». */
 #secondaryActions{display:block!important}
 #secondaryActions>#printJournal{
  display:grid!important;grid-template-columns:minmax(0,1fr) auto;align-items:center;
- gap:2px var(--jy-s3);width:100%;min-height:64px;
+ gap:2px var(--jy-s3);width:100%;min-height:68px;
  padding:var(--jy-s3) var(--jy-s4)!important;
- border:1px solid var(--jy-green)!important;border-radius:var(--jy-r2)!important;
- background:transparent!important;color:var(--jy-ink)!important;box-shadow:none!important;
+ border:1px solid var(--jy-color-primary)!important;border-radius:var(--jy-r2)!important;
+ background:transparent!important;color:var(--jy-color-text)!important;box-shadow:none!important;
  text-decoration:none!important;cursor:pointer;
 }
+#secondaryActions>#printJournal[aria-busy="true"]{cursor:progress}
+#secondaryActions>#printJournal[aria-busy="true"] .tileSubtitle{color:var(--jy-color-primary)}
 /* Autres fonctionnalités : lignes calmes, un seul filet au-dessus. */
-#moreActions{margin:0 0 var(--jy-s6);border-top:1px solid var(--jy-line)}
+#moreActions{margin:0 0 var(--jy-s5);border-top:1px solid var(--jy-color-line)}
 #moreActions>button{
  display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;
  gap:2px var(--jy-s3);width:100%;min-height:60px;padding:var(--jy-s3) 0;
- border:0;border-bottom:1px solid var(--jy-line);border-radius:0;
- background:transparent;color:var(--jy-ink);text-align:left;cursor:pointer;font:inherit;
+ border:0;border-bottom:1px solid var(--jy-color-line);border-radius:0;
+ background:transparent;color:var(--jy-color-text);text-align:left;cursor:pointer;font:inherit;
 }
 #moreActions>button:last-child{border-bottom:0}
-#moreActions>button:disabled,#secondaryActions>button:disabled{opacity:.55;cursor:not-allowed}
+#moreActions>button:disabled,#secondaryActions>button:disabled:not([aria-busy="true"]){opacity:.55;cursor:not-allowed}
 #secondaryActions>button::after,#moreActions>button::after{
  content:"";grid-column:2;grid-row:1/span 2;width:7px;height:7px;margin-right:4px;
- border:solid var(--jy-muted);border-width:0 1.5px 1.5px 0;transform:rotate(-45deg);
+ border:solid var(--jy-color-text-muted);border-width:0 1.5px 1.5px 0;transform:rotate(-45deg);
 }
-#secondaryActions>button .tileHead,#moreActions>button .tileHead{grid-column:1;display:flex;align-items:center;gap:var(--jy-s2);min-width:0;color:var(--jy-green-ink)}
+#secondaryActions>button .tileHead,#moreActions>button .tileHead{grid-column:1;display:flex;align-items:center;gap:var(--jy-s2);min-width:0;color:var(--jy-color-primary)}
 #secondaryActions>button .tileHead svg,#moreActions>button .tileHead svg{width:20px;height:20px;flex:0 0 20px}
-#secondaryActions>button .tileTitle,#moreActions>button .tileTitle{font:600 var(--jy-t3)/1.3 var(--jy-text);color:var(--jy-ink);overflow-wrap:anywhere}
+#secondaryActions>button .tileTitle,#moreActions>button .tileTitle{font:600 var(--jy-text-md)/1.3 var(--jy-font-text);color:var(--jy-color-text);overflow-wrap:anywhere}
 #secondaryActions>button .tileSubtitle,#moreActions>button .tileSubtitle{
- grid-column:1;padding-left:28px;color:var(--jy-muted);font:400 var(--jy-t2)/1.4 var(--jy-text);overflow-wrap:anywhere;
+ grid-column:1;padding-left:28px;color:var(--jy-color-text-muted);font:400 var(--jy-text-sm)/1.4 var(--jy-font-text);overflow-wrap:anywhere;
 }
-#secondaryActions>button:focus-visible,#moreActions>button:focus-visible{outline:2px solid var(--jy-green-ink);outline-offset:2px}
-#offlineActionNote{margin:0}
+#secondaryActions>button:focus-visible,#moreActions>button:focus-visible{outline:var(--jy-focus);outline-offset:2px}
+#offlineActionNote{margin:0;color:var(--jy-color-text-muted);font:400 var(--jy-text-sm)/1.4 var(--jy-font-text)}
+
+/* ================================================================
+   Mes voyages : titre et commandes dans une seule barre, collante
+   ================================================================ */
+#tripListToolbar{
+ display:flex!important;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:0 var(--jy-s3);
+ margin:0 0 var(--jy-s4)!important;padding:var(--jy-s1) 0!important;
+ background:var(--jy-color-bg)!important;border:0!important;border-bottom:1px solid var(--jy-color-line)!important;
+ border-radius:0!important;box-shadow:none!important;
+}
+#tripListToolbar.isEmpty .tripListTools{display:none!important}
+#tripListToolbar.isEmpty{border-bottom:0!important}
+#app .w.emptyTravel #trips{padding-bottom:var(--jy-s5)!important}
+#tripListToolbar #tripListTitle{
+ order:0;flex:1 1 auto;min-width:0;margin:0!important;
+ font:600 var(--jy-text-lg)/1.3 var(--jy-font-title);color:var(--jy-color-text);letter-spacing:0;
+}
+/* Les totaux sont déjà dans l'en-tête : la ligne n'apparaît que si un filtre réduit la liste. */
+#tripListToolbar #tripListSummary{display:none;order:3;flex:1 0 100%;margin:0 0 var(--jy-s2)!important;
+ color:var(--jy-color-text-muted);font:400 var(--jy-text-sm)/1.4 var(--jy-font-text)}
+#tripListToolbar.isFiltered #tripListSummary{display:block}
+#tripListToolbar.isFiltered #tripListSummary::before{content:"Filtre actif · "}
+#tripListToolbar .tripListTools{order:1;display:flex!important;gap:0;flex:0 0 auto}
+#tripListToolbar .tripListTools button.tripTool{
+ position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+ width:auto;min-width:var(--jy-touch);min-height:var(--jy-touch);padding:var(--jy-s1) var(--jy-s2);
+ border:0!important;border-radius:var(--jy-r2)!important;background:transparent!important;box-shadow:none!important;
+ color:var(--jy-color-primary);font:500 var(--jy-text-xs)/1.2 var(--jy-font-text);cursor:pointer;
+}
+#tripListToolbar .tripListTools .tripTool svg{width:20px;height:20px}
+#tripListToolbar .tripListTools .tripTool:hover,#tripListToolbar .tripListTools .tripTool[aria-expanded="true"]{background:var(--jy-color-primary-soft)!important}
+#tripListToolbar .tripListTools .tripTool:focus-visible{outline:var(--jy-focus);outline-offset:0}
+/* Filtre actif : un point cuivre ET la ligne « Filtre actif » (pas seulement la couleur). */
+#tripListToolbar #tripListFilter[data-active="true"]::after{
+ content:"";position:absolute;top:6px;right:calc(50% - 15px);width:8px;height:8px;border-radius:50%;
+ background:var(--jy-color-map-route);box-shadow:0 0 0 2px var(--jy-color-bg); /* cuivre : 3,8:1 sur ivoire */
+}
+#tripListToolbar #tripListFilter[data-active="true"] span::after{content:" (actif)";position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media(max-width:899px){
+ /* Pleine largeur sur mobile (masque les cartes en défilement), contenu aligné sur la marge. */
+ /* Une seule marge de page (16 px), et des blocs pleine largeur calés sur elle plutôt que
+    sur 100vw : rien ne déborde, même quand le texte est agrandi. */
+ #app>.w,#app>.w.emptyTravel{padding-left:var(--jy-gutter)!important;padding-right:var(--jy-gutter)!important}
+ #travelHero,#app .w.emptyTravel #travelHero{width:auto!important;max-width:none!important;align-self:stretch!important;
+  margin-left:calc(-1 * var(--jy-gutter))!important;margin-right:calc(-1 * var(--jy-gutter))!important}
+ #tripListToolbar{width:auto!important;max-width:none!important;
+  margin-left:calc(-1 * var(--jy-gutter))!important;margin-right:calc(-1 * var(--jy-gutter))!important;
+  padding:var(--jy-s1) var(--jy-gutter)!important}
+}
+
+/* ================================================================
+   Cartes photographiques des voyages
+   ================================================================ */
+#trips .journeyTrip{margin:0 0 var(--jy-s5)!important;border-radius:var(--jy-r-card)!important;box-shadow:var(--jy-shadow-card)!important;background:var(--jy-color-primary-soft)!important}
+#trips .journeyTrip .tripOpen.journeyLink{border-radius:var(--jy-r-card)!important}
+/* Focus visible sur n'importe quelle photo : anneau blanc doublé de vert profond. */
+#trips .journeyTrip .tripOpen.journeyLink:focus-visible{outline:3px solid var(--jy-color-on-dark)!important;outline-offset:-3px!important;box-shadow:inset 0 0 0 5px var(--jy-color-primary-deep)!important}
+@media(prefers-reduced-motion:no-preference){#trips .journeyTrip:hover{box-shadow:0 2px 8px rgba(32,44,38,.16)!important}}
+#trips .journeyMedia,#trips .journeyFlagFallback{background:var(--jy-color-primary-soft)!important}
+/* Dégradé de lecture : seulement sous le texte, assez dense pour une photo blanche. */
+#trips .journeyMedia::after{
+ inset:32% 0 0!important;
+ background:linear-gradient(180deg,rgba(var(--jy-color-photo-scrim),0) 0%,rgba(var(--jy-color-photo-scrim),.55) 22%,
+  rgba(var(--jy-color-photo-scrim),.80) 44%,rgba(var(--jy-color-photo-scrim),.90) 100%)!important;
+}
+/* Étiquettes : petites, sans ombre, empilées à gauche (le bouton flottant est à droite). */
+#trips .journeyFlagLine,#trips .journeyMedia>.journeyStatus,#trips .journeyPhotoCount{
+ min-height:28px!important;padding:4px var(--jy-s2)!important;border-radius:var(--jy-r1)!important;
+ box-shadow:none!important;background:rgba(255,255,255,.94)!important;color:var(--jy-color-text)!important;
+ font:600 var(--jy-text-xs)/1.3 var(--jy-font-text)!important;gap:6px!important;
+}
+#trips .journeyFlagLine{top:var(--jy-s3)!important;left:var(--jy-s3)!important;max-width:calc(100% - 120px)!important}
+#trips .journeyCode{font:600 var(--jy-text-xs)/1.3 var(--jy-font-text)!important;color:var(--jy-color-text)!important}
+#trips .journeyFlag{width:20px!important;height:15px!important;border-radius:2px!important}
+#trips .journeyMedia>.journeyStatus{top:48px!important;left:var(--jy-s3)!important}
+#trips .journeyMedia>.journeyStatus-upcoming{color:#5C4512!important}
+#trips .journeyPhotoCount{top:48px!important;right:auto!important;left:var(--jy-s3)!important}
+#trips .journeyMedia:has(>.journeyStatus) .journeyPhotoCount{top:84px!important}
+/* Illustration du pays (pas une photo personnelle) : dit clairement. */
+#trips .journeyMedia:has(>.journeyBackdrop:not([data-is-private="true"]))::before{
+ content:"Illustration";position:absolute;z-index:4;top:var(--jy-s3);right:var(--jy-s3);
+ padding:2px 6px;border-radius:var(--jy-r1);background:rgba(var(--jy-color-photo-scrim),.62);
+ color:var(--jy-color-on-dark);font:500 11px/1.5 var(--jy-font-text);letter-spacing:.01em;pointer-events:none;
+}
+#trips .journeyContent{gap:var(--jy-s1)!important;padding:56px var(--jy-s4) var(--jy-s4)!important}
+#trips .journeyFooter{font:500 13px/1.45 var(--jy-font-text)!important;color:var(--jy-color-on-dark)!important}
+#trips .journeyCountry{font:600 var(--jy-text-xl)/1.2 var(--jy-font-title)!important;letter-spacing:0!important;color:var(--jy-color-on-dark)!important}
+#trips .journeyCities{font:400 var(--jy-text-sm)/1.4 var(--jy-font-text)!important;color:var(--jy-color-on-dark-muted)!important}
+#trips .journeyOpenLabel{margin-top:var(--jy-s2)!important;padding-top:var(--jy-s3)!important;border-top:1px solid var(--jy-color-on-dark-line)!important;
+ font:600 var(--jy-text-sm)/1.3 var(--jy-font-text)!important;color:var(--jy-color-on-dark)!important}
+#travelTripsPanel .upcomingTripsSection h3{font:600 var(--jy-text-md)/1.3 var(--jy-font-title)!important;color:var(--jy-color-text-muted)!important;margin:0 0 var(--jy-s3)!important;letter-spacing:0!important;text-transform:none!important}
+
+/* Au-delà du téléphone : deux colonnes, les photos gardent leur format 4:5. */
+@media(min-width:640px){
+ #trips .completedTripsList,#trips .upcomingTripsList{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--jy-s5)}
+ #trips .completedTripsList>.journeyTrip,#trips .upcomingTripsList>.journeyTrip{margin:0!important}
+ #trips .upcomingTripsSection{margin-bottom:var(--jy-s5)!important}
+}
+
+/* ---------- Bouton flottant d'ajout : sobre, à droite, jamais sur les étiquettes ---------- */
+#addFloating{
+ right:var(--jy-gutter)!important;bottom:calc(var(--jy-gutter) + env(safe-area-inset-bottom,0px))!important;
+ width:56px!important;height:56px!important;border-radius:var(--jy-r-fab)!important;
+ background:var(--jy-color-primary)!important;box-shadow:var(--jy-shadow-float)!important;
+ font:300 32px/1 var(--jy-font-text)!important;
+}
+#addFloating:active{background:var(--jy-color-primary-deep)!important}
+#addFloating:focus-visible{outline:2px solid var(--jy-color-primary-deep)!important;outline-offset:3px!important}
 
 /* ---------- Hors ligne : une ligne discrète, toujours explicite ---------- */
 #offlineBanner{
  display:flex;align-items:center;gap:var(--jy-s2);
  padding:var(--jy-s2) var(--jy-s4);
- background:transparent;border-bottom:1px solid var(--jy-line);
- color:var(--jy-muted);font:400 13px/1.4 var(--jy-text);
+ background:transparent;border-bottom:1px solid var(--jy-color-line);
+ color:var(--jy-color-text-muted);font:400 13px/1.4 var(--jy-font-text);
 }
 #offlineBanner::before{
- content:"";flex:none;width:7px;height:7px;border-radius:50%;background:var(--jy-gold);
+ content:"";flex:none;width:7px;height:7px;border-radius:50%;background:var(--jy-color-accent);
 }
 #offlineBanner[hidden]{display:none!important}
+
+/* ---------- Mouvement : discret, et absent si l'utilisateur le demande ---------- */
+@media(prefers-reduced-motion:no-preference){
+ #homeActions #add,#secondaryActions>#printJournal,#tripListToolbar .tripTool,#addFloating{transition:background-color var(--jy-ease)}
+}
 
 /* ---------- Petits écrans ---------- */
 @media(max-width:420px){
  #travelHero,#app .w.emptyTravel #travelHero{
-  padding:calc(28px + env(safe-area-inset-top,0px)) var(--jy-s4) 28px!important;
-  margin-bottom:var(--jy-s5)!important;border-radius:0!important;
+  padding-left:var(--jy-gutter)!important;padding-right:var(--jy-gutter)!important;
+  margin-bottom:var(--jy-section)!important;border-radius:0!important;
  }
  #travelHero .passportStat{padding:0 var(--jy-s3)!important}
- #travelHero .passportStat .passportLabel{font-size:var(--jy-t1)}
 }
 @media(max-width:340px){
+ :root{--jy-hero-band:84px}
  #travelHero .passportStat{gap:4px;padding:0 10px!important}
  #travelHero .passportStat .passportNumber,#travelHero .passportStat:first-child .passportNumber{font-size:18px}
+ #travelHero #dashboardTitle,#travelHero #dashboardTitle.longTitle{font-size:21px!important}
+ #tripListToolbar .tripListTools button.tripTool{padding:var(--jy-s1) 6px}
 }
 
-/* ---------- Ordinateur : l'en-tête reste une colonne calme ---------- */
+/* ---------- Ordinateur : une colonne de lecture, comme une page de carnet ---------- */
 @media(min-width:900px){
- /* Une colonne de lecture centrée, comme une page de carnet : l'ancien
-    « align-items:start » des grilles faisait rétrécir chaque bloc à son contenu. */
+ :root{--jy-hero-band:128px}
  #app>.w,#app>.w.emptyTravel{align-items:stretch!important;max-width:720px!important;margin-inline:auto}
- #travelHero,#app .w.emptyTravel #travelHero{align-self:stretch!important;width:auto!important;max-width:none!important;border-radius:var(--jy-r1)!important;margin-top:var(--jy-s5)!important}
+ #travelHero,#app .w.emptyTravel #travelHero{align-self:stretch!important;width:auto!important;max-width:none!important;border-radius:var(--jy-r-card)!important;margin-top:var(--jy-s5)!important;overflow:hidden}
  #homeActions{align-items:stretch}
 }
 

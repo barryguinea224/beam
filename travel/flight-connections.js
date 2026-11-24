@@ -35,6 +35,8 @@ function draw(svg,residence,destinations,centroids,options={}){
  const model=routes(residence,destinations,centroids);
  const doc=svg.ownerDocument,group=doc.createElementNS(NS,"g");
  group.setAttribute("data-flight-connections","true");
+ // Presentation only: many arcs are drawn lighter so the map stays readable.
+ group.setAttribute("data-density",model.length>40?"high":model.length>12?"medium":"low");
  group.setAttribute("aria-hidden","true");
  group.setAttribute("pointer-events","none");
  group.style.pointerEvents="none";
