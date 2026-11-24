@@ -5,6 +5,9 @@ on:
     paths:
       - "travel/index.html"
       - "travel/home-simple.css"
+      - "travel/carnet.css"
+      - "travel/passport-home.css"
+      - "tests/travel-carnet-home.cjs"
       - "travel/account-settings.css"
       - "travel/visual-cards.css"
       - "travel/photo-sheet.css"
@@ -54,6 +57,15 @@ jobs:
           done
           node tests/travel-poppins-all-titles.cjs
           node tests/travel-factual-contacts-ui.cjs
+      - name: Carnet direction — before/after at 320, 360, 390, 430 and 1280 px
+        run: node tests/travel-carnet-home.cjs test-artifacts/home-simple/baseline.html
+      - name: Upload carnet before/after captures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jyetais-carnet-accueil-avant-apres
+          path: test-artifacts/carnet-home/
+          if-no-files-found: warn
       - name: Upload Android 360 px before and after
         if: always()
         uses: actions/upload-artifact@v4
