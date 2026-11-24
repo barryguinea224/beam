@@ -991,6 +991,11 @@ function countryState(){
   return {visited,planned};
 }
 function countryCounts(){return countryState().visited}
+// Presentation only: small local flag beside each country name (empty slot keeps alignment).
+function countryFlagMarkup(code){
+  const url=window.BEAM_VISUAL_CARDS?.flag?.(code)||"";
+  return url?`<img class="countryFlag" src="${esc(url)}" alt="" width="20" height="15" loading="lazy" decoding="async">`:`<span class="countryFlag" aria-hidden="true"></span>`;
+}
 function selectMapCountry(code){
   const state=countryState();
   if(!state.visited.has(code)&&!state.planned.has(code))return;
@@ -1138,7 +1143,7 @@ function render(){
   $("#countryList").innerHTML=codes.sort((a,b)=>countryName(a).localeCompare(countryName(b),"fr")).map(code=>{
     const n=counts.get(code)||0,planned=country.planned.get(code)||0;
     const display=n?String(n):("À venir"+(planned>1?" · "+planned:""));
-    return `<button type="button" class="countryChip" data-country="${esc(code)}" aria-pressed="${dashboardFilters.country===code}" aria-label="${esc(countryName(code))}, ${n?FR.count(n,"voyage"):"À venir"}">${esc(countryName(code))} <b>${display}</b></button>`;
+    return `<button type="button" class="countryChip" data-country="${esc(code)}" aria-pressed="${dashboardFilters.country===code}" aria-label="${esc(countryName(code))}, ${n?FR.count(n,"voyage"):"À venir"}">${countryFlagMarkup(code)}<span class="countryName">${esc(countryName(code))}</span> <b>${display}</b></button>`;
   }).join("");
   const tripCard=x=>window.BEAM_VISUAL_CARDS.markup(x,countryName(x.country_code),window.BEAM_TRAVEL_PDF.purposeName(x.purpose),tripCardDates(x.entry_date,x.exit_date));
   const countriesShown=new Set(visible.flatMap(t=>[t.country_code,...(Array.isArray(t.stops)?t.stops.map(s=>s.country_code):[])]).filter(Boolean));
