@@ -371,8 +371,9 @@ span.countryFlag{background:var(--jy-color-line);box-shadow:none}
 #trips .journeyMedia,#trips .journeyFlagFallback{background:var(--jy-color-primary-soft)!important}
 /* Le voile suit la hauteur réelle des textes et ne noircit pas le paysage au-dessus. */
 #trips .journeyMedia::after{background:none!important}
-/* Grille des étiquettes : pays à gauche, photos à droite, statut sur la ligne suivante. */
-#trips .journeyMedia{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto minmax(0,1fr);align-items:start;gap:var(--jy-s1) var(--jy-s2);padding:var(--jy-s3)}
+/* Grille des étiquettes : pays puis photos, côte à côte à gauche (le + flottant est à droite) ;
+   statut sur la ligne suivante ; « Illustration » seule à droite. */
+#trips .journeyMedia{display:grid;grid-template-columns:minmax(0,max-content) max-content minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr);align-items:start;gap:var(--jy-s1) var(--jy-s2);padding:var(--jy-s3)}
 #trips .journeyFlagLine,#trips .journeyMedia>.journeyStatus,#trips .journeyPhotoCount{
  min-height:28px!important;padding:4px var(--jy-s2)!important;border-radius:var(--jy-r1)!important;
  box-shadow:none!important;background:rgba(255,255,255,.94)!important;color:var(--jy-color-text)!important;
@@ -385,14 +386,13 @@ span.countryFlag{background:var(--jy-color-line);box-shadow:none}
 #trips .journeyFlag{width:20px!important;height:15px!important;border-radius:2px!important}
 #trips .journeyMedia>.journeyStatus{grid-column:1;grid-row:2;justify-self:start;white-space:normal}
 #trips .journeyMedia>.journeyStatus-upcoming{color:#5C4512!important}
-#trips .journeyPhotoCount{grid-column:2;grid-row:1;justify-self:end;white-space:normal;text-align:right}
+#trips .journeyPhotoCount{grid-column:2;grid-row:1;justify-self:start;white-space:nowrap}
 /* Illustration du pays (pas une photo personnelle) : dit clairement. */
 #trips .journeyMedia:has(>.journeyBackdrop:not([data-is-private="true"]))::before{
- content:"Illustration";position:relative;z-index:4;grid-column:2;grid-row:1;justify-self:end;
+ content:"Illustration";position:relative;z-index:4;grid-column:3;grid-row:1;justify-self:end;
  padding:2px 6px;border-radius:var(--jy-r1);background:rgba(var(--jy-color-photo-scrim),.62);
  color:var(--jy-color-on-dark);font:500 11px/1.5 var(--jy-font-text);letter-spacing:.01em;pointer-events:none;
 }
-#trips .journeyMedia:has(>.journeyPhotoCount)::before{grid-row:2}
 #trips .journeyContent{gap:var(--jy-s1)!important;padding:56px var(--jy-s4) var(--jy-s4)!important;
  background:linear-gradient(180deg,rgba(var(--jy-color-photo-scrim),0) 0,rgba(var(--jy-color-photo-scrim),.82) 52px,rgba(var(--jy-color-photo-scrim),.90) 100%)!important}
 #trips .journeyFooter{font:500 13px/1.45 var(--jy-font-text)!important;color:var(--jy-color-on-dark)!important}

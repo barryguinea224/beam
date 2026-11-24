@@ -91,7 +91,7 @@ async function main(){
      const country=card.querySelector(".journeyFlagLine").getBoundingClientRect(),photos=card.querySelector(".journeyPhotoCount").getBoundingClientRect();
      return {countryRight:country.right,photosLeft:photos.left,countryTop:country.top,photosTop:photos.top};
     });
-    assert.ok(badgeLayout.countryRight<=badgeLayout.photosLeft&&Math.abs(badgeLayout.countryTop-badgeLayout.photosTop)<=1,"Pays à gauche et photos à droite, sans chevauchement : "+JSON.stringify(badgeLayout));
+    assert.ok(badgeLayout.countryRight<=badgeLayout.photosLeft&&Math.abs(badgeLayout.countryTop-badgeLayout.photosTop)<=1,"Pays puis photos sur la même ligne, sans chevauchement : "+JSON.stringify(badgeLayout));
     assert.ok(privateRequests.every(url=>url.startsWith("https://fixture.invalid/storage/v1/object/sign/media/")));
     const coverFallback=page.locator(".journeyTrip").filter({hasText:"Guinée"});
     assert.equal(await coverFallback.locator(".journeyBackdrop").getAttribute("src"),"./assets/countries/gn.svg");

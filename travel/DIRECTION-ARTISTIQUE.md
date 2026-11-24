@@ -222,7 +222,7 @@ Toutes les valeurs sont des variables dans `carnet.css` (`:root`). Les règles n
 - Action en liste : ligne avec filet et chevron (PDF ambassade).
 - Lien : vert `#245443`, 14 px, « › » final.
 - Commande de barre : icône 20 px + libellé 12 px, zone 48 × 48, fond vert pâle quand elle est ouverte.
-- Étiquettes sur photo : 28 px minimum, fond blanc à 94 %, rayon 4 px ; pays à gauche, nombre de photos à droite, statut en deuxième ligne. Le voile de lecture suit la hauteur des textes.
+- Étiquettes sur photo : 28 px minimum, fond blanc à 94 %, rayon 4 px ; pays puis nombre de photos côte à côte à gauche (le + flottant est à droite et ne les recouvre jamais : vérifié tous les 20 px de défilement), statut en deuxième ligne, « Illustration » à droite. Le voile de lecture suit la hauteur des textes.
 - Légende des arcs : bouton d'information natif (`details/summary`) avec zone tactile 48 px et explication accessible sans quitter la carte.
 - Chargement : le nom de l'action reste ; l'état va dans la ligne secondaire avec `aria-busy`.
 - Focus : contour 2 px vert profond ; sur une photo, anneau blanc doublé de vert profond.
@@ -249,4 +249,4 @@ Toutes les valeurs sont des variables dans `carnet.css` (`:root`). Les règles n
 
 ### Finitions v78 — 24 novembre 2026
 
-Carte plus contrastée, explication des arcs à la demande, espacements locaux réduits, étiquettes équilibrées et voile photographique lié au bloc de texte. Les ratios ci-dessus sont calculés sur les couleurs pleines ; les mesures sur captures et les tests navigateur de la v78 restent à exécuter. Les résultats historiques de la v77 ne constituent pas une validation de la v78. Le + flottant reste stable : les éléments peuvent défiler derrière lui et doivent rester accessibles en poursuivant le défilement.
+Carte plus contrastée, explication des arcs à la demande, espacements locaux réduits, étiquettes équilibrées et voile photographique lié au bloc de texte. Les ratios ci-dessus sont calculés sur les couleurs pleines ; les mesures sur captures et les tests navigateur de la v78 restent à exécuter. Les résultats historiques de la v77 ne constituent pas une validation de la v78. Le + flottant reste stable ; les étiquettes sont toutes à gauche, si bien qu'il n'en recouvre aucune (0 position sur 200+ testées, contre 10 % quand le nombre de photos était à droite).

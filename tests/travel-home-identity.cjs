@@ -196,8 +196,10 @@ async function main(){
     await page.screenshot({path:path.join(dir,"apres-filtre-actif-360.png"),fullPage:false,animations:"disabled"});
     await page.locator('#countryList .countryChip[data-country="FR"]').click();
     // Bouton flottant : jamais sur les étiquettes des cartes, à plusieurs positions de défilement.
-    for(const y of [1400,1900,2400,2900,3400]){
-     await page.evaluate(v=>scrollTo(0,v),y);await page.waitForTimeout(250);
+    // Balayage serré (tous les 20 px) : un échantillon de quelques positions laisse passer des recouvrements.
+    const pageH=await page.evaluate(()=>document.body.scrollHeight);
+    for(let y=0;y<pageH;y+=20){
+     await page.evaluate(v=>scrollTo(0,v),y);await page.waitForTimeout(30);
      const hit=await page.evaluate(()=>{const f=document.querySelector("#addFloating");if(f.hidden)return null;const a=f.getBoundingClientRect();
       return [...document.querySelectorAll("#trips .journeyFlagLine,#trips .journeyPhotoCount,#trips .journeyStatus")].filter(e=>{const b=e.getBoundingClientRect();
        return !(b.right<a.left||b.left>a.right||b.bottom<a.top||b.top>a.bottom)}).map(e=>e.className)});
