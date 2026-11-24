@@ -20,10 +20,10 @@
  --jy-color-on-dark:#FFFFFF;
  --jy-color-on-dark-muted:#DCE6E0;  /* texte secondaire sur le vert ou sur une photo voilée */
  --jy-color-on-dark-line:rgba(255,255,255,.24);
- --jy-color-map-land:#E4E2DA;       /* pays non visités */
- --jy-color-map-visited:#5B8B74;    /* pays visités : 3:1 contre les terres */
+ --jy-color-map-land:#CCD4CD;       /* pays non visités */
+ --jy-color-map-visited:#497660;    /* pays visités : 3:1 contre les terres */
  --jy-color-map-planned:#D3E2D9;    /* pays prévus (avec contour pointillé) */
- --jy-color-map-route:#AA7045;      /* arcs indicatifs résidence → destination */
+ --jy-color-map-route:#93603A;      /* arcs indicatifs résidence → destination */
  --jy-color-photo-scrim:14,31,24;   /* voile sombre des photographies (rgb) */
  /* Compatibilité : anciens noms encore lus par les règles plus bas */
  --jy-green:var(--jy-color-primary);--jy-green-ink:var(--jy-color-primary);
@@ -184,7 +184,8 @@
    Carte du monde : la signature
    ================================================================ */
 #travelMapPanel,#app .w.emptyTravel #travelMapPanel{margin:0 0 var(--jy-section)!important;overflow:visible!important}
-#travelMapPanel .passportMapHeading{align-items:baseline;margin-bottom:var(--jy-s3)}
+#travelMapPanel .passportMapHeading{position:relative;align-items:center;margin-bottom:var(--jy-s2)}
+#travelMapPanel .mapTitleGroup{display:flex;align-items:center;gap:var(--jy-s1);min-width:0}
 #travelMapPanel .passportMapHeading h2,#travelMapPanel h2{
  font:600 var(--jy-text-lg)/1.3 var(--jy-font-title)!important;color:var(--jy-color-text);letter-spacing:0;
 }
@@ -210,8 +211,14 @@
 #map .flightResidence{fill:var(--jy-color-primary-deep)!important}
 #map .flightHomeHalo{fill:var(--jy-color-primary-deep)!important;opacity:.14!important}
 #travelMapPanel .travelMapLegend{margin:var(--jy-s3) 0 0;color:var(--jy-color-text-muted);font-size:var(--jy-text-xs)}
-#travelMapPanel .mapArcNote{margin:var(--jy-s2) 0 0;color:var(--jy-color-text-muted);font:400 var(--jy-text-xs)/1.5 var(--jy-font-text);max-width:46ch}
-#travelMapPanel .mapArcNote[hidden]{display:none}
+#travelMapPanel .mapArcNote{margin:0;color:var(--jy-color-primary);font:400 var(--jy-text-sm)/1.5 var(--jy-font-text)}
+#travelMapPanel .mapArcNote[hidden]{display:none!important}
+#travelMapPanel .mapArcNote summary{display:grid;place-items:center;width:var(--jy-touch);height:var(--jy-touch);cursor:pointer;list-style:none;border-radius:var(--jy-r2)}
+#travelMapPanel .mapArcNote summary::-webkit-details-marker{display:none}
+#travelMapPanel .mapArcNote summary svg{width:17px;height:17px}
+#travelMapPanel .mapArcNote summary:focus-visible{outline:var(--jy-focus);outline-offset:-2px}
+#travelMapPanel .mapArcNote[open] summary{background:var(--jy-color-primary-soft)}
+#travelMapPanel .mapArcNote p{position:absolute;z-index:5;top:100%;left:0;width:min(100%,300px);margin:0;padding:var(--jy-s3);border:1px solid var(--jy-color-line);border-radius:var(--jy-r2);background:var(--jy-color-bg);color:var(--jy-color-text);box-shadow:var(--jy-shadow-card)}
 
 /* ---------- Ordre d'usage : profil, carte, ajouter, carnet, pays, autres ---------- */
 #app>.w>#travelHero,#app .w.emptyTravel>#travelHero{order:0!important}
@@ -234,7 +241,7 @@
 .homeLink:not([aria-expanded="true"])::after{content:" ›"}
 .homeLink:focus-visible{outline:var(--jy-focus);outline-offset:2px}
 .homeLink[hidden],#homeCountries[hidden],#homeCountries.hidden,#homeActions.hidden,#moreActions.hidden{display:none!important}
-#homeCountries{margin:0 0 var(--jy-s5)}
+#homeCountries{margin:0 0 var(--jy-s4)}
 
 /* Pays : grille adaptative, drapeau 4:3, nom entier (retour à la ligne si long), compteur explicite. */
 #countryList{
@@ -262,7 +269,7 @@ span.countryFlag{background:var(--jy-color-line);box-shadow:none}
 #countryList .countryChip:focus-visible{outline:var(--jy-focus);outline-offset:-2px}
 
 /* ---------- Actions ---------- */
-#homeActions{display:flex!important;flex-direction:column;gap:var(--jy-s3);margin:0 0 var(--jy-section)}
+#homeActions{display:flex!important;flex-direction:column;gap:var(--jy-s3);margin:0 0 var(--jy-s5)}
 #homeActions #add{
  min-height:52px;border-radius:var(--jy-r2)!important;background:var(--jy-color-primary)!important;
  box-shadow:none!important;font:600 var(--jy-text-md)/1.3 var(--jy-font-text);
@@ -281,7 +288,8 @@ span.countryFlag{background:var(--jy-color-line);box-shadow:none}
 #secondaryActions>#printJournal[aria-busy="true"]{cursor:progress}
 #secondaryActions>#printJournal[aria-busy="true"] .tileSubtitle{color:var(--jy-color-primary)}
 /* Autres fonctionnalités : lignes calmes, un seul filet au-dessus. */
-#moreActions{margin:0 0 var(--jy-s5);border-top:1px solid var(--jy-color-line)}
+#moreActions{margin:0 0 var(--jy-s3);border-top:1px solid var(--jy-color-line)}
+#app>.w>#filterAnchor{margin-bottom:var(--jy-s2)!important}
 #moreActions>button{
  display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;
  gap:2px var(--jy-s3);width:100%;min-height:60px;padding:var(--jy-s3) 0;
@@ -361,32 +369,32 @@ span.countryFlag{background:var(--jy-color-line);box-shadow:none}
 #trips .journeyTrip .tripOpen.journeyLink:focus-visible{outline:3px solid var(--jy-color-on-dark)!important;outline-offset:-3px!important;box-shadow:inset 0 0 0 5px var(--jy-color-primary-deep)!important}
 @media(prefers-reduced-motion:no-preference){#trips .journeyTrip:hover{box-shadow:0 2px 8px rgba(32,44,38,.16)!important}}
 #trips .journeyMedia,#trips .journeyFlagFallback{background:var(--jy-color-primary-soft)!important}
-/* Dégradé de lecture : seulement sous le texte, assez dense pour une photo blanche. */
-#trips .journeyMedia::after{
- inset:32% 0 0!important;
- background:linear-gradient(180deg,rgba(var(--jy-color-photo-scrim),0) 0%,rgba(var(--jy-color-photo-scrim),.55) 22%,
-  rgba(var(--jy-color-photo-scrim),.80) 44%,rgba(var(--jy-color-photo-scrim),.90) 100%)!important;
-}
-/* Étiquettes : petites, sans ombre, empilées à gauche (le bouton flottant est à droite). */
+/* Le voile suit la hauteur réelle des textes et ne noircit pas le paysage au-dessus. */
+#trips .journeyMedia::after{background:none!important}
+/* Grille des étiquettes : pays puis photos, côte à côte à gauche (le + flottant est à droite) ;
+   statut sur la ligne suivante ; « Illustration » seule à droite. */
+#trips .journeyMedia{display:grid;grid-template-columns:minmax(0,max-content) max-content minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr);align-items:start;gap:var(--jy-s1) var(--jy-s2);padding:var(--jy-s3)}
 #trips .journeyFlagLine,#trips .journeyMedia>.journeyStatus,#trips .journeyPhotoCount{
  min-height:28px!important;padding:4px var(--jy-s2)!important;border-radius:var(--jy-r1)!important;
  box-shadow:none!important;background:rgba(255,255,255,.94)!important;color:var(--jy-color-text)!important;
  font:600 var(--jy-text-xs)/1.3 var(--jy-font-text)!important;gap:6px!important;
 }
-#trips .journeyFlagLine{top:var(--jy-s3)!important;left:var(--jy-s3)!important;max-width:calc(100% - 120px)!important}
+#trips .journeyFlagLine,#trips .journeyMedia>.journeyStatus,#trips .journeyPhotoCount{position:relative!important;inset:auto!important;margin:0!important;min-width:0;max-width:100%!important;align-self:start}
+#trips .journeyFlagLine{grid-column:1;grid-row:1;justify-self:start;overflow-wrap:anywhere}
+#trips .journeyCode{min-width:0}
 #trips .journeyCode{font:600 var(--jy-text-xs)/1.3 var(--jy-font-text)!important;color:var(--jy-color-text)!important}
 #trips .journeyFlag{width:20px!important;height:15px!important;border-radius:2px!important}
-#trips .journeyMedia>.journeyStatus{top:48px!important;left:var(--jy-s3)!important}
+#trips .journeyMedia>.journeyStatus{grid-column:1;grid-row:2;justify-self:start;white-space:normal}
 #trips .journeyMedia>.journeyStatus-upcoming{color:#5C4512!important}
-#trips .journeyPhotoCount{top:48px!important;right:auto!important;left:var(--jy-s3)!important}
-#trips .journeyMedia:has(>.journeyStatus) .journeyPhotoCount{top:84px!important}
+#trips .journeyPhotoCount{grid-column:2;grid-row:1;justify-self:start;white-space:nowrap}
 /* Illustration du pays (pas une photo personnelle) : dit clairement. */
 #trips .journeyMedia:has(>.journeyBackdrop:not([data-is-private="true"]))::before{
- content:"Illustration";position:absolute;z-index:4;top:var(--jy-s3);right:var(--jy-s3);
+ content:"Illustration";position:relative;z-index:4;grid-column:3;grid-row:1;justify-self:end;
  padding:2px 6px;border-radius:var(--jy-r1);background:rgba(var(--jy-color-photo-scrim),.62);
  color:var(--jy-color-on-dark);font:500 11px/1.5 var(--jy-font-text);letter-spacing:.01em;pointer-events:none;
 }
-#trips .journeyContent{gap:var(--jy-s1)!important;padding:56px var(--jy-s4) var(--jy-s4)!important}
+#trips .journeyContent{gap:var(--jy-s1)!important;padding:56px var(--jy-s4) var(--jy-s4)!important;
+ background:linear-gradient(180deg,rgba(var(--jy-color-photo-scrim),0) 0,rgba(var(--jy-color-photo-scrim),.82) 52px,rgba(var(--jy-color-photo-scrim),.90) 100%)!important}
 #trips .journeyFooter{font:500 13px/1.45 var(--jy-font-text)!important;color:var(--jy-color-on-dark)!important}
 #trips .journeyCountry{font:600 var(--jy-text-xl)/1.2 var(--jy-font-title)!important;letter-spacing:0!important;color:var(--jy-color-on-dark)!important}
 #trips .journeyCities{font:400 var(--jy-text-sm)/1.4 var(--jy-font-text)!important;color:var(--jy-color-on-dark-muted)!important}
@@ -401,7 +409,7 @@ span.countryFlag{background:var(--jy-color-line);box-shadow:none}
  #trips .upcomingTripsSection{margin-bottom:var(--jy-s5)!important}
 }
 
-/* ---------- Bouton flottant d'ajout : sobre, à droite, jamais sur les étiquettes ---------- */
+/* ---------- Bouton flottant d'ajout : stable pendant le défilement ---------- */
 #addFloating{
  right:var(--jy-gutter)!important;bottom:calc(var(--jy-gutter) + env(safe-area-inset-bottom,0px))!important;
  width:56px!important;height:56px!important;border-radius:var(--jy-r-fab)!important;

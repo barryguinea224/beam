@@ -166,7 +166,12 @@ async function main(){
     const touch=await page.evaluate(()=>["#openAccount","#add","#printJournal","#pdf","#countryListToggle","#tripListMap","#tripListFilter","#tripListSort"]
      .map(s=>{const r=document.querySelector(s).getBoundingClientRect();return [s,Math.round(r.width),Math.round(r.height)]}));
     for(const [s,w,h] of touch)assert.ok(w>=48&&h>=48||s==="#countryListToggle"&&h>=48,"Zone tactile 48 px : "+s+" "+w+"×"+h);
-    assert.equal(await page.locator("#mapArcNote").isVisible(),true,"La signification des arcs est expliquée");
+    assert.equal(await page.locator("#mapArcNote summary").isVisible(),true,"L’information sur les arcs est accessible");
+    assert.equal(await page.locator("#mapArcNote p").isVisible(),false,"La note ne surcharge pas la carte au repos");
+    await page.locator("#mapArcNote summary").click();
+    assert.equal(await page.locator("#mapArcNote p").isVisible(),true,"Explication affichée à la demande");
+    await page.locator("#mapArcNote summary").click();
+    assert.equal(await page.locator("#mapArcNote p").isVisible(),false);
     const labels=await page.evaluate(()=>[...document.querySelectorAll("#trips .journeyMedia")].map(m=>{
      const img=m.querySelector(".journeyBackdrop"),label=getComputedStyle(m,"::before").content;
      return {prive:img?.dataset.isPrivate==="true",illustration:label==='"Illustration"'};
@@ -191,8 +196,10 @@ async function main(){
     await page.screenshot({path:path.join(dir,"apres-filtre-actif-360.png"),fullPage:false,animations:"disabled"});
     await page.locator('#countryList .countryChip[data-country="FR"]').click();
     // Bouton flottant : jamais sur les étiquettes des cartes, à plusieurs positions de défilement.
-    for(const y of [1400,1900,2400,2900,3400]){
-     await page.evaluate(v=>scrollTo(0,v),y);await page.waitForTimeout(250);
+    // Balayage serré (tous les 20 px) : un échantillon de quelques positions laisse passer des recouvrements.
+    const pageH=await page.evaluate(()=>document.body.scrollHeight);
+    for(let y=0;y<pageH;y+=20){
+     await page.evaluate(v=>scrollTo(0,v),y);await page.waitForTimeout(30);
      const hit=await page.evaluate(()=>{const f=document.querySelector("#addFloating");if(f.hidden)return null;const a=f.getBoundingClientRect();
       return [...document.querySelectorAll("#trips .journeyFlagLine,#trips .journeyPhotoCount,#trips .journeyStatus")].filter(e=>{const b=e.getBoundingClientRect();
        return !(b.right<a.left||b.left>a.right||b.bottom<a.top||b.top>a.bottom)}).map(e=>e.className)});

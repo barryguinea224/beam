@@ -87,6 +87,11 @@ async function main(){
     await page.locator(".completedTripsList .journeyTrip").first().scrollIntoViewIfNeeded();
     await page.waitForFunction(()=>document.querySelector(".journeyPhotoCount")?.textContent==="1 photo");
     assert.equal(await page.locator(".journeyPhotoCount").count(),1);
+    const badgeLayout=await cards.first().evaluate(card=>{
+     const country=card.querySelector(".journeyFlagLine").getBoundingClientRect(),photos=card.querySelector(".journeyPhotoCount").getBoundingClientRect();
+     return {countryRight:country.right,photosLeft:photos.left,countryTop:country.top,photosTop:photos.top};
+    });
+    assert.ok(badgeLayout.countryRight<=badgeLayout.photosLeft&&Math.abs(badgeLayout.countryTop-badgeLayout.photosTop)<=1,"Pays puis photos sur la même ligne, sans chevauchement : "+JSON.stringify(badgeLayout));
     assert.ok(privateRequests.every(url=>url.startsWith("https://fixture.invalid/storage/v1/object/sign/media/")));
     const coverFallback=page.locator(".journeyTrip").filter({hasText:"Guinée"});
     assert.equal(await coverFallback.locator(".journeyBackdrop").getAttribute("src"),"./assets/countries/gn.svg");
@@ -206,7 +211,7 @@ async function main(){
       const pill=document.createElement("span");
       pill.className="journeyPhotoCount";pill.textContent="2 photos";
       const rect=add.getBoundingClientRect();
-      // !important: the card stylesheet pins pills to the left with !important.
+      // !important: override the grid badge layout for this artificial overlap probe.
       for(const [k,v] of Object.entries({position:"fixed",left:(rect.left+8)+"px",top:(rect.top+8)+"px",
        right:"auto",bottom:"auto"}))pill.style.setProperty(k,v,"important");
       host.append(pill);
