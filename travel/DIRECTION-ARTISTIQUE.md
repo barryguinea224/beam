@@ -38,7 +38,7 @@ Statut : PR 1 (fondations + accueil). Les autres écrans seront refaits dans des
 | Boutons et icônes | Trois familles de boutons (pilule 999 px, 10 px, texte souligné) ; icônes de 15 à 22 px avec des traits de 1,8 px variables | Moyenne |
 | Navigation | Bouton flottant « + » de 56 px avec ombre, qui s'ajoute au bouton principal | Basse |
 | Hors ligne | Corrigé sur l'accueil ; l'écran de chargement (`#offlineSkeleton`) garde des blocs arrondis 14 à 18 px | Basse |
-| Ordinateur | Colonne gauche étroite : la carte est moins large que l'en-tête et la première lettre de « Ma carte » est rognée (défaut existant, non lié à cette PR) | Moyenne |
+| Ordinateur | Corrigé dans la PR 2 : colonne de lecture centrée de 720 px, « Ma carte » n'est plus rogné | Fait |
 
 ## 2. Direction artistique
 
@@ -50,7 +50,7 @@ Les fondations sont des variables CSS dans `carnet.css`, à réutiliser écran p
 | --- | --- |
 | Couleurs | Vert profond `#1B4332` · vert texte `#174d3a` · ivoire `#f7f5ef` · papier `#fbfaf6` · encre `#17231f` · gris secondaire `#59675f` · filet `#dcdad1` · doré `#C9962E` (jamais en texte sur ivoire) |
 | Arrondis | 0, 4 px, 8 px. Le cercle est réservé à l'avatar et aux points d'état |
-| Typographie | Poppins (titres et chiffres) et police système (texte). 5 tailles : 12, 14, 16, 20, 28 px. Graisses 400 et 600 uniquement |
+| Typographie | Poppins (titres et chiffres) et police système (texte). 5 tailles : 12, 14, 16, 20, 28 px. Graisses 400, 500 (nom du voyageur) et 600 |
 | Espacements | Base 4 px : 4, 8, 12, 16, 24, 32 |
 | Ombres et dégradés | Aucun. La hiérarchie passe par la taille, la graisse, l'espace et des filets de 1 px |
 
@@ -78,6 +78,16 @@ Les fondations sont des variables CSS dans `carnet.css`, à réutiliser écran p
 | Hors ligne | Bandeau plein vert pâle | Une ligne grise avec un point doré ; le texte reste explicite |
 
 Cache hors ligne : `carnet.css` est ajouté au shell du service worker et la version du cache passe à `v74`, pour que les utilisateurs reçoivent le nouveau style.
+
+## 3 bis. PR 2 — affinage après essai sur Android
+
+| Élément | Correction |
+| --- | --- |
+| Carte du monde | Le conteneur suit les proportions réelles calculées par l'app (plus de hauteur fixe ni minimale) : 0 px de vide au lieu de 147 px pour un planisphère entier à 360 px. Plus de cadre. Hauteur plafonnée à min(52vh, 360 px) pour les cadrages verticaux |
+| Pays | Index compact sur deux colonnes : petit drapeau local, nom, nombre aligné à droite, filets fins. 44 px tactiles |
+| Nom | Poppins Medium 500 (fichier local ajouté, 7,7 Ko, licence OFL) |
+| En-tête | Espacements resserrés : 158 px au lieu de 174 px à 360 px. Couverture discrète conservée |
+| Ordinateur | Colonne centrée de 720 px ; les blocs ne rétrécissent plus à leur contenu |
 
 ## 4. Prochaines PR proposées
 

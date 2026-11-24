@@ -3,6 +3,8 @@
    l'accueil (cartes, dégradés, ombres, pastilles). Voir travel/DIRECTION-ARTISTIQUE.md.
    Aucune logique, aucun nouveau fichier JS, aucune requête externe. */
 
+@font-face{font-family:Poppins;src:url("./assets/fonts/Poppins-Medium.woff2") format("woff2");font-style:normal;font-weight:500;font-display:swap}
+
 :root{
  /* Couleurs — le vert porte l'identité, l'ivoire est le papier, le doré reste rare. */
  --jy-green:#1B4332;       /* vert profond : en-tête, bouton principal */
@@ -18,7 +20,7 @@
  --jy-on-green-line:rgba(255,255,255,.18);
  /* Arrondis — trois valeurs, le cercle est réservé à l'avatar. */
  --jy-r0:0;--jy-r1:4px;--jy-r2:8px;
- /* Typographie — cinq tailles, graisses 400 et 600 uniquement. */
+ /* Typographie — cinq tailles ; graisses 400, 500 (nom) et 600. */
  --jy-t1:12px;--jy-t2:14px;--jy-t3:16px;--jy-t4:20px;--jy-t5:28px;
  --jy-title:Poppins,system-ui,sans-serif;
  --jy-text:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
@@ -31,9 +33,9 @@
  display:grid!important;
  grid-template-columns:auto minmax(0,1fr);
  grid-template-areas:"identity identity" "stats stats";
- row-gap:var(--jy-s6);
+ row-gap:var(--jy-s5);
  min-height:0;
- padding:calc(var(--jy-s6) + env(safe-area-inset-top,0px)) var(--jy-s5) var(--jy-s6)!important;
+ padding:calc(28px + env(safe-area-inset-top,0px)) var(--jy-s5) 28px!important;
  margin-top:0!important;margin-bottom:var(--jy-s5)!important; /* marges latérales : pleine largeur mobile conservée */
  border-radius:var(--jy-r0)!important;
  background:var(--jy-green)!important;
@@ -78,8 +80,8 @@
 }
 #travelHero #dashboardTitle,#travelHero #dashboardTitle.longTitle,
 #travelHero #dashboardTitle.extraLongTitle{
- font:600 var(--jy-t4)/1.25 var(--jy-title)!important;
- margin:0 0 2px!important;
+ font:500 var(--jy-t4)/1.25 var(--jy-title)!important;
+ margin:0 0 var(--jy-s1)!important;
 }
 #travelHero #travelerLocation{
  gap:var(--jy-s1);color:var(--jy-on-green-muted);
@@ -109,7 +111,7 @@
 #travelHero .passportStat .passportLabel{color:var(--jy-on-green-muted);font:400 13px/1.3 var(--jy-text)}
 
 /* ---------- La carte du monde devient le cœur de l'accueil ---------- */
-#travelMapPanel,#app .w.emptyTravel #travelMapPanel{margin:0 0 var(--jy-s5)!important}
+#travelMapPanel,#app .w.emptyTravel #travelMapPanel{margin:0 0 var(--jy-s5)!important;overflow:visible!important} /* le M de « Ma carte » n'est plus rogné ; la carte garde son propre overflow */
 #travelMapPanel .passportMapHeading{align-items:baseline;margin-bottom:var(--jy-s3)}
 #travelMapPanel .passportMapHeading h2,#travelMapPanel h2{
  font:600 var(--jy-t4)/1.3 var(--jy-title)!important;color:var(--jy-ink);
@@ -119,27 +121,36 @@
  color:var(--jy-muted);font:400 13px/1.3 var(--jy-text);
 }
 #travelMapPanel .map{
- border-radius:var(--jy-r1);background:var(--jy-paper);
- border:1px solid var(--jy-line);
- height:clamp(300px,92vw,440px)!important;max-height:none!important;aspect-ratio:auto;
+ /* La hauteur suit le viewBox calculé par l'app (aspect-ratio en ligne) : plus de vide. */
+ display:block!important;height:auto!important;min-height:0!important;max-height:min(52vh,360px)!important;
+ border:0!important;border-radius:0;background:transparent;padding:0;overflow:hidden;
 }
-#travelMapPanel .travelMapLegend{margin:var(--jy-s2) 0 0;color:var(--jy-muted);font-size:var(--jy-t1)}
+#travelMapPanel .map svg{display:block;width:100%!important;height:100%!important;max-height:none!important}
+#travelMapPanel .travelMapLegend{margin:var(--jy-s3) 0 0;color:var(--jy-muted);font-size:var(--jy-t1)}
 
-/* Pays : une liste typographique, plus de pastilles. */
+/* Pays : un index compact sur deux colonnes, petit drapeau, nombre aligné. */
 #countryList{
- display:flex;flex-wrap:wrap;gap:0 var(--jy-s5);margin-top:var(--jy-s1);
+ display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));column-gap:var(--jy-s5);
+ margin-top:var(--jy-s3);border-top:1px solid var(--jy-line);
 }
 #countryList .countryChip{
- display:inline-flex;align-items:baseline;gap:6px;
- min-height:44px;padding:var(--jy-s3) 0;
- border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;
- color:var(--jy-ink);font:400 var(--jy-t2)/1.3 var(--jy-text);cursor:pointer;
+ display:grid;grid-template-columns:20px minmax(0,1fr) auto;align-items:center;gap:var(--jy-s2);
+ width:100%;min-height:44px;padding:0;text-align:left;
+ border:0!important;border-bottom:1px solid var(--jy-line)!important;border-radius:0!important;
+ background:transparent!important;box-shadow:none!important;
+ color:var(--jy-ink);font:400 var(--jy-t2)/1.3 var(--jy-text);cursor:pointer;transition:none!important;
 }
-#countryList .countryChip b{color:var(--jy-muted);font-weight:400;font-size:13px}
-#countryList .countryChip[aria-pressed="true"]{
+#countryList .countryFlag{
+ display:block;width:20px;height:15px;object-fit:cover;border-radius:var(--jy-r0);
+ box-shadow:0 0 0 1px rgba(23,35,31,.12);
+}
+span.countryFlag{background:var(--jy-line);box-shadow:none}
+#countryList .countryName{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#countryList .countryChip b{color:var(--jy-muted);font-weight:400;font-size:13px;font-variant-numeric:tabular-nums;white-space:nowrap}
+#countryList .countryChip[aria-pressed="true"] .countryName{
  color:var(--jy-green-ink);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:4px;
 }
-#countryList .countryChip:focus-visible{outline:2px solid var(--jy-green-ink);outline-offset:2px}
+#countryList .countryChip:focus-visible{outline:2px solid var(--jy-green-ink);outline-offset:-2px}
 
 /* ---------- Actions : un bouton principal, deux liens en liste ---------- */
 #homeActions{gap:var(--jy-s4);margin:0 0 var(--jy-s6)}
@@ -185,12 +196,11 @@
 /* ---------- Petits écrans ---------- */
 @media(max-width:420px){
  #travelHero,#app .w.emptyTravel #travelHero{
-  padding:calc(var(--jy-s6) + env(safe-area-inset-top,0px)) var(--jy-s4) var(--jy-s6)!important;
+  padding:calc(28px + env(safe-area-inset-top,0px)) var(--jy-s4) 28px!important;
   margin-bottom:var(--jy-s5)!important;border-radius:0!important;
  }
  #travelHero .passportStat{padding:0 var(--jy-s3)!important}
  #travelHero .passportStat .passportLabel{font-size:var(--jy-t1)}
- #travelMapPanel .map{height:clamp(272px,82vw,360px)!important}
 }
 @media(max-width:340px){
  #travelHero .passportStat{gap:4px;padding:0 10px!important}
@@ -199,6 +209,11 @@
 
 /* ---------- Ordinateur : l'en-tête reste une colonne calme ---------- */
 @media(min-width:900px){
- #travelHero,#app .w.emptyTravel #travelHero{border-radius:var(--jy-r1)!important}
- #travelMapPanel .map{height:clamp(320px,38vw,460px)!important}
+ /* Une colonne de lecture centrée, comme une page de carnet : l'ancien
+    « align-items:start » des grilles faisait rétrécir chaque bloc à son contenu. */
+ #app>.w,#app>.w.emptyTravel{align-items:stretch!important;max-width:720px!important;margin-inline:auto}
+ #travelHero,#app .w.emptyTravel #travelHero{align-self:stretch!important;width:auto!important;max-width:none!important;border-radius:var(--jy-r1)!important;margin-top:var(--jy-s5)!important}
+ #homeActions{align-items:flex-start}
+ #homeActions #add{width:auto;min-width:280px;padding-inline:var(--jy-s6)}
+ #secondaryActions{width:100%}
 }
