@@ -169,11 +169,11 @@ async function main(){
         el.className=previousClasses.join(" ");
         return result;
       });
-      const expectedSize=Math.max(18,Math.min(26,width*0.052));
+      const expectedSize=20; // carnet direction: fixed type scale (12/14/16/20/28)
       assert.match(typography.fontFamily,/Poppins/,"locally hosted Poppins must style the traveler title");
-      assert.equal(typography.fontWeight,"700","passport name must use Poppins bold");
+      assert.equal(typography.fontWeight,"600","passport name uses Poppins semibold (carnet direction, max weight 600)");
       assert.ok(Math.abs(typography.fontSize-expectedSize)<0.12,
-         "title must respect clamp(18px,5.2vw,26px): "+JSON.stringify(typography));
+         "title must use the 20px scale step: "+JSON.stringify(typography));
       assert.ok(Math.abs(typography.lineHeight/typography.fontSize-1.25)<0.02,
         "title line height must be 1.25: "+JSON.stringify(typography));
       assert.ok(typography.lines>=0.98&&typography.lines<=2.03,

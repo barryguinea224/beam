@@ -218,9 +218,11 @@ async function main(){
       overflow:document.documentElement.scrollWidth-innerWidth};
     });
     assert.ok(layout.overflow<=1,"real mobile page has horizontal overflow at "+width);
-    assert.ok(Math.abs(layout.pdf.top-layout.journal.top)<=2,"PDF/journal must share a row at "+width);
-    assert.ok(Math.abs(layout.pdf.height-layout.journal.height)<=2,"PDF/journal buttons must have equal height at "+width);
-    assert.ok(layout.add.width>=layout.pdf.width+layout.journal.width-4,"Add button must span both columns at "+width);
+    // Carnet direction: journal then PDF as full-width list rows under the add button.
+    assert.ok(layout.journal.top<layout.pdf.top&&layout.journal.bottom<=layout.pdf.top+1,"Journal row comes before the PDF row at "+width);
+    assert.ok(Math.abs(layout.pdf.height-layout.journal.height)<=2,"PDF/journal rows must have equal height at "+width);
+    assert.ok(Math.abs(layout.pdf.width-layout.add.width)<=2&&Math.abs(layout.journal.width-layout.add.width)<=2,"Rows span the add button width at "+width);
+    assert.ok(layout.pdf.height>=44&&layout.journal.height>=44,"44 px touch targets at "+width);
     assert.equal(layout.consentVisible,false,"PDF consent must remain inside the closed dialog at "+width);
      assert.ok(layout.map.top<layout.add.top,"world map comes before actions at "+width);
     assert.ok(layout.map.top<850,"map must be visible without scrolling at "+width);
