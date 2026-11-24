@@ -8,6 +8,7 @@ on:
       - "travel/carnet.css"
       - "travel/passport-home.css"
       - "tests/travel-carnet-home.cjs"
+      - "tests/travel-carnet-ux.cjs"
       - "travel/account-settings.css"
       - "travel/visual-cards.css"
       - "travel/photo-sheet.css"
@@ -60,12 +61,16 @@ jobs:
           node tests/travel-factual-contacts-ui.cjs
       - name: Carnet direction — before/after at 320, 360, 390, 430 and 1280 px, world map
         run: node tests/travel-carnet-home.cjs "ref:${{ github.event.pull_request.base.sha }}"
+      - name: Carnet UX — 0, 1, 8, 25, 100 countries, long names, 130 % text, slow network
+        run: node tests/travel-carnet-ux.cjs "ref:${{ github.event.pull_request.base.sha }}"
       - name: Upload carnet before/after captures
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: jyetais-carnet-accueil-avant-apres
-          path: test-artifacts/carnet-home/
+          path: |
+            test-artifacts/carnet-home/
+            test-artifacts/carnet-ux/
           if-no-files-found: warn
       - name: Upload Android 360 px before and after
         if: always()

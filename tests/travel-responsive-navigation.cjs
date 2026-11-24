@@ -209,6 +209,8 @@ async function main(){
    await page.waitForFunction(()=>document.querySelector("#openAccount")&&!document.querySelector("#openAccount").classList.contains("hidden"));
    // Assert the REAL mobile page matches the approved action layout.
    if(width<900){
+    // Wait for the trips to load: before that the home actions are hidden (0×0 boxes).
+    await page.locator("#add").waitFor({state:"visible",timeout:20000});
     const layout=await page.evaluate(()=>{
      const box=id=>{const r=document.querySelector(id).getBoundingClientRect();
       return {top:r.top,left:r.left,bottom:r.bottom,width:r.width,height:r.height}};
@@ -219,7 +221,7 @@ async function main(){
     });
     assert.ok(layout.overflow<=1,"real mobile page has horizontal overflow at "+width);
     // Carnet direction: journal then PDF as full-width list rows under the add button.
-    assert.ok(layout.journal.top<layout.pdf.top&&layout.journal.bottom<=layout.pdf.top+1,"Journal row comes before the PDF row at "+width);
+    assert.ok(layout.journal.top<layout.pdf.top&&layout.journal.bottom<=layout.pdf.top+1,"Journal row comes before the PDF row at "+width+" "+JSON.stringify(layout));
     assert.ok(Math.abs(layout.pdf.height-layout.journal.height)<=2,"PDF/journal rows must have equal height at "+width);
     assert.ok(Math.abs(layout.pdf.width-layout.add.width)<=2&&Math.abs(layout.journal.width-layout.add.width)<=2,"Rows span the add button width at "+width);
     assert.ok(layout.pdf.height>=44&&layout.journal.height>=44,"44 px touch targets at "+width);
