@@ -89,6 +89,18 @@ Cache hors ligne : `carnet.css` est ajouté au shell du service worker et la ver
 | En-tête | Espacements resserrés : 158 px au lieu de 174 px à 360 px. Couverture discrète conservée |
 | Ordinateur | Colonne centrée de 720 px ; les blocs ne rétrécissent plus à leur contenu |
 
+## 3 ter. PR 3 — ergonomie de l'accueil
+
+| Sujet | Décision |
+| --- | --- |
+| Carte tronquée | Cause : l'app recadrait le `viewBox` sur les pays visités (marge de 12 %), et le conteneur montrait jusqu'ici, par accident, ce qui dépassait. Le cadre suit maintenant le viewBox exact, donc le recadrage devenait visible. L'accueil affiche désormais toujours le planisphère entier (x 0 à 1000, y 8 à 413, agrandi seulement si un arc de vol dépasse), avec les proportions naturelles et sans vide autour |
+| Ordre d'usage | Profil → carte → Ajouter un voyage → Mon carnet → Mes pays → PDF ambassade. L'ordre du HTML est le même que l'ordre affiché (lecteurs d'écran et clavier compris) |
+| Pays | Aperçu de 4 pays (les plus visités d'abord, un pays filtré reste toujours visible), lien « Voir les N pays » / « Afficher moins ». Noms complets sur deux lignes si besoin, jamais tronqués |
+| Compteur | « N voyages » = nombre de voyages passés par ce pays, comme destination principale ou comme étape, compté une seule fois par voyage (`visitedCodes`) |
+| Drapeaux | 24 × 18 px (4:3, le format natif des drapeaux), sans déformation |
+| Mon carnet | Bouton secondaire bordé de vert, 64 px, juste sous « Ajouter un voyage » |
+| Robustesse | Testé avec 0, 1, 8, 25 et 100 pays, un nom de profil très long, des noms de pays longs, un texte agrandi à 130 %, une connexion lente, à 320, 360, 390, 430 et 1280 px (`tests/travel-carnet-ux.cjs`) |
+
 ## 4. Prochaines PR proposées
 
 1. Cartes de voyages et barre Carte / Filtrer / Trier.

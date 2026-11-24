@@ -81,7 +81,7 @@ async function main(){
       titleFont:getComputedStyle(title).fontFamily,
       stats,code:code.textContent,codeVisible:!code.hidden,
       location:get("travelerLocationText").textContent,continent:badge.textContent,
-      tiles:[...get("secondaryActions").children].map(b=>b.innerText)};
+      tiles:[get("printJournal"),get("pdf")].map(b=>b.innerText)}; // carnet: journal under add, PDF under countries
     });
     assert.equal(snap.code,"GN");
     assert.equal(snap.codeVisible,true);
@@ -109,6 +109,9 @@ async function main(){
     assert.ok(startingList>1,"Fixture must contain multiple destinations");
     await page.waitForFunction(()=>document.querySelectorAll("#map .flightArc").length>=1,
       null,{timeout:20000});
+    // Carnet: the home shows 4 countries; « Voir les N pays » reveals the rest.
+    if(await page.locator(`#countryList .countryChip[data-country="SN"]`).isHidden())
+     await page.locator("#countryListToggle").click();
     await page.locator('#countryList .countryChip[data-country="SN"]').click();
     await page.waitForFunction(()=>
       document.querySelector('#countryList .countryChip[data-country="SN"]')?.getAttribute("aria-pressed")==="true"&&
